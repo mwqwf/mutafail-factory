@@ -54,10 +54,10 @@ jobs:
       - name: بناء الكتل واللقطات
         id: meta
         run: |
-          cd proj && python ../tools/build.py
-          echo "slug=$(python -c "import json,io;print(json.load(io.open('meta.json',encoding='utf-8'))['slug'])")" >> $GITHUB_OUTPUT
-          echo "blocks=$(python -c "import json,io;print(len(json.load(io.open('blocks.json',encoding='utf-8'))))")" >> $GITHUB_OUTPUT
-          echo "shots=$(python -c "import json,io;print(len(json.load(io.open('shots.json',encoding='utf-8'))))")" >> $GITHUB_OUTPUT
+          python tools/build.py "$PWD/proj"
+          echo "slug=$(python -c "import json,io;print(json.load(io.open('proj/meta.json',encoding='utf-8'))['slug'])")" >> $GITHUB_OUTPUT
+          echo "blocks=$(python -c "import json,io;print(len(json.load(io.open('proj/blocks.json',encoding='utf-8'))))")" >> $GITHUB_OUTPUT
+          echo "shots=$(python -c "import json,io;print(len(json.load(io.open('proj/shots.json',encoding='utf-8'))))")" >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v4
         with: { name: proj, path: proj, retention-days: 2 }

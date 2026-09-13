@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """يبني blocks.json و images.json و shots.json من script.md + images-extra.md"""
-import io, json, os
+import io, json, os, sys
 
-P = os.path.dirname(os.path.abspath(__file__))
+# ⭐ مجلّد المشروع من الوسيط، وإلا فموضع الملفّ (لئلّا ينكسر الاستعمال المحلّيّ).
+P = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(os.path.abspath(__file__))
 VOICE = {"C": "Charon", "R": "Iapetus", "U": "Umbriel",
          "A": "Schedar", "S": "Algenib", "E": "Enceladus"}
 
@@ -20,7 +21,8 @@ for line in io.open(os.path.join(P, "script.md"), encoding="utf-8"):
         blocks.append({"id": bid, "voice": VOICE[v], "text": txt})
         order.append(("blk", bid))
 
-for line in io.open(os.path.join(P, "images-extra.md"), encoding="utf-8"):
+_ex = os.path.join(P, "images-extra.md")
+for line in (io.open(_ex, encoding="utf-8") if os.path.exists(_ex) else []):
     line = line.rstrip("\n").strip()
     if line.startswith("IMG:"):
         i, prompt = line[4:].split("|", 1)
