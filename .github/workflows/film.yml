@@ -1,0 +1,185 @@
+name: مصنع المتفائل — إنتاج حلقة
+
+run-name: 🎬 ${{ github.event.head_commit.message }}
+
+# ⛔⛔ **لماذا الزنادُ دفعةٌ لا `workflow_dispatch`:**
+# جلسةُ كلود السحابيّة **تقرأ** جيت هَب ولا تملك الإدلاء (‏403 مقيسٌ في rafiq-align-ci).
+# فالقاعدة نفسها هنا: **الصلاحيةُ تبقى حيث هي، والأمرُ يُنقل إليها.**
+# الجلسةُ تدفع أمراً مختوماً، والعدّاءُ يفضّه بسرّه هو وينفّذ.
+on:
+  push:
+    paths: ["ops/commands/**"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mutafail-film
+  cancel-in-progress: false
+
+env:
+  PY: "3.11"
+
+jobs:
+  # ══════════ ١) الفضُّ والتهيئة ══════════
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      slug:   ${{ steps.meta.outputs.slug }}
+      blocks: ${{ steps.meta.outputs.blocks }}
+      shots:  ${{ steps.meta.outputs.shots }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q pillow numpy
+
+      - name: فضُّ الحمولة المختومة
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          CMD=$(ls -t ops/commands/*/ | head -1 || true)
+          DIR=$(ls -td ops/commands/*/ | head -1)
+          echo "الأمر: $DIR"
+          bash tools/unseal.sh "$DIR" "$PWD/proj"
+          ls -la proj
+
+      - name: ⛔ البوّابتان قبل أيّ توليد — اللغة ثمّ الحارس
+        run: |
+          python tools/lint.py  proj/script.md
+          python tools/guard.py proj/script.md
+          echo "✅ البوّابتان نظيفتان"
+
+      - name: بناء الكتل واللقطات
+        id: meta
+        run: |
+          cd proj && python ../tools/build.py
+          echo "slug=$(python -c "import json,io;print(json.load(io.open('meta.json',encoding='utf-8'))['slug'])")" >> $GITHUB_OUTPUT
+          echo "blocks=$(python -c "import json,io;print(len(json.load(io.open('blocks.json',encoding='utf-8'))))")" >> $GITHUB_OUTPUT
+          echo "shots=$(python -c "import json,io;print(len(json.load(io.open('shots.json',encoding='utf-8'))))")" >> $GITHUB_OUTPUT
+
+      - uses: actions/upload-artifact@v4
+        with: { name: proj, path: proj, retention-days: 2 }
+
+  # ══════════ ٢) الصوت — ستّة أسهم متوازية ══════════
+  tts:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix: { shard: [0, 1, 2, 3, 4, 5] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: proj, path: proj }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: توليد حصّة السهم
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          printf '%s' "$GEMINI_KEYS_JSON" > keys.json
+          node tools/gen25.js proj 6 --shard ${{ matrix.shard }} --shards 6 --keys keys.json
+          rm -f keys.json
+      - uses: actions/upload-artifact@v4
+        with: { name: audio-${{ matrix.shard }}, path: proj/audio, retention-days: 2 }
+
+  # ══════════ ٣) الصور — عاملٌ واحد (بوليناشنز: طابورٌ واحد) ══════════
+  images:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: proj, path: proj }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: node tools/imgdl2.js proj      # ⛔ عاملٌ واحدٌ فقط — لا توازي هنا
+      - uses: actions/upload-artifact@v4
+        with: { name: img, path: proj/img, retention-days: 2 }
+
+  # ══════════ ٤) خرائط العمق والتصيير — عشرة عمّال ══════════
+  render:
+    needs: [prepare, tts, images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix: { w: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q pillow numpy
+      - run: sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg
+      - uses: actions/download-artifact@v4
+        with: { name: proj, path: proj }
+      - uses: actions/download-artifact@v4
+        with: { name: img, path: proj/img }
+      - uses: actions/download-artifact@v4
+        with: { pattern: audio-*, path: proj/audio, merge-multiple: true }
+      - name: عمق ثمّ تصيير حصّتي
+        run: |
+          python -c "import sys;sys.path.insert(0,'tools');import kb3d;kb3d.depth_maps('proj')"
+          python tools/turbo.py "$PWD/proj" ${{ matrix.w }} 10
+      - uses: actions/upload-artifact@v4
+        with: { name: seg-${{ matrix.w }}, path: proj/work/seg, retention-days: 2 }
+
+  # ══════════ ٥) التركيب والريلزات والمصغّرات ══════════
+  assemble:
+    needs: [prepare, render]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q pillow numpy
+      - run: sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg fonts-noto-core
+      - uses: actions/download-artifact@v4
+        with: { name: proj, path: proj }
+      - uses: actions/download-artifact@v4
+        with: { name: img, path: proj/img }
+      - uses: actions/download-artifact@v4
+        with: { pattern: audio-*, path: proj/audio, merge-multiple: true }
+      - uses: actions/download-artifact@v4
+        with: { pattern: seg-*, path: proj/work/seg, merge-multiple: true }
+      - name: التركيب (يجد اللقطات جاهزةً فيتخطّى التصيير)
+        run: |
+          python tools/mont3d.py "$PWD/proj"
+          python tools/mkreel3d.py "$PWD/proj" r1
+          python tools/mkreel3d.py "$PWD/proj" r2
+          python tools/chapters.py "$PWD/proj" "$PWD/proj/sections.json"
+          ls -la proj/film.mp4 proj/reels
+      - uses: actions/upload-artifact@v4
+        with: { name: film, path: "proj/film.mp4\nproj/reels\nproj/thumb-*.jpg\nproj/الفصول.txt", retention-days: 5 }
+
+  # ══════════ ٦) النشر على يوتيوب ══════════
+  publish:
+    needs: [prepare, assemble]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
+      - uses: actions/download-artifact@v4
+        with: { name: proj, path: proj }
+      - uses: actions/download-artifact@v4
+        with: { name: film, path: proj }
+      - name: رفعٌ ونشر
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: python tools/publish_youtube.py proj
+
+      - name: تسجيلُ المنجَز في سجلّ الخطة
+        run: |
+          git config user.name  "مصنع المتفائل"
+          git config user.email "factory@mutafail.local"
+          git add -A ops/state || true
+          git commit -qm "✅ نُشرت: ${{ needs.prepare.outputs.slug }}" || echo "لا جديد"
+          git push || true
