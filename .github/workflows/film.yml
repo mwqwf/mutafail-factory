@@ -84,7 +84,10 @@ jobs:
           node tools/gen25.js proj 6 --shard ${{ matrix.shard }} --shards 6 --keys keys.json
           rm -f keys.json
       - uses: actions/upload-artifact@v4
-        with: { name: audio-${{ matrix.shard }}, path: proj/audio, retention-days: 2 }
+        with:
+          name: "audio-${{ matrix.shard }}"
+          path: proj/audio
+          retention-days: 2
 
   # ══════════ ٣) الصور — عاملٌ واحد (بوليناشنز: طابورٌ واحد) ══════════
   images:
@@ -126,7 +129,10 @@ jobs:
           python -c "import sys;sys.path.insert(0,'tools');import kb3d;kb3d.depth_maps('proj')"
           python tools/turbo.py "$PWD/proj" ${{ matrix.w }} 10
       - uses: actions/upload-artifact@v4
-        with: { name: seg-${{ matrix.w }}, path: proj/work/seg, retention-days: 2 }
+        with:
+          name: "seg-${{ matrix.w }}"
+          path: proj/work/seg
+          retention-days: 2
 
   # ══════════ ٥) التركيب والريلزات والمصغّرات ══════════
   assemble:
