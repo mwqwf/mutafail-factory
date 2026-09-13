@@ -1,0 +1,61 @@
+#!/bin/bash
+# تسليم مخرجات فيلم إلى التحميلات — نسخة كاملة جاهزة للرفع
+# الاستعمال: bash ~/.claude/skills/video-factory/deliver.sh <مجلد-المشروع> "<اسم الفيلم بالعربية>"
+set -u
+S="${1:?مجلد المشروع مطلوب}"
+NAME="${2:-$(basename "$S")}"
+D="$USERPROFILE/Downloads/وثائقي-$NAME"
+mkdir -p "$D/ريلزات" "$D/صور" "$D/مصغرات"
+
+# الفيلم (أكبر mp4 داخل mont/)
+FILM=$(ls -S "$S"/mont/*.mp4 2>/dev/null | head -1)
+[ -n "${FILM:-}" ] && cp "$FILM" "$D/$NAME.mp4"
+
+# الريلزات
+cp "$S"/reels/*.mp4 "$D/ريلزات/" 2>/dev/null
+
+# الصور والمصغرات
+cp "$S"/img/*.jpg "$D/صور/" 2>/dev/null
+cp "$S"/مصغرة*.jpg "$D/مصغرات/" 2>/dev/null
+
+# النصوص: السيناريو وملف النشر
+cp "$S"/script.md "$D/" 2>/dev/null
+cp "$S"/نشر-*.md "$D/" 2>/dev/null
+
+# ملخّص نصّي للنسخ المباشر (عناوين + وصف + فصول + وسوم)
+PUB=$(ls "$S"/نشر-*.md 2>/dev/null | head -1)
+if [ -n "${PUB:-}" ]; then
+  PYTHONIOENCODING=utf-8 python - "$PUB" "$D" <<'PY'
+import io,os,sys
+s=io.open(sys.argv[1],encoding='utf-8').read()
+def sec(a,b):
+    try: i=s.index(a)
+    except ValueError: return ""
+    try: j=s.index(b)
+    except ValueError: j=len(s)
+    return s[i:j].rstrip()+"\n\n"
+out=(sec('## العناوين','## الوصف')+sec('## الوصف','## الفصول')
+     +sec('## الفصول','## الوسوم')+sec('## الوسوم','## الريلزات'))
+io.open(os.path.join(sys.argv[2],'العناوين-والوصف-والفصول.txt'),'w',encoding='utf-8').write(out)
+PY
+fi
+# ملف الوسوم مستقلًّا — فاصلة لاتينية إلزامية + حدود يوتيوب (٣٠ حرفًا للوسم، ٥٠٠ للمجموع)
+if [ -n "${PUB:-}" ]; then
+  PYTHONIOENCODING=utf-8 python - "$PUB" "$D" <<'TAGS'
+import io,os,re,sys
+s=io.open(sys.argv[1],encoding='utf-8').read()
+m=re.search(r'## الوسوم[^\n]*\n(.+?)\n', s)
+if m:
+    line=m.group(1).replace('،',',')
+    tags=[t.strip().lstrip('#') for t in line.split(',') if t.strip()]
+    tags=[t for t in tags if len(t)<=30]
+    out=[]
+    for t in tags:
+        if len(','.join(out+[t]))<=500: out.append(t)
+    line=','.join(out)
+    io.open(os.path.join(sys.argv[2],'الوسوم.txt'),'w',encoding='utf-8').write(line+'\n')
+    print('  وسوم: %d | أطول %d حرفًا | المجموع %d/500'%(len(out),max(map(len,out)),len(line)))
+TAGS
+fi
+echo "✅ سُلِّم إلى: $D"
+du -sh "$D" 2>/dev/null
