@@ -66,14 +66,46 @@ def upload(svc, path, meta, publish_at=None, public_now=False):
 
 
 def verify(svc, vid):
-    """⛔ الإعلانُ ليس أثراً: نقرأ الحالةَ من الخادم بعد الرفع."""
+    """⛔ الإعلانُ ليس أثراً — لكنّ المقروءَ غيرُ المكتوب.
+
+    ⭐ **درسٌ مقيسٌ 2026-09-14:** الواجهةُ **تقبل** `containsSyntheticMedia` كتابةً
+       **ولا تُرجعه** في `videos.list(part=status)`. فاشتراطُ قراءته يُسقط شوطاً
+       ناجحاً (‏سقط شوطُ جزيرة الفصح بعد رفعٍ صحيح، والوسمُ ثابتٌ في الاستوديو).
+    ⇒ يُتحقَّق ممّا يُقرأ فعلاً، ويُسجَّل ما لا يُقرأ بوصفه غيرَ قابلٍ للقراءة لا فاشلاً.
+    """
     r = svc.videos().list(part="status", id=vid).execute()
     st = r["items"][0]["status"]
-    ok = st.get("containsSyntheticMedia") is True and st.get("madeForKids") is False
-    print(("✅ تحقّق" if ok else "⛔ فشل التحقّق"), vid, json.dumps(st, ensure_ascii=False), flush=True)
-    if not ok:
-        raise SystemExit("⛔ وسمُ الذكاء الاصطناعي أو حقلُ الأطفال لم يثبت على الخادم")
+    if st.get("madeForKids") is not False:
+        raise SystemExit("⛔ حقلُ الأطفال لم يثبت على الخادم: " + json.dumps(st))
+    synth = st.get("containsSyntheticMedia")
+    print("✅ تحقّق", vid, "| للأطفال=False | وسمُ الذكاء الاصطناعي:",
+          "true" if synth is True else "أُرسل ولا تُرجعه الواجهة (يُراجَع في الاستوديو)",
+          flush=True)
     return st
+
+
+def playlist_ids(svc, pl):
+    """كلُّ القائمة صفحةً صفحة — ⛔ صفحةٌ واحدةٌ تكذب (خمسون بندًا فقط)."""
+    out, tok = [], None
+    while True:
+        r = svc.playlistItems().list(part="contentDetails", playlistId=pl,
+                                     maxResults=50, pageToken=tok).execute()
+        out += [i["contentDetails"]["videoId"] for i in r["items"]]
+        tok = r.get("nextPageToken")
+        if not tok:
+            return out
+
+
+def add_to_playlist(svc, pl, vid):
+    if vid in playlist_ids(svc, pl):
+        print("✅ في القائمة أصلاً", vid, flush=True)
+        return
+    svc.playlistItems().insert(part="snippet", body={"snippet": {
+        "playlistId": pl,
+        "resourceId": {"kind": "youtube#video", "videoId": vid}}}).execute()
+    if vid not in playlist_ids(svc, pl):      # ⛔ الإعلان ليس أثراً
+        raise SystemExit("⛔ الفيلم لم يدخل القائمة %s — الشوطُ فاشل" % pl)
+    print("✅ أُضيف إلى القائمة وتحقَّق", flush=True)
 
 
 def main():
@@ -95,16 +127,20 @@ def main():
     film_id = upload(svc, P("film.mp4"), meta["film"], publish_at=when)
     verify(svc, film_id)
 
+    # ─── المصغّرة: لازمة، ولا تُتخطّى ───
     thumb = P("thumb-a.jpg")
-    if os.path.exists(thumb):
-        svc.thumbnails().set(videoId=film_id, media_body=MediaFileUpload(thumb)).execute()
-        print("✅ المصغّرة", flush=True)
+    if not os.path.exists(thumb):
+        raise SystemExit("⛔ لا مصغّرة — لا يُنشر فيلمٌ بلا مصغّرة")
+    svc.thumbnails().set(videoId=film_id, media_body=MediaFileUpload(thumb)).execute()
+    print("✅ المصغّرة", flush=True)
 
-    if meta.get("playlistId"):
-        svc.playlistItems().insert(part="snippet", body={"snippet": {
-            "playlistId": meta["playlistId"],
-            "resourceId": {"kind": "youtube#video", "videoId": film_id}}}).execute()
-        print("✅ أُضيف إلى القائمة", flush=True)
+    # ─── القائمة: لازمة، وتُتحقَّق من الخادم ───
+    # ⛔⛔ أمرُ المالك 2026-09-14: «لم يُضف الفيلم للقائمة وهذا لا تسامح معه».
+    #    فلا يُقبل هنا إعلانٌ بلا أثر: نُضيف ثمّ **نقرأ القائمة كلَّها صفحةً صفحة**.
+    pl = meta.get("playlistId")
+    if not pl:
+        raise SystemExit("⛔ لا playlistId في publish.json — لا يُنشر فيلمٌ خارج قائمته")
+    add_to_playlist(svc, pl, film_id)
 
     # ─── الريلزان: عامّان فوراً، ورابطُ الفيلم في الوصف ───
     link = "https://youtu.be/" + film_id
