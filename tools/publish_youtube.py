@@ -120,6 +120,9 @@ def resolve_playlist(meta):
         m = {}
     by_series = m.get("السلاسل", {})
     by_title = m.get("القوائم", {})
+    if not series:
+        # ٣) السلسلةُ الجارية في الخطة — تُحدَّث عند الانتقال إلى سلسلةٍ أخرى
+        series = m.get("السلسلة_الجارية")
     if series:
         if series in by_series:
             return by_series[series]
