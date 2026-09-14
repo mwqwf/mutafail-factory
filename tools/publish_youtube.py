@@ -182,9 +182,19 @@ def add_to_playlist(svc, pl, vid):
     svc.playlistItems().insert(part="snippet", body={"snippet": {
         "playlistId": pl,
         "resourceId": {"kind": "youtube#video", "videoId": vid}}}).execute()
-    if vid not in playlist_ids(svc, pl):      # ⛔ الإعلان ليس أثراً
-        raise SystemExit("⛔ الفيلم لم يدخل القائمة %s — الشوطُ فاشل" % pl)
-    print("✅ أُضيف إلى القائمة وتحقَّق", flush=True)
+    # ⛔⛔ درسٌ مقيسٌ 2026-09-14 (شوط الموحّدين 34826549950): الإضافةُ نجحت بلا خطأ،
+    #    ثمّ قراءةُ القائمة **فورَ الإضافة** لم تجد الفيلم فسقط الشوط بعد رفعٍ صحيح.
+    #    والسببُ أنّ قراءةَ القائمة عند يوتيوب لا تتّسق فورَ الكتابة.
+    #    ⇒ الإعلانُ يبقى غيرَ أثر، لكنّ الأثرَ يُطلب بمهلةٍ متدرّجة لا بنظرةٍ واحدة.
+    import time
+    for wait in (0, 3, 5, 8, 13, 21):
+        if wait:
+            time.sleep(wait)
+        if vid in playlist_ids(svc, pl):
+            print("✅ أُضيف إلى القائمة وتحقَّق بعد %d ثانية" % wait, flush=True)
+            return
+        print("… لم يظهر في القائمة بعدُ، إعادةُ القراءة", flush=True)
+    raise SystemExit("⛔ الفيلم لم يدخل القائمة %s بعد ستّ قراءاتٍ — الشوطُ فاشل" % pl)
 
 
 def main():
