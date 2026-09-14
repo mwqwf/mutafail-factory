@@ -43,7 +43,8 @@ jobs:
         if: steps.busy.outputs.busy == '0'
         run: |
           # ⛔ لا نداءَ إن كانت الخطةُ منتهية — تُقرأ من مصدر الحقيقة لا من الظنّ
-          NEXT=$(python - <<'PY'
+          # ⛔ `python` غيرُ موجودٍ على العدّاء بلا setup-python — `python3` هو الموجود
+          NEXT=$(python3 - <<'PY'
           import io, json
           try:
               s = json.load(io.open("ops/state/plan_state.json", encoding="utf-8"))
