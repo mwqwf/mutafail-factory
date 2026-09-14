@@ -78,6 +78,16 @@ def verify(svc, vid):
 
 def main():
     meta = json.load(io.open(P("publish.json"), encoding="utf-8"))
+
+    # ⛔ فصولُ يوتيوب لا تعمل إلا إن كانت **داخل الوصف** بتوقيتاتها، وتوقيتاتُها
+    #    لا تُعرف إلا بعد التركيب. فيُكتب في الوصف موضعٌ اسمُه {CHAPTERS} ويُملأ هنا.
+    ch = P("الفصول.txt")
+    chapters = io.open(ch, encoding="utf-8").read().strip() if os.path.exists(ch) else ""
+    if "{CHAPTERS}" in meta["film"]["description"]:
+        if not chapters:
+            raise SystemExit("⛔ الوصفُ ينتظر الفصول ولا ملفَّ فصولٍ — لا يُرفع فيلمٌ بلا فصول")
+        meta["film"]["description"] = meta["film"]["description"].replace("{CHAPTERS}", chapters)
+
     svc = yt()
 
     # ─── الفيلم ───

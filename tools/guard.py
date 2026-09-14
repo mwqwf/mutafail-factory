@@ -18,27 +18,35 @@ REQUIRED_TAIL = 'No text, no letters, no captions, no watermark.'
 def main(path):
     if not os.path.exists(path):
         print(f'✗ لا يوجد ملف: {path}'); return 1
-    lines = io.open(path, encoding='utf-8').read().split('\n')
+    # ⛔⛔ ثغرةٌ أُغلقت 2026-09-14: الحارسُ كان يفحص `script.md` وحدَه، و`images-extra.md`
+    #    فيه أوصافُ صورٍ تُولَّد وتدخل الفيلم كغيرها — فكانت تمرّ بلا فحصٍ البتّة.
+    files = [path]
+    extra = os.path.join(os.path.dirname(os.path.abspath(path)), 'images-extra.md')
+    if os.path.basename(path) == 'script.md' and os.path.exists(extra):
+        files.append(extra)
+
     problems = []
     imgs = 0
-    for n, l in enumerate(lines, 1):
-        if not l.startswith('IMG:'):
-            continue
-        imgs += 1
-        body = l.split('|', 2)[-1]
-        low = body.lower()
-        for label, pat in BANNED_IMG.items():
-            m = re.search(pat, low, re.I)
-            if m:
-                problems.append((n, label, m.group(0), l[:90]))
-        if REQUIRED_TAIL.lower() not in low:
-            problems.append((n, 'الجملة الواقية ناقصة', REQUIRED_TAIL, l[:90]))
+    for f in files:
+        lines = io.open(f, encoding='utf-8').read().split('\n')
+        for n, l in enumerate(lines, 1):
+            if not l.startswith('IMG:'):
+                continue
+            imgs += 1
+            body = l.split('|', 2)[-1]
+            low = body.lower()
+            for label, pat in BANNED_IMG.items():
+                m = re.search(pat, low, re.I)
+                if m:
+                    problems.append((f'{os.path.basename(f)}:{n}', label, m.group(0), l[:90]))
+            if REQUIRED_TAIL.lower() not in low:
+                problems.append((f'{os.path.basename(f)}:{n}', 'الجملة الواقية ناقصة', REQUIRED_TAIL, l[:90]))
 
-    print(f'فُحص {imgs} وصف صورة في {os.path.basename(path)}')
+    print(f'فُحص {imgs} وصف صورة في {" و".join(os.path.basename(f) for f in files)}')
     if problems:
         print(f'\n⛔ {len(problems)} مخالفة — التوليد موقوف:\n')
         for n, label, hit, ctx in problems:
-            print(f'  سطر {n} · {label} · «{hit}»')
+            print(f'  {n} · {label} · «{hit}»')
             print(f'    {ctx}…')
         print('\nالبدائل المعتمدة:')
         print('  مشهد نسائي  ← خيمة من الخارج · مجلسٌ خالٍ · أدوات · ظلال · صحراء')
