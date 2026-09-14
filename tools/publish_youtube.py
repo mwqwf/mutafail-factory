@@ -84,6 +84,26 @@ def verify(svc, vid):
     return st
 
 
+STATE_FILE = os.path.join(STATE, "last_publish.json")
+
+
+def load_state():
+    try:
+        return json.load(io.open(STATE_FILE, encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def save_state(d):
+    """⛔ تُكتب الحالةُ فورَ كلّ أثرٍ لا رجعةَ فيه، لا في آخر الشوط —
+       فالسقوطُ بعد الرفع وقبل الكتابة يُنتج نسخةً ثانيةً عند الإعادة."""
+    os.makedirs(STATE, exist_ok=True)
+    cur = load_state()
+    cur.update(d)
+    io.open(STATE_FILE, "w", encoding="utf-8").write(
+        json.dumps(cur, ensure_ascii=False, indent=1))
+
+
 def playlist_ids(svc, pl):
     """كلُّ القائمة صفحةً صفحة — ⛔ صفحةٌ واحدةٌ تكذب (خمسون بندًا فقط)."""
     out, tok = [], None
@@ -123,8 +143,15 @@ def main():
     svc = yt()
 
     # ─── الفيلم ───
-    when = meta.get("publishAt")   # ISO-8601 UTC، مثل 2026-09-14T05:00:00Z
-    film_id = upload(svc, P("film.mp4"), meta["film"], publish_at=when)
+    # ⭐ **استئنافٌ لا إعادة**: إن سقط شوطٌ بعد الرفع، يُمرَّر معرّفُ الفيلم
+    #    في `FILM_VIDEO_ID` فيُكمِل المصنعُ ما بقي بلا أن يرفع نسخةً ثانية.
+    when = meta.get("publishAt")   # ISO-8601 UTC
+    film_id = os.environ.get("FILM_VIDEO_ID", "").strip()
+    if film_id:
+        print("↻ استئناف: الفيلم مرفوعٌ سلفاً", film_id, flush=True)
+    else:
+        film_id = upload(svc, P("film.mp4"), meta["film"], publish_at=when)
+        save_state({"film": {"id": film_id}})      # ⛔ يُسجَّل فورَ الرفع لا بعد كلّ شيء
     verify(svc, film_id)
 
     # ─── المصغّرة: لازمة، ولا تُتخطّى ───
@@ -144,13 +171,19 @@ def main():
 
     # ─── الريلزان: عامّان فوراً، ورابطُ الفيلم في الوصف ───
     link = "https://youtu.be/" + film_id
+    prev = load_state()
+    done = {x.get("file"): x for x in prev.get("reels", []) if x.get("file")}
     reels = []
     for r in meta.get("reels", []):
+        if r["file"] in done:                      # ↻ استئناف: لا يُرفع مرّتين
+            print("↻ الريلز مرفوعٌ سلفاً", r["file"], flush=True)
+            reels.append(done[r["file"]]); continue
         rm = dict(r)
         rm["description"] = r["description"].replace("{FILM_URL}", link)
         rid = upload(svc, P("reels", r["file"]), rm, public_now=True)
         verify(svc, rid)
-        reels.append({"id": rid, "title": r["title"]})
+        reels.append({"id": rid, "title": r["title"], "file": r["file"]})
+        save_state({"film": {"id": film_id}, "reels": reels})
 
     # ─── ما لا تبلغه الواجهة: يُسجَّل ولا يُدَّعى ───
     os.makedirs(STATE, exist_ok=True)

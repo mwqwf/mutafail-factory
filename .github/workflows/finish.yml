@@ -1,0 +1,75 @@
+name: مصنع المتفائل — إتمامُ نشرٍ ناقص
+
+run-name: ↻ ${{ github.event.head_commit.message }}
+
+# ⭐ **لماذا هذا الملفّ:** شوطُ النشر قد يسقط **بعد** رفع الفيلم (وقع 2026-09-14).
+#    فلا تصحّ إعادةُ الشوط كلِّه — تُنتج نسخةً ثانية. وهذا يُكمِل ما بقي وحدَه:
+#    المصغّرة والقائمة والريلزات، مستأنفاً من معرّف الفيلم المرفوع.
+#
+# الزناد: دفعةُ ملفٍّ في `ops/finish/<slug>.json` فيه:
+#   { "runId": "<شوطُ الإنتاج>", "videoId": "<معرّفُ الفيلم>", "command": "<مجلّد الأمر>" }
+on:
+  push:
+    paths: ["ops/finish/**"]
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: mutafail-finish
+  cancel-in-progress: false
+
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
+
+      - name: قراءةُ أمر الإتمام
+        id: cmd
+        run: |
+          F=$(ls -t ops/finish/*.json | head -1)
+          echo "الملفّ: $F"
+          python - "$F" <<'PY' >> $GITHUB_OUTPUT
+          import json, io, sys
+          d = json.load(io.open(sys.argv[1], encoding="utf-8"))
+          for k in ("runId", "videoId", "command"):
+              print("%s=%s" % (k, d[k]))
+          PY
+
+      - name: فضُّ حمولة الحلقة (للوصف والوسوم والقائمة)
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: bash tools/unseal.sh "ops/commands/${{ steps.cmd.outputs.command }}" "$PWD/proj"
+
+      - name: جلبُ مخرَجات شوط الإنتاج (الفيلم والريلزات والمصغّرات)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run download ${{ steps.cmd.outputs.runId }} -n film -D proj
+          ls -la proj proj/reels
+
+      - name: ⛔ إن غاب سرُّ النشر فلا شوطَ كاذب
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: |
+          [ -n "$YT_OAUTH_JSON" ] || { echo "⛔⛔ سرُّ YT_OAUTH_JSON غيرُ مضبوط"; exit 1; }
+
+      - name: إتمامُ النشر (استئنافٌ من الفيلم المرفوع)
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          FILM_VIDEO_ID: ${{ steps.cmd.outputs.videoId }}
+        run: python tools/publish_youtube.py proj
+
+      - name: تسجيلُ الحالة
+        run: |
+          git config user.name  "مصنع المتفائل"
+          git config user.email "factory@mutafail.local"
+          git add -A ops/state || true
+          git commit -qm "↻ أُتمّ نشرُ ${{ steps.cmd.outputs.command }}" || echo "لا جديد"
+          git push || true
