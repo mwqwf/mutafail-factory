@@ -1,4 +1,5 @@
 {
+ "slug": "rapanui",
  "film": {
   "id": "hBXUglsWwE0",
   "title": "جزيرة الفصح: مجتمع اتُّهم بأنه قتل نفسه… ثم برّأه الحمض النووي",
@@ -6,12 +7,12 @@
  },
  "reels": [
   {
-   "id": "LKJNDK-mC-E",
+   "id": "qvR0-BKHPSQ",
    "title": "عشرون تمثالاً واقفاً… ثم لا واحد",
    "file": "r1.mp4"
   },
   {
-   "id": "0QEkc7xrAuU",
+   "id": "qCmyDbY5Ryw",
    "title": "قصة انتحار حضارة نقضها الحمض النووي",
    "file": "r2.mp4"
   }
