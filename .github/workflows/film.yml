@@ -100,6 +100,41 @@ jobs:
           path: proj/audio
           retention-days: 2
 
+  # ══════════ ٢ب) البوّابةُ الثانية بعد التوليد — الإصغاءُ المُشكَّل ══════════
+  # ⛔ الدستورُ يوجب ثلاثَ بوّاباتٍ بعد التوليد، وهذه ثانيتُها — وكان المحرّكُ السحابيّ
+  #    يُخرج أفلاماً بلا واحدةٍ منها. وحصّةُ نموذج الفحص منفصلةٌ فلا تزاحم التوليد.
+  # ⚠️ استشاريّةٌ لا تُسقط الشوط: نصفُ الرايات عيبُها في النصّ لا في الصوت، والحكمُ لنا.
+  listen:
+    needs: [prepare, tts]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix: { shard: [0, 1, 2] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: proj, path: proj }
+      - uses: actions/download-artifact@v4
+        with: { pattern: audio-*, path: proj/audio, merge-multiple: true }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          printf '%s' "$GEMINI_KEYS_JSON" > keys.json
+          node tools/listen.js proj 4 --shard ${{ matrix.shard }} --shards 3 --keys keys.json
+          rm -f keys.json
+      - if: always()
+        run: rm -f keys.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: "listen-${{ matrix.shard }}"
+          path: proj/listen_results*.json
+          retention-days: 5
+
   # ══════════ ٣) الصور — عاملٌ واحد (بوليناشنز: طابورٌ واحد) ══════════
   images:
     needs: prepare
