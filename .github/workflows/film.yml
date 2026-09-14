@@ -303,5 +303,12 @@ jobs:
           git config user.name  "مصنع المتفائل"
           git config user.email "factory@mutafail.local"
           git add -A ops/state || true
-          git commit -qm "✅ نُشرت: ${{ needs.prepare.outputs.slug }}" || echo "لا جديد"
-          git push || true
+          git commit -qm "✅ نُشرت: ${{ needs.prepare.outputs.slug }}" || { echo "لا جديد"; exit 0; }
+          # ⛔⛔ درسٌ مقيسٌ 2026-09-14: `git push || true` كان يسقط دائماً بـ
+          #    non-fast-forward (الشوطُ يبدأ من التزامٍ قديم وmaster تقدّم)، فيُبتلع
+          #    الخطأُ صامتاً ولا تصل الحالةُ إلى المستودع أبداً. ⇒ يُعاد بـrebase.
+          for i in 1 2 3 4; do
+            git pull --rebase -q origin master && git push -q origin HEAD:master && exit 0
+            sleep $(( i * 3 ))
+          done
+          echo "⛔ تعذّر دفعُ الحالة بعد أربع محاولات"; exit 1

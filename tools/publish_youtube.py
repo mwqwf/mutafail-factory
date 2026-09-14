@@ -245,6 +245,17 @@ def main():
     # ─── الريلزان: عامّان فوراً، ورابطُ الفيلم في الوصف ───
     link = "https://youtu.be/" + film_id
     prev = load_state()
+    # ⛔⛔ درسٌ مقيسٌ 2026-09-14 (شوطا الموحّدين والخاتمة): حالةُ الاستئناف مفتاحُها
+    #    اسمُ الملفّ (r1.mp4) وهو **واحدٌ في كلّ حلقة**. فقرأ المحرّكُ حالةَ حلقةٍ
+    #    سابقةٍ فظنّ ريلزَي هذه الحلقة مرفوعَين، فتخطّاهما، وكتب في الحالة معرّفَي
+    #    ريلزٍ **من حلقةٍ أخرى**. فخرجت حلقتان بلا ريلزات، والحالةُ تدّعي خلافَ الواقع.
+    #    ⇒ الاستئنافُ لا يصحّ إلا داخل الحلقة نفسِها: يُقيَّد بالـslug.
+    slug = meta.get("slug") or os.path.basename(os.path.abspath(PROJ))
+    if prev.get("slug") != slug:
+        if prev.get("reels"):
+            print("↻ حالةُ حلقةٍ أخرى (%s) — لا تُستعمل لاستئناف %s"
+                  % (prev.get("slug"), slug), flush=True)
+        prev = {}
     done = {x.get("file"): x for x in prev.get("reels", []) if x.get("file")}
     onchannel = recent_uploads(svc)            # ⛔ الحارسُ الثاني: القناةُ نفسُها
     reels = []
@@ -257,20 +268,21 @@ def main():
             print("↻ عنوانٌ مرفوعٌ على القناة سلفاً — لا نسخةَ ثانية:",
                   onchannel[t], flush=True)
             reels.append({"id": onchannel[t], "title": r["title"], "file": r["file"]})
-            save_state({"film": {"id": film_id}, "reels": reels})
+            save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
             continue
         rm = dict(r)
         rm["description"] = r["description"].replace("{FILM_URL}", link)
         rid = upload(svc, P("reels", r["file"]), rm, public_now=True)
         # ⛔ يُسجَّل **قبل** التحقّق: سقوطُ التحقّق بعد رفعٍ واقعٍ كان يُنتج نسخةً ثانية.
         reels.append({"id": rid, "title": r["title"], "file": r["file"]})
-        save_state({"film": {"id": film_id}, "reels": reels})
+        save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
         verify(svc, rid)
 
     # ─── ما لا تبلغه الواجهة: يُسجَّل ولا يُدَّعى ───
     os.makedirs(STATE, exist_ok=True)
     pend = P("..", "pending")
     out = {
+        "slug": slug,
         "film": {"id": film_id, "title": meta["film"]["title"], "publishAt": when},
         "reels": reels,
         "يتبقّى_يدويّاً": "ربطُ كلّ ريلز بالفيلم في حقل «فيديو مشابه» — "
