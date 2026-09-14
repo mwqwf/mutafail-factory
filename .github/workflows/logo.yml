@@ -1,0 +1,43 @@
+name: مصنع المتفائل — جلبُ شعار القناة
+
+run-name: 🖼️ جلبُ الشعار
+
+# ⭐ **لماذا:** `assets/logo.png` غائبٌ عن المستودع، فالريلزاتُ والمصغّراتُ تُصنع
+#    بلا شعارِ القناة (‏`envpaths.logo()` يردّ لا شيء فيُرسَم بلا شعار).
+#    والجلبُ من واجهة يوتيوب يكلّف **وحدةً واحدة** ولا يمسّ حصّةَ التوليد.
+# الزناد: دفعُ ملفٍّ في `ops/logo/` (فالجلسةُ السحابيّة لا تملك الإدلاء اليدويّ).
+on:
+  push:
+    paths: ["ops/logo/**", ".github/workflows/logo.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  logo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: master }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q google-auth google-auth-oauthlib google-api-python-client pillow
+      - name: اجلبِ الشعار
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: |
+          [ -n "$YT_OAUTH_JSON" ] || { echo "⛔ سرُّ YT_OAUTH_JSON غيرُ مضبوط"; exit 1; }
+          python tools/fetch_logo.py
+      - name: ادفعْه إلى المستودع
+        run: |
+          git config user.name  "مصنع المتفائل"
+          git config user.email "factory@mutafail.local"
+          git add -f assets/logo.png
+          git commit -qm "🖼️ شعارُ القناة مجلوباً من واجهة يوتيوب" || { echo "لا جديد"; exit 0; }
+          for i in 1 2 3 4; do
+            git pull --rebase -q origin master && git push -q origin HEAD:master && exit 0
+            sleep $(( i * 2 ))
+          done
+          echo "⛔ تعذّر دفعُ الشعار"; exit 1
