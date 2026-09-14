@@ -18,8 +18,17 @@ for line in io.open(os.path.join(P, "script.md"), encoding="utf-8"):
         order.append(("img", i))
     else:
         bid, v, txt = line.split("|", 2)
-        blocks.append({"id": bid, "voice": VOICE[v], "text": txt})
-        order.append(("blk", bid))
+        b = {"id": bid, "voice": VOICE[v], "text": txt}
+        # ⛔⛔ الفخُّ المقيس (SKILL §٨): كتلتا مفتتحِ الريلز ونداءِ ختامه تُولَّدان مع
+        #    بقيّة الكتل، فتُلحقهما أداةُ المونتاج **بآخر الفيلم** — فيسمع مشاهدُ
+        #    الوثائقيّ في ختامه نداءً موجَّهاً لمشاهدي الريلز. والعلامةُ: مُعرّفٌ يبدأ بـ`r_`.
+        if bid.startswith("r_"):
+            b["reel_only"] = True
+        blocks.append(b)
+        # ⛔ وكتلُ الريلز خارج تسلسل الفيلم البصريّ كذلك: لو دخلت `order` لأسندت
+        #    إليها لقطةٌ من الفيلم، ثمّ سقط `mont3d` بـValueError لأنّه يستبعدها.
+        if not b.get("reel_only"):
+            order.append(("blk", bid))
 
 _ex = os.path.join(P, "images-extra.md")
 for line in (io.open(_ex, encoding="utf-8") if os.path.exists(_ex) else []):
@@ -48,7 +57,12 @@ if cur:
     groups[-1] = (groups[-1][0], groups[-1][1] + cur)
 
 # الصور الإضافية تُقسم أطول المجموعات
-extra = [i["id"] for i in imgs if int(i["id"][1:]) >= 18]
+# ⛔ كان التمييزُ بـ`int(id[1:]) >= 18` — وهو حدسٌ يصدق على فيلمٍ صورُه دون سبعَ عشرة
+#    وحدَه. فمتى تجاوزتها صورُ السيناريو صارت الصورةُ الواحدة **لقطتين**: لقطةً بحقّها
+#    وأخرى بالقسمة ⇒ فيديو أطولُ من الصوت. والصحيحُ ما أُريد أصلاً: الإضافيُّ هو ما
+#    جاء من `images-extra.md` لا ما تجاوز رقمُه ثمانيةَ عشرَ.
+_in_script = {v for k, v in order if k == "img"}
+extra = [i["id"] for i in imgs if i["id"] not in _in_script]
 shots = []
 gi = 0
 for img, bl in groups:
