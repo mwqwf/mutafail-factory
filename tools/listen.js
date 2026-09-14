@@ -148,5 +148,16 @@ async function checkOne(blk) {
   if (skipped.length) {
     // ⛔ ما لم يُفحص يُسمّى ولا يُدَّعى أنه اجتاز
     console.log(`⚠️ ${skipped.length} كتلةً لم تُفحص — لا يُقال إنها اجتازت البوّابة.`);
+    // ⛔⛔ درسٌ مقيسٌ 2026-09-14 (حلقة الموحّدين): اجتاز الفحصُ اثنتي عشرةَ كتلةً
+    //    من إحدى وستّين، وسكت السجلُّ عن **السبب**. فبقي الدماغُ لا يدري:
+    //    أنفدت الحصّة؟ أم النموذجُ غيرُ موجود؟ أم الشبكة؟ ⇒ يُحصى السببُ بنصّه.
+    const tally = {};
+    for (const [, v] of skipped) {
+      const why = (v && v.why) ? String(v.why).slice(0, 60) : 'بلا نتيجة';
+      tally[why] = (tally[why] || 0) + 1;
+    }
+    console.log('أسبابُ عدم الفحص:');
+    Object.entries(tally).sort((a, b) => b[1] - a[1])
+      .forEach(([w, n]) => console.log(`  · ${n} × ${w}`));
   }
 })();
