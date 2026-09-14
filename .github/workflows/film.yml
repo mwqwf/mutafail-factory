@@ -94,7 +94,12 @@ jobs:
           rm -f keys.json
       - if: always()
         run: rm -f keys.json
+      # ⛔⛔ درسٌ مقيسٌ 2026-09-14 (أمر المالك: «لا يضيع شيءٌ من الحصّة»):
+      #    بلا `always()` كان سقوطُ السهم عند نفاد الحصّة (429) يمنع رفعَ الأثر،
+      #    فيضيع **كلُّ ما وُلِّد فيه فعلاً** ويُعاد توليدُه غداً من الصفر.
+      #    والحصّةُ لا تُسترجَع. فالأثرُ يُرفع نجح السهمُ أو سقط.
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: "audio-${{ matrix.shard }}"
           path: proj/audio
@@ -149,7 +154,9 @@ jobs:
       - uses: actions/download-artifact@v4
         with: { name: proj, path: proj }
       - run: python tools/imgdl3.py proj      # ⛔ عاملٌ واحدٌ فقط — لا توازي هنا
+      # ⛔ والصورُ كذلك: ما نزل فعلاً يُرفع ولو سقط العامل، فلا يُعاد تنزيلُه
       - uses: actions/upload-artifact@v4
+        if: always()
         with: { name: img, path: proj/img, retention-days: 2 }
 
   # ══════════ ٤) خرائط العمق — مرّةً واحدةً للجميع ══════════
@@ -199,7 +206,9 @@ jobs:
         with: { pattern: audio-*, path: proj/audio, merge-multiple: true }
       - name: تصيير حصّتي
         run: python tools/turbo.py "$PWD/proj" ${{ matrix.w }} 10
+      # ⛔ واللقطاتُ المصيَّرةُ كذلك — ساعاتُ تصييرٍ لا تُرمى لسقوطِ آخرِ لقطة
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: "seg-${{ matrix.w }}"
           path: proj/work/seg
