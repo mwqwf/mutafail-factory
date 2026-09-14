@@ -51,11 +51,10 @@ jobs:
           bash tools/unseal.sh "$DIR" "$PWD/proj"
           ls -la proj
 
-      - name: ⛔ البوّابتان قبل أيّ توليد — اللغة ثمّ الحارس
+      - name: ⛔ البوّابتان وفحصُ الحمولة قبل أيّ توليد
         run: |
-          python tools/lint.py  proj/script.md
-          python tools/guard.py proj/script.md
-          echo "✅ البوّابتان نظيفتان"
+          # precheck يشغّل lint ثمّ guard ثمّ build، ويفحص الحمولة كلَّها بعدها
+          python tools/precheck.py proj
 
       - name: بناء الكتل واللقطات
         id: meta
