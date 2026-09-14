@@ -5,8 +5,10 @@
 يقرأ <proj>/reels.json = [{"id":"r1","title":"...","blocks":["c003","c004"],"imgs":["b02","b03"]}]
 """
 import json, os, sys, subprocess as sp
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.expanduser("~"), "Desktop", "claude-media"))
 import kb3d
+import envpaths
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import arabic_reshaper
 from bidi.algorithm import get_display
@@ -14,12 +16,9 @@ from bidi.algorithm import get_display
 def ar(s): return get_display(arabic_reshaper.reshape(s))
 
 PROJ, RID = sys.argv[1], sys.argv[2]
-FF = os.path.join(os.path.expanduser("~"), "Desktop", "claude-media", "ffbin",
-                  "ffmpeg-9.0.1-essentials_build", "bin", "ffmpeg.exe")
-FP = FF.replace("ffmpeg.exe", "ffprobe.exe")
-D = os.path.join(os.path.expanduser("~"), "Downloads")
-FB = os.path.join(D, "Amiri-Bold.ttf")
-LOGO = os.path.join(os.path.expanduser("~"), "Desktop", "claude-media", "muw", "logo.png")
+FF, FP = envpaths.FF, envpaths.FP
+FB = envpaths.font(bold=True)
+LOGO = envpaths.logo()
 W, H = 1080, 1920
 
 reels = {r["id"]: r for r in json.load(open(os.path.join(PROJ, "reels.json"), encoding="utf-8"))}
@@ -75,7 +74,7 @@ for i, ln in enumerate(lines[:3]):
         d.text(((W - tw) / 2 + dx, y + dy), t, font=f, fill=(0, 0, 0, 255))
     d.text(((W - tw) / 2, y), t, font=f, fill=col)
     y += size + 18
-if os.path.exists(LOGO):
+if LOGO:
     lg = Image.open(LOGO).convert("RGBA").resize((118, 118), Image.LANCZOS)
     m = Image.new("L", (472, 472), 0)
     ImageDraw.Draw(m).ellipse([6, 6, 466, 466], fill=255)

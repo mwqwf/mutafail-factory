@@ -12,11 +12,11 @@ import json, os, sys, subprocess as sp
 
 PROJ = os.path.abspath(sys.argv[1])
 MEDIA = os.path.join(os.path.expanduser("~"), "Desktop", "claude-media")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, MEDIA)
 import kb3d                                     # ← أداة التحريك المجسَّم
+from envpaths import FF, FP
 
-FF = os.path.join(MEDIA, "ffbin", "ffmpeg-9.0.1-essentials_build", "bin", "ffmpeg.exe")
-FP = FF.replace("ffmpeg.exe", "ffprobe.exe")
 GAP = float(sys.argv[2]) if len(sys.argv) > 2 else 0.30
 WORK = os.path.join(PROJ, "work"); os.makedirs(WORK, exist_ok=True)
 

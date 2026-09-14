@@ -3,6 +3,8 @@
 الاستعمال: python mkthumb.py <bg.jpg> <out.jpg> "السطر الأبيض" "السطر الذهبي" ["الشريط الأحمر"]
 """
 import sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import envpaths
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import arabic_reshaper
 from bidi.algorithm import get_display
@@ -12,9 +14,8 @@ def ar(s): return get_display(arabic_reshaper.reshape(s))
 BG, OUT = sys.argv[1], sys.argv[2]
 L1 = sys.argv[3]; L2 = sys.argv[4]
 BADGE = sys.argv[5] if len(sys.argv) > 5 else ""
-D = os.path.join(os.path.expanduser("~"), "Downloads")
-FB = os.path.join(D, "Amiri-Bold.ttf")
-LOGO = os.path.join(os.path.expanduser("~"), "Desktop", "claude-media", "muw", "logo.png")
+FB = envpaths.font(bold=True)
+LOGO = envpaths.logo()
 W, H = 1280, 720
 
 im = Image.open(BG).convert("RGB")
@@ -57,7 +58,7 @@ if BADGE:
     d.rounded_rectangle([bx1 - tw - 44, by1, bx1, by1 + 76], 10, fill=(196, 30, 30))
     d.text((bx1 - tw - 22, by1 + 10), t, font=fb, fill=(255, 255, 255))
 
-if os.path.exists(LOGO):
+if LOGO:
     lg = Image.open(LOGO).convert("RGB").resize((132, 132), Image.LANCZOS)
     m = Image.new("L", (528, 528), 0)
     ImageDraw.Draw(m).ellipse([6, 6, 522, 522], fill=255)

@@ -5,13 +5,13 @@ sections.json = [{"id":"s001","title":"..."} , ...]  (id = أول كتلة في 
 يكتب <proj>/الفصول.txt جاهزًا للنسخ.
 """
 import json, os, sys, subprocess as sp
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from envpaths import FP
 
 PROJ = os.path.abspath(sys.argv[1])
 SEC = json.load(open(sys.argv[2], encoding="utf-8"))
 GAP = float(sys.argv[3]) if len(sys.argv) > 3 else 0.30
 TEMPO = 1.05
-FP = os.path.join(os.path.expanduser("~"), "Desktop", "claude-media", "ffbin",
-                  "ffmpeg-9.0.1-essentials_build", "bin", "ffprobe.exe")
 
 blocks = [b for b in json.load(open(os.path.join(PROJ, "blocks.json"), encoding="utf-8"))
           if not b.get("reel_only")]
@@ -19,8 +19,11 @@ blocks = [b for b in json.load(open(os.path.join(PROJ, "blocks.json"), encoding=
 def dur(f):
     o = sp.run([FP, "-v", "error", "-show_entries", "format=duration",
                 "-of", "default=nw=1:nk=1", f], capture_output=True, text=True)
-    try: return float(o.stdout.strip())
-    except: return 0.0
+    try:
+        return float(o.stdout.strip())
+    except Exception:
+        # ⛔ الصمتُ هنا كان يُخرج فصولاً كلُّها 0:00 بلا أن يشكوَ أحد
+        raise SystemExit("⛔ تعذّرت قراءة مدّة %s عبر %s: %s" % (f, FP, o.stderr.strip()))
 
 starts, t = {}, 0.0
 for b in blocks:

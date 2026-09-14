@@ -29,13 +29,21 @@ for line in (io.open(_ex, encoding="utf-8") if os.path.exists(_ex) else []):
         imgs.append({"id": i, "prompt": prompt})
 
 # مجموعات: كل صورة تغطّي الكتل التي سبقتها
+# ⛔ وصورةٌ لم يسبقها كتلة (كأن يبدأ السيناريو بسطر IMG) كانت تُسقط الأداة بـIndexError
+#    في وظيفة `prepare` بعد اجتياز البوّابتين — فتُحتجز حتى الكتل التي تليها.
 groups, cur = [], []
 for kind, val in order:
     if kind == "blk":
         cur.append(val)
     else:
+        if not cur:
+            raise SystemExit(
+                "⛔ سطرُ الصورة «%s» لا كتلةَ قبله. والقاعدة: **الصورة تُكتب بعد الكتل "
+                "التي تغطّيها**، فلا يبدأ السيناريو بسطر IMG ولا تتجاور صورتان." % val)
         groups.append((val, cur))
         cur = []
+if not groups:
+    raise SystemExit("⛔ لا صورةَ في script.md — ولا يُركَّب فيلمٌ بلا لقطات")
 if cur:
     groups[-1] = (groups[-1][0], groups[-1][1] + cur)
 

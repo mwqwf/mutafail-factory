@@ -4,13 +4,13 @@
 الاستعمال: python turbo.py <projectDir> <workerIndex> <workers>
 """
 import json, io, os, sys, subprocess as sp
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.expanduser("~"), "Desktop", "claude-media"))
 import kb3d
+from envpaths import FP
 
 PROJ, WI, WN = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
 GAP = 0.30
-FP = os.path.join(os.path.expanduser("~"), "Desktop", "claude-media", "ffbin",
-                  "ffmpeg-9.0.1-essentials_build", "bin", "ffprobe.exe")
 WORK = os.path.join(PROJ, "work")
 SEG = os.path.join(WORK, "seg")
 os.makedirs(SEG, exist_ok=True)

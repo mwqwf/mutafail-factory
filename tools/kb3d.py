@@ -20,9 +20,8 @@ import os, sys, glob, time, subprocess as sp
 import numpy as np
 from PIL import Image, ImageFilter
 
-FF = os.path.expanduser("~/Desktop/claude-media/ffbin/ffmpeg-9.0.1-essentials_build/bin/ffmpeg.exe")
-if not os.path.exists(FF):
-    FF = "ffmpeg"
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from envpaths import FF
 
 W, H, FPS = 1920, 1080, 25
 OVER = 1.10          # تكبير احتياطي قبل القصّ (يمنع الحواف السوداء)
