@@ -282,6 +282,9 @@ jobs:
           python tools/publish_youtube.py proj
 
       - name: تسجيلُ المنجَز في سجلّ الخطة
+        # ⛔ درسٌ مقيس: السقوطُ بعد رفعٍ واقعٍ كان يمنع دفعَ الحالة، فتُعيد
+        #    المحاولةُ التاليةُ الرفعَ ⇒ نسختان على القناة و٣٢٠٠ وحدةٍ من الحصّة.
+        if: always()
         run: |
           git config user.name  "مصنع المتفائل"
           git config user.email "factory@mutafail.local"
