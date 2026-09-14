@@ -6,10 +6,9 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import envpaths
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-import arabic_reshaper
-from bidi.algorithm import get_display
-
-def ar(s): return get_display(arabic_reshaper.reshape(s))
+# ⛔ التهيئةُ والقلبُ وإلزامُ محرّك BASIC — كلُّها في envpaths، ولا تُكرَّر هنا
+# (القلبُ المزدوج مع RAQM على لينكس كان يعكس العناوين — انظر envpaths.py).
+from envpaths import ar
 
 BG, OUT = sys.argv[1], sys.argv[2]
 L1 = sys.argv[3]; L2 = sys.argv[4]
@@ -35,10 +34,10 @@ im = Image.composite(Image.new("RGB", (W, H), (6, 8, 14)), im, ov)
 d = ImageDraw.Draw(im)
 def fit(text, size, maxw):
     while size > 26:
-        f = ImageFont.truetype(FB, size)
+        f = envpaths.arfont(size, path=FB)
         if d.textlength(ar(text), font=f) <= maxw: return f
         size -= 2
-    return ImageFont.truetype(FB, 26)
+    return envpaths.arfont(26, path=FB)
 
 MX = W - 58; MAXW = W - 130
 f1 = fit(L1, 82, MAXW); f2 = fit(L2, 96, MAXW)
@@ -52,7 +51,7 @@ draw_r(L1, f1, 158, (255, 255, 255))
 draw_r(L2, f2, 158 + f1.size + 34, (247, 199, 74))
 
 if BADGE:
-    fb = ImageFont.truetype(FB, 44); t = ar(BADGE)
+    fb = envpaths.arfont(44, path=FB); t = ar(BADGE)
     tw = d.textlength(t, font=fb)
     bx1, by1 = MX + 16, 158 + f1.size + 34 + f2.size + 56
     d.rounded_rectangle([bx1 - tw - 44, by1, bx1, by1 + 76], 10, fill=(196, 30, 30))

@@ -20,12 +20,21 @@ photorealistic 16:9. No text, no letters, no captions, no watermark.
 
 # ٥. البطاقات والمصغرات — PIL
 
-⚠️ **RAQM غير متاح على وندوز** فتنفصل الحروف العربية. الحلّ المُختبَر:
+⚠️ **RAQM غير متاح على وندوز** فتنفصل الحروف العربية، و**متاحٌ على لينكس**
+(عجلةُ `pip install pillow` تحمله) فيقلب النصَّ بنفسه.
+
+## ⛔⛔ فخٌّ مقيس (٢٠٢٦-٠٩-١٤): العنوانُ يخرج **مقلوبًا** في السحاب دون وندوز
+قلبُنا اليدويّ (`get_display`) + قلبُ RAQM التلقائيّ = **قلبٌ مزدوج** ⇒ عنوانٌ معكوس.
+وهذا ما أصاب عنواني ريلزَي «جزيرة الفصح».
+⇒ ✅ **الحلُّ المعتمد — واحدٌ للبيئتين**: نقلب يدويًّا **ونُلزم** محرّكَ `BASIC`:
 ```python
-import arabic_reshaper
-from bidi.algorithm import get_display
-def ar(s): return get_display(arabic_reshaper.reshape(s))
+import envpaths
+f = envpaths.arfont(74)        # layout_engine=BASIC إلزامًا
+d.text(xy, envpaths.ar(txt), font=f, fill=...)
 ```
+⛔ **لا تستدعِ `ImageFont.truetype` ولا `get_display` مباشرةً** في أدوات البطاقات.
+🤖 والحارسُ آليّ: `python tools/bidicheck.py` يقارن الرسمَ بمرجع RAQM ويسقط عند
+أيّ انحراف، وهو مشغَّلٌ في `film.yml` و`selftest.yml` قبل صناعة أيّ بطاقة.
 (المكتبتان مثبّتتان: `pip install arabic-reshaper python-bidi`)
 
 - **الخط**: `Downloads\Amiri-Bold.ttf` و`Amiri-Regular.ttf`.

@@ -91,6 +91,28 @@ def verify(svc, vid):
     return st
 
 
+def recent_uploads(svc, limit=50):
+    """أحدثُ رفعات القناة {العنوان: المعرّف} — كلفتُها وحدتان من الحصّة لا أكثر.
+
+    ⛔⛔ **درسٌ مقيسٌ 2026-09-14 (‏شوطا 3481353/3481367):** إعادةُ الشوط الساقط
+    تستأنف من **الالتزام نفسه**، فلا ترى حالةً دُفعت بعده. فرُفع الريلزان مرّتين
+    (‏qvR0-BKHPSQ و qCmyDbY5Ryw نسختان من LKJNDK-mC-E و 0QEkc7xrAuU)، وأُحرق
+    ٣٢٠٠ وحدةٍ من الحصّة، وظهرت نسختان على القناة.
+    ⇒ فالحارسُ الذي لا يخدعه جيتُ هَب هو **القناةُ نفسُها**: نقرأ عناوينَ آخر
+      الرفعات، فإن كان العنوانُ مرفوعاً سلفاً تبنّيناه ولم نرفع ثانيةً.
+    """
+    try:
+        ch = svc.channels().list(part="contentDetails", mine=True).execute()
+        up = ch["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+        r = svc.playlistItems().list(part="snippet", playlistId=up,
+                                     maxResults=min(limit, 50)).execute()
+        return {i["snippet"]["title"].strip(): i["snippet"]["resourceId"]["videoId"]
+                for i in r.get("items", [])}
+    except Exception as e:                 # ⛔ الحارسُ لا يُسقط شوطاً إن تعذّر
+        print("⚠️ تعذّرت قراءةُ رفعات القناة:", e, flush=True)
+        return {}
+
+
 STATE_FILE = os.path.join(STATE, "last_publish.json")
 
 
@@ -187,6 +209,13 @@ def main():
     if film_id:
         print("↻ استئناف: الفيلم مرفوعٌ سلفاً", film_id, flush=True)
     else:
+        ft = meta["film"]["title"].strip()[:100]
+        seen = recent_uploads(svc).get(ft)
+        if seen:                               # ↻ محاولةٌ سابقةٌ رفعته ثمّ سقطت
+            print("↻ الفيلم مرفوعٌ على القناة سلفاً بعنوانه:", seen, flush=True)
+            film_id = seen
+            save_state({"film": {"id": film_id}})
+    if not film_id:
         film_id = upload(svc, P("film.mp4"), meta["film"], publish_at=when)
         save_state({"film": {"id": film_id}})      # ⛔ يُسجَّل فورَ الرفع لا بعد كلّ شيء
     verify(svc, film_id)
@@ -207,11 +236,19 @@ def main():
     link = "https://youtu.be/" + film_id
     prev = load_state()
     done = {x.get("file"): x for x in prev.get("reels", []) if x.get("file")}
+    onchannel = recent_uploads(svc)            # ⛔ الحارسُ الثاني: القناةُ نفسُها
     reels = []
     for r in meta.get("reels", []):
         if r["file"] in done:                      # ↻ استئناف: لا يُرفع مرّتين
             print("↻ الريلز مرفوعٌ سلفاً", r["file"], flush=True)
             reels.append(done[r["file"]]); continue
+        t = r["title"].strip()[:100]
+        if t in onchannel:                         # ↻ رُفع في محاولةٍ سابقةٍ سقطت
+            print("↻ عنوانٌ مرفوعٌ على القناة سلفاً — لا نسخةَ ثانية:",
+                  onchannel[t], flush=True)
+            reels.append({"id": onchannel[t], "title": r["title"], "file": r["file"]})
+            save_state({"film": {"id": film_id}, "reels": reels})
+            continue
         rm = dict(r)
         rm["description"] = r["description"].replace("{FILM_URL}", link)
         rid = upload(svc, P("reels", r["file"]), rm, public_now=True)

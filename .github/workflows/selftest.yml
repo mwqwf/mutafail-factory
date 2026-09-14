@@ -39,6 +39,7 @@ jobs:
           python -c "import sys;sys.path.insert(0,'tools');import kb3d;kb3d.depth_maps('/tmp/proj')"
           python tools/turbo.py /tmp/proj 0 1
           python tools/mont3d.py /tmp/proj
+          python tools/bidicheck.py
           python tools/mkreel3d.py /tmp/proj r1
           python tools/mkthumbs.py /tmp/proj
           python tools/chapters.py /tmp/proj /tmp/proj/sections.json

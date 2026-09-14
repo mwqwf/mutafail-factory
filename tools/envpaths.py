@@ -50,3 +50,27 @@ def logo():
         if os.path.exists(c):
             return c
     return None
+
+
+# ══════════ العربيّة على PIL — ⛔ الدرسُ المقيس (2026-09-14) ══════════
+# عناوينُ الريلزات خرجت **مقلوبة**. السببُ ليس في النصّ ولا في الخطّ، بل في
+# اختلافِ محرّك التخطيط بين جهاز المالك والعدّاء السحابيّ:
+#   • وندوز: Pillow بلا RAQM ⇒ يلزم قلبُ النصّ يدويًّا (reshape + bidi).
+#   • لينكس (عجلةُ pip): Pillow **مع RAQM** ⇒ يقلب النصّ بنفسه.
+# فإذا سُلّم إليه نصٌّ مقلوبٌ سلفًا قَلَبه ثانيةً ⇒ **قلبٌ مزدوج** = عنوانٌ معكوس.
+# ⇒ الحلُّ الواحدُ للبيئتين: نقلب يدويًّا **ونُلزم** المحرّكَ البسيط BASIC،
+#   فلا يقلب أحدٌ بعدنا. ⛔ لا تستدعِ ImageFont.truetype مباشرةً في أدوات
+#   البطاقات — استعمل arfont() وar() من هنا، وفحصُ tools/bidicheck.py يحرس هذا.
+
+def ar(s):
+    """النصُّ العربيُّ مهيّأً للرسم بمحرّك BASIC (تشكيلُ الحروف ثمّ ترتيبٌ بصريّ)."""
+    import arabic_reshaper
+    from bidi.algorithm import get_display
+    return get_display(arabic_reshaper.reshape(s))
+
+
+def arfont(size, bold=True, path=None):
+    """خطُّ البطاقات بمحرّك تخطيطٍ بسيطٍ إلزامًا — يمنع القلبَ المزدوج."""
+    from PIL import ImageFont
+    return ImageFont.truetype(path or font(bold=bold), size,
+                              layout_engine=ImageFont.Layout.BASIC)
