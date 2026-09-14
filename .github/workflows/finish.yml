@@ -26,6 +26,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
@@ -33,7 +34,14 @@ jobs:
       - name: قراءةُ أمر الإتمام
         id: cmd
         run: |
-          F=$(ls -t ops/finish/*.json | head -1)
+          # ⛔⛔ درسٌ مقيسٌ 2026-09-14: كان الأمرُ يُختار بـ`ls -t` أي «أحدثُ ملفٍّ
+          #    بالتاريخ»، والاستنساخُ الطازج يجعل أزمنةَ الملفّات كلِّها واحدةً،
+          #    فعُولجت حلقةٌ قديمةٌ بدل المطلوبة. وهو الفخُّ الموثَّقُ في film.yml
+          #    ولم يكن مطبَّقاً هنا. ⇒ الأمرُ هو ما غيّرته الدفعةُ الزناد.
+          F=$(git show --pretty= --name-only ${{ github.sha }}               | grep '^ops/finish/.*\.json$' | head -1)
+          if [ -z "$F" ]; then
+            echo "⛔ لا أمرَ إتمامٍ في هذه الدفعة"; exit 1
+          fi
           echo "الملفّ: $F"
           python - "$F" <<'PY' >> $GITHUB_OUTPUT
           import json, io, sys
