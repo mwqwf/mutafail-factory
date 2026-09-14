@@ -10,10 +10,9 @@ sys.path.insert(0, os.path.join(os.path.expanduser("~"), "Desktop", "claude-medi
 import kb3d
 import envpaths
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-import arabic_reshaper
-from bidi.algorithm import get_display
-
-def ar(s): return get_display(arabic_reshaper.reshape(s))
+# ⛔ التهيئةُ والقلبُ وإلزامُ محرّك BASIC — كلُّها في envpaths، ولا تُكرَّر هنا
+# (القلبُ المزدوج مع RAQM على لينكس كان يعكس العناوين — انظر envpaths.py).
+from envpaths import ar
 
 PROJ, RID = sys.argv[1], sys.argv[2]
 FF, FP = envpaths.FF, envpaths.FP
@@ -59,7 +58,7 @@ d.rectangle([0, H - 190, W, H], fill=(6, 8, 14, 190))
 words = R["title"].split()
 lines, cur = [], ""
 size = 74
-f = ImageFont.truetype(FB, size)
+f = envpaths.arfont(size, path=FB)
 for w in words:
     t = (cur + " " + w).strip()
     if d.textlength(ar(t), font=f) > W - 90 and cur:
@@ -85,7 +84,7 @@ ovp = os.path.join(WORK, "ov.png"); ov.save(ovp)
 # ⭐ نداء «اشترك» البصريّ — آخر ثلاث ثوانٍ (أكثر مشاهدة الشورتات بلا صوت)
 cta = Image.new("RGBA", (W, H), (0, 0, 0, 0))
 dc = ImageDraw.Draw(cta)
-fc = ImageFont.truetype(FB, 86)
+fc = envpaths.arfont(86, path=FB)
 _t = ar("اشترك في القناة")
 _tw = dc.textlength(_t, font=fc)
 _bw, _bh = _tw + 140, 170
@@ -94,7 +93,7 @@ dc.rounded_rectangle([_bx + 8, _by + 10, _bx + _bw + 8, _by + _bh + 10],
                      radius=44, fill=(0, 0, 0, 150))
 dc.rounded_rectangle([_bx, _by, _bx + _bw, _by + _bh], radius=44, fill=(200, 32, 34, 245))
 dc.text(((W - _tw) / 2, _by + 38), _t, font=fc, fill=(255, 255, 255, 255))
-_f2 = ImageFont.truetype(FB, 52)
+_f2 = envpaths.arfont(52, path=FB)
 _s = ar("والفيلم كاملًا في الوصف")
 _sw = dc.textlength(_s, font=_f2)
 for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2)):

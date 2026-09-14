@@ -229,6 +229,8 @@ jobs:
         with: { pattern: seg-*, path: proj/work/seg, merge-multiple: true }
       - name: التركيب (يجد اللقطات جاهزةً فيتخطّى التصيير)
         run: |
+          # ⛔ حارسُ الاتّجاه قبل أيّ بطاقة — العناوينُ المقلوبة لا تُكتشف بعد الرفع
+          python tools/bidicheck.py
           python tools/mont3d.py "$PWD/proj"
           python tools/mkreel3d.py "$PWD/proj" r1
           python tools/mkreel3d.py "$PWD/proj" r2
