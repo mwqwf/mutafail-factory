@@ -177,6 +177,18 @@ async function genOne(blk) {
     console.error('⛔⛔ لا مفاتيح البتّة. في السحاب: تحقّق من سرّ GEMINI_KEYS_JSON و--keys.');
     process.exit(1);            // ⛔ لا تنجح صامتاً كما وقع في الشوط الثامن
   }
+  // ⛔⛔ درسٌ مقيسٌ 2026-09-14 (أمر المالك: «لا يضيع شيءٌ من الحصّة»):
+  //    الحالةُ `gen_state` لا تعبر بين الأشواط، والملفُّ المولَّد يعبر (أثَرُ الصوت).
+  //    فكان الاستئنافُ يُعيد توليدَ كتلةٍ صوتُها موجودٌ فعلاً ⇒ حرقُ حصّةٍ بلا مقابل.
+  //    ⇒ الشاهدُ الأوّلُ هو الملفُّ نفسُه لا الدفتر: ما وُجد صوتُه سليماً لا يُعاد.
+  let adopted = 0;
+  for (const b of blocks) {
+    const f = path.join(OUT, b.id + '.wav');
+    if (!state.done[b.id] && fs.existsSync(f) && fs.statSync(f).size > 8000) {
+      state.done[b.id] = true; adopted++;
+    }
+  }
+  if (adopted) { save(); console.log(`↻ تُبنّي ${adopted} كتلةً وُجد صوتُها من شوطٍ سابق — لا تُعاد`); }
   const todo = blocks.filter(b => !state.done[b.id]);
   console.log(`متبقٍّ: ${todo.length} | مسارات: ${WORKERS}`);
   let i = 0, ok = 0, fail = 0;

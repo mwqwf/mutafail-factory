@@ -81,6 +81,11 @@ jobs:
         with: { name: proj, path: proj }
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
+      # ⛔ ما وُلِّد في محاولةٍ سابقةٍ من هذا الشوط يُنزَّل أوّلاً فلا يُعاد توليدُه
+      #    (‏`gen25.js` يتبنّى كلَّ صوتٍ سليمٍ يجده ولو غاب دفترُ الحالة).
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with: { pattern: audio-*, path: proj/audio, merge-multiple: true }
       - name: توليد حصّة السهم
         env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
