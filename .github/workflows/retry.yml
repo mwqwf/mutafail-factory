@@ -1,0 +1,65 @@
+name: مصنع المتفائل — حارسُ الإعادة
+
+run-name: 🛟 إعادةُ ${{ github.event.workflow_run.display_title }}
+
+# ⭐ **لماذا:** أمرُ المالك 2026-09-14: «لا يتوقّف حتى آخر سطرٍ في الخطة».
+#    فالسقوطُ لا يُنهي شيئاً — يُعاد الشوطُ الساقطُ تلقائيّاً، وأشواطُه الناجحة
+#    لا تُعاد (‏`--failed`): فالصوتُ والصورُ والتصييرُ المكتملةُ تبقى، ويُستأنف الباقي.
+#
+# ⛔ وسقفُ الإعادة ثلاثٌ: لأنّ عطباً بنيويّاً لا يُصلحه التكرار، بل يُترك أثرُه
+#    ظاهراً في السجلّ ليقرأه الدماغُ في دورته التالية فيُصلح السبب.
+on:
+  workflow_run:
+    workflows:
+      - "مصنع المتفائل — إنتاج حلقة"
+      - "مصنع المتفائل — إتمامُ نشرٍ ناقص"
+    types: [completed]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  retry:
+    if: >
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.run_attempt < 3
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: أعِد الأشواطَ الساقطةَ وحدَها
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN: ${{ github.event.workflow_run.id }}
+          ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          echo "الشوط $RUN · المحاولة $ATTEMPT من 3"
+          # مهلةٌ متزايدة: عطبُ الشبكة يزول، وعطبُ الحصّة يحتاج نفَساً
+          sleep $(( ATTEMPT * 120 ))
+          gh run rerun "$RUN" --repo "$GITHUB_REPOSITORY" --failed
+          echo "✅ أُعيدت الأشواط الساقطة"
+
+  # ⛔ عند استنفاد السقف: لا صمت — يُكتب الخبرُ ليقرأه الدماغ
+  exhausted:
+    if: >
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.run_attempt >= 3
+    runs-on: ubuntu-latest
+    permissions: { contents: write }
+    steps:
+      - uses: actions/checkout@v4
+      - name: سجِّل العجزَ بنصّه
+        run: |
+          mkdir -p ops/state
+          {
+            echo "## ⛔ شوطٌ استنفد الإعادات — $(date -u +%FT%TZ)"
+            echo "- الشوط: ${{ github.event.workflow_run.id }}"
+            echo "- العنوان: ${{ github.event.workflow_run.display_title }}"
+            echo "- الرابط: ${{ github.event.workflow_run.html_url }}"
+            echo "- **المطلوب من الدماغ:** اقرأ سجلَّ الشوط، أصلِح السبب، وأعِد الدفع."
+          } >> ops/state/journal.md
+          git config user.name  "حارس الإعادة"
+          git config user.email "retry@mutafail.local"
+          git add ops/state/journal.md
+          git commit -qm "⛔ شوطٌ استنفد الإعادات: ${{ github.event.workflow_run.id }}" || exit 0
+          git push

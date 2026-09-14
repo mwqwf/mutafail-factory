@@ -104,6 +104,33 @@ def save_state(d):
         json.dumps(cur, ensure_ascii=False, indent=1))
 
 
+def resolve_playlist(meta):
+    """⛔⛔ لا يُنشر فيلمٌ خارج قائمته (أمر المالك 2026-09-14).
+
+    ولا يُتّكل على أن يتذكّر الدماغُ المعرّف: يُقبل `playlistId` صريحاً، وإلّا
+    يُستنبط من اسم السلسلة عبر `ops/state/playlists.json` — فالنسيانُ لا يُسقط قائمة.
+    """
+    pl = meta.get("playlistId")
+    if pl:
+        return pl
+    series = meta.get("series") or meta.get("السلسلة")
+    try:
+        m = json.load(io.open(os.path.join(STATE, "playlists.json"), encoding="utf-8"))
+    except Exception:
+        m = {}
+    by_series = m.get("السلاسل", {})
+    by_title = m.get("القوائم", {})
+    if series:
+        if series in by_series:
+            return by_series[series]
+        for t, i in by_title.items():
+            if series in t or t.startswith(series):
+                return i
+    raise SystemExit(
+        "⛔ لا قائمةَ للفيلم: ضَع playlistId في publish.json أو series يطابق "
+        "ops/state/playlists.json — ولا يُنشر فيلمٌ خارج قائمته")
+
+
 def playlist_ids(svc, pl):
     """كلُّ القائمة صفحةً صفحة — ⛔ صفحةٌ واحدةٌ تكذب (خمسون بندًا فقط)."""
     out, tok = [], None
@@ -164,10 +191,7 @@ def main():
     # ─── القائمة: لازمة، وتُتحقَّق من الخادم ───
     # ⛔⛔ أمرُ المالك 2026-09-14: «لم يُضف الفيلم للقائمة وهذا لا تسامح معه».
     #    فلا يُقبل هنا إعلانٌ بلا أثر: نُضيف ثمّ **نقرأ القائمة كلَّها صفحةً صفحة**.
-    pl = meta.get("playlistId")
-    if not pl:
-        raise SystemExit("⛔ لا playlistId في publish.json — لا يُنشر فيلمٌ خارج قائمته")
-    add_to_playlist(svc, pl, film_id)
+    add_to_playlist(svc, resolve_playlist(meta), film_id)
 
     # ─── الريلزان: عامّان فوراً، ورابطُ الفيلم في الوصف ───
     link = "https://youtu.be/" + film_id

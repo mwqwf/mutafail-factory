@@ -56,6 +56,10 @@
    git add ops/commands/<slug> && git commit -m "🎬 <العنوان>" && git push
    ```
    الحمولةُ فيها: `script.md` · `images-extra.md` · `sections.json` · `reels.json` · `publish.json` · `meta.json`.
+
+   ⛔⛔ **و`publish.json` لا يصحّ بلا قائمة**: ضَع فيه `playlistId` صريحاً، أو `series`
+   يطابق سلسلةً في `ops/state/playlists.json` (وفيها معرّفات القوائم كلِّها).
+   والمحرّكُ يرفض النشرَ بلا قائمة — وهذا مقصود: **لا يُنشر فيلمٌ خارج قائمته.**
 7. **راقب**: `gh run watch` حتى ينتهي. وإن سقط شوطٌ فأصلِح وأعِد الدفع — لا تقف.
 8. **بعد النشر**: حدِّث `ops/state/plan_state.json` وادفعه، واكتب في `ops/state/journal.md`
    سطراً بما وقع وما تعذّر **بنصّه**، وبأيّ نموذجٍ صُنع، وكم بقي من الرصيد، وما جُدوِل للغد.
