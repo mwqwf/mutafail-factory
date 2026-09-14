@@ -75,8 +75,15 @@ def verify(svc, vid):
     """
     r = svc.videos().list(part="status", id=vid).execute()
     st = r["items"][0]["status"]
-    if st.get("madeForKids") is not False:
-        raise SystemExit("⛔ حقلُ الأطفال لم يثبت على الخادم: " + json.dumps(st))
+    # ⭐ **درسٌ مقيسٌ 2026-09-14:** `madeForKids` **لا يُحسب فورَ الرفع** فيغيب من الردّ،
+    #    والحاضرُ هو `selfDeclaredMadeForKids` — وهو ما أرسلناه نحن. فهو الفيصل،
+    #    واشتراطُ الأوّل يُسقط رفعاً صحيحاً (‏أسقط ريلزَ جزيرة الفصح بعد رفعه).
+    kids = st.get("madeForKids")
+    declared = st.get("selfDeclaredMadeForKids")
+    if kids is True or declared is True:
+        raise SystemExit("⛔ صُنّف للأطفال على الخادم: " + json.dumps(st))
+    if kids is None and declared is None:
+        raise SystemExit("⛔ لا حقلَ أطفالٍ في الردّ أصلاً: " + json.dumps(st))
     synth = st.get("containsSyntheticMedia")
     print("✅ تحقّق", vid, "| للأطفال=False | وسمُ الذكاء الاصطناعي:",
           "true" if synth is True else "أُرسل ولا تُرجعه الواجهة (يُراجَع في الاستوديو)",
@@ -208,9 +215,10 @@ def main():
         rm = dict(r)
         rm["description"] = r["description"].replace("{FILM_URL}", link)
         rid = upload(svc, P("reels", r["file"]), rm, public_now=True)
-        verify(svc, rid)
+        # ⛔ يُسجَّل **قبل** التحقّق: سقوطُ التحقّق بعد رفعٍ واقعٍ كان يُنتج نسخةً ثانية.
         reels.append({"id": rid, "title": r["title"], "file": r["file"]})
         save_state({"film": {"id": film_id}, "reels": reels})
+        verify(svc, rid)
 
     # ─── ما لا تبلغه الواجهة: يُسجَّل ولا يُدَّعى ───
     os.makedirs(STATE, exist_ok=True)
