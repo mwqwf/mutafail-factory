@@ -18,7 +18,8 @@ def strip_d(s): return ''.join(c for c in s if c not in DIAC)
 def check(path):
     bad = []
     for ln, raw in enumerate(io.open(path, encoding='utf-8'), 1):
-        m = re.match(r'^(d_\d{3}|m_\d{3})\|(\w)\|(.+)$', raw.rstrip('\n'))
+        # `r_###` كتلُ الريلزات — تُفحص لغويًّا كغيرها ولا تدخل الفيلم
+        m = re.match(r'^(d_\d{3}|m_\d{3}|r_\d{3})\|(\w)\|(.+)$', raw.rstrip('\n'))
         if not m: continue
         bid, txt = m.group(1), m.group(3).strip()
 
