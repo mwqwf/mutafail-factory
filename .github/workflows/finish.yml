@@ -74,6 +74,19 @@ jobs:
           FILM_VIDEO_ID: ${{ steps.cmd.outputs.videoId }}
         run: python tools/publish_youtube.py proj
 
+      - name: اختِمْ أمرَ الإتمام بأنّه تمّ
+        run: |
+          python3 - "${{ steps.cmd.outputs.command }}" <<'PY'
+          import io, json, os, sys, time
+          f = os.path.join("ops", "finish", sys.argv[1] + ".json")
+          if os.path.exists(f):
+              d = json.load(io.open(f, encoding="utf-8"))
+              d["تمّ"] = time.strftime("%FT%TZ", time.gmtime())
+              d.pop("مؤجَّل", None)
+              io.open(f, "w", encoding="utf-8").write(json.dumps(d, ensure_ascii=False, indent=1))
+              print("✅ خُتم الأمر:", f)
+          PY
+
       - name: تسجيلُ الحالة
         # ⛔ درسٌ مقيس: السقوطُ بعد رفعٍ واقعٍ كان يمنع دفعَ الحالة، فتُعيد
         #    المحاولةُ التاليةُ الرفعَ ⇒ نسختان على القناة و٣٢٠٠ وحدةٍ من الحصّة.
@@ -91,13 +104,16 @@ jobs:
           # ⇒ لا دمجَ ولا rebase: حالةُ هذا الشوط هي الأحدثُ يقيناً (فهو الذي نفّذ
           #   الأثرَ على يوتيوب للتوّ)، فتُحفظ جانباً، ويُعاد الضبطُ إلى origin،
           #   ثمّ تُنسخ فوقه **ملفّاً ملفّاً** فلا تُمحى حالةُ حلقةٍ أخرى.
-          [ -n "$(git status --porcelain ops/state)" ] || { echo "لا جديد"; exit 0; }
-          rm -rf /tmp/state_keep && mkdir -p /tmp/state_keep
-          cp -a ops/state/. /tmp/state_keep/
+          # ⭐ ويُحفظ معها ختمُ أمر الإتمام (ops/finish) فلا يُعاد أمرٌ تمّ
+          [ -n "$(git status --porcelain ops/state ops/finish)" ] || { echo "لا جديد"; exit 0; }
+          rm -rf /tmp/state_keep && mkdir -p /tmp/state_keep/state /tmp/state_keep/finish
+          cp -a ops/state/. /tmp/state_keep/state/
+          cp -a ops/finish/. /tmp/state_keep/finish/
           for i in 1 2 3 4; do
             if git fetch -q origin master && git reset -q --hard origin/master; then
-              cp -a /tmp/state_keep/. ops/state/
-              git add -A ops/state
+              cp -a /tmp/state_keep/state/. ops/state/
+              cp -a /tmp/state_keep/finish/. ops/finish/
+              git add -A ops/state ops/finish
               if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
               git commit -qm "↻ أُتمّ نشرُ ${{ steps.cmd.outputs.command }}" && git push -q origin HEAD:master && exit 0
             fi

@@ -12,6 +12,9 @@
 """
 import json, io, os, sys, datetime
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import quota
+
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -62,7 +65,9 @@ def upload(svc, path, meta, publish_at=None, public_now=False):
         if prog:
             print("  رفع %d%%" % int(prog.progress() * 100), flush=True)
     vid = res["id"]
-    print("✅ رُفع:", vid, "·", meta["title"][:50], flush=True)
+    quota.spend("upload", meta["title"][:40])
+    print("✅ رُفع:", vid, "·", meta["title"][:50],
+          "| بقي من حصّة يوتيوب:", quota.remaining(), flush=True)
     return vid
 
 
@@ -280,6 +285,7 @@ def add_to_playlist(svc, pl, vid):
             print("… القائمةُ لم تظهر للخادم بعدُ، إعادةُ الإدراج", flush=True)
     else:
         raise SystemExit("⛔ تعذّر إدراجُ الفيلم في القائمة %s بعد ستّ محاولات" % pl)
+    quota.spend("playlist_insert", vid)
     # ⛔⛔ درسٌ مقيسٌ 2026-09-14 (شوط الموحّدين 34826549950): الإضافةُ نجحت بلا خطأ،
     #    ثمّ قراءةُ القائمة **فورَ الإضافة** لم تجد الفيلم فسقط الشوط بعد رفعٍ صحيح.
     #    والسببُ أنّ قراءةَ القائمة عند يوتيوب لا تتّسق فورَ الكتابة.
@@ -293,6 +299,28 @@ def add_to_playlist(svc, pl, vid):
             return
         print("… لم يظهر في القائمة بعدُ، إعادةُ القراءة", flush=True)
     raise SystemExit("⛔ الفيلم لم يدخل القائمة %s بعد ستّ قراءاتٍ — الشوطُ فاشل" % pl)
+
+
+def defer(slug, film_id, what, used, left):
+    """يكتب أمرَ إتمامٍ لنافذة التجدّد القادمة بدل إسقاط الشوط أو إهمال العمل."""
+    d = os.path.join("ops", "finish")
+    os.makedirs(d, exist_ok=True)
+    f = os.path.join(d, slug + ".json")
+    try:
+        cur = json.load(io.open(f, encoding="utf-8"))
+    except Exception:
+        cur = {}
+    cur.update({"runId": os.environ.get("GITHUB_RUN_ID", cur.get("runId", "")),
+                "videoId": film_id, "command": slug,
+                "مؤجَّل": True,
+                "ملاحظة": "حصّةُ رفع يوتيوب لا تحتمل المزيد اليوم (مستهلَك %d، متبقٍّ %d). "
+                          "يُتمّ في نافذة التجدّد القادمة." % (used, left)})
+    pend = cur.setdefault("المتبقّي", [])
+    if what not in pend:
+        pend.append(what)
+    io.open(f, "w", encoding="utf-8").write(json.dumps(cur, ensure_ascii=False, indent=1))
+    print("⏳ جُدوِل إلى نافذة التجدّد: %s (متبقٍّ من الحصّة %d وحدة)" % (what, left),
+          flush=True)
 
 
 def main():
@@ -343,6 +371,7 @@ def main():
     if not os.path.exists(thumb):
         raise SystemExit("⛔ لا مصغّرة — لا يُنشر فيلمٌ بلا مصغّرة")
     svc.thumbnails().set(videoId=film_id, media_body=MediaFileUpload(thumb)).execute()
+    quota.spend("thumbnail", film_id)
     print("✅ المصغّرة", flush=True)
 
     # ─── القائمة: لازمة، وتُتحقَّق من الخادم ───
@@ -377,6 +406,12 @@ def main():
                   onchannel[t], flush=True)
             reels.append({"id": onchannel[t], "title": r["title"], "file": r["file"]})
             save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
+            continue
+        ok, used, left = quota.can("upload")
+        if not ok:
+            # ⭐ قاعدةُ المالك: لا يُهدر شيءٌ ولا يُدَّعى إنجازٌ لم يقع — ما تمنعه
+            #    الحصّةُ **يُجدوَل** لأوّل تجدّدٍ ويُنفَّذ تلقائيّاً، ولا يسقط الشوط.
+            defer(slug, film_id, r["file"], used, left)
             continue
         rm = dict(r)
         rm["description"] = r["description"].replace("{FILM_URL}", link)

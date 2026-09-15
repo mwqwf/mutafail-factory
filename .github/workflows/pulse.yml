@@ -43,6 +43,45 @@ jobs:
           echo "أشواطٌ تعمل: $N"
           echo "busy=$N" >> $GITHUB_OUTPUT
 
+      # ⭐ قاعدةُ المالك: ما أخّرته الحصّةُ يُنفَّذ مع أوّل تجدّدٍ بلا طلب.
+      #    فأوامرُ الإتمام المؤجَّلة تُعاد جدولتُها هنا فتُشعل finish.yml بنفسها.
+      - name: أعِدْ جدولةَ ما أجّلته الحصّة
+        if: steps.busy.outputs.busy == '0'
+        run: |
+          python3 - <<'PY' > /tmp/pending.txt
+          import glob, io, json
+          out = []
+          for f in sorted(glob.glob("ops/finish/*.json")):
+              try:
+                  d = json.load(io.open(f, encoding="utf-8"))
+              except Exception:
+                  continue
+              if d.get("مؤجَّل") and not d.get("تمّ"):
+                  out.append(f)
+          print("\n".join(out))
+          PY
+          PEND=$(cat /tmp/pending.txt)
+          [ -n "$PEND" ] || { echo "✅ لا عملَ مؤجَّلاً"; exit 0; }
+          echo "أوامرُ إتمامٍ مؤجَّلة:"; echo "$PEND"
+          for f in $PEND; do
+            python3 - "$f" <<'PY'
+          import io, json, sys, time
+          f = sys.argv[1]
+          d = json.load(io.open(f, encoding="utf-8"))
+          d["أُعيدت_الجدولة"] = time.strftime("%FT%TZ", time.gmtime())
+          io.open(f, "w", encoding="utf-8").write(json.dumps(d, ensure_ascii=False, indent=1))
+          PY
+          done
+          git config user.name  "نبضةُ المصنع"
+          git config user.email "pulse@mutafail.local"
+          git add ops/finish
+          git commit -qm "⏳ إعادةُ جدولةِ ما أجّلته الحصّة — نافذةُ التجدّد" || exit 0
+          for i in 1 2 3 4; do
+            git pull --rebase -q origin master && git push -q origin HEAD:master && exit 0
+            sleep $(( i * 3 ))
+          done
+          echo "⛔ تعذّر دفعُ إعادة الجدولة"; exit 1
+
       - name: سجّلِ النداءَ إن كان المصنعُ خاملاً
         if: steps.busy.outputs.busy == '0'
         run: |
