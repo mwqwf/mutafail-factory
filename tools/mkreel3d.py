@@ -73,12 +73,12 @@ for i, ln in enumerate(lines[:3]):
         d.text(((W - tw) / 2 + dx, y + dy), t, font=f, fill=(0, 0, 0, 255))
     d.text(((W - tw) / 2, y), t, font=f, fill=col)
     y += size + 18
-if LOGO:
-    lg = Image.open(LOGO).convert("RGBA").resize((118, 118), Image.LANCZOS)
-    m = Image.new("L", (472, 472), 0)
-    ImageDraw.Draw(m).ellipse([6, 6, 466, 466], fill=255)
-    m = m.filter(ImageFilter.GaussianBlur(4)).resize((118, 118), Image.LANCZOS)
-    ov.paste(lg, ((W - 118) // 2, H - 158), m)
+# ⛔ لا شرطَ هنا: غيابُ الشعار أسقط الشوطَ في envpaths.logo() قبل أن نصل
+lg = Image.open(LOGO).convert("RGBA").resize((118, 118), Image.LANCZOS)
+m = Image.new("L", (472, 472), 0)
+ImageDraw.Draw(m).ellipse([6, 6, 466, 466], fill=255)
+m = m.filter(ImageFilter.GaussianBlur(4)).resize((118, 118), Image.LANCZOS)
+ov.paste(lg, ((W - 118) // 2, H - 158), m)
 ovp = os.path.join(WORK, "ov.png"); ov.save(ovp)
 
 # ⭐ نداء «اشترك» البصريّ — آخر ثلاث ثوانٍ (أكثر مشاهدة الشورتات بلا صوت)

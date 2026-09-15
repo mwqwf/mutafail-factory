@@ -43,12 +43,21 @@ def font(bold=True):
     raise SystemExit("⛔ لم يوجد خطٌّ عربيّ — جرّب: apt-get install fonts-hosny-amiri")
 
 
-def logo():
-    """شعارُ القناة إن وُجد، وإلا فـNone — والبطاقةُ تُرسم بلا شعارٍ ولا تتعطّل."""
+def logo(required=True):
+    """شعارُ القناة. ⛔⛔ أمرُ المالك 2026-09-15: «لا يخرج مخرَجٌ بلا شعار تحت أيّ ظرف».
+
+    فكانت الدالّةُ تردّ None عند غيابه، والأدواتُ تتخطّاه صامتةً فيخرج الفيلمُ
+    والريلزُ بلا هويّة ولا يعلم أحد. ⇒ الغيابُ صار **سقوطاً صريحاً** لا صمتاً،
+    و`required=False` لا تُستعمل إلا في فحصٍ يريد معرفةَ الوجود لا الرسم.
+    """
     for c in (os.path.join(os.path.expanduser("~"), "Desktop", "claude-media", "muw", "logo.png"),
               os.path.join(_REPO, "assets", "logo.png")):
         if os.path.exists(c):
             return c
+    if required:
+        raise SystemExit(
+            "⛔⛔ شعارُ القناة غيرُ موجود (assets/logo.png) — ولا يخرج مخرَجٌ بلا شعار.\n"
+            "    يُجلب بدفع ملفٍّ في ops/logo/ فيشتغل logo.yml ويجلبه من واجهة يوتيوب.")
     return None
 
 

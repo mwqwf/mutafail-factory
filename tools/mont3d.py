@@ -16,6 +16,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, MEDIA)
 import kb3d                                     # ← أداة التحريك المجسَّم
 from envpaths import FF, FP
+import envpaths
+from PIL import Image, ImageDraw, ImageFilter
 
 GAP = float(sys.argv[2]) if len(sys.argv) > 2 else 0.30
 WORK = os.path.join(PROJ, "work"); os.makedirs(WORK, exist_ok=True)
@@ -93,10 +95,31 @@ silent = os.path.join(WORK, "video_silent.mp4")
 sp.run([FF, "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", vlist,
         "-c", "copy", silent], check=True)
 
-# ٤. الدمج — ⛔ بلا shell=True
-print("④ الدمج…", flush=True)
+# ٤. الدمج ومعه شعارُ القناة — ⛔ بلا shell=True
+# ⛔⛔ درسٌ مقيسٌ 2026-09-15 (أمرُ المالك: «لا يتكرّر تحت أيّ ظرف»): كان الشعارُ
+#    يُرسم على الريلزات والمصغّرات وحدَها، **ولا يُرسم على الفيلم قطّ** — فخرجت
+#    أفلامُ القناة كلُّها بلا شعار. والعلّةُ أنّ أحداً لم يطلبه هنا أصلاً، لا أنّه
+#    سقط. ⇒ الشعارُ يُركَّب على الفيلم كلِّه، **ويسقط الشوطُ إن غاب الشعار**
+#    فلا يخرج فيلمٌ بلا هويّة بعد اليوم.
+print("④ الدمج مع الشعار…", flush=True)
 final = os.path.join(PROJ, "film.mp4")
-sp.run([FF, "-v", "error", "-y", "-i", silent, "-i", mixed,
-        "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac",
+LOGO = envpaths.logo(required=True)
+
+# علامةٌ مائيّةٌ دائرية: أعلى اليمين، ثُمنُ الشفافية، مئةٌ وعشرون بكسلاً
+_lg = os.path.join(WORK, "logo_round.png")
+_im = Image.open(LOGO).convert("RGBA").resize((120, 120), Image.LANCZOS)
+_m = Image.new("L", (480, 480), 0)
+ImageDraw.Draw(_m).ellipse([4, 4, 476, 476], fill=255)
+_m = _m.filter(ImageFilter.GaussianBlur(3)).resize((120, 120), Image.LANCZOS)
+_out = Image.new("RGBA", (120, 120), (0, 0, 0, 0))
+_out.paste(_im, (0, 0), _m)
+_a = _out.split()[3].point(lambda v: int(v * 0.72))     # لا يُزاحم الصورة
+_out.putalpha(_a)
+_out.save(_lg)
+
+sp.run([FF, "-v", "error", "-y", "-i", silent, "-i", mixed, "-i", _lg,
+        "-filter_complex", "[0:v][2:v]overlay=W-w-46:46:format=auto[v]",
+        "-map", "[v]", "-map", "1:a", "-c:v", "libx264", "-preset", "veryfast",
+        "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac",
         "-b:a", "192k", "-shortest", final], check=True)
 print(f"✅ {final}  |  {dur(final)/60:.2f} دقيقة", flush=True)

@@ -40,6 +40,7 @@ jobs:
           python tools/turbo.py /tmp/proj 0 1
           python tools/mont3d.py /tmp/proj
           python tools/bidicheck.py
+          python tools/logocheck.py
           python tools/mkreel3d.py /tmp/proj r1
           python tools/mkthumbs.py /tmp/proj
           python tools/chapters.py /tmp/proj /tmp/proj/sections.json
@@ -53,6 +54,8 @@ jobs:
           n=$(ls /tmp/proj/img/*_depth.png 2>/dev/null | wc -l)
           echo "خرائطُ عمق: $n"
           [ "$n" -ge 3 ] || { echo "⛔ خرائطُ العمق لم تُولَّد — التحريكُ مسطَّحٌ لا مجسَّم"; exit 1; }
+          # ⛔ الشعارُ يُفحص في إطارٍ من الفيلم المصيَّر لا في الشيفرة وحدها
+          python tools/logocheck.py /tmp/proj/film.mp4
           ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 /tmp/proj/film.mp4
           ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 /tmp/proj/reels/r1.mp4
           cat /tmp/proj/الفصول.txt

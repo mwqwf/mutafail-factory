@@ -245,7 +245,11 @@ jobs:
         run: |
           # ⛔ حارسُ الاتّجاه قبل أيّ بطاقة — العناوينُ المقلوبة لا تُكتشف بعد الرفع
           python tools/bidicheck.py
+          # ⛔⛔ وحارسُ الشعار قبل التركيب: لا يخرج مخرَجٌ بلا شعار تحت أيّ ظرف
+          python tools/logocheck.py
           python tools/mont3d.py "$PWD/proj"
+          # ⛔ ثمّ يُفحص إطارٌ **من الفيلم نفسِه**: أظهر الشعارُ فعلاً أم لا؟
+          python tools/logocheck.py "$PWD/proj/film.mp4"
           python tools/mkreel3d.py "$PWD/proj" r1
           python tools/mkreel3d.py "$PWD/proj" r2
           python tools/mkthumbs.py "$PWD/proj"

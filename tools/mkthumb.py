@@ -57,12 +57,12 @@ if BADGE:
     d.rounded_rectangle([bx1 - tw - 44, by1, bx1, by1 + 76], 10, fill=(196, 30, 30))
     d.text((bx1 - tw - 22, by1 + 10), t, font=fb, fill=(255, 255, 255))
 
-if LOGO:
-    lg = Image.open(LOGO).convert("RGB").resize((132, 132), Image.LANCZOS)
-    m = Image.new("L", (528, 528), 0)
-    ImageDraw.Draw(m).ellipse([6, 6, 522, 522], fill=255)
-    m = m.filter(ImageFilter.GaussianBlur(4)).resize((132, 132), Image.LANCZOS)
-    im.paste(lg, (46, H - 178), m)
+# ⛔ الشعارُ لازمٌ: غيابُه أسقط الشوطَ في envpaths.logo()
+lg = Image.open(LOGO).convert("RGB").resize((132, 132), Image.LANCZOS)
+m = Image.new("L", (528, 528), 0)
+ImageDraw.Draw(m).ellipse([6, 6, 522, 522], fill=255)
+m = m.filter(ImageFilter.GaussianBlur(4)).resize((132, 132), Image.LANCZOS)
+im.paste(lg, (46, H - 178), m)
 
 im.save(OUT, quality=93)
 print("saved", OUT)
