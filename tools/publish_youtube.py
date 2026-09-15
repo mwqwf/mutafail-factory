@@ -133,11 +133,57 @@ def save_state(d):
         json.dumps(cur, ensure_ascii=False, indent=1))
 
 
-def resolve_playlist(meta):
+def _save_playlist(series, title, pid):
+    """يُسجَّل المعرّفُ الجديدُ في `ops/state/playlists.json` فورَ إنشائه.
+
+    ⛔ وخطوةُ «تسجيلُ المنجَز» في `film.yml` تدفع `ops/state` كلَّه بـ`if: always()`،
+       فلا يضيع المعرّفُ ولو سقط ما بعده.
+    """
+    f = os.path.join(STATE, "playlists.json")
+    try:
+        m = json.load(io.open(f, encoding="utf-8"))
+    except Exception:
+        m = {}
+    m.setdefault("القوائم", {})[title] = pid
+    m.setdefault("السلاسل", {})[series] = pid
+    m["السلسلة_الجارية"] = series
+    os.makedirs(STATE, exist_ok=True)
+    io.open(f, "w", encoding="utf-8").write(json.dumps(m, ensure_ascii=False, indent=1))
+    print("✅ سُجّلت القائمةُ في playlists.json:", series, "→", pid, flush=True)
+
+
+def channel_playlists(svc):
+    """قوائمُ القناة {العنوان: المعرّف} — كلفتُها وحدةٌ واحدة، وتُقرأ صفحةً صفحة.
+
+    ⛔⛔ هذا هو الحارسُ الذي لا يخدعه جيتُ هَب (وهو عينُ درس `recent_uploads`):
+       شوطٌ سقط بعد إنشاء القائمة وقبل دفع الحالة كان سيُنشئ قائمةً ثانيةً بالاسم
+       نفسِه عند الإعادة، فتنقسم السلسلةُ على قائمتين. ⇒ نسأل القناةَ لا الدفتر.
+    """
+    out, tok = {}, None
+    try:
+        while True:
+            r = svc.playlists().list(part="snippet", mine=True,
+                                     maxResults=50, pageToken=tok).execute()
+            for i in r.get("items", []):
+                out[i["snippet"]["title"].strip()] = i["id"]
+            tok = r.get("nextPageToken")
+            if not tok:
+                return out
+    except Exception as e:
+        print("⚠️ تعذّرت قراءةُ قوائم القناة:", e, flush=True)
+        return out
+
+
+def resolve_playlist(meta, svc=None):
     """⛔⛔ لا يُنشر فيلمٌ خارج قائمته (أمر المالك 2026-09-14).
 
     ولا يُتّكل على أن يتذكّر الدماغُ المعرّف: يُقبل `playlistId` صريحاً، وإلّا
     يُستنبط من اسم السلسلة عبر `ops/state/playlists.json` — فالنسيانُ لا يُسقط قائمة.
+
+    ⭐ **وأوّلُ حلقةٍ من سلسلةٍ جديدةٍ لا قائمةَ لها بعدُ** — وهذا يقع في كلّ مرّةٍ
+       يدور فيها جدولُ `PLAN §٣` إلى سلسلةٍ تالية. فكانت القاعدةُ تُوقف النشرَ
+       انتظاراً ليدٍ بشريّةٍ تُنشئ القائمة. ⇒ تُنشأ هنا من `playlistNew` في ملفّ
+       النشر: أوّلاً تُطلب من القناة بعنوانها (فلا تتكرّر)، وإلّا أُنشئت وسُجّلت.
     """
     pl = meta.get("playlistId")
     if pl:
@@ -158,9 +204,29 @@ def resolve_playlist(meta):
         for t, i in by_title.items():
             if series in t or t.startswith(series):
                 return i
+
+    nw = meta.get("playlistNew")
+    if nw and nw.get("title") and series and svc is not None:
+        title = nw["title"].strip()
+        seen = channel_playlists(svc).get(title)
+        if seen:
+            print("↻ القائمةُ قائمةٌ على القناة سلفاً بعنوانها:", seen, flush=True)
+            _save_playlist(series, title, seen)
+            return seen
+        r = svc.playlists().insert(part="snippet,status", body={
+            "snippet": {"title": title[:150],
+                        "description": nw.get("description", "")[:5000],
+                        "defaultLanguage": "ar"},
+            "status": {"privacyStatus": "public"}}).execute()
+        pid = r["id"]
+        print("✅ أُنشئت قائمةُ السلسلة:", title, "→", pid, flush=True)
+        _save_playlist(series, title, pid)
+        return pid
+
     raise SystemExit(
         "⛔ لا قائمةَ للفيلم: ضَع playlistId في publish.json أو series يطابق "
-        "ops/state/playlists.json — ولا يُنشر فيلمٌ خارج قائمته")
+        "ops/state/playlists.json أو playlistNew لسلسلةٍ جديدة — "
+        "ولا يُنشر فيلمٌ خارج قائمته")
 
 
 def playlist_ids(svc, pl):
@@ -240,7 +306,7 @@ def main():
     # ─── القائمة: لازمة، وتُتحقَّق من الخادم ───
     # ⛔⛔ أمرُ المالك 2026-09-14: «لم يُضف الفيلم للقائمة وهذا لا تسامح معه».
     #    فلا يُقبل هنا إعلانٌ بلا أثر: نُضيف ثمّ **نقرأ القائمة كلَّها صفحةً صفحة**.
-    add_to_playlist(svc, resolve_playlist(meta), film_id)
+    add_to_playlist(svc, resolve_playlist(meta, svc), film_id)
 
     # ─── الريلزان: عامّان فوراً، ورابطُ الفيلم في الوصف ───
     link = "https://youtu.be/" + film_id

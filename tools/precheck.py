@@ -138,6 +138,24 @@ for th in pub.get("thumbs", []):
 if len(pub.get("thumbs", [])) < 2:
     bad.append("مصغّرتان (أ/ب) للاختبار")
 
+# ⑥ب القائمة — تُفحَص هنا مجّاناً لا بعد ساعاتٍ من التوليد
+# ⛔⛔ «لا يُنشر فيلمٌ خارج قائمته» (أمر المالك 2026-09-14). وخطوةُ النشر آخرُ
+#    الشوط، فسقوطُها هناك يُهدر حصّةَ يومٍ كاملة. ⇒ يُتحقَّق من وجود سبيلٍ إلى
+#    القائمة قبل الختم: معرّفٌ صريح · أو سلسلةٌ مسجَّلة · أو playlistNew لسلسلةٍ جديدة.
+_series = pub.get("series") or pub.get("السلسلة")
+if not pub.get("playlistId"):
+    try:
+        _pl = json.load(io.open(os.path.join(os.path.dirname(HERE), "ops", "state",
+                                             "playlists.json"), encoding="utf-8"))
+    except Exception:
+        _pl = {}
+    _known = _series and (_series in _pl.get("السلاسل", {}) or
+                          any(_series in t for t in _pl.get("القوائم", {})))
+    _new = pub.get("playlistNew", {}).get("title")
+    if not _known and not (_series and _new):
+        bad.append("لا سبيلَ إلى قائمةٍ: ضَع playlistId أو series مسجَّلاً في "
+                   "ops/state/playlists.json أو playlistNew{title,description}")
+
 # ⑦ تقديرُ المدّة والحصّة
 DIAC = "ًٌٍَُِّْـ"
 plain = lambda s: "".join(c for c in s if c not in DIAC)
