@@ -25,7 +25,7 @@
 | ١١ | **صحيح البخاري / صحيح مسلم / جامع الترمذي** (نسخ عربية) | <https://raw.githubusercontent.com/fawazahmed0/hadith-api/1/editions/ara-bukhari.json> · <https://raw.githubusercontent.com/fawazahmed0/hadith-api/1/editions/ara-muslim.json> · <https://raw.githubusercontent.com/fawazahmed0/hadith-api/1/editions/ara-tirmidhi.json> |
 | — | **فهرس OpenITI** الذي به عرفتُ أسماء المجلّدات | <https://raw.githubusercontent.com/OpenITI/kitab-metadata-automation/master/output/OpenITI_Github_clone_metadata_light.csv> |
 
-> **تنبيهٌ على الترقيم:** في ملفّات OpenITI تُوضَع علامةُ `PageV##P###` في **نهاية** الصفحة التي تحمل رقمها؛ فالنصُّ الواقع بين `PageV01P086` و`PageV01P087` هو في **ص ٨٧**. وعلى هذا جرى ضبطُ كلّ رقمٍ أدناه بالبرمجة لا بالتقدير.
+> **تنبيهٌ على الترقيم:** في ملفّات OpenITI المأخوذة عن «الشاملة الذهبية/أطلس» (المصادر ١، ٤، ٥، ١٠) تُوضَع علامةُ `PageV##P###` **بعد** النصّ الذي في تلك الصفحة؛ فالنصُّ الواقع بين `PageV01P086` و`PageV01P087` هو في **ص ٨٧**. وفي ملفّ «الوجل» المأخوذ عن الشاملة (المصدر ٧) تُوضَع العلامةُ **قبل** الأثر وتدلّ على الصفحة التي يبدأ فيها، ومعها علاماتٌ داخليّةٌ من نوع `[ص: 28]`. وقد ضبطتُ كلَّ رقمٍ أدناه بالبرمجة بمقابلة موضع العلامة بتسلسل الآثار المجاورة، لا بالتقدير.
 
 ---
 
