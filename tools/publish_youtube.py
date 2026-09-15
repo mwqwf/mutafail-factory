@@ -280,7 +280,16 @@ def main():
     # ─── الفيلم ───
     # ⭐ **استئنافٌ لا إعادة**: إن سقط شوطٌ بعد الرفع، يُمرَّر معرّفُ الفيلم
     #    في `FILM_VIDEO_ID` فيُكمِل المصنعُ ما بقي بلا أن يرفع نسخةً ثانية.
+    # ⛔⛔ **فجوةٌ مقيسةٌ في التصميم (2026-09-15):** الريلزان يُرفعان **عامَّين فوراً**
+    #    وفي وصفِهما رابطُ الفيلم، والفيلمُ يبقى **خاصّاً** حتى موعد `publishAt`.
+    #    ⇒ فبين رفعِ الريلز وموعدِ الجدولة نافذةٌ يرى فيها المشاهدُ شورتاً عامّاً
+    #      يحيل إلى فيديو غير متاح. وهي ساعاتٌ في كلّ حلقةٍ نُشرت هكذا.
+    #    ⇒ و`publicNow` في ملفّ النشر يُغلقها: الفيلمُ عامٌّ لحظةَ رفعه، فلا جدولةَ
+    #      ولا فجوة. وهو أيضاً أمرُ المالك المتكرّر في 2026-09-14: «اجعلها عامّة».
     when = meta.get("publishAt")   # ISO-8601 UTC
+    public_now = bool(meta.get("publicNow"))
+    if public_now:
+        when = None
     film_id = os.environ.get("FILM_VIDEO_ID", "").strip()
     if film_id:
         print("↻ استئناف: الفيلم مرفوعٌ سلفاً", film_id, flush=True)
@@ -292,7 +301,8 @@ def main():
             film_id = seen
             save_state({"film": {"id": film_id}})
     if not film_id:
-        film_id = upload(svc, P("film.mp4"), meta["film"], publish_at=when)
+        film_id = upload(svc, P("film.mp4"), meta["film"],
+                         publish_at=when, public_now=public_now)
         save_state({"film": {"id": film_id}})      # ⛔ يُسجَّل فورَ الرفع لا بعد كلّ شيء
     verify(svc, film_id)
 
