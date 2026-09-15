@@ -14,6 +14,7 @@ import json, io, os, sys, datetime
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 
 PROJ = sys.argv[1]
@@ -229,12 +230,29 @@ def resolve_playlist(meta, svc=None):
         "ولا يُنشر فيلمٌ خارج قائمته")
 
 
-def playlist_ids(svc, pl):
-    """كلُّ القائمة صفحةً صفحة — ⛔ صفحةٌ واحدةٌ تكذب (خمسون بندًا فقط)."""
+def _is_404(e):
+    return getattr(e, "resp", None) is not None and e.resp.status == 404
+
+
+def playlist_ids(svc, pl, tolerate_missing=False):
+    """كلُّ القائمة صفحةً صفحة — ⛔ صفحةٌ واحدةٌ تكذب (خمسون بندًا فقط).
+
+    ⛔⛔ **درسٌ مقيسٌ 2026-09-15 (شوط amal-1):** القائمةُ التي تُنشأ للتوّ
+       **لا تُقرأ فوراً**: ردّ يوتيوب `404 playlistNotFound` على قائمةٍ أنشأها هو
+       قبل ثانيةٍ واحدة. وهو عينُ درسِ 09-14 في تأخّر اتّساق القراءة، إلّا أنّه
+       يظهر هنا **استثناءً يُسقط الشوط** لا قائمةً فارغةً تُعاد قراءتُها.
+    ⇒ `tolerate_missing` يُرجع `None` بدل أن يرمي، فيُفرَّق بين «قائمةٌ فارغة»
+      و«قائمةٌ لم تظهر بعدُ».
+    """
     out, tok = [], None
     while True:
-        r = svc.playlistItems().list(part="contentDetails", playlistId=pl,
-                                     maxResults=50, pageToken=tok).execute()
+        try:
+            r = svc.playlistItems().list(part="contentDetails", playlistId=pl,
+                                         maxResults=50, pageToken=tok).execute()
+        except HttpError as e:
+            if tolerate_missing and _is_404(e):
+                return None
+            raise
         out += [i["contentDetails"]["videoId"] for i in r["items"]]
         tok = r.get("nextPageToken")
         if not tok:
@@ -242,21 +260,35 @@ def playlist_ids(svc, pl):
 
 
 def add_to_playlist(svc, pl, vid):
-    if vid in playlist_ids(svc, pl):
+    import time
+    cur = playlist_ids(svc, pl, tolerate_missing=True)
+    if cur is not None and vid in cur:
         print("✅ في القائمة أصلاً", vid, flush=True)
         return
-    svc.playlistItems().insert(part="snippet", body={"snippet": {
-        "playlistId": pl,
-        "resourceId": {"kind": "youtube#video", "videoId": vid}}}).execute()
+    # ⛔ والإدراجُ نفسُه يردّ 404 على قائمةٍ أُنشئت للتوّ، فيُعاد بمهلةٍ متدرّجة
+    for wait in (0, 3, 5, 8, 13, 21):
+        if wait:
+            time.sleep(wait)
+        try:
+            svc.playlistItems().insert(part="snippet", body={"snippet": {
+                "playlistId": pl,
+                "resourceId": {"kind": "youtube#video", "videoId": vid}}}).execute()
+            break
+        except HttpError as e:
+            if not _is_404(e):
+                raise
+            print("… القائمةُ لم تظهر للخادم بعدُ، إعادةُ الإدراج", flush=True)
+    else:
+        raise SystemExit("⛔ تعذّر إدراجُ الفيلم في القائمة %s بعد ستّ محاولات" % pl)
     # ⛔⛔ درسٌ مقيسٌ 2026-09-14 (شوط الموحّدين 34826549950): الإضافةُ نجحت بلا خطأ،
     #    ثمّ قراءةُ القائمة **فورَ الإضافة** لم تجد الفيلم فسقط الشوط بعد رفعٍ صحيح.
     #    والسببُ أنّ قراءةَ القائمة عند يوتيوب لا تتّسق فورَ الكتابة.
     #    ⇒ الإعلانُ يبقى غيرَ أثر، لكنّ الأثرَ يُطلب بمهلةٍ متدرّجة لا بنظرةٍ واحدة.
-    import time
     for wait in (0, 3, 5, 8, 13, 21):
         if wait:
             time.sleep(wait)
-        if vid in playlist_ids(svc, pl):
+        cur = playlist_ids(svc, pl, tolerate_missing=True)
+        if cur is not None and vid in cur:
             print("✅ أُضيف إلى القائمة وتحقَّق بعد %d ثانية" % wait, flush=True)
             return
         print("… لم يظهر في القائمة بعدُ، إعادةُ القراءة", flush=True)

@@ -302,13 +302,26 @@ jobs:
         run: |
           git config user.name  "مصنع المتفائل"
           git config user.email "factory@mutafail.local"
-          git add -A ops/state || true
-          git commit -qm "✅ نُشرت: ${{ needs.prepare.outputs.slug }}" || { echo "لا جديد"; exit 0; }
           # ⛔⛔ درسٌ مقيسٌ 2026-09-14: `git push || true` كان يسقط دائماً بـ
-          #    non-fast-forward (الشوطُ يبدأ من التزامٍ قديم وmaster تقدّم)، فيُبتلع
-          #    الخطأُ صامتاً ولا تصل الحالةُ إلى المستودع أبداً. ⇒ يُعاد بـrebase.
+          #    non-fast-forward فيُبتلع الخطأُ صامتاً ولا تصل الحالةُ أبداً.
+          # ⛔⛔ ودرسٌ مقيسٌ 2026-09-15 (شوط amal-1): البديلُ `git pull --rebase`
+          #    يسقط هو الآخر بـ**تعارضٍ** إن كتب شوطٌ آخرُ في `ops/state` في
+          #    اللحظة نفسِها (كتب `finish` حالةَ الخاتمة بينما كان `publish` يرفع)،
+          #    فيبقى المستودعُ في حالة rebase ويُهدر أربعُ محاولاتٍ على تعارضٍ
+          #    لا يُحلّ بالإعادة. **والفيلمُ منشورٌ والحالةُ لم تُسجَّل.**
+          # ⇒ لا دمجَ ولا rebase: حالةُ هذا الشوط هي الأحدثُ يقيناً (فهو الذي نفّذ
+          #   الأثرَ على يوتيوب للتوّ)، فتُحفظ جانباً، ويُعاد الضبطُ إلى origin،
+          #   ثمّ تُنسخ فوقه **ملفّاً ملفّاً** فلا تُمحى حالةُ حلقةٍ أخرى.
+          [ -n "$(git status --porcelain ops/state)" ] || { echo "لا جديد"; exit 0; }
+          rm -rf /tmp/state_keep && mkdir -p /tmp/state_keep
+          cp -a ops/state/. /tmp/state_keep/
           for i in 1 2 3 4; do
-            git pull --rebase -q origin master && git push -q origin HEAD:master && exit 0
+            if git fetch -q origin master && git reset -q --hard origin/master; then
+              cp -a /tmp/state_keep/. ops/state/
+              git add -A ops/state
+              if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
+              git commit -qm "✅ نُشرت: ${{ needs.prepare.outputs.slug }}" && git push -q origin HEAD:master && exit 0
+            fi
             sleep $(( i * 3 ))
           done
           echo "⛔ تعذّر دفعُ الحالة بعد أربع محاولات"; exit 1
