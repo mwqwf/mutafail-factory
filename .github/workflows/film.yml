@@ -118,7 +118,6 @@ jobs:
     needs: [prepare, tts]
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix: { shard: [0, 1, 2] }
@@ -130,6 +129,9 @@ jobs:
         with: { pattern: audio-*, path: proj/audio, merge-multiple: true }
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with: { name: "listen-${{ matrix.shard }}", path: proj }
       - env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: |
@@ -143,7 +145,24 @@ jobs:
         with:
           name: "listen-${{ matrix.shard }}"
           path: proj/listen_results*.json
-          retention-days: 5
+          retention-days: 30
+          overwrite: true
+
+  # التقرير الاستشاري لا يكفي للنشر: كل كتلة مفحوصة ومرتبطة بالنص والصوت الحاليين.
+  listening-gate:
+    needs: [prepare, tts, listen]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - uses: actions/download-artifact@v4
+        with: { name: proj, path: proj }
+      - uses: actions/download-artifact@v4
+        with: { pattern: audio-*, path: proj/audio, merge-multiple: true }
+      - uses: actions/download-artifact@v4
+        with: { pattern: listen-*, path: proj, merge-multiple: true }
+      - run: python tools/listen_gate.py proj
 
   # ══════════ ٣) الصور — عاملٌ واحد (بوليناشنز: طابورٌ واحد) ══════════
   images:
@@ -158,11 +177,15 @@ jobs:
       - run: pip install -q pillow
       - uses: actions/download-artifact@v4
         with: { name: proj, path: proj }
-      - run: python tools/imgdl3.py proj      # ⛔ عاملٌ واحدٌ فقط — لا توازي هنا
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with: { name: img, path: proj/img }
+      - run: python tools/image_sources.py proj  # صور Codex المعتمدة إن ضُمّنت في الحمولة
+      - run: python tools/imgdl3.py proj      # المسار الأصلي باقٍ كما هو للصور الناقصة
       # ⛔ والصورُ كذلك: ما نزل فعلاً يُرفع ولو سقط العامل، فلا يُعاد تنزيلُه
       - uses: actions/upload-artifact@v4
         if: always()
-        with: { name: img, path: proj/img, retention-days: 2 }
+        with: { name: img, path: proj/img, retention-days: 2, overwrite: true }
 
   # ══════════ ٤) خرائط العمق — مرّةً واحدةً للجميع ══════════
   # ⛔ كانت تُحسب داخل كلّ عامل تصييرٍ من العشرة: عشرُ تثبيتاتٍ لـtorch وعشرُ حسابات
@@ -276,7 +299,7 @@ jobs:
 
   # ══════════ ٧) النشر على يوتيوب ══════════
   publish:
-    needs: [prepare, assemble]
+    needs: [prepare, assemble, listening-gate]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:

@@ -12,6 +12,7 @@
 // ⚠️ ومخرَجُه **استشاريّ**: يكتب تقريراً ولا يُسقط الشوط. فنصفُ الرايات تقريباً يكون
 //    عيبُها في النصّ المكتوب لا في الصوت، والحكمُ فيها لنا لا للآلة.
 const fs = require('fs'), path = require('path'), os = require('os');
+const { fingerprint, reusable } = require('./listen_cache');
 
 const argv = process.argv.slice(2);
 function flag(name, def) {
@@ -110,7 +111,10 @@ async function checkOne(blk) {
       if (!r.ok) { await new Promise(z => setTimeout(z, 2000)); continue; }
       const j = await r.json();
       const txt = j?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
-      try { return JSON.parse(txt); } catch (e) { return { ok: null, why: 'ردٌّ غيرُ مفهوم' }; }
+      try {
+        const parsed = JSON.parse(txt);
+        return parsed && typeof parsed.ok === 'boolean' ? parsed : { ok: null, why: 'بنية رد غير صالحة' };
+      } catch (e) { return { ok: null, why: 'ردٌّ غيرُ مفهوم' }; }
     } catch (e) { await new Promise(z => setTimeout(z, 2000)); }
   }
   return { ok: null, why: 'مهلةٌ منتهية' };
@@ -118,25 +122,32 @@ async function checkOne(blk) {
 
 (async () => {
   console.log(`مفاتيح: ${keys.length} | كتلُ الحصّة ${SHARD}/${SHARDS}: ${blocks.length} | نموذج: ${MODEL}`);
-  if (!keys.length) { console.error('⛔ لا مفاتيح — الفحصُ السمعيّ لم يجرِ'); process.exit(0); }
-  const todo = blocks.filter(b => !(b.id in res));
+  if (!keys.length) { console.error('⛔ لا مفاتيح — الفحصُ السمعيّ لم يجرِ'); process.exit(1); }
+  const digests = new Map(blocks.map(b => {
+    const file = path.join(PROJ, 'audio', b.id + '.wav');
+    return [b.id, fs.existsSync(file) ? fingerprint(b.text, fs.readFileSync(file)) : null];
+  }));
+  const todo = blocks.filter(b => !digests.get(b.id) || !reusable(res[b.id], digests.get(b.id)));
   let i = 0, done = 0;
   await Promise.all(Array.from({ length: WORKERS }, async () => {
     while (i < todo.length) {
       const blk = todo[i++];
       res[blk.id] = await checkOne(blk);
+      res[blk.id].input_sha256 = digests.get(blk.id);
+      fs.writeFileSync(OUT + '.tmp', JSON.stringify(res, null, 1));
+      fs.renameSync(OUT + '.tmp', OUT);
       done++;
       if (done % 20 === 0) {
-        fs.writeFileSync(OUT, JSON.stringify(res, null, 1));
         console.log(`… ${done}/${todo.length}`);
       }
     }
   }));
-  fs.writeFileSync(OUT, JSON.stringify(res, null, 1));
+  fs.writeFileSync(OUT + '.tmp', JSON.stringify(res, null, 1));
+  fs.renameSync(OUT + '.tmp', OUT);
 
   const vals = Object.entries(res);
   const flags = vals.filter(([, v]) => v && v.ok === false);
-  const skipped = vals.filter(([, v]) => !v || v.ok === null);
+  const skipped = vals.filter(([, v]) => !v || typeof v.ok !== 'boolean');
   const checked = vals.length - skipped.length;
   const pct = checked ? (flags.length * 100 / checked) : 0;
   console.log(`\n── الفحصُ السمعيّ ──`);
@@ -146,6 +157,7 @@ async function checkOne(blk) {
     console.log(`  ⚑ ${id}: ${v.why || ''} | سُمع «${v.heard || ''}» والمكتوب «${v.written || ''}»`);
   }
   if (skipped.length) {
+    process.exitCode = 1;
     // ⛔ ما لم يُفحص يُسمّى ولا يُدَّعى أنه اجتاز
     console.log(`⚠️ ${skipped.length} كتلةً لم تُفحص — لا يُقال إنها اجتازت البوّابة.`);
     // ⛔⛔ درسٌ مقيسٌ 2026-09-14 (حلقة الموحّدين): اجتاز الفحصُ اثنتي عشرةَ كتلةً

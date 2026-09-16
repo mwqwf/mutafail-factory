@@ -68,6 +68,19 @@ jobs:
         run: |
           [ -n "$YT_OAUTH_JSON" ] || { echo "⛔⛔ سرُّ YT_OAUTH_JSON غيرُ مضبوط"; exit 1; }
 
+      - name: تحقق من اجتياز الفحص السمعي في شوط المصدر
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_RUN: ${{ steps.cmd.outputs.runId }}
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_RUN" =~ ^[0-9]+$ ]] || exit 1
+          gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN/jobs?per_page=100" \
+            --jq '.jobs[] | select(.name == "listening-gate") | .conclusion' > /tmp/listening-verdict.txt
+          grep -qx success /tmp/listening-verdict.txt || {
+            echo "لا نشر: شوط المصدر لا يحمل اجتياز listening-gate؛ أكمل الفحص أولاً."; exit 1;
+          }
+
       - name: إتمامُ النشر (استئنافٌ من الفيلم المرفوع)
         env:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
