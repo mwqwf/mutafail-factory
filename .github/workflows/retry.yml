@@ -48,7 +48,9 @@ jobs:
                 fi
                 ;;
             esac
-          done < <(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN/jobs?per_page=100" \
+          # أحدث محاولة فقط: nokeys من نافذة حصة قديمة لا يمنع محاولةً لاحقةً
+          # بعد التجدد إن كانت نتائج المحاولة الجديدة مختلفة.
+          done < <(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN/jobs?filter=latest&per_page=100" \
             --paginate --jq '.jobs[] | select(.conclusion == "failure") | [.id, .name] | @tsv')
           echo "hold=$hold" >> "$GITHUB_OUTPUT"
           if [ "$hold" = true ]; then
