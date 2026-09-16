@@ -39,8 +39,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          N=$(gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/actions/runs?per_page=100" \
-                --jq '[.[].workflow_runs[] | select(.status != "completed") | select(.path | test("/(film|finish)\\.yml$"))] | length')
+          N=$(gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/actions/runs?per_page=100" |
+                jq -er '[.[].workflow_runs[] | select(.status != "completed") | select(.path | test("/(film|finish)\\.yml$"))] | length')
           echo "أشواطٌ تعمل: $N"
           echo "busy=$N" >> $GITHUB_OUTPUT
 
