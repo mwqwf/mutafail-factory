@@ -1,9 +1,9 @@
 name: اختبارات حراس الجودة والاستئناف
 on:
   push:
-    paths: ["tools/listen*", "tools/image_sources.py", "tools/finish_command.py", "tools/resume_deferred.py", "tools/test_*.py", "tools/test_*.js", ".github/workflows/*.yml"]
+    paths: ["tools/listen*", "tools/artifact*", "tools/image_sources.py", "tools/finish_command.py", "tools/resume_deferred.py", "tools/test_*", ".github/actions/**", ".github/workflows/*.yml"]
   pull_request:
-    paths: ["tools/listen*", "tools/image_sources.py", "tools/finish_command.py", "tools/resume_deferred.py", "tools/test_*.py", "tools/test_*.js", ".github/workflows/*.yml"]
+    paths: ["tools/listen*", "tools/artifact*", "tools/image_sources.py", "tools/finish_command.py", "tools/resume_deferred.py", "tools/test_*", ".github/actions/**", ".github/workflows/*.yml"]
 permissions:
   contents: read
 jobs:
@@ -19,6 +19,7 @@ jobs:
       - run: python -m unittest discover -s tools -p 'test_*.py'
       - run: node tools/test_listen_cache.js
       - run: node --check tools/listen.js
+      - run: node --test tools/test_artifact_crypto.mjs
       - name: تحقق من إتاحة مصدر البحث الرقمي من السحابة بلا توليد
         run: |
           python - <<'PY'

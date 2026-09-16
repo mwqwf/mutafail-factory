@@ -64,7 +64,7 @@ jobs:
           echo "blocks=$(python -c "import json,io;print(len(json.load(io.open('proj/blocks.json',encoding='utf-8'))))")" >> $GITHUB_OUTPUT
           echo "shots=$(python -c "import json,io;print(len(json.load(io.open('proj/shots.json',encoding='utf-8'))))")" >> $GITHUB_OUTPUT
 
-      - uses: actions/upload-artifact@v4
+      - uses: ./.github/actions/private-upload
         with: { name: proj, path: proj, retention-days: 2 }
 
   # ══════════ ٢) الصوت — ستّة أسهم متوازية ══════════
@@ -77,15 +77,15 @@ jobs:
       matrix: { shard: [0, 1, 2, 3, 4, 5] }
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with: { name: proj, path: proj }
+      - uses: ./.github/actions/private-download
+        with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
       # ⛔ ما وُلِّد في محاولةٍ سابقةٍ من هذا الشوط يُنزَّل أوّلاً فلا يُعاد توليدُه
       #    (‏`gen25.js` يتبنّى كلَّ صوتٍ سليمٍ يجده ولو غاب دفترُ الحالة).
-      - uses: actions/download-artifact@v4
+      - uses: ./.github/actions/private-download
         continue-on-error: true
-        with: { pattern: audio-*, path: proj/audio, merge-multiple: true }
+        with: { pattern: audio-*, path: proj/audio, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - name: توليد حصّة السهم
         env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
@@ -103,7 +103,7 @@ jobs:
       #    بلا `always()` كان سقوطُ السهم عند نفاد الحصّة (429) يمنع رفعَ الأثر،
       #    فيضيع **كلُّ ما وُلِّد فيه فعلاً** ويُعاد توليدُه غداً من الصفر.
       #    والحصّةُ لا تُسترجَع. فالأثرُ يُرفع نجح السهمُ أو سقط.
-      - uses: actions/upload-artifact@v4
+      - uses: ./.github/actions/private-upload
         if: always()
         with:
           name: "audio-${{ matrix.shard }}"
@@ -123,15 +123,15 @@ jobs:
       matrix: { shard: [0, 1, 2] }
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with: { name: proj, path: proj }
-      - uses: actions/download-artifact@v4
-        with: { pattern: audio-*, path: proj/audio, merge-multiple: true }
+      - uses: ./.github/actions/private-download
+        with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { pattern: audio-*, path: proj/audio, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
-      - uses: actions/download-artifact@v4
+      - uses: ./.github/actions/private-download
         continue-on-error: true
-        with: { name: "listen-${{ matrix.shard }}", path: proj }
+        with: { name: "listen-${{ matrix.shard }}", path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: |
@@ -140,13 +140,13 @@ jobs:
           rm -f keys.json
       - if: always()
         run: rm -f keys.json
-      - uses: actions/upload-artifact@v4
+      - uses: ./.github/actions/private-upload
         if: always()
         with:
           name: "listen-${{ matrix.shard }}"
           path: proj/listen_results*.json
           retention-days: 30
-          overwrite: true
+
 
   # التقرير الاستشاري لا يكفي للنشر: كل كتلة مفحوصة ومرتبطة بالنص والصوت الحاليين.
   listening-gate:
@@ -156,12 +156,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
-      - uses: actions/download-artifact@v4
-        with: { name: proj, path: proj }
-      - uses: actions/download-artifact@v4
-        with: { pattern: audio-*, path: proj/audio, merge-multiple: true }
-      - uses: actions/download-artifact@v4
-        with: { pattern: listen-*, path: proj, merge-multiple: true }
+      - uses: ./.github/actions/private-download
+        with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { pattern: audio-*, path: proj/audio, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { pattern: listen-*, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - run: python tools/listen_gate.py proj
 
   # ══════════ ٣) الصور — عاملٌ واحد (بوليناشنز: طابورٌ واحد) ══════════
@@ -175,17 +175,17 @@ jobs:
         with: { python-version: "3.11" }
       # ⛔ بلا PIL هنا كان كلُّ تحقّقٍ يرمي فتُحذف صورةٌ سليمةٌ نزلت فعلاً
       - run: pip install -q pillow
-      - uses: actions/download-artifact@v4
-        with: { name: proj, path: proj }
-      - uses: actions/download-artifact@v4
+      - uses: ./.github/actions/private-download
+        with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
         continue-on-error: true
-        with: { name: img, path: proj/img }
+        with: { name: img, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - run: python tools/image_sources.py proj  # صور Codex المعتمدة إن ضُمّنت في الحمولة
       - run: python tools/imgdl3.py proj      # المسار الأصلي باقٍ كما هو للصور الناقصة
       # ⛔ والصورُ كذلك: ما نزل فعلاً يُرفع ولو سقط العامل، فلا يُعاد تنزيلُه
-      - uses: actions/upload-artifact@v4
+      - uses: ./.github/actions/private-upload
         if: always()
-        with: { name: img, path: proj/img, retention-days: 2, overwrite: true }
+        with: { name: img, path: proj/img, retention-days: 2 }
 
   # ══════════ ٤) خرائط العمق — مرّةً واحدةً للجميع ══════════
   # ⛔ كانت تُحسب داخل كلّ عامل تصييرٍ من العشرة: عشرُ تثبيتاتٍ لـtorch وعشرُ حسابات
@@ -202,12 +202,12 @@ jobs:
           pip install -q pillow numpy
           pip install -q torch --index-url https://download.pytorch.org/whl/cpu
           pip install -q transformers
-      - uses: actions/download-artifact@v4
-        with: { name: proj, path: proj }
-      - uses: actions/download-artifact@v4
-        with: { name: img, path: proj/img }
+      - uses: ./.github/actions/private-download
+        with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { name: img, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - run: python -c "import sys;sys.path.insert(0,'tools');import kb3d;kb3d.depth_maps('proj')"
-      - uses: actions/upload-artifact@v4
+      - uses: ./.github/actions/private-upload
         with: { name: depth, path: "proj/img/*_depth.png", retention-days: 2 }
 
   # ══════════ ٥) التصيير المجسَّم — عشرة عمّال ══════════
@@ -224,18 +224,18 @@ jobs:
         with: { python-version: "3.11" }
       - run: pip install -q pillow numpy
       - run: sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg
-      - uses: actions/download-artifact@v4
-        with: { name: proj, path: proj }
-      - uses: actions/download-artifact@v4
-        with: { name: img, path: proj/img }
-      - uses: actions/download-artifact@v4
-        with: { name: depth, path: proj/img }
-      - uses: actions/download-artifact@v4
-        with: { pattern: audio-*, path: proj/audio, merge-multiple: true }
+      - uses: ./.github/actions/private-download
+        with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { name: img, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { name: depth, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { pattern: audio-*, path: proj/audio, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - name: تصيير حصّتي
         run: python tools/turbo.py "$PWD/proj" ${{ matrix.w }} 10
       # ⛔ واللقطاتُ المصيَّرةُ كذلك — ساعاتُ تصييرٍ لا تُرمى لسقوطِ آخرِ لقطة
-      - uses: actions/upload-artifact@v4
+      - uses: ./.github/actions/private-upload
         if: always()
         with:
           name: "seg-${{ matrix.w }}"
@@ -254,16 +254,16 @@ jobs:
       # ⛔ بلا هاتين تنفصل الحروفُ العربية في البطاقات (RAQM غيرُ متاح)
       - run: pip install -q pillow numpy arabic-reshaper python-bidi
       - run: sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg fonts-hosny-amiri fonts-noto-core
-      - uses: actions/download-artifact@v4
-        with: { name: proj, path: proj }
-      - uses: actions/download-artifact@v4
-        with: { name: img, path: proj/img }
-      - uses: actions/download-artifact@v4
-        with: { name: depth, path: proj/img }
-      - uses: actions/download-artifact@v4
-        with: { pattern: audio-*, path: proj/audio, merge-multiple: true }
-      - uses: actions/download-artifact@v4
-        with: { pattern: seg-*, path: proj/work/seg, merge-multiple: true }
+      - uses: ./.github/actions/private-download
+        with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { name: img, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { name: depth, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { pattern: audio-*, path: proj/audio, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { pattern: seg-*, path: proj/work/seg, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - name: التركيب (يجد اللقطات جاهزةً فيتخطّى التصيير)
         run: |
           # ⛔ حارسُ الاتّجاه قبل أيّ بطاقة — العناوينُ المقلوبة لا تُكتشف بعد الرفع
@@ -284,7 +284,7 @@ jobs:
             [ -n "$d" ] || { echo "⛔ $f لم يكتمل"; exit 1; }
           done
           ls -la proj/film.mp4 proj/reels proj/thumb-*.jpg
-      - uses: actions/upload-artifact@v4
+      - uses: ./.github/actions/private-upload
         with:
           name: film
           path: |
@@ -307,10 +307,10 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
-      - uses: actions/download-artifact@v4
-        with: { name: proj, path: proj }
-      - uses: actions/download-artifact@v4
-        with: { name: film, path: proj }
+      - uses: ./.github/actions/private-download
+        with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { name: film, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - name: رفعٌ ونشر
         env:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}

@@ -68,11 +68,13 @@ jobs:
 
       - name: جلبُ مخرَجات شوط الإنتاج (الفيلم والريلزات والمصغّرات)
         if: steps.cmd.outputs.execute == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh run download ${{ steps.cmd.outputs.runId }} -n film -D proj
-          ls -la proj proj/reels
+        uses: ./.github/actions/private-download
+        with:
+          name: film
+          path: proj
+          run-id: ${{ steps.cmd.outputs.runId }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: ${{ secrets.CONTENT_PRIVATE_KEY }}
 
       - name: ⛔ إن غاب سرُّ النشر فلا شوطَ كاذب
         if: steps.cmd.outputs.execute == 'true'
