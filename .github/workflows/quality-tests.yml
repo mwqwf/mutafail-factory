@@ -1,9 +1,9 @@
 name: اختبارات حراس الجودة والاستئناف
 on:
   push:
-    paths: ["tools/listen*", "tools/image_sources.py", "tools/test_*.py", "tools/test_*.js", ".github/workflows/quality-tests.yml"]
+    paths: ["tools/listen*", "tools/image_sources.py", "tools/finish_command.py", "tools/resume_deferred.py", "tools/test_*.py", "tools/test_*.js", ".github/workflows/*.yml"]
   pull_request:
-    paths: ["tools/listen*", "tools/image_sources.py", "tools/test_*.py", "tools/test_*.js"]
+    paths: ["tools/listen*", "tools/image_sources.py", "tools/finish_command.py", "tools/resume_deferred.py", "tools/test_*.py", "tools/test_*.js", ".github/workflows/*.yml"]
 permissions:
   contents: read
 jobs:
