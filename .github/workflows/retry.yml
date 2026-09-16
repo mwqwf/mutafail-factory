@@ -27,7 +27,36 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: احمِ حصة الفحص السمعي من الإعادة العمياء
+        id: quota_guard
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          hold=false
+          # `listen.js` لا يطبع nokeys إلا بعد أن تصير كل المفاتيح المحمّلة dead،
+          # ولا يضع المفتاح في dead إلا لردّ 429 يحمل PerDay. إعادة الشوط بعد
+          # دقيقتين لن تجدّد حصةً يومية، وستطحن الردود نفسها بلا فحص جديد.
+          while IFS=$'\t' read -r job_id job_name; do
+            [ -n "$job_id" ] || continue
+            case "$job_name" in
+              listen\ \(*\))
+                log="$RUNNER_TEMP/listen-$job_id.log"
+                if gh api "repos/$GITHUB_REPOSITORY/actions/jobs/$job_id/logs" > "$log" 2>/dev/null \
+                  && grep -q '× nokeys' "$log"; then
+                  hold=true
+                fi
+                ;;
+            esac
+          done < <(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN/jobs?per_page=100" \
+            --paginate --jq '.jobs[] | select(.conclusion == "failure") | [.id, .name] | @tsv')
+          echo "hold=$hold" >> "$GITHUB_OUTPUT"
+          if [ "$hold" = true ]; then
+            echo "⏸️ فحص الاستماع استنفد مفاتيحه المؤهلة بعد PerDay؛ حُفظت نتائجه ولا إعادة قبل تجدد الحصة."
+          fi
+
       - name: أعِد الأشواطَ الساقطةَ وحدَها
+        if: steps.quota_guard.outputs.hold != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN: ${{ github.event.workflow_run.id }}
