@@ -3,9 +3,6 @@ name: مصنع المتفائل — استئناف الفحص والنشر
 run-name: 🎧 استئناف ${{ github.event.head_commit.message || inputs.command_file }}
 
 on:
-  push:
-    paths:
-      - "ops/resume/*.json"
   schedule:
     # كل نافذة تجدّد: أول ملف استئناف غير مكتمل، وحالة «تمّ» تمنع التكرار.
     - cron: "5 7 * * *"
