@@ -1,0 +1,24 @@
+name: مصنع المتفائل — إلغاء شوط خاطئ
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: write
+  issues: write
+  contents: read
+
+jobs:
+  cancel:
+    if: >-
+      github.actor == github.repository_owner &&
+      github.event.issue.title == '[factory] cancel wrong run' &&
+      github.event.issue.body == '35194262374'
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run cancel 35194262374 --repo "$GITHUB_REPOSITORY"
+          gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment "أُلغي الشوط الذي اختار amal-1 خطأً."
