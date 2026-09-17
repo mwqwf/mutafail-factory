@@ -171,6 +171,7 @@ jobs:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
         run: |
           [ -n "$YT_OAUTH_JSON" ] || { echo "لا سر نشر"; exit 1; }
+          python tools/publish_preflight.py proj
           python tools/publish_youtube.py proj
       - name: اختم الاستئناف واحفظ الحالة
         env:

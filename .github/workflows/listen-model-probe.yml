@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: "8 6 17 9 *"
   workflow_dispatch:
+  push:
+    branches: [master]
+    paths: ["ops/probe/amal-2-model.json"]
 
 permissions:
   actions: read
@@ -22,6 +25,7 @@ jobs:
       - name: حارس المسبار الوحيد
         run: |
           [ "$(date -u +%F)" = 2026-09-17 ] || { echo "انتهت نافذة المسبار"; exit 1; }
+          [ -f ops/probe/amal-2-model.json ] || { echo "لا أمر مسبار"; exit 1; }
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
       - uses: ./.github/actions/private-download
