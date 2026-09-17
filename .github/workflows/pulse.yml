@@ -1,0 +1,106 @@
+name: مصنع المتفائل — نبضةُ اليقظة
+
+run-name: 💓 نبضة
+
+# ⭐ **لماذا:** `CAPABILITIES §٤` يَعِد بنبضةٍ كلَّ ثلاث ساعات… ولم يكن لها ملفٌّ
+#    أصلاً (مقيسٌ 2026-09-14). فكان المصنعُ **لا يبدأ من نفسه أبداً**: لا شوطَ
+#    إنتاجٍ إلا بدفعِ أمرٍ مختوم، ولا دافعَ إلا جلسةٌ سحابيّة.
+#    ⇒ هذه النبضةُ تكتب الأثرَ الذي تنطلق منه الدورة: إن كانت الخطةُ غيرَ منتهيةٍ
+#      ولا شوطَ إنتاجٍ يعمل، سجّلت النداءَ في `ops/kick.txt` بتاريخه وسببه.
+# النبضة نفسها لا تولّد؛ قد تطلق إتمام نشر مؤجل صراحةً عبر workflow_dispatch.
+on:
+  schedule:
+    # ⭐ نافذةُ التجدّد أوّلاً: الحصّةُ تتجدّد 08:00 بتوقيت المالك = 07:00 غرينتش
+    #    (‏`ops/state/quota.json` هو مصدرُ الحقيقة). فأثقلُ عملٍ يبدأ هنا.
+    - cron: "5 7 * * *"
+    # ثمّ اليقظةُ العاديّة كلَّ ثلاث ساعات
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: mutafail-pulse
+  cancel-in-progress: true
+
+jobs:
+  pulse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: master }
+
+      - name: هل ثمّة شوطُ إنتاجٍ يعمل؟
+        id: busy
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          N=$(gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/actions/runs?per_page=100" |
+                jq -er '[.[].workflow_runs[] | select(.status != "completed") | select(.path | test("/(film|finish)\\.yml$"))] | length')
+          echo "أشواطٌ تعمل: $N"
+          echo "busy=$N" >> $GITHUB_OUTPUT
+
+      # ⭐ قاعدةُ المالك: ما أخّرته الحصّةُ يُنفَّذ مع أوّل تجدّدٍ بلا طلب.
+      #    فأوامرُ الإتمام المؤجَّلة تُعاد جدولتُها هنا فتُشعل finish.yml بنفسها.
+      - name: أعِدْ جدولةَ ما أجّلته الحصّة
+        if: steps.busy.outputs.busy == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/resume_deferred.py
+
+      - name: سجّلِ النداءَ إن كان المصنعُ خاملاً
+        if: steps.busy.outputs.busy == '0'
+        run: |
+          # ⛔ لا نداءَ إن كانت الخطةُ منتهية — تُقرأ من مصدر الحقيقة لا من الظنّ
+          # ⛔ `python` غيرُ موجودٍ على العدّاء بلا setup-python — `python3` هو الموجود
+          NEXT=$(python3 - <<'PY'
+          import io, json
+          try:
+              s = json.load(io.open("ops/state/plan_state.json", encoding="utf-8"))
+              t = s.get("التالي", {})
+              print(t.get("الحلقة_التالية") or t.get("السلسلة") or "")
+          except Exception:
+              print("")
+          PY
+          )
+          if [ -z "$NEXT" ]; then
+            echo "✅ لا سطرَ تالٍ في الخطة — لا نداء"; exit 0
+          fi
+          mkdir -p ops
+          LAST=$(tail -1 ops/kick.txt 2>/dev/null || true)
+          # ⭐ نبضةُ نافذة التجدّد تُنادى بنصٍّ أقوى: الرصيدُ كاملٌ الآن
+          H=$(date -u +%H)
+          WIN=""
+          [ "$H" = "07" ] && WIN=" ⭐ نافذةُ التجدّد: الرصيدُ كاملٌ الآن — ابدأ بأثقل عمل"
+          # ⭐ يُحمل في النداء **آخرُ ما نُشر فعلاً** — فيرى الدماغُ في سطرٍ واحدٍ
+          #    هل تقدّمت الخطةُ بعد آخر نشرٍ أم بقيت على حلقةٍ نُشرت، فلا يُعيدها
+          #    ولا يحرق حصّةً في عملٍ وقع. (خطرٌ مقيسٌ 2026-09-15: بقي حقلُ «التالي»
+          #    على حلقةٍ نُشرت حتى حدّثته جلسةٌ لاحقة.)
+          LASTPUB=$(python3 - <<'PY'
+          import io, json
+          try:
+              d = json.load(io.open("ops/state/last_publish.json", encoding="utf-8"))
+              print("%s (%s)" % (d.get("slug", "?"), d.get("film", {}).get("id", "?")))
+          except Exception:
+              print("لا شيء")
+          PY
+          )
+          LINE="$(date -u +%FT%TZ) · المصنعُ خاملٌ والتالي: $NEXT$WIN · وآخرُ منشورٍ: $LASTPUB"
+          # ⛔ لا يتكرّر النداءُ في اليوم نفسه فيغرق الملفّ
+          if [ "${LAST%% ·*}" != "" ] && [ "$(echo "$LAST" | cut -c1-10)" = "$(date -u +%F)" ]; then
+            echo "↻ نداءُ اليوم مسجّلٌ سلفاً"; exit 0
+          fi
+          echo "$LINE" >> ops/kick.txt
+          git config user.name  "نبضةُ المصنع"
+          git config user.email "pulse@mutafail.local"
+          git add ops/kick.txt
+          git commit -qm "💓 نداءُ يقظة: $NEXT" || exit 0
+          for i in 1 2 3 4; do
+            git pull --rebase -q origin master && git push -q origin HEAD:master && exit 0
+            sleep $(( i * 2 ))
+          done
+          echo "⛔ تعذّر دفعُ النداء"; exit 1

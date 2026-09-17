@@ -1,0 +1,96 @@
+name: فحصُ المحرّك — بلا رصيدٍ ولا حصّة
+
+run-name: 🧪 فحص المحرّك
+
+# ⛔ **لا يمسّ هذا الشوطُ رصيداً ولا حصّة**: لا جيميناي ولا بوليناشنز ولا يوتيوب.
+#    الصورُ والأصواتُ فيه **مولَّدةٌ محليًّا** (تدرّجاتٌ وصمت)، والغرضُ وحدَه:
+#    إثباتُ أن سلسلة العمق والتصيير والتركيب والريلزات والمصغّرات **تعمل على لينكس**.
+#    وهذا هو «التحقّقُ المحلّيّ المجّانيّ» الذي يأمر به الدستور، لا جولةَ اختبارٍ تحرق حصّة.
+on:
+  push:
+    paths: [".github/workflows/selftest.yml", "ops/selftest/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: |
+          pip install -q pillow numpy arabic-reshaper python-bidi
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -q transformers
+      - run: sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg fonts-hosny-amiri
+
+      - name: حمولةٌ صوريّةٌ مولَّدةٌ محليًّا (بلا شبكة)
+        run: |
+          python tools/selftest_fixture.py /tmp/proj
+          python tools/build.py /tmp/proj
+          python tools/lint.py  /tmp/proj/script.md
+          python tools/guard.py /tmp/proj/script.md
+
+      - name: العمق ثمّ التصيير ثمّ التركيب
+        run: |
+          python -c "import sys;sys.path.insert(0,'tools');import kb3d;kb3d.depth_maps('/tmp/proj')"
+          python tools/turbo.py /tmp/proj 0 1
+          python tools/mont3d.py /tmp/proj
+          python tools/bidicheck.py
+          python tools/logocheck.py
+          python tools/mkreel3d.py /tmp/proj r1
+          python tools/mkthumbs.py /tmp/proj
+          python tools/chapters.py /tmp/proj /tmp/proj/sections.json
+
+      - name: الحكم
+        run: |
+          for f in /tmp/proj/film.mp4 /tmp/proj/reels/r1.mp4 /tmp/proj/thumb-a.jpg; do
+            [ -s "$f" ] || { echo "⛔ ناقص: $f"; exit 1; }
+          done
+          # ⛔ التحريكُ المجسَّم إلزاميّ: بلا خريطةِ عمقٍ يتراجع kb3d إلى تدرّجٍ مسطّحٍ صامتاً
+          n=$(ls /tmp/proj/img/*_depth.png 2>/dev/null | wc -l)
+          echo "خرائطُ عمق: $n"
+          [ "$n" -ge 3 ] || { echo "⛔ خرائطُ العمق لم تُولَّد — التحريكُ مسطَّحٌ لا مجسَّم"; exit 1; }
+          # ⛔ الشعارُ يُفحص في إطارٍ من الفيلم المصيَّر لا في الشيفرة وحدها
+          python tools/logocheck.py /tmp/proj/film.mp4
+          ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 /tmp/proj/film.mp4
+          ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 /tmp/proj/reels/r1.mp4
+          cat /tmp/proj/الفصول.txt
+          echo "✅ سلسلةُ المحرّك تعمل على لينكس من أوّلها إلى آخرها"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selftest
+          path: |
+            /tmp/proj/film.mp4
+            /tmp/proj/reels
+            /tmp/proj/thumb-a.jpg
+          retention-days: 2
+
+      # ⭐ في الآخِر عمداً: مخرَجُ الشوط يُقرأ من ذيله، فيُرى حالُ الأسرار بلا تنزيلِ السجلّ كلِّه
+      - name: هل الأسرارُ مضبوطة؟ (الأسماءُ وحدَها — ولا تُطبع قيمةٌ أبداً)
+        if: always()
+        env:
+          A: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          B: ${{ secrets.GEMINI_KEYS_JSON }}
+          C: ${{ secrets.YT_OAUTH_JSON }}
+        run: |
+          for n in A B C; do
+            v=$(eval echo \$$n)
+            case $n in A) t=CONTENT_PRIVATE_KEY;; B) t=GEMINI_KEYS_JSON;; C) t=YT_OAUTH_JSON;; esac
+            if [ -z "$v" ]; then echo "⛔ $t — غيرُ مضبوط"; else echo "✅ $t — مضبوط (${#v} حرفاً)"; fi
+          done
+          # وكم مفتاحاً في سرّ جيميناي؟ (عدداً فقط — ولا يُطبع مفتاحٌ البتّة)
+          if [ -n "$B" ]; then
+            printf '%s' "$B" > /tmp/k.json
+            node -e '
+              const fs=require("fs");let t=fs.readFileSync("/tmp/k.json","utf8"),s=new Set();
+              try{const j=JSON.parse(t);(Array.isArray(j)?j:(j.keys||Object.values(j))).forEach(v=>{if(typeof v==="string"&&(v.trim().startsWith("AIza")||v.trim().startsWith("AQ.")))s.add(v.trim())});}
+              catch(e){t.split(/[\r\n,"\s]+/).forEach(l=>{l=l.trim();if(l.startsWith("AIza")||l.startsWith("AQ."))s.add(l)});}
+              console.log("   مفاتيحُ صالحةُ الشكل: "+s.size);'
+            rm -f /tmp/k.json
+          fi

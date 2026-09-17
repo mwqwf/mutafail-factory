@@ -1,0 +1,11 @@
+const assert = require('node:assert/strict');
+const { fingerprint, reusable } = require('./listen_cache');
+const digest = fingerprint('test', Buffer.from('fixture'));
+assert.equal(digest, require('node:crypto').createHash('sha256').update(Buffer.from('test\0fixture')).digest('hex'));
+assert.equal(reusable({ok: null, input_sha256: digest}, digest), false);
+assert.equal(reusable({ok: 'true', input_sha256: digest}, digest), false);
+assert.equal(reusable({ok: true, input_sha256: digest}, digest), true);
+assert.equal(reusable({ok: false, input_sha256: digest}, digest), true);
+assert.equal(reusable({ok: true, input_sha256: digest}, fingerprint('changed', Buffer.from('fixture'))), false);
+assert.equal(reusable({ok: true, input_sha256: digest}, fingerprint('test', Buffer.from('changed'))), false);
+console.log('PASS: listening cache invariants');

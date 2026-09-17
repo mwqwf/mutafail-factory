@@ -1,0 +1,105 @@
+name: مصنع المتفائل — مشغّل الإنتاج اليومي
+
+on:
+  schedule:
+    - cron: "15 7 * * *"
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: mutafail-controller
+  cancel-in-progress: true
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: master }
+      - name: حارس التزامن
+        id: busy
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          N=$(gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/actions/runs?per_page=100" |
+              jq -er '[.[].workflow_runs[] | select(.status != "completed") |
+              select(.path | test("/(film|resume-listen|finish)\\.yml$"))] | length')
+          echo "busy=$N" >> "$GITHUB_OUTPUT"
+      - name: قدّم الاستئناف أو الإتمام قبل إنتاج جديد
+        if: steps.busy.outputs.busy == '0'
+        id: deferred
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import datetime,glob,json,os,re
+          now=datetime.datetime.now(datetime.timezone.utc)
+          # الاستماع ذو حصة يومية: نافذة 07 UTC وحدها تعطي fallback للـ07:05
+          # ولا تعيد الطلب في ساعات اليوم نفسها بعد PerDay.
+          if now.hour == 7:
+              for f in sorted(glob.glob('ops/resume/*.json')):
+                  try: d=json.load(open(f,encoding='utf-8'))
+                  except Exception: continue
+                  run=str(d.get('sourceRun','')); cmd=d.get('command','')
+                  if d.get('تمّ') or not run.isdigit() or not re.fullmatch(r'[a-z0-9-]+',cmd): continue
+                  if not all(os.path.isfile(f'ops/commands/{cmd}/'+x) for x in ('payload.enc','key.enc')): continue
+                  print('resume_file='+f); raise SystemExit
+          for f in sorted(glob.glob('ops/finish/*.json')):
+              try: d=json.load(open(f,encoding='utf-8'))
+              except Exception: continue
+              run=str(d.get('runId','')); cmd=d.get('command',''); video=d.get('videoId','')
+              if d.get('تمّ') or not run.isdigit() or not re.fullmatch(r'[a-z0-9-]+',cmd): continue
+              if not isinstance(video,str) or not video.strip(): continue
+              if not all(os.path.isfile(f'ops/commands/{cmd}/'+x) for x in ('payload.enc','key.enc')): continue
+              print('finish_file='+f); raise SystemExit
+          PY
+      - name: استأنف الفحص صراحةً
+        if: steps.busy.outputs.busy == '0' && steps.deferred.outputs.resume_file != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CONTROL: ${{ steps.deferred.outputs.resume_file }}
+        run: gh workflow run resume-listen.yml --repo "$GITHUB_REPOSITORY" --ref master -f command_file="$CONTROL"
+      - name: أتم النشر صراحةً
+        if: steps.busy.outputs.busy == '0' && steps.deferred.outputs.resume_file == '' && steps.deferred.outputs.finish_file != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CONTROL: ${{ steps.deferred.outputs.finish_file }}
+        run: gh workflow run finish.yml --repo "$GITHUB_REPOSITORY" --ref master -f command_file="$CONTROL"
+      - name: اختر أمراً مختوماً جاهزاً
+        if: steps.busy.outputs.busy == '0' && steps.deferred.outputs.resume_file == '' && steps.deferred.outputs.finish_file == ''
+        id: ready
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import datetime,glob,json,os,re
+          now=datetime.datetime.now(datetime.timezone.utc)
+          for f in sorted(glob.glob('ops/ready/*.json')):
+              try: d=json.load(open(f,encoding='utf-8'))
+              except Exception: continue
+              if d.get('تمّ'): continue
+              command=d.get('commandDir','')
+              if not re.fullmatch(r'ops/commands/[a-z0-9-]+',command): continue
+              if not all(os.path.isfile(command+'/'+x) for x in ('payload.enc','key.enc')): continue
+              slug=command.rsplit('/',1)[-1]
+              resume=f'ops/resume/{slug}.json'
+              if os.path.isfile(resume):
+                  try: pending=not json.load(open(resume,encoding='utf-8')).get('تمّ')
+                  except Exception: pending=True
+                  if pending: continue
+              when=d.get('notBefore')
+              if when:
+                  try: due=datetime.datetime.fromisoformat(when.replace('Z','+00:00'))
+                  except Exception: continue
+                  if now < due: continue
+              print('command_dir='+command); print('ready_file='+f); break
+          PY
+      - name: أطلق الإنتاج صراحةً
+        if: steps.busy.outputs.busy == '0' && steps.deferred.outputs.resume_file == '' && steps.deferred.outputs.finish_file == '' && steps.ready.outputs.command_dir != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMAND_DIR: ${{ steps.ready.outputs.command_dir }}
+        run: |
+          gh workflow run film.yml --repo "$GITHUB_REPOSITORY" --ref master -f command_dir="$COMMAND_DIR"
+          echo "قُبل dispatch للأمر المختوم؛ قبول الطلب ليس إثبات اكتمال الإنتاج"

@@ -1,0 +1,39 @@
+name: تحقق تشفير المخرجات السحابية
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  seal:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: إنشاء ملف اصطناعي لا مادة إنتاجية
+        run: |
+          mkdir synthetic
+          printf '%s' 'synthetic-artifact-roundtrip' > synthetic/check.txt
+      - uses: ./.github/actions/private-upload
+        with:
+          name: synthetic-private
+          path: synthetic
+          retention-days: '1'
+  unseal:
+    needs: seal
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/private-download
+        with:
+          name: synthetic-private
+          path: restored
+          private-key: ${{ secrets.CONTENT_PRIVATE_KEY }}
+      - name: تحقق البايتات دون طباعة مفاتيح أو إنتاج
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          assert Path('restored/check.txt').read_bytes() == b'synthetic-artifact-roundtrip'
+          print('Cloud encrypted artifact roundtrip verified; no production media generated.')
+          PY

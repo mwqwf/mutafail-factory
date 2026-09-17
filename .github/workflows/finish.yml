@@ -1,0 +1,153 @@
+name: مصنع المتفائل — إتمامُ نشرٍ ناقص
+
+run-name: ↻ ${{ github.event.head_commit.message }}
+
+# ⭐ **لماذا هذا الملفّ:** شوطُ النشر قد يسقط **بعد** رفع الفيلم (وقع 2026-09-14).
+#    فلا تصحّ إعادةُ الشوط كلِّه — تُنتج نسخةً ثانية. وهذا يُكمِل ما بقي وحدَه:
+#    المصغّرة والقائمة والريلزات، مستأنفاً من معرّف الفيلم المرفوع.
+#
+# الزناد: دفعةُ ملفٍّ في `ops/finish/<slug>.json` فيه:
+#   { "runId": "<شوطُ الإنتاج>", "videoId": "<معرّفُ الفيلم>", "command": "<مجلّد الأمر>" }
+on:
+  workflow_dispatch:
+    inputs:
+      command_file:
+        description: "مسار أمر الإتمام داخل ops/finish"
+        required: true
+        type: string
+  push:
+    branches: [master]
+    paths: ["ops/finish/**"]
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: mutafail-finish
+  cancel-in-progress: false
+
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
+
+      - name: قراءةُ أمر الإتمام
+        id: cmd
+        env:
+          REQUESTED_FILE: ${{ inputs.command_file }}
+        run: |
+          # ⛔⛔ درسٌ مقيسٌ 2026-09-14: كان الأمرُ يُختار بـ`ls -t` أي «أحدثُ ملفٍّ
+          #    بالتاريخ»، والاستنساخُ الطازج يجعل أزمنةَ الملفّات كلِّها واحدةً،
+          #    فعُولجت حلقةٌ قديمةٌ بدل المطلوبة. وهو الفخُّ الموثَّقُ في film.yml
+          #    ولم يكن مطبَّقاً هنا. ⇒ الأمرُ هو ما غيّرته الدفعةُ الزناد.
+          set -euo pipefail
+          F="$REQUESTED_FILE"
+          if [ -z "$F" ]; then
+            mapfile -t FILES < <(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/finish/.*\.json$' || true)
+            [ "${#FILES[@]}" = 1 ] || { echo "يجب تحديد أمر إتمام واحد"; exit 1; }
+            F="${FILES[0]}"
+          fi
+          if [ -z "$F" ]; then
+            echo "⛔ لا أمرَ إتمامٍ في هذه الدفعة"; exit 1
+          fi
+          echo "الملفّ: $F"
+          python tools/finish_command.py "$F" >> "$GITHUB_OUTPUT"
+
+      - name: فضُّ حمولة الحلقة (للوصف والوسوم والقائمة)
+        if: steps.cmd.outputs.execute == 'true'
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: bash tools/unseal.sh "ops/commands/${{ steps.cmd.outputs.command }}" "$PWD/proj"
+
+      - name: جلبُ مخرَجات شوط الإنتاج (الفيلم والريلزات والمصغّرات)
+        if: steps.cmd.outputs.execute == 'true'
+        uses: ./.github/actions/private-download
+        with:
+          name: film
+          path: proj
+          run-id: ${{ steps.cmd.outputs.runId }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: ${{ secrets.CONTENT_PRIVATE_KEY }}
+
+      - name: ⛔ إن غاب سرُّ النشر فلا شوطَ كاذب
+        if: steps.cmd.outputs.execute == 'true'
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: |
+          [ -n "$YT_OAUTH_JSON" ] || { echo "⛔⛔ سرُّ YT_OAUTH_JSON غيرُ مضبوط"; exit 1; }
+
+      - name: تحقق من اجتياز الفحص السمعي في شوط المصدر
+        if: steps.cmd.outputs.execute == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_RUN: ${{ steps.cmd.outputs.runId }}
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_RUN" =~ ^[0-9]+$ ]] || exit 1
+          gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN/jobs?per_page=100" \
+            --jq '.jobs[] | select(.name == "listening-gate") | .conclusion' > /tmp/listening-verdict.txt
+          grep -qx success /tmp/listening-verdict.txt || {
+            echo "لا نشر: شوط المصدر لا يحمل اجتياز listening-gate؛ أكمل الفحص أولاً."; exit 1;
+          }
+
+      - name: إتمامُ النشر (استئنافٌ من الفيلم المرفوع)
+        if: steps.cmd.outputs.execute == 'true'
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          FILM_VIDEO_ID: ${{ steps.cmd.outputs.videoId }}
+        run: python tools/publish_youtube.py proj
+
+      - name: اختِمْ أمرَ الإتمام بأنّه تمّ
+        if: steps.cmd.outputs.execute == 'true'
+        run: |
+          python3 - "${{ steps.cmd.outputs.command }}" <<'PY'
+          import io, json, os, sys, time
+          f = os.path.join("ops", "finish", sys.argv[1] + ".json")
+          if os.path.exists(f):
+              d = json.load(io.open(f, encoding="utf-8"))
+              d["تمّ"] = time.strftime("%FT%TZ", time.gmtime())
+              d.pop("مؤجَّل", None)
+              io.open(f, "w", encoding="utf-8").write(json.dumps(d, ensure_ascii=False, indent=1))
+              print("✅ خُتم الأمر:", f)
+          PY
+
+      - name: تسجيلُ الحالة
+        # ⛔ درسٌ مقيس: السقوطُ بعد رفعٍ واقعٍ كان يمنع دفعَ الحالة، فتُعيد
+        #    المحاولةُ التاليةُ الرفعَ ⇒ نسختان على القناة و٣٢٠٠ وحدةٍ من الحصّة.
+        if: always()
+        run: |
+          git config user.name  "مصنع المتفائل"
+          git config user.email "factory@mutafail.local"
+          # ⛔⛔ درسٌ مقيسٌ 2026-09-14: `git push || true` كان يسقط دائماً بـ
+          #    non-fast-forward فيُبتلع الخطأُ صامتاً ولا تصل الحالةُ أبداً.
+          # ⛔⛔ ودرسٌ مقيسٌ 2026-09-15 (شوط amal-1): البديلُ `git pull --rebase`
+          #    يسقط هو الآخر بـ**تعارضٍ** إن كتب شوطٌ آخرُ في `ops/state` في
+          #    اللحظة نفسِها (كتب `finish` حالةَ الخاتمة بينما كان `publish` يرفع)،
+          #    فيبقى المستودعُ في حالة rebase ويُهدر أربعُ محاولاتٍ على تعارضٍ
+          #    لا يُحلّ بالإعادة. **والفيلمُ منشورٌ والحالةُ لم تُسجَّل.**
+          # ⇒ لا دمجَ ولا rebase: حالةُ هذا الشوط هي الأحدثُ يقيناً (فهو الذي نفّذ
+          #   الأثرَ على يوتيوب للتوّ)، فتُحفظ جانباً، ويُعاد الضبطُ إلى origin،
+          #   ثمّ تُنسخ فوقه **ملفّاً ملفّاً** فلا تُمحى حالةُ حلقةٍ أخرى.
+          # ⭐ ويُحفظ معها ختمُ أمر الإتمام (ops/finish) فلا يُعاد أمرٌ تمّ
+          [ -n "$(git status --porcelain ops/state ops/finish)" ] || { echo "لا جديد"; exit 0; }
+          rm -rf /tmp/state_keep && mkdir -p /tmp/state_keep/state /tmp/state_keep/finish
+          cp -a ops/state/. /tmp/state_keep/state/
+          cp -a ops/finish/. /tmp/state_keep/finish/
+          for i in 1 2 3 4; do
+            if git fetch -q origin master && git reset -q --hard origin/master; then
+              cp -a /tmp/state_keep/state/. ops/state/
+              cp -a /tmp/state_keep/finish/. ops/finish/
+              git add -A ops/state ops/finish
+              if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
+              git commit -qm "↻ أُتمّ نشرُ ${{ steps.cmd.outputs.command }}" && git push -q origin HEAD:master && exit 0
+            fi
+            sleep $(( i * 3 ))
+          done
+          echo "⛔ تعذّر دفعُ الحالة بعد أربع محاولات"; exit 1

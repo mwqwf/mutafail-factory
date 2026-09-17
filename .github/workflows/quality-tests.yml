@@ -1,0 +1,36 @@
+name: اختبارات حراس الجودة والاستئناف
+on:
+  push:
+    paths: ["tools/listen*", "tools/artifact*", "tools/image_sources.py", "tools/finish_command.py", "tools/resume_deferred.py", "tools/test_*", ".github/actions/**", ".github/workflows/*.yml"]
+  pull_request:
+    paths: ["tools/listen*", "tools/artifact*", "tools/image_sources.py", "tools/finish_command.py", "tools/resume_deferred.py", "tools/test_*", ".github/actions/**", ".github/workflows/*.yml"]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: pip install pillow
+      - run: python -m unittest discover -s tools -p 'test_*.py'
+      - run: node tools/test_listen_cache.js
+      - run: node tools/test_listen_batch.js
+      - run: node --check tools/listen.js
+      - run: node --check tools/adjudicate_listen.js
+      - run: node --test tools/test_artifact_crypto.mjs
+      - name: تحقق من إتاحة مصدر البحث الرقمي من السحابة بلا توليد
+        run: |
+          python - <<'PY'
+          import hashlib, urllib.request
+          url = 'https://raw.githubusercontent.com/OpenITI/0775AH/master/data/0751IbnQayyimJawziyya/0751IbnQayyimJawziyya.DaWaDawa/0751IbnQayyimJawziyya.DaWaDawa.ShamAY0038516-ara1'
+          with urllib.request.urlopen(url, timeout=45) as response:
+              body = response.read(8000000)
+          text = body.decode('utf-8')
+          assert len(body) > 10000 and '#META#' in text
+          print('OpenITI source reachable; bytes=%d sha256=%s' % (len(body), hashlib.sha256(body).hexdigest()))
+          print('Digital source access only; not a verification against scanned printed pages.')
+          PY
