@@ -80,6 +80,30 @@ if (mode === 'keygen') {
   });
   const data={fetchedAt:new Date().toISOString(),channel:ch,videos,playlists,comments,analytics,analyticsPeriod:{start,end},oauthScopes:auth.scope};
   seal(data,'channel-audit.enc.json');
+  if(!analytics.error){
+    data.analyticsReports={};
+    const yearStart=new Date(Date.now()-365*86400000).toISOString().slice(0,10);
+    const base={ids:'channel=='+ch.id,startDate:yearStart,endDate:end};
+    const reports={
+      yearTotal:{metrics:'views,estimatedMinutesWatched,subscribersGained,subscribersLost'},
+      yearContentType:{dimensions:'creatorContentType',metrics:'views,estimatedMinutesWatched,subscribersGained,subscribersLost'},
+      daily:{startDate:start,dimensions:'day',metrics:'views,estimatedMinutesWatched,subscribersGained,subscribersLost',sort:'day'},
+      traffic:{startDate:start,dimensions:'insightTrafficSourceType',metrics:'views,estimatedMinutesWatched',sort:'-views'},
+      countries:{startDate:start,dimensions:'country',metrics:'views,estimatedMinutesWatched',sort:'-views',maxResults:25},
+      devices:{startDate:start,dimensions:'deviceType',metrics:'views,estimatedMinutesWatched'},
+      engagement:{startDate:start,dimensions:'video',metrics:'engagedViews,views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage',sort:'-views',maxResults:200}
+    };
+    for(const [name,params] of Object.entries(reports)){
+      data.analyticsReports[name]=await get('https://youtubeanalytics.googleapis.com/v2/reports',{...base,...params});
+      seal(data,'channel-audit.enc.json');
+    }
+    data.retention={};data.videoTraffic={};
+    for(const id of ['ncvHqTIW5zA','snaggx_3Mpo','inQNv8vjv-U','KiXoeCfbdX0','BjqSe2z9Y3Q','hBXUglsWwE0','m2wEErDQmvo','kE4zt39LmGk']){
+      data.retention[id]=await get('https://youtubeanalytics.googleapis.com/v2/reports',{...base,startDate:start,dimensions:'elapsedVideoTimeRatio',metrics:'audienceWatchRatio,relativeRetentionPerformance',filters:'video=='+id});
+      data.videoTraffic[id]=await get('https://youtubeanalytics.googleapis.com/v2/reports',{...base,startDate:start,dimensions:'insightTrafficSourceType',metrics:'views,estimatedMinutesWatched',filters:'video=='+id});
+      seal(data,'channel-audit.enc.json');
+    }
+  }
   if(process.env.AUDIT_APPLY_PLAN){
     const plan=JSON.parse(fs.readFileSync(process.env.AUDIT_APPLY_PLAN,'utf8'));
     data.changes=[];
