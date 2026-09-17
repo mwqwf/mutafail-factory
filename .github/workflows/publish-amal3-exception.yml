@@ -1,0 +1,127 @@
+name: مصنع المتفائل — نشر استثنائي amal-3
+
+run-name: 🚨 نشر amal-3 بتجاوز استماع مصرّح
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - ops/publish-exceptions/amal-3.json
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: mutafail-film
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - id: exception
+        name: تحقق من الاستثناء المحصور ومنع التكرار
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          f='ops/publish-exceptions/amal-3.json'
+          d=json.load(open(f,encoding='utf-8'))
+          assert d.get('command') == 'amal-3'
+          assert d.get('sourceRun') == 35214763515
+          assert d.get('ownerAuthorized') is True
+          assert d.get('exceptionScope') == 'listening-gate-only'
+          assert d.get('listeningGatePassed') is False
+          assert d.get('status') in ('pending','published')
+          assert os.path.isfile('ops/commands/amal-3/payload.enc')
+          assert os.path.isfile('ops/commands/amal-3/key.enc')
+          if d.get('status') == 'published':
+              open(os.environ['GITHUB_OUTPUT'],'a').write('active=false\n')
+          else:
+              open(os.environ['GITHUB_OUTPUT'],'a').write('active=true\n')
+          PY
+      - if: steps.exception.outputs.active == 'true'
+        uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - if: steps.exception.outputs.active == 'true'
+        run: pip install -q google-auth google-auth-oauthlib google-api-python-client
+      - if: steps.exception.outputs.active == 'true'
+        uses: ./.github/actions/private-download
+        with:
+          name: proj
+          path: proj
+          run-id: 35214763515
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - if: steps.exception.outputs.active == 'true'
+        uses: ./.github/actions/private-download
+        with:
+          name: film
+          path: proj
+          run-id: 35214763515
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - if: steps.exception.outputs.active == 'true'
+        name: افحص حزمة النشر ثم ارفع وتحقق من خادم يوتيوب
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: |
+          set -euo pipefail
+          [ -n "$YT_OAUTH_JSON" ] || { echo "لا سر نشر"; exit 1; }
+          echo "استثناء المالك الصريح: النشر اليومي مطلوب رغم عدم اكتمال التحكيم؛ لا يُوصف ذلك باجتياز."
+          python tools/publish_preflight.py proj amal-3
+          python tools/publish_youtube.py proj
+          python3 - <<'PY'
+          import json
+          d=json.load(open('ops/state/last_publish.json',encoding='utf-8'))
+          assert d.get('slug') == 'amal-3'
+          assert d.get('film',{}).get('id')
+          assert sorted(x.get('file') for x in d.get('reels',[])) == ['r1.mp4','r2.mp4']
+          print('server-verified film=%s reels=%s' %
+                (d['film']['id'], ','.join(x['id'] for x in d['reels'])))
+          PY
+      - if: steps.exception.outputs.active == 'true'
+        name: احفظ last_publish وختم الاستثناء بلا ادعاء اجتياز
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,time
+          now=time.strftime('%FT%TZ',time.gmtime())
+          state=json.load(open('ops/state/last_publish.json',encoding='utf-8'))
+          f='ops/publish-exceptions/amal-3.json'
+          d=json.load(open(f,encoding='utf-8'))
+          d.update({'status':'published','publishedAt':now,
+                    'listeningGatePassed':False,
+                    'result':'owner-authorized-listening-bypass-not-a-gate-pass',
+                    'videoIds':{'film':state['film']['id'],
+                                'reels':[x['id'] for x in state.get('reels',[])]}})
+          open(f,'w',encoding='utf-8').write(json.dumps(d,ensure_ascii=False,indent=1)+'\n')
+          r='ops/resume/amal-3.json'
+          rd=json.load(open(r,encoding='utf-8'))
+          rd.update({'تمّ':now,'listeningGatePassed':False,
+                     'outcome':'owner-authorized-listening-bypass-published',
+                     'videoId':state['film']['id']})
+          open(r,'w',encoding='utf-8').write(json.dumps(rd,ensure_ascii=False,indent=1)+'\n')
+          PY
+          git config user.name "مصنع المتفائل"
+          git config user.email "factory@mutafail.local"
+          rm -rf /tmp/publish_keep && mkdir -p /tmp/publish_keep/state /tmp/publish_keep/exception /tmp/publish_keep/resume
+          cp -a ops/state/. /tmp/publish_keep/state/
+          cp ops/publish-exceptions/amal-3.json /tmp/publish_keep/exception/
+          cp ops/resume/amal-3.json /tmp/publish_keep/resume/
+          for i in 1 2 3 4; do
+            git fetch -q origin master && git reset -q --hard origin/master || { sleep $((i*3)); continue; }
+            cp -a /tmp/publish_keep/state/. ops/state/
+            mkdir -p ops/publish-exceptions ops/resume
+            cp /tmp/publish_keep/exception/amal-3.json ops/publish-exceptions/
+            cp /tmp/publish_keep/resume/amal-3.json ops/resume/
+            git add -A ops/state ops/publish-exceptions/amal-3.json ops/resume/amal-3.json
+            git diff --cached --quiet && exit 0
+            git commit -qm "✅ نُشر amal-3 باستثناء استماع مصرّح" && git push -q origin HEAD:master && exit 0
+          done
+          exit 1
