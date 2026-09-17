@@ -1,7 +1,7 @@
 {
   "command": "amal-3",
   "sourceRun": 35195010115,
-  "updatedAt": "2026-09-17T09:50:23Z",
+  "updatedAt": "2026-09-17T09:56:00Z",
   "script": {
     "filmBlocks": 166,
     "reelBlocks": 4,
@@ -24,11 +24,11 @@
     "artifacts": [10486975193, 10485947841, 10485818581]
   },
   "images": {
-    "approved": 60,
+    "approved": 66,
     "expected": 83,
     "provider": "openai-chatgpt-imagegen",
     "fallbackUsed": false,
-    "latestEncryptedCheckpoint": "ops/pending/amal-3-images-058-060"
+    "latestEncryptedCheckpoint": "ops/pending/amal-3-images-064-066"
   },
   "publish": {
     "started": false,
