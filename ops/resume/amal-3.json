@@ -1,5 +1,14 @@
 {
-   "sourceRun": 35195010115,
-   "command": "amal-3",
-   "listenSourceRun": 35212950985
+  "sourceRun": 35195010115,
+  "command": "amal-3",
+  "listenSourceRun": 35212950985,
+  "filmSourceRun": 35226554281,
+  "تمّ": "2026-09-17T14:15:36Z",
+  "listeningGatePassed": false,
+  "outcome": "owner-authorized-listening-bypass-published",
+  "videoId": "xfZGOBnMOOM",
+  "reels": [
+    "VvMNivvfpEY",
+    "YJ-atBTXcLk"
+  ]
 }
