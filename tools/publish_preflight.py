@@ -13,15 +13,15 @@ def fail(message):
     raise SystemExit("⛔ " + message)
 
 
-def main(project):
+def main(project, expected_slug):
     def read(name):
         with io.open(os.path.join(project, name), encoding="utf-8") as handle:
             return json.load(handle)
 
     publish = read("publish.json")
     project_meta = read("meta.json")
-    if project_meta.get("slug") != "amal-2":
-        fail("حمولة النشر ليست amal-2")
+    if project_meta.get("slug") != expected_slug:
+        fail("حمولة النشر لا تطابق أمر الاستئناف")
     if publish.get("publicNow") is not True:
         fail("amal-2 ليس مضبوطاً على publicNow=true")
 
@@ -53,10 +53,10 @@ def main(project):
     if empty:
         fail("ملفات نشر فارغة: " + ", ".join(empty))
 
-    print("✅ publish-preflight: amal-2 · publicNow · playlist · film+r1+r2 · رابط الفيلم")
+    print("✅ publish-preflight: command-match · publicNow · playlist · film+r1+r2 · رابط الفيلم")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        fail("الاستعمال: publish_preflight.py <project>")
-    main(sys.argv[1])
+    if len(sys.argv) != 3:
+        fail("الاستعمال: publish_preflight.py <project> <expected-slug>")
+    main(sys.argv[1], sys.argv[2])

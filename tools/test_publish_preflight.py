@@ -26,7 +26,7 @@ class PublishPreflight(unittest.TestCase):
         return tmp, root
 
     def run_tool(self, root):
-        return subprocess.run([sys.executable, str(TOOL), str(root)], cwd=ROOT,
+        return subprocess.run([sys.executable, str(TOOL), str(root), "amal-2"], cwd=ROOT,
                               capture_output=True, text=True)
 
     def test_accepts_exact_public_bundle(self):
