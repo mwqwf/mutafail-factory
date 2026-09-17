@@ -17,6 +17,21 @@ env:
   COMMAND_DIR: ${{ github.event.issue.body }}
 
 jobs:
+  resume-film:
+    if: >-
+      github.actor == github.repository_owner &&
+      github.event.issue.title == '[factory] resume amal-3' &&
+      github.event.issue.body == 'ops/commands/amal-3'
+    runs-on: ubuntu-latest
+    steps:
+      - name: أطلق الفيلم من الأمر المختوم صراحة
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run film.yml --repo "$GITHUB_REPOSITORY" --ref master -f command_dir=ops/commands/amal-3
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment "أُطلق استئناف الفيلم من الأمر المختوم؛ سجل Actions هو دليل النتيجة."
+
   prepare:
     if: >-
       github.actor == github.repository_owner &&
