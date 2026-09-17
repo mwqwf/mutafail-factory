@@ -1,12 +1,18 @@
 name: مصنع المتفائل — إنتاج حلقة
 
-run-name: 🎬 ${{ github.event.head_commit.message }}
+run-name: 🎬 ${{ github.event.head_commit.message || inputs.command_dir }}
 
 # ⛔⛔ **لماذا الزنادُ دفعةٌ لا `workflow_dispatch`:**
 # جلسةُ كلود السحابيّة **تقرأ** جيت هَب ولا تملك الإدلاء (‏403 مقيسٌ في rafiq-align-ci).
 # فالقاعدة نفسها هنا: **الصلاحيةُ تبقى حيث هي، والأمرُ يُنقل إليها.**
 # الجلسةُ تدفع أمراً مختوماً، والعدّاءُ يفضّه بسرّه هو وينفّذ.
 on:
+  workflow_dispatch:
+    inputs:
+      command_dir:
+        description: مجلد أمر مختوم داخل ops/commands
+        required: true
+        type: string
   push:
     paths: ["ops/commands/**"]
 
@@ -39,11 +45,17 @@ jobs:
       - name: فضُّ الحمولة المختومة
         env:
           CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          COMMAND_DIR: ${{ inputs.command_dir }}
         run: |
           # ⛔ الأمرُ هو ما غيّرته الدفعةُ الزنادُ، لا «أحدثُ مجلّدٍ بالتاريخ»:
           #    الاستنساخُ الطازج يجعل أزمنةَ كلّ المجلّدات واحدةً، فـ`ls -t` يخطئ.
-          DIR=$(git show --pretty= --name-only ${{ github.sha }} \
-                | grep '^ops/commands/' | cut -d/ -f1-3 | sort -u | head -1)
+          DIR="$COMMAND_DIR"
+          if [ -z "$DIR" ]; then
+            DIR=$(git show --pretty= --name-only ${{ github.sha }} \
+                  | grep '^ops/commands/' | cut -d/ -f1-3 | sort -u | head -1)
+          fi
+          [[ "$DIR" =~ ^ops/commands/[a-z0-9-]+$ ]] || { echo "⛔ مسار أمر غير صالح"; exit 1; }
+          [ -f "$DIR/payload.enc" ] && [ -f "$DIR/key.enc" ] || { echo "⛔ الأمر المختوم ناقص"; exit 1; }
           if [ -z "$DIR" ]; then
             echo "⛔ لا مجلّد أمرٍ في هذه الدفعة"; exit 1
           fi
@@ -312,6 +324,7 @@ jobs:
       - uses: ./.github/actions/private-download
         with: { name: film, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - name: رفعٌ ونشر
+        id: youtube_publish
         env:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
         run: |
@@ -329,6 +342,18 @@ jobs:
         run: |
           git config user.name  "مصنع المتفائل"
           git config user.email "factory@mutafail.local"
+          COMMAND_DIR='${{ inputs.command_dir }}'
+          if [ '${{ steps.youtube_publish.outcome }}' = success ] && [ -n "$COMMAND_DIR" ]; then
+            SLUG=${COMMAND_DIR##*/}; READY="ops/ready/$SLUG.json"
+            if [ -f "$READY" ]; then
+              python3 - "$READY" <<'PY'
+          import json,sys,time
+          f=sys.argv[1]; d=json.load(open(f,encoding='utf-8'))
+          d['تمّ']=time.strftime('%FT%TZ',time.gmtime())
+          open(f,'w',encoding='utf-8').write(json.dumps(d,ensure_ascii=False,indent=1)+'\n')
+          PY
+            fi
+          fi
           # ⛔⛔ درسٌ مقيسٌ 2026-09-14: `git push || true` كان يسقط دائماً بـ
           #    non-fast-forward فيُبتلع الخطأُ صامتاً ولا تصل الحالةُ أبداً.
           # ⛔⛔ ودرسٌ مقيسٌ 2026-09-15 (شوط amal-1): البديلُ `git pull --rebase`
@@ -339,13 +364,15 @@ jobs:
           # ⇒ لا دمجَ ولا rebase: حالةُ هذا الشوط هي الأحدثُ يقيناً (فهو الذي نفّذ
           #   الأثرَ على يوتيوب للتوّ)، فتُحفظ جانباً، ويُعاد الضبطُ إلى origin،
           #   ثمّ تُنسخ فوقه **ملفّاً ملفّاً** فلا تُمحى حالةُ حلقةٍ أخرى.
-          [ -n "$(git status --porcelain ops/state)" ] || { echo "لا جديد"; exit 0; }
-          rm -rf /tmp/state_keep && mkdir -p /tmp/state_keep
-          cp -a ops/state/. /tmp/state_keep/
+          [ -n "$(git status --porcelain ops/state ops/ready 2>/dev/null)" ] || { echo "لا جديد"; exit 0; }
+          rm -rf /tmp/state_keep && mkdir -p /tmp/state_keep/state /tmp/state_keep/ready
+          cp -a ops/state/. /tmp/state_keep/state/
+          [ ! -d ops/ready ] || cp -a ops/ready/. /tmp/state_keep/ready/
           for i in 1 2 3 4; do
             if git fetch -q origin master && git reset -q --hard origin/master; then
-              cp -a /tmp/state_keep/. ops/state/
-              git add -A ops/state
+              cp -a /tmp/state_keep/state/. ops/state/
+              mkdir -p ops/ready && cp -a /tmp/state_keep/ready/. ops/ready/
+              git add -A ops/state ops/ready
               if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
               git commit -qm "✅ نُشرت: ${{ needs.prepare.outputs.slug }}" && git push -q origin HEAD:master && exit 0
             fi
