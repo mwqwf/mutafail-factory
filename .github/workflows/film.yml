@@ -144,28 +144,44 @@ jobs:
       - uses: ./.github/actions/private-download
         continue-on-error: true
         with: { name: "listen-${{ matrix.shard }}", path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
-      - env:
+      - name: افحص غير المكتمل وحكّم الرايات في نداء ثان
+        env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: |
+          set -euo pipefail
+          [ -n "$GEMINI_KEYS_JSON" ] || { echo "لا سر فحص"; exit 1; }
           printf '%s' "$GEMINI_KEYS_JSON" > keys.json
-          node tools/listen.js proj 4 --shard ${{ matrix.shard }} --shards 3 --keys keys.json
-          rm -f keys.json
+          code=0
+          node tools/listen.js proj 2 --batch 4 --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/listen.log 2>&1 || code=$?
+          python tools/listen_public_summary.py proj
+          rm -f /tmp/listen.log
+          [ "$code" = 0 ] || exit "$code"
+          code=0
+          node tools/adjudicate_listen.js proj --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/adjudicate.log 2>&1 || code=$?
+          python tools/listen_public_summary.py proj
+          rm -f /tmp/adjudicate.log
+          [ "$code" = 0 ] || [ "$code" = 2 ] || exit "$code"
       - if: always()
         run: rm -f keys.json
       - uses: ./.github/actions/private-upload
         if: always()
         with:
           name: "listen-${{ matrix.shard }}"
-          path: proj/listen_results*.json
+          path: |
+            proj/listen_results*.json
+            proj/listen_reviews*.json
           retention-days: 30
-
-
-  # التقرير الاستشاري لا يكفي للنشر: كل كتلة مفحوصة ومرتبطة بالنص والصوت الحاليين.
-  listening-gate:
-    needs: [prepare, tts, listen]
+  # الخطأ المؤكد لا يُمرّر: يعاد المقطع وحده، ثم يفحص على بصمته الجديدة.
+  repair:
+    needs: [prepare, listen, assemble]
     runs-on: ubuntu-latest
+    timeout-minutes: 180
+    outputs:
+      rebuilt: ${{ steps.plan.outputs.rebuilt }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - uses: ./.github/actions/private-download
@@ -174,6 +190,93 @@ jobs:
         with: { pattern: audio-*, path: proj/audio, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - uses: ./.github/actions/private-download
         with: { pattern: listen-*, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - id: plan
+        name: استخرج الأخطاء المؤكدة وحدها
+        run: |
+          python tools/repair_true_errors.py proj repair.json
+          N=$(python3 -c "import json;print(len(json.load(open('repair.json'))['ids']))")
+          [ "$N" = 0 ] && echo "rebuilt=false" >> "$GITHUB_OUTPUT" || echo "rebuilt=true" >> "$GITHUB_OUTPUT"
+      - name: أعد صوت الكتل المخطئة وافحص بصمتها الجديدة
+        if: steps.plan.outputs.rebuilt == 'true'
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GEMINI_KEYS_JSON" > keys.json
+          node tools/gen25.js proj 1 --keys keys.json >/tmp/tts-repair.log 2>&1
+          code=0
+          for shard in 0 1 2; do
+            node tools/listen.js proj 1 --batch 4 --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
+            [ "$code" = 0 ] || break
+          done
+          [ "$code" = 0 ] || { rm -f keys.json /tmp/*.log; exit "$code"; }
+          for shard in 0 1 2; do
+            node tools/adjudicate_listen.js proj --shard "$shard" --shards 3 --keys keys.json >>/tmp/adjudicate-repair.log 2>&1 || code=$?
+            [ "$code" = 0 ] || break
+          done
+          rm -f keys.json /tmp/tts-repair.log /tmp/listen-repair.log /tmp/adjudicate-repair.log
+          python tools/listen_public_summary.py proj
+          [ "$code" = 0 ] || exit "$code"
+      - if: steps.plan.outputs.rebuilt == 'true'
+        uses: ./.github/actions/private-download
+        with: { name: img, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - if: steps.plan.outputs.rebuilt == 'true'
+        uses: ./.github/actions/private-download
+        with: { name: depth, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - if: steps.plan.outputs.rebuilt == 'true'
+        uses: ./.github/actions/private-download
+        with: { pattern: seg-*, path: proj/work/seg, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - name: أعد اللقطات المتأثرة ثم ركّب المخرجات
+        if: steps.plan.outputs.rebuilt == 'true'
+        run: |
+          pip install -q pillow numpy arabic-reshaper python-bidi
+          sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg fonts-hosny-amiri fonts-noto-core
+          python tools/turbo.py "$PWD/proj" 0 1
+          python tools/bidicheck.py
+          python tools/logocheck.py
+          python tools/mont3d.py "$PWD/proj"
+          python tools/logocheck.py "$PWD/proj/film.mp4"
+          python tools/mkreel3d.py "$PWD/proj" r1
+          python tools/mkreel3d.py "$PWD/proj" r2
+          python tools/mkthumbs.py "$PWD/proj"
+          python tools/chapters.py "$PWD/proj" "$PWD/proj/sections.json"
+      - uses: ./.github/actions/private-upload
+        if: always()
+        with: { name: audio-final, path: proj/audio, retention-days: 30 }
+      - uses: ./.github/actions/private-upload
+        if: always()
+        with:
+          name: listen-final
+          path: |
+            proj/listen_results*.json
+            proj/listen_reviews*.json
+          retention-days: 30
+      - if: steps.plan.outputs.rebuilt == 'true'
+        uses: ./.github/actions/private-upload
+        with:
+          name: film-final
+          path: |
+            proj/film.mp4
+            proj/reels
+            proj/thumb-a.jpg
+            proj/thumb-b.jpg
+            proj/الفصول.txt
+          retention-days: 30
+
+  # التقرير الاستشاري لا يكفي للنشر: كل كتلة مفحوصة ومرتبطة بالنص والصوت الحاليين.
+  listening-gate:
+    needs: [prepare, repair]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - uses: ./.github/actions/private-download
+        with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { name: audio-final, path: proj/audio, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: ./.github/actions/private-download
+        with: { name: listen-final, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - run: python tools/listen_gate.py proj
 
   # ══════════ ٣) الصور — عاملٌ واحد (بوليناشنز: طابورٌ واحد) ══════════
@@ -311,7 +414,7 @@ jobs:
 
   # ══════════ ٧) النشر على يوتيوب ══════════
   publish:
-    needs: [prepare, assemble, listening-gate]
+    needs: [prepare, assemble, repair, listening-gate]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -323,6 +426,9 @@ jobs:
         with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - uses: ./.github/actions/private-download
         with: { name: film, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - if: needs.repair.outputs.rebuilt == 'true'
+        uses: ./.github/actions/private-download
+        with: { name: film-final, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - name: رفعٌ ونشر
         id: youtube_publish
         env:
@@ -333,6 +439,7 @@ jobs:
             echo "    الفيلم والريلزان والمصغّرتان في أثَر الشوط (film)."
             exit 1
           fi
+          python tools/publish_preflight.py proj "${{ needs.prepare.outputs.slug }}"
           python tools/publish_youtube.py proj
 
       - name: تسجيلُ المنجَز في سجلّ الخطة
@@ -379,3 +486,47 @@ jobs:
             sleep $(( i * 3 ))
           done
           echo "⛔ تعذّر دفعُ الحالة بعد أربع محاولات"; exit 1
+
+  # إن اكتمل الفيلم وتعطّل الفحص/النشر، يحفظ شوط المصدر ليستأنف من آثاره
+  # المشفرة في نافذة الحصة التالية بدلاً من إعادة الصوت أو الصور أو التصيير.
+  defer-resume:
+    needs: [prepare, assemble, listen, repair, listening-gate, publish]
+    if: always() && needs.prepare.result == 'success' && needs.assemble.result == 'success' && needs.publish.result != 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - name: احفظ نقطة استئناف وحيدة
+        env:
+          SLUG: ${{ needs.prepare.outputs.slug }}
+          SOURCE_RUN: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$SLUG" =~ ^[a-z0-9-]+$ ]] || { echo "slug غير صالح"; exit 1; }
+          git config user.name "مصنع المتفائل"
+          git config user.email "factory@mutafail.local"
+          for i in 1 2 3 4; do
+            git fetch -q origin master && git reset -q --hard origin/master || { sleep $((i*3)); continue; }
+            FILE="ops/resume/$SLUG.json"
+            if [ -f "$FILE" ] && python3 - "$FILE" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1],encoding='utf-8'))
+          raise SystemExit(0 if not d.get('تمّ') else 1)
+          PY
+            then
+              echo "نقطة الاستئناف موجودة"; exit 0
+            fi
+            mkdir -p ops/resume
+            python3 - "$FILE" "$SOURCE_RUN" "$SLUG" <<'PY'
+          import json,sys
+          f,run,slug=sys.argv[1:]
+          open(f,'w',encoding='utf-8').write(json.dumps(
+              {'sourceRun':int(run),'command':slug},
+              ensure_ascii=False,separators=(',',':'))+'\n')
+          PY
+            git add "$FILE"
+            git commit -qm "ops: defer $SLUG from run $SOURCE_RUN"
+            git push -q origin HEAD:master && exit 0
+            sleep $((i*3))
+          done
+          echo "تعذر حفظ نقطة الاستئناف"; exit 1

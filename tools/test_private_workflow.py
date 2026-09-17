@@ -8,9 +8,13 @@ class PrivateWorkflowTests(unittest.TestCase):
         text=(ROOT/'.github/workflows/film.yml').read_text(encoding='utf-8')
         self.assertNotIn('uses: actions/upload-artifact',text)
         self.assertNotIn('uses: actions/download-artifact',text)
-        self.assertEqual(text.count('uses: ./.github/actions/private-upload'),7)
-        self.assertEqual(text.count('uses: ./.github/actions/private-download'),23)
-        self.assertEqual(text.count("private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'"),23)
+        self.assertEqual(text.count('uses: ./.github/actions/private-upload'),10)
+        self.assertEqual(text.count('uses: ./.github/actions/private-download'),30)
+        self.assertEqual(text.count("private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'"),30)
+        self.assertIn('python tools/repair_true_errors.py proj repair.json', text)
+        self.assertIn('name: audio-final', text)
+        self.assertIn('name: listen-final', text)
+        self.assertIn('defer-resume:', text)
 
     def test_finish_uses_authenticated_decryption_not_plaintext_download(self):
         text=(ROOT/'.github/workflows/finish.yml').read_text(encoding='utf-8')
