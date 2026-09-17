@@ -86,7 +86,14 @@ async function checkGroup(group) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
     const body = {
       contents: [{ parts: requestParts(group, PROMPT) }],
-      generationConfig: { temperature: 0, responseMimeType: 'application/json' },
+      generationConfig: { temperature: 0, responseMimeType: 'application/json',
+        responseSchema: {type: 'OBJECT', required: ['results'], properties: {
+          results: {type: 'ARRAY', items: {type: 'OBJECT', required: ['id','ok'], properties: {
+            id: {type: 'STRING'}, ok: {type: 'BOOLEAN'}, why: {type: 'STRING'},
+            heard: {type: 'STRING'}, written: {type: 'STRING'}
+          }}}
+        }}
+      },
     };
     try {
       const ctl = new AbortController();
