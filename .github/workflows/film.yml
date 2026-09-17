@@ -35,6 +35,8 @@ jobs:
       slug:   ${{ steps.meta.outputs.slug }}
       blocks: ${{ steps.meta.outputs.blocks }}
       shots:  ${{ steps.meta.outputs.shots }}
+      audio_source_run: ${{ steps.meta.outputs.audio_source_run }}
+      listen_source_run: ${{ steps.meta.outputs.listen_source_run }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 2 }
@@ -80,6 +82,14 @@ jobs:
           echo "slug=$(python -c "import json,io;print(json.load(io.open('proj/meta.json',encoding='utf-8'))['slug'])")" >> $GITHUB_OUTPUT
           echo "blocks=$(python -c "import json,io;print(len(json.load(io.open('proj/blocks.json',encoding='utf-8'))))")" >> $GITHUB_OUTPUT
           echo "shots=$(python -c "import json,io;print(len(json.load(io.open('proj/shots.json',encoding='utf-8'))))")" >> $GITHUB_OUTPUT
+          SLUG=$(python -c "import json,io;print(json.load(io.open('proj/meta.json',encoding='utf-8'))['slug'])")
+          python3 - "$SLUG" >> "$GITHUB_OUTPUT" <<'PY'
+          import json,os,sys
+          f=f"ops/resume/{sys.argv[1]}.json"
+          d=json.load(open(f,encoding='utf-8')) if os.path.isfile(f) else {}
+          print('audio_source_run='+str(d.get('sourceRun','')))
+          print('listen_source_run='+str(d.get('listenSourceRun','')))
+          PY
 
       - uses: ./.github/actions/private-upload
         with: { name: proj, path: proj, retention-days: 2 }
@@ -98,12 +108,21 @@ jobs:
         with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
+      - uses: ./.github/actions/private-download
+        if: needs.prepare.outputs.audio_source_run != ''
+        with:
+          pattern: audio-*
+          path: proj/audio
+          run-id: ${{ needs.prepare.outputs.audio_source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       # ⛔ ما وُلِّد في محاولةٍ سابقةٍ من هذا الشوط يُنزَّل أوّلاً فلا يُعاد توليدُه
       #    (‏`gen25.js` يتبنّى كلَّ صوتٍ سليمٍ يجده ولو غاب دفترُ الحالة).
       - uses: ./.github/actions/private-download
         continue-on-error: true
         with: { pattern: audio-*, path: proj/audio, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - name: توليد حصّة السهم
+        if: needs.prepare.outputs.audio_source_run == ''
         env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: |
@@ -148,7 +167,12 @@ jobs:
         with: { node-version: "22" }
       - uses: ./.github/actions/private-download
         continue-on-error: true
-        with: { name: "listen-${{ matrix.shard }}", path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+        with:
+          name: "listen-${{ matrix.shard }}"
+          path: proj
+          run-id: ${{ needs.prepare.outputs.listen_source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - name: افحص غير المكتمل وحكّم الرايات في نداء ثان
         env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
@@ -157,12 +181,12 @@ jobs:
           [ -n "$GEMINI_KEYS_JSON" ] || { echo "لا سر فحص"; exit 1; }
           printf '%s' "$GEMINI_KEYS_JSON" > keys.json
           code=0
-          node tools/listen.js proj 2 --batch 4 --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/listen.log 2>&1 || code=$?
+          node tools/listen.js proj 2 --batch 4 --model gemini-2.5-flash --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/listen.log 2>&1 || code=$?
           python tools/listen_public_summary.py proj
           rm -f /tmp/listen.log
           [ "$code" = 0 ] || exit "$code"
           code=0
-          node tools/adjudicate_listen.js proj --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/adjudicate.log 2>&1 || code=$?
+          node tools/adjudicate_listen.js proj --model gemini-2.5-flash --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/adjudicate.log 2>&1 || code=$?
           python tools/listen_public_summary.py proj
           rm -f /tmp/adjudicate.log
           [ "$code" = 0 ] || [ "$code" = 2 ] || exit "$code"
@@ -211,12 +235,12 @@ jobs:
           node tools/gen25.js proj 1 --keys keys.json >/tmp/tts-repair.log 2>&1
           code=0
           for shard in 0 1 2; do
-            node tools/listen.js proj 1 --batch 4 --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
+            node tools/listen.js proj 1 --batch 4 --model gemini-2.5-flash --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
             [ "$code" = 0 ] || break
           done
           [ "$code" = 0 ] || { rm -f keys.json /tmp/*.log; exit "$code"; }
           for shard in 0 1 2; do
-            node tools/adjudicate_listen.js proj --shard "$shard" --shards 3 --keys keys.json >>/tmp/adjudicate-repair.log 2>&1 || code=$?
+            node tools/adjudicate_listen.js proj --model gemini-2.5-flash --shard "$shard" --shards 3 --keys keys.json >>/tmp/adjudicate-repair.log 2>&1 || code=$?
             [ "$code" = 0 ] || break
           done
           rm -f keys.json /tmp/tts-repair.log /tmp/listen-repair.log /tmp/adjudicate-repair.log
