@@ -29,7 +29,7 @@
   ],
   "refuterCommit": "cb53bea36396d05904c220f724e7c0cb0993fb6d",
   "sourceFingerprintCommit": "11ff03acedf039f9dbf3fc5b4e9b712ba6e878ce",
-  "latestEncryptedCheckpoint": "ops/pending/amal-4-openai-images-b68-b70",
+  "latestEncryptedCheckpoint": "ops/pending/amal-4-openai-images-b71-b73",
   "checkpointChain": [
     "ops/pending/amal-4-script-001-045",
     "ops/pending/amal-4-script-046-100",
@@ -38,11 +38,12 @@
     "ops/pending/amal-4-images-extra-064-083",
     "ops/pending/amal-4-openai-image-b64",
     "ops/pending/amal-4-openai-images-b65-b67",
-    "ops/pending/amal-4-openai-images-b68-b70"
+    "ops/pending/amal-4-openai-images-b68-b70",
+    "ops/pending/amal-4-openai-images-b71-b73"
   ],
   "checkpointSha256": {
-    "payload.enc": "e616267d13f87636226a70b1c657cbb55be05a5b2369ae2a69d4d9c71a2a7743",
-    "key.enc": "5d181090c67226a894745a8328827a36ced8fe2b17d047fd3e5f41be995f061b"
+    "payload.enc": "9eb3f215d5047901edec6470bb8bce48d88dd0197b61a430d0bb16281403832a",
+    "key.enc": "c6a467325cd877a265d0292cf7d7abbf022235bb7b44117d5243d2facbdb7aad"
   },
   "outlineMetrics": {
     "targetFilmBlocks": "170-180",
@@ -68,14 +69,14 @@
   },
   "imageProductionMetrics": {
     "planned": 83,
-    "generatedAndVisuallyApproved": 7,
-    "latestImageId": "b70",
+    "generatedAndVisuallyApproved": 10,
+    "latestImageId": "b73",
     "source": "openai-chatgpt-imagegen",
     "dimensions": "1672x941",
     "latestBatchImageSha256": {
-      "b68": "8a0acb8606f75b8f04eefb39df92443d36b6006c7abf9b61e40555b2b5d04956",
-      "b69": "49209806a0f5a223d558dc0be84c17b6c8a713c958636120f59b6dfcb95a1354",
-      "b70": "564b8b36277b0b1182560d56f6c3b1891c6a66e801c333981d11ea4fb2fbda44"
+      "b71": "9829bd77cbad8ff95b9b9c5be0927ebf84b2af67b7fa1dda266bd0ac009bcefd",
+      "b72": "7d491480f524f9101db5c5754e4ff2d0d83f787350c380718650c6d9ac223903",
+      "b73": "eff77e1bc414cc9a7834f47386e2ac9278ee33c7957c7009740aa0af4682187d"
     },
     "storedFormat": "jpeg-quality-7-ffmpeg",
     "fallbackUsed": false
