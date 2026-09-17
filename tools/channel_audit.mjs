@@ -86,7 +86,8 @@ if (mode === 'keygen') {
     for(const item of plan){
       const current=await yt('videos',{part:'snippet',id:item.id});
       const v=current.items?.[0];
-      if(!v||v.snippet.channelId!==ch.id||v.snippet.title!==item.before)throw new Error('Metadata precondition changed: '+item.id);
+      if(!v||v.snippet.channelId!==ch.id||![item.before,item.title].includes(v.snippet.title))throw new Error('Metadata precondition changed: '+item.id);
+      if(v.snippet.title===item.title){data.changes.push({id:item.id,state:'already_verified_title',plannedTitle:item.title});seal(data,'channel-audit.enc.json');continue;}
       const snippet={};
       for(const field of ['title','description','tags','categoryId','defaultLanguage','defaultAudioLanguage'])if(v.snippet[field]!==undefined)snippet[field]=v.snippet[field];
       data.changes.push({id:item.id,before:snippet,plannedTitle:item.title,state:'pending'});
@@ -96,7 +97,9 @@ if (mode === 'keygen') {
       if(!r.ok)throw new Error('Metadata write failed: '+item.id+' HTTP '+r.status);
       const verify=await yt('videos',{part:'snippet',id:item.id});
       const got=verify.items?.[0]?.snippet;
-      if(!got||got.title!==item.title||got.description!==snippet.description||JSON.stringify(got.tags||[])!==JSON.stringify(snippet.tags||[]))throw new Error('Metadata verification failed: '+item.id);
+      data.changes.at(-1).observedAfter=got;
+      seal(data,'channel-audit.enc.json');
+      if(!got||got.title!==item.title||(got.description||'')!==(snippet.description||'')||JSON.stringify([...(got.tags||[])].sort())!==JSON.stringify([...(snippet.tags||[])].sort()))throw new Error('Metadata verification failed: '+item.id);
       data.changes.at(-1).state='verified';
       seal(data,'channel-audit.enc.json');
     }
