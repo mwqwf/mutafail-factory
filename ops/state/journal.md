@@ -288,3 +288,8 @@
 - العنوان: 🎬 resume amal-3 after thumbnail schema fix
 - الرابط: https://github.com/mwqwf/mutafail-factory/actions/runs/35221407426
 - **المطلوب من الدماغ:** اقرأ سجلَّ الشوط، أصلِح السبب، وأعِد الدفع.
+## ⛔ شوطٌ استنفد الإعادات — 2026-09-17T14:16:33Z
+- الشوط: 35226554281
+- العنوان: 🎬 resume amal-3 after single-title thumbnail compatibility fix
+- الرابط: https://github.com/mwqwf/mutafail-factory/actions/runs/35226554281
+- **المطلوب من الدماغ:** اقرأ سجلَّ الشوط، أصلِح السبب، وأعِد الدفع.
