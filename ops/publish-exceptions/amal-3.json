@@ -1,0 +1,18 @@
+{
+  "command": "amal-3",
+  "sourceRun": 35214763515,
+  "ownerAuthorized": true,
+  "exceptionScope": "listening-gate-only",
+  "listeningGatePassed": false,
+  "status": "pending",
+  "authorization": "المالك أمر صراحة في 2026-09-17 بنشر فيلم اليوم بأي ثمن وعدم تفويت يوم نشر",
+  "audit": {
+    "primaryListening": "170/170",
+    "flags": 22,
+    "adjudicated": 16,
+    "falsePositive": 9,
+    "trueError": 7,
+    "unresolved": 6,
+    "note": "لا يُدّعى اجتياز الاستماع ولا مراجعة بشرية؛ مسار الاستثناء ينتظر اكتمال الفيلم وحارس الشعار وفحوص النشر"
+  }
+}
