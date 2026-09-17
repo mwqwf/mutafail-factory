@@ -1,44 +1,84 @@
-name: مصنع المتفائل — جسر إطلاق المالك السحابي
+name: مصنع المتفائل — صوت مبكر موثّق
 
 on:
   issues:
     types: [opened]
 
 permissions:
-  actions: write
+  actions: read
   contents: read
   issues: write
 
 concurrency:
-  group: mutafail-controller
+  group: mutafail-film
   cancel-in-progress: false
 
+env:
+  COMMAND_DIR: ${{ github.event.issue.body }}
+
 jobs:
-  dispatch:
+  prepare:
     if: >-
       github.actor == github.repository_owner &&
-      startsWith(github.event.issue.title, '[factory] dispatch ') &&
-      startsWith(github.event.issue.body, 'ops/commands/')
+      github.event.issue.title == '[factory] audio amal-3' &&
+      github.event.issue.body == 'ops/commands/amal-3'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with: { ref: master }
-      - name: تحقق ثم أطلق مرة واحدة
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: pip install -q pillow numpy
+      - name: فض الحمولة وفحصها قبل أول نداء
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMAND_DIR: ${{ github.event.issue.body }}
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          [[ "$COMMAND_DIR" =~ ^ops/commands/[a-z0-9-]+$ ]] || exit 1
           test -f "$COMMAND_DIR/payload.enc" && test -f "$COMMAND_DIR/key.enc"
-          busy=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?per_page=100" |
-            jq '[.workflow_runs[] | select(.status != "completed") |
-            select(.path | test("/(film|resume-listen|finish)\\.yml$"))] | length')
-          test "$busy" = 0 || { echo "يوجد شوط إنتاج قائم؛ لا تكرار"; exit 0; }
-          gh workflow run film.yml --repo "$GITHUB_REPOSITORY" --ref master -f command_dir="$COMMAND_DIR"
-      - name: أغلق زناد الإطلاق
-        if: always()
+          bash tools/unseal.sh "$COMMAND_DIR" "$PWD/proj"
+          python tools/precheck.py proj
+          python tools/build.py "$PWD/proj"
+      - uses: ./.github/actions/private-upload
+        with: { name: proj, path: proj, retention-days: 2 }
+
+  tts:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix: { shard: [0, 1, 2, 3, 4, 5] }
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: master }
+      - uses: ./.github/actions/private-download
+        with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: توليد سهم الصوت من البصمة المختومة
         env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          test -n "$GEMINI_KEYS_JSON"
+          printf '%s' "$GEMINI_KEYS_JSON" > keys.json
+          node tools/gen25.js proj 6 --shard ${{ matrix.shard }} --shards 6 --keys keys.json
+          rm -f keys.json
+      - if: always()
+        run: rm -f keys.json
+      - uses: ./.github/actions/private-upload
+        if: always()
+        with:
+          name: audio-${{ matrix.shard }}
+          path: proj/audio
+          retention-days: 2
+
+  close-trigger:
+    if: always()
+    needs: [prepare, tts]
+    runs-on: ubuntu-latest
+    steps:
+      - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment "تمت معالجة زناد الإطلاق السحابي؛ راجع سجل Actions لإثبات الشوط."
+        run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment "اكتملت معالجة مرحلة الصوت المبكر؛ سجل Actions هو دليل النتيجة."
