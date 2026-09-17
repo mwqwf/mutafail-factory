@@ -1,0 +1,28 @@
+{
+  "slug": "amal-4",
+  "title": "الصبر ليس سلبية",
+  "stage": "research",
+  "updatedAt": "2026-09-17T15:24:00Z",
+  "completed": {
+    "plan_and_initial_sources": true,
+    "psychology_and_safety_report": true,
+    "transmitted_source_ledger": true,
+    "pre_script_refuter": false,
+    "script": false,
+    "lint": false,
+    "guard": false,
+    "sealed_payload": false,
+    "production_command": false
+  },
+  "sourceReports": [
+    "ops/research/amal-4/00-khitta-wa-masadir.md",
+    "ops/research/amal-4/01-nafs-wa-salama.md",
+    "ops/research/amal-4/02-naqli-source-ledger.md"
+  ],
+  "next": [
+    "complete tafsir-language and applied-cases reports",
+    "run adversarial refuter before any script",
+    "draft 30-40 minute script only after refuter"
+  ],
+  "publicSafety": "No secrets, raw payload, scripture text, or unpublished script stored here."
+}
