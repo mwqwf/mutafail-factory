@@ -95,8 +95,14 @@ if (mode === 'keygen') {
       const next={...snippet,title:item.title};
       const r=await fetch('https://www.googleapis.com/youtube/v3/videos?part=snippet',{method:'PUT',headers:{Authorization:'Bearer '+auth.access_token,'Content-Type':'application/json'},body:JSON.stringify({id:item.id,snippet:next}),signal:AbortSignal.timeout(30000)});
       if(!r.ok)throw new Error('Metadata write failed: '+item.id+' HTTP '+r.status);
-      const verify=await yt('videos',{part:'snippet',id:item.id});
-      const got=verify.items?.[0]?.snippet;
+      let got;
+      // قد تتأخر نسخة القراءة بعد نجاح الكتابة؛ نكرر القراءة فقط، لا الكتابة.
+      for(let attempt=0;attempt<12;attempt++){
+        const verify=await yt('videos',{part:'snippet',id:item.id});
+        got=verify.items?.[0]?.snippet;
+        if(got?.title===item.title)break;
+        if(attempt<11)await new Promise(resolve=>setTimeout(resolve,5000));
+      }
       data.changes.at(-1).observedAfter=got;
       seal(data,'channel-audit.enc.json');
       if(!got||got.title!==item.title||(got.description||'')!==(snippet.description||'')||JSON.stringify([...(got.tags||[])].sort())!==JSON.stringify([...(snippet.tags||[])].sort()))throw new Error('Metadata verification failed: '+item.id);
