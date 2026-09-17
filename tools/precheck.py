@@ -171,10 +171,10 @@ print("\n── تقديرٌ قبل الدفع ──")
 print("كتلُ الفيلم: %d | كتلُ الريلز: %d | صور: %d | لقطات: %d"
       % (len(film), len(reel_only), len(imgs), len(shots)))
 print("حروفٌ بلا تشكيل: %d ⇒ المدّةُ المقدَّرة: %.1f دقيقة" % (n, mins))
-measured_retry_factor = 210.0 / 133.0
+measured_retry_factor = 506.0 / 170.0
 tts_budget = int(len(blocks) * measured_retry_factor + 0.999) + 20
 listen_budget = int((len(blocks) + 3) / 4) + 20
-print("ميزانيةُ TTS المحافظة: %d محاولة (معاملٌ مقيس 210/133 + عشرون إصلاحاً)" % tts_budget)
+print("ميزانيةُ TTS المحافظة: %d محاولة (أحدثُ معاملٍ مقيس 506/170 + عشرون إصلاحاً)" % tts_budget)
 print("ميزانيةُ الاستماع المجمّع: %d نداءً (أربعةُ مقاطع/نداء + هامش عشرين)" % listen_budget)
 for problem in audit_duration(mins, J("meta.json")):
     bad.append(problem + ": %.1f دقيقة / %d حرف بلا تشكيل" % (mins, n))
