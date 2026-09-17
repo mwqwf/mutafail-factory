@@ -80,6 +80,8 @@ if (mode === 'keygen') {
   });
   const data={fetchedAt:new Date().toISOString(),channel:ch,videos,playlists,comments,analytics,analyticsPeriod:{start,end},oauthScopes:auth.scope};
   seal(data,'channel-audit.enc.json');
+  data.reportingDiscovery={types:await get('https://youtubereporting.googleapis.com/v1/reportTypes',{}),jobs:await get('https://youtubereporting.googleapis.com/v1/jobs',{})};
+  seal(data,'channel-audit.enc.json');
   if(!analytics.error){
     data.analyticsReports={};
     const yearStart=new Date(Date.now()-365*86400000).toISOString().slice(0,10);
