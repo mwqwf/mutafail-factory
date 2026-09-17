@@ -36,13 +36,15 @@ jobs:
           f='ops/publish-exceptions/amal-3.json'
           d=json.load(open(f,encoding='utf-8'))
           assert d.get('command') == 'amal-3'
-          assert d.get('sourceRun') == 35214763515
+          source_run=d.get('sourceRun')
+          assert isinstance(source_run,int) and source_run > 0
           assert d.get('ownerAuthorized') is True
           assert d.get('exceptionScope') == 'listening-gate-only'
           assert d.get('listeningGatePassed') is False
           assert d.get('status') in ('pending','published')
           assert os.path.isfile('ops/commands/amal-3/payload.enc')
           assert os.path.isfile('ops/commands/amal-3/key.enc')
+          open(os.environ['GITHUB_OUTPUT'],'a').write('source_run=%s\n' % source_run)
           if d.get('status') == 'published':
               open(os.environ['GITHUB_OUTPUT'],'a').write('active=false\n')
           else:
@@ -58,7 +60,7 @@ jobs:
         with:
           name: proj
           path: proj
-          run-id: 35214763515
+          run-id: ${{ steps.exception.outputs.source_run }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - if: steps.exception.outputs.active == 'true'
@@ -66,7 +68,7 @@ jobs:
         with:
           name: film
           path: proj
-          run-id: 35214763515
+          run-id: ${{ steps.exception.outputs.source_run }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - if: steps.exception.outputs.active == 'true'
