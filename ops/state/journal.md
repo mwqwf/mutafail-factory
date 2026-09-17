@@ -283,3 +283,8 @@
 - العنوان: 🎬 resume: launch amal-3 from saved audio and reviews
 - الرابط: https://github.com/mwqwf/mutafail-factory/actions/runs/35214763515
 - **المطلوب من الدماغ:** اقرأ سجلَّ الشوط، أصلِح السبب، وأعِد الدفع.
+## ⛔ شوطٌ استنفد الإعادات — 2026-09-17T14:09:51Z
+- الشوط: 35221407426
+- العنوان: 🎬 resume amal-3 after thumbnail schema fix
+- الرابط: https://github.com/mwqwf/mutafail-factory/actions/runs/35221407426
+- **المطلوب من الدماغ:** اقرأ سجلَّ الشوط، أصلِح السبب، وأعِد الدفع.
