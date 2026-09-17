@@ -29,6 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       source_run: ${{ steps.control.outputs.source_run }}
+      listen_source_run: ${{ steps.control.outputs.listen_source_run }}
       command: ${{ steps.control.outputs.command }}
       control: ${{ steps.control.outputs.control }}
       active: ${{ steps.control.outputs.active }}
@@ -70,10 +71,12 @@ jobs:
               print('active=false')
               raise SystemExit
           run = str(d.get('sourceRun', ''))
+          listen_run = str(d.get('listenSourceRun', run))
           cmd = d.get('command', '')
-          if not run.isdigit() or not re.fullmatch(r'[a-z0-9-]+', cmd): raise SystemExit('invalid resume control')
+          if not run.isdigit() or not listen_run.isdigit() or not re.fullmatch(r'[a-z0-9-]+', cmd): raise SystemExit('invalid resume control')
           if not os.path.isfile(f'ops/commands/{cmd}/payload.enc'): raise SystemExit('missing sealed command')
-          print('source_run=' + run); print('command=' + cmd); print('control=' + f)
+          print('source_run=' + run); print('listen_source_run=' + listen_run)
+          print('command=' + cmd); print('control=' + f)
           print('active=true')
           PY
 
@@ -108,7 +111,7 @@ jobs:
         with:
           name: listen-${{ matrix.shard }}
           path: proj
-          run-id: ${{ needs.prepare.outputs.source_run }}
+          run-id: ${{ needs.prepare.outputs.listen_source_run }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - name: افحص غير المكتمل فقط بتجميع أربعة مقاطع في النداء
@@ -167,7 +170,12 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - uses: ./.github/actions/private-download
-        with: { pattern: listen-*, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+        with:
+          pattern: listen-*
+          path: proj
+          run-id: ${{ needs.prepare.outputs.listen_source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - id: plan
         name: استخرج الأخطاء المؤكدة وحدها
         run: |
