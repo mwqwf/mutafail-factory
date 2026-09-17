@@ -1,8 +1,8 @@
-name: جرد القناة للقراءة فقط — 17 سبتمبر
+name: جرد القناة وتنظيف العناوين التقنية — 17 سبتمبر
 on:
   push:
     branches: [codex/channel-audit-20260917]
-    paths: ['tools/channel_audit.mjs', 'ops/audit-public.pem', '.github/workflows/channel-audit.yml']
+    paths: ['tools/channel_audit.mjs', 'ops/audit-public.pem', '.github/workflows/channel-audit.yml', 'ops/channel-title-cleanup.json']
 permissions:
   contents: read
 jobs:
@@ -17,8 +17,10 @@ jobs:
       - name: قراءة القناة وحفظ تقرير مشفر
         env:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          AUDIT_APPLY_PLAN: ops/channel-title-cleanup.json
         run: node tools/channel_audit.mjs collect
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: channel-audit-encrypted
           path: channel-audit.enc.json

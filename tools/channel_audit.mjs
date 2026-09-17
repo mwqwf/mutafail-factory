@@ -1,7 +1,13 @@
-// جرد قراءة فقط لقناة المتفائل؛ لا يكتب إلى YouTube ولا يطبع الاعتمادات.
+// جرد قناة المتفائل، وتنظيف عناوين محددة اختيارياً مع نسخة استرجاع وتحقق.
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 const mode = process.argv[2];
+function seal(data,path){
+  const key=crypto.randomBytes(32),iv=crypto.randomBytes(12),cipher=crypto.createCipheriv('aes-256-gcm',key,iv);
+  const body=Buffer.concat([cipher.update(JSON.stringify(data)),cipher.final()]);
+  const wrapped=crypto.publicEncrypt({key:fs.readFileSync('ops/audit-public.pem'),oaepHash:'sha256'},key);
+  fs.writeFileSync(path,JSON.stringify({key:wrapped.toString('base64'),iv:iv.toString('base64'),tag:cipher.getAuthTag().toString('base64'),body:body.toString('base64')}));
+}
 if (mode === 'keygen') {
   const pair = crypto.generateKeyPairSync('rsa', {modulusLength: 3072,
     publicKeyEncoding: {type:'spki', format:'pem'},
@@ -41,9 +47,16 @@ if (mode === 'keygen') {
     if(p.error)throw new Error('Uploads lookup failed');
     ids.push(...p.items.map(i=>i.contentDetails.videoId));page=p.nextPageToken;
   }while(page);
+  // مصدر ثان للجرد يعالج تكرار فيديو في قائمة الرفعات عند عبور الصفحات.
+  page=undefined;
+  do{
+    const p=await yt('search',{part:'id',channelId:ch.id,type:'video',order:'date',maxResults:50,pageToken:page});
+    if(p.error)break;ids.push(...p.items.map(i=>i.id.videoId));page=p.nextPageToken;
+  }while(page);
+  const uniqueIds=[...new Set(ids)];
   const videos=[];
-  for(let i=0;i<ids.length;i+=50){
-    const r=await yt('videos',{part:'snippet,contentDetails,statistics,status',id:ids.slice(i,i+50).join(',')});
+  for(let i=0;i<uniqueIds.length;i+=50){
+    const r=await yt('videos',{part:'snippet,contentDetails,statistics,status',id:uniqueIds.slice(i,i+50).join(',')});
     if(r.error)throw new Error('Video lookup failed');
     videos.push(...r.items);
   }
@@ -57,6 +70,7 @@ if (mode === 'keygen') {
   for(const v of videos.filter(v=>v.status.privacyStatus==='public'&&seconds(v.contentDetails.duration)>180)){
     const r=await yt('commentThreads',{part:'snippet',videoId:v.id,maxResults:10,order:'relevance',textFormat:'plainText'});
     comments[v.id]=r.error?{error:r.error}:r.items.map(i=>({text:i.snippet.topLevelComment.snippet.textOriginal,likes:i.snippet.topLevelComment.snippet.likeCount,replies:i.snippet.totalReplyCount}));
+    if(r.error?.reasons?.includes('insufficientPermissions'))break;
   }
   const end=new Date(Date.now()-86400000).toISOString().slice(0,10);
   const start=new Date(Date.now()-29*86400000).toISOString().slice(0,10);
@@ -65,9 +79,28 @@ if (mode === 'keygen') {
     metrics:'views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,subscribersGained,subscribersLost,likes,comments,shares',sort:'-views'
   });
   const data={fetchedAt:new Date().toISOString(),channel:ch,videos,playlists,comments,analytics,analyticsPeriod:{start,end},oauthScopes:auth.scope};
-  const key=crypto.randomBytes(32),iv=crypto.randomBytes(12),cipher=crypto.createCipheriv('aes-256-gcm',key,iv);
-  const body=Buffer.concat([cipher.update(JSON.stringify(data)),cipher.final()]);
-  const wrapped=crypto.publicEncrypt({key:fs.readFileSync('ops/audit-public.pem'),oaepHash:'sha256'},key);
-  fs.writeFileSync('channel-audit.enc.json',JSON.stringify({key:wrapped.toString('base64'),iv:iv.toString('base64'),tag:cipher.getAuthTag().toString('base64'),body:body.toString('base64')}));
-  console.log('Read-only channel audit completed. Videos:',videos.length,'Analytics available:',!analytics.error);
+  seal(data,'channel-audit.enc.json');
+  if(process.env.AUDIT_APPLY_PLAN){
+    const plan=JSON.parse(fs.readFileSync(process.env.AUDIT_APPLY_PLAN,'utf8'));
+    data.changes=[];
+    for(const item of plan){
+      const current=await yt('videos',{part:'snippet',id:item.id});
+      const v=current.items?.[0];
+      if(!v||v.snippet.channelId!==ch.id||v.snippet.title!==item.before)throw new Error('Metadata precondition changed: '+item.id);
+      const snippet={};
+      for(const field of ['title','description','tags','categoryId','defaultLanguage','defaultAudioLanguage'])if(v.snippet[field]!==undefined)snippet[field]=v.snippet[field];
+      data.changes.push({id:item.id,before:snippet,plannedTitle:item.title,state:'pending'});
+      seal(data,'channel-audit.enc.json');
+      const next={...snippet,title:item.title};
+      const r=await fetch('https://www.googleapis.com/youtube/v3/videos?part=snippet',{method:'PUT',headers:{Authorization:'Bearer '+auth.access_token,'Content-Type':'application/json'},body:JSON.stringify({id:item.id,snippet:next}),signal:AbortSignal.timeout(30000)});
+      if(!r.ok)throw new Error('Metadata write failed: '+item.id+' HTTP '+r.status);
+      const verify=await yt('videos',{part:'snippet',id:item.id});
+      const got=verify.items?.[0]?.snippet;
+      if(!got||got.title!==item.title||got.description!==snippet.description||JSON.stringify(got.tags||[])!==JSON.stringify(snippet.tags||[]))throw new Error('Metadata verification failed: '+item.id);
+      data.changes.at(-1).state='verified';
+      seal(data,'channel-audit.enc.json');
+    }
+    console.log('Verified title cleanups:',data.changes.length);
+  }
+  console.log('Channel audit completed. Videos:',videos.length,'Analytics available:',!analytics.error);
 } else {throw new Error('Expected keygen, collect or decrypt');}
