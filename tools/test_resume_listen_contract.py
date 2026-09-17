@@ -17,6 +17,7 @@ class ResumeListeningContract(unittest.TestCase):
         self.assertIn('python tools/publish_youtube.py proj', text)
         self.assertIn('repair_true_errors.py', text)
         self.assertIn('node tools/gen25.js proj 1', text)
+        self.assertIn('--shard "$shard" --shards 3', text)
         self.assertIn('name: film-final', text)
         self.assertIn('listen_public_summary.py', text)
         self.assertNotIn('imgdl3.py', text)
