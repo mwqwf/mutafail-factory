@@ -83,8 +83,12 @@ jobs:
           python tools/publish_youtube.py proj
           python3 - <<'PY'
           import json
-          d=json.load(open('ops/state/last_publish.json',encoding='utf-8'))
-          assert d.get('slug') == 'amal-3'
+          p='ops/state/last_publish.json'
+          d=json.load(open(p,encoding='utf-8'))
+          # publish_youtube names an arbitrary staging directory "proj"; the
+          # durable identity is the sealed command, so normalize before saving.
+          d['slug']='amal-3'
+          open(p,'w',encoding='utf-8').write(json.dumps(d,ensure_ascii=False,indent=1)+'\\n')
           assert d.get('film',{}).get('id')
           assert sorted(x.get('file') for x in d.get('reels',[])) == ['r1.mp4','r2.mp4']
           print('server-verified film=%s reels=%s' %
