@@ -5,21 +5,69 @@
 import hashlib
 import json
 from pathlib import Path
+import re
 import sys
 from PIL import Image
 
 
+def _strict_openai_images(root):
+    try:
+        slug = json.loads((root / 'meta.json').read_text(encoding='utf-8')).get('slug', '')
+    except (OSError, ValueError, AttributeError):
+        return False
+    match = re.fullmatch(r'amal-(\d+)', slug)
+    return bool(match and int(match.group(1)) >= 3)
+
+
+def _documented_fallback(root):
+    record = root / 'image_fallback_exception.json'
+    if not record.exists():
+        return False
+    try:
+        data = json.loads(record.read_text(encoding='utf-8'))
+        if data.get('provider') != 'openai-chatgpt-imagegen':
+            return False
+        if data.get('status') != 'unavailable-after-authorized-attempts':
+            return False
+        if data.get('authorizedAlternativesExhausted') is not True:
+            return False
+        if not isinstance(data.get('reason'), str) or len(data['reason'].strip()) < 20:
+            return False
+        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z', data.get('checkedAt', '')):
+            return False
+        evidence = (root / data['evidenceFile']).resolve()
+        if root not in evidence.parents:
+            return False
+        raw = evidence.read_bytes()
+        return hashlib.sha256(raw).hexdigest() == data.get('evidenceSha256')
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return False
+
+
 def import_primary(project):
     root = Path(project).resolve()
+    strict = _strict_openai_images(root)
+    exception = _documented_fallback(root) if strict else False
     manifest = root / 'image_sources.json'
     if not manifest.exists():
+        if strict and not exception:
+            raise RuntimeError('amal-3+ requires approved OpenAI images or a documented sealed exception')
+        if strict:
+            images = json.loads((root / 'images.json').read_text(encoding='utf-8'))
+            report = {'primary': [], 'fallback': [
+                {'id': item['id'], 'reason': 'documented-exception'} for item in images
+            ], 'mode': 'documented-original-fallback'}
+            (root / 'image_source_report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+            return report
         return {'primary': [], 'fallback': [], 'mode': 'original-only'}
     config = json.loads(manifest.read_text(encoding='utf-8'))
     images = json.loads((root / 'images.json').read_text(encoding='utf-8'))
     preferred = config.get('primary', {})
-    if config.get('provider') != 'codex-imagegen' or not isinstance(preferred, dict):
+    accepted = {'codex-imagegen'} if not strict else {'openai-chatgpt-imagegen'}
+    if config.get('provider') not in accepted or not isinstance(preferred, dict):
         raise ValueError('invalid image source manifest')
-    report = {'primary': [], 'fallback': [], 'mode': 'codex-first-original-fallback'}
+    report = {'primary': [], 'fallback': [],
+              'mode': 'openai-required' if strict else 'codex-first-original-fallback'}
     (root / 'img').mkdir(exist_ok=True)
     for item in images:
         ident = item['id']
@@ -58,6 +106,11 @@ def import_primary(project):
             # لا نطبع مساراً خاصاً أو وصف الصورة في سجلات المستودع العام.
             report['fallback'].append({'id': ident, 'reason': type(exc).__name__})
     (root / 'image_source_report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
+    if strict and report['fallback'] and not exception:
+        raise RuntimeError('amal-3+ has missing or rejected OpenAI images; original fallback is locked')
+    if strict and report['fallback']:
+        report['mode'] = 'openai-first-documented-original-fallback'
+        (root / 'image_source_report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
     return report
 
 

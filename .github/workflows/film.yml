@@ -295,8 +295,8 @@ jobs:
       - uses: ./.github/actions/private-download
         continue-on-error: true
         with: { name: img, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
-      - run: python tools/image_sources.py proj  # صور Codex المعتمدة إن ضُمّنت في الحمولة
-      - run: python tools/imgdl3.py proj      # المسار الأصلي باقٍ كما هو للصور الناقصة
+      - run: python tools/image_sources.py proj  # amal-3+: صور OpenAI المعتمدة أو استثناء مختوم موثق
+      - run: python tools/imgdl3.py proj      # احتياط فقط؛ الحارس السابق يمنعه من العمل بصمت
       # ⛔ والصورُ كذلك: ما نزل فعلاً يُرفع ولو سقط العامل، فلا يُعاد تنزيلُه
       - uses: ./.github/actions/private-upload
         if: always()

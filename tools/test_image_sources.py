@@ -26,6 +26,26 @@ class ImageSourcesTests(unittest.TestCase):
     def manifest(self):
         self.write('image_sources.json', {'provider': 'codex-imagegen', 'primary': {'b01': self.entry}})
 
+    def strict(self):
+        self.write('meta.json', {'slug': 'amal-3'})
+
+    def strict_manifest(self):
+        self.write('image_sources.json',
+                   {'provider': 'openai-chatgpt-imagegen', 'primary': {'b01': self.entry}})
+
+    def exception(self):
+        evidence = b'cloud image generation failed after authorized attempts'
+        (self.p / 'imagegen-evidence.txt').write_bytes(evidence)
+        self.write('image_fallback_exception.json', {
+            'provider': 'openai-chatgpt-imagegen',
+            'status': 'unavailable-after-authorized-attempts',
+            'authorizedAlternativesExhausted': True,
+            'checkedAt': '2026-09-17T06:40:00Z',
+            'reason': 'The embedded cloud image tool returned a terminal availability error.',
+            'evidenceFile': 'imagegen-evidence.txt',
+            'evidenceSha256': hashlib.sha256(evidence).hexdigest(),
+        })
+
     def test_legacy_payload_unchanged(self):
         self.assertEqual(import_primary(self.p)['mode'], 'original-only')
 
@@ -57,6 +77,24 @@ class ImageSourcesTests(unittest.TestCase):
         self.entry['file'] = '../outside.png'
         self.manifest()
         self.assertFalse(import_primary(self.p)['primary'])
+
+    def test_amal3_missing_manifest_fails_closed(self):
+        self.strict()
+        with self.assertRaises(RuntimeError):
+            import_primary(self.p)
+
+    def test_amal3_missing_image_fails_closed(self):
+        self.strict()
+        self.strict_manifest()
+        with self.assertRaises(RuntimeError):
+            import_primary(self.p)
+
+    def test_amal3_documented_exception_unlocks_only_fallback(self):
+        self.strict()
+        self.exception()
+        report = import_primary(self.p)
+        self.assertEqual(report['mode'], 'documented-original-fallback')
+        self.assertEqual({x['id'] for x in report['fallback']}, {'b01', 'b02'})
 
 
 if __name__ == '__main__':
