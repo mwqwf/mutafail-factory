@@ -1,8 +1,8 @@
 {
   "slug": "amal-4",
   "title": "الصبر ليس سلبية",
-  "stage": "ready_for_script",
-  "updatedAt": "2026-09-17T15:50:00Z",
+  "stage": "script_outline_complete",
+  "updatedAt": "2026-09-17T16:55:00Z",
   "completed": {
     "plan_and_initial_sources": true,
     "psychology_and_safety_report": true,
@@ -11,6 +11,7 @@
     "applications_and_safety_report": true,
     "pre_script_refuter": true,
     "source_fingerprint_manifest": true,
+    "script_outline": true,
     "script": false,
     "lint": false,
     "guard": false,
@@ -28,8 +29,18 @@
   ],
   "refuterCommit": "cb53bea36396d05904c220f724e7c0cb0993fb6d",
   "sourceFingerprintCommit": "11ff03acedf039f9dbf3fc5b4e9b712ba6e878ce",
+  "latestEncryptedCheckpoint": "ops/pending/amal-4-script-outline-20260917",
+  "checkpointSha256": {
+    "payload.enc": "f958dc5d5a41a4c3834f85fc653b35be72f547e5ac55e842479cbf9140e1c1e3",
+    "key.enc": "7b46fbcfb4c4d4fcd5a457083b48f20650b9a49150174760ff5ea0b75ea8f6a8"
+  },
+  "outlineMetrics": {
+    "targetFilmBlocks": "170-180",
+    "targetMinutes": "30-40",
+    "initialImageEstimate": "85-95 OpenAI images"
+  },
   "next": [
-    "draft a coherent 30-40 minute script under the refuter rulings",
+    "write the fully shaped script from the sealed outline under the refuter rulings",
     "derive image count from the final script",
     "run lint and guard",
     "seal private payload before creating one production command"
