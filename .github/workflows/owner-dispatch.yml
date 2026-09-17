@@ -1,0 +1,44 @@
+name: مصنع المتفائل — جسر إطلاق المالك السحابي
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+
+concurrency:
+  group: mutafail-controller
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    if: >-
+      github.actor == github.repository_owner &&
+      startsWith(github.event.issue.title, '[factory] dispatch ') &&
+      startsWith(github.event.issue.body, 'ops/commands/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: master }
+      - name: تحقق ثم أطلق مرة واحدة
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMAND_DIR: ${{ github.event.issue.body }}
+        run: |
+          set -euo pipefail
+          [[ "$COMMAND_DIR" =~ ^ops/commands/[a-z0-9-]+$ ]] || exit 1
+          test -f "$COMMAND_DIR/payload.enc" && test -f "$COMMAND_DIR/key.enc"
+          busy=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?per_page=100" |
+            jq '[.workflow_runs[] | select(.status != "completed") |
+            select(.path | test("/(film|resume-listen|finish)\\.yml$"))] | length')
+          test "$busy" = 0 || { echo "يوجد شوط إنتاج قائم؛ لا تكرار"; exit 0; }
+          gh workflow run film.yml --repo "$GITHUB_REPOSITORY" --ref master -f command_dir="$COMMAND_DIR"
+      - name: أغلق زناد الإطلاق
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment "تمت معالجة زناد الإطلاق السحابي؛ راجع سجل Actions لإثبات الشوط."
