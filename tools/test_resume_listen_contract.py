@@ -7,6 +7,8 @@ class ResumeListeningContract(unittest.TestCase):
     def test_resume_reuses_old_media_and_current_listen_results(self):
         text = (ROOT/'.github/workflows/resume-listen.yml').read_text(encoding='utf-8')
         self.assertIn('workflow_dispatch:', text)
+        self.assertIn('cron: "5 7 17 9 *"', text)
+        self.assertIn('2026-09-17', text)
         self.assertIn('ops/resume/*.json', text)
         self.assertIn('group: mutafail-film', text)
         self.assertIn('node tools/listen.js proj 2 --batch 4', text)

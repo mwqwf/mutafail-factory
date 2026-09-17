@@ -3,6 +3,9 @@ name: مصنع المتفائل — استئناف الفحص والنشر
 run-name: 🎧 استئناف ${{ github.event.head_commit.message || inputs.command_file }}
 
 on:
+  schedule:
+    # زناد سحابي احتياطي لمرة amal-2؛ ملف التحكم المختوم بالحالة يمنع أي تكرار.
+    - cron: "5 7 17 9 *"
   workflow_dispatch:
     inputs:
       command_file:
@@ -34,9 +37,14 @@ jobs:
       - id: control
         env:
           REQUESTED_FILE: ${{ inputs.command_file }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
           F="$REQUESTED_FILE"
+          if [ -z "$F" ] && [ "$EVENT_NAME" = schedule ]; then
+            [ "$(date -u +%F)" = 2026-09-17 ] || { echo "انتهت نافذة الجدولة الوحيدة"; exit 1; }
+            F=ops/resume/amal-2.json
+          fi
           if [ -z "$F" ]; then
             mapfile -t FILES < <(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/resume/.*\.json$' || true)
             [ "${#FILES[@]}" = 1 ] || { echo "يلزم ملف استئناف واحد"; exit 1; }
