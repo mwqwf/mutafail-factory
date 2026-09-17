@@ -12,9 +12,6 @@ on:
         description: ملف استئناف JSON داخل ops/resume
         required: true
         type: string
-  push:
-    branches: [master]
-    paths: ["ops/resume/*.json"]
 
 permissions:
   actions: read
@@ -40,6 +37,10 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
+          # لا يستهلك الاستئناف حصة الفحص قبل نافذة التجدد، مهما كان نوع الزناد.
+          RESET=$(date -u -d '2026-09-17 07:00:00Z' +%s)
+          NOW=$(date -u +%s)
+          [ "$NOW" -ge "$RESET" ] || { echo "نافذة الفحص لم تتجدد بعد"; exit 1; }
           F="$REQUESTED_FILE"
           if [ -z "$F" ] && [ "$EVENT_NAME" = schedule ]; then
             [ "$(date -u +%F)" = 2026-09-17 ] || { echo "انتهت نافذة الجدولة الوحيدة"; exit 1; }
