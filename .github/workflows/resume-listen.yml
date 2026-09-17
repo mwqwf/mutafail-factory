@@ -3,6 +3,9 @@ name: مصنع المتفائل — استئناف الفحص والنشر
 run-name: 🎧 استئناف ${{ github.event.head_commit.message || inputs.command_file }}
 
 on:
+  push:
+    paths:
+      - "ops/resume/*.json"
   schedule:
     # كل نافذة تجدّد: أول ملف استئناف غير مكتمل، وحالة «تمّ» تمنع التكرار.
     - cron: "5 7 * * *"
@@ -63,7 +66,9 @@ jobs:
           f = sys.argv[1]
           if not re.fullmatch(r'ops/resume/[a-z0-9-]+\.json', f): raise SystemExit('invalid control path')
           d = json.load(open(f, encoding='utf-8'))
-          if d.get('تمّ'): raise SystemExit('resume already completed')
+          if d.get('تمّ'):
+              print('active=false')
+              raise SystemExit
           run = str(d.get('sourceRun', ''))
           cmd = d.get('command', '')
           if not run.isdigit() or not re.fullmatch(r'[a-z0-9-]+', cmd): raise SystemExit('invalid resume control')
