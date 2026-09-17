@@ -51,8 +51,13 @@ jobs:
           #    الاستنساخُ الطازج يجعل أزمنةَ كلّ المجلّدات واحدةً، فـ`ls -t` يخطئ.
           DIR="$COMMAND_DIR"
           if [ -z "$DIR" ]; then
-            DIR=$(git show --pretty= --name-only ${{ github.sha }} \
-                  | grep '^ops/commands/' | cut -d/ -f1-3 | sort -u | head -1)
+            mapfile -t DIRS < <(git show --pretty= --name-only ${{ github.sha }} \
+                  | grep '^ops/commands/' | cut -d/ -f1-3 | sort -u)
+            [ "${#DIRS[@]}" = 1 ] || {
+              echo "⛔ دفعةُ push غيّرت ${#DIRS[@]} أوامر؛ يلزم dispatch صريح ولا يجوز تخمين أول أمر"
+              exit 1
+            }
+            DIR="${DIRS[0]}"
           fi
           [[ "$DIR" =~ ^ops/commands/[a-z0-9-]+$ ]] || { echo "⛔ مسار أمر غير صالح"; exit 1; }
           [ -f "$DIR/payload.enc" ] && [ -f "$DIR/key.enc" ] || { echo "⛔ الأمر المختوم ناقص"; exit 1; }

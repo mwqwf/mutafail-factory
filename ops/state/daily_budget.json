@@ -1,0 +1,42 @@
+{
+  "asOf": "2026-09-17",
+  "policy": "one verified film package per day; prepare the next film without a second YouTube upload package",
+  "measured": {
+    "amal2TtsOutputs": 133,
+    "amal2TtsCalls": 210,
+    "ttsRetryFactor": 1.5789473684,
+    "amal2Images": 43,
+    "amal2Minutes": 18.09,
+    "legacyImagesPerMinute": 2.38,
+    "amal2ListenCheckedBeforeException": 24,
+    "amal2ListenTotal": 133,
+    "youtubePackageUnitsApprox": 5300
+  },
+  "amal3": {
+    "targetMinutes": 31,
+    "filmBlocks": 166,
+    "reelOnlyBlocks": 4,
+    "totalAudio": 170,
+    "openAIImagesRequired": 83,
+    "ttsConservativeCalls": 289,
+    "listenBatchSize": 4,
+    "listenInitialCalls": 43,
+    "listenConservativeCalls": 63,
+    "youtubeReservedUnits": 5400
+  },
+  "dailyWindowsUtc": {
+    "researchAndRefutationStart": "02:00",
+    "sealedPendingDeadline": "06:30",
+    "readyDeadline": "06:50",
+    "providerReset": "07:00",
+    "primaryDispatch": "07:05",
+    "controllerFallback": "07:15"
+  },
+  "guards": [
+    "quota is project/model scoped, never multiplied by API-key count",
+    "OpenAI image capacity is unknown until the full 83-image set is measured",
+    "no second daily YouTube package is promised inside a ten-thousand-unit quota",
+    "no listening exception for amal-3 or later",
+    "research and refutation for the next film use non-provider time before reset"
+  ]
+}
