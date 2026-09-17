@@ -3,6 +3,9 @@ name: مصنع المتفائل — نشر استثنائي amal-3
 run-name: 🚨 نشر amal-3 بتجاوز استماع مصرّح
 
 on:
+  workflow_run:
+    workflows: ["مصنع المتفائل — إنتاج حلقة"]
+    types: [completed]
   push:
     branches: [master]
     paths:
