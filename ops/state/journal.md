@@ -278,3 +278,8 @@
 - العنوان: 🎬 fix: restore valid amal-3 sealed key for explicit launch
 - الرابط: https://github.com/mwqwf/mutafail-factory/actions/runs/35195010115
 - **المطلوب من الدماغ:** اقرأ سجلَّ الشوط، أصلِح السبب، وأعِد الدفع.
+## ⛔ شوطٌ استنفد الإعادات — 2026-09-17T12:22:04Z
+- الشوط: 35214763515
+- العنوان: 🎬 resume: launch amal-3 from saved audio and reviews
+- الرابط: https://github.com/mwqwf/mutafail-factory/actions/runs/35214763515
+- **المطلوب من الدماغ:** اقرأ سجلَّ الشوط، أصلِح السبب، وأعِد الدفع.
