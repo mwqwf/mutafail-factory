@@ -29,18 +29,19 @@
   ],
   "refuterCommit": "cb53bea36396d05904c220f724e7c0cb0993fb6d",
   "sourceFingerprintCommit": "11ff03acedf039f9dbf3fc5b4e9b712ba6e878ce",
-  "latestEncryptedCheckpoint": "ops/pending/amal-4-openai-image-b64",
+  "latestEncryptedCheckpoint": "ops/pending/amal-4-openai-images-b65-b67",
   "checkpointChain": [
     "ops/pending/amal-4-script-001-045",
     "ops/pending/amal-4-script-046-100",
     "ops/pending/amal-4-script-101-145",
     "ops/pending/amal-4-script-146-188",
     "ops/pending/amal-4-images-extra-064-083",
-    "ops/pending/amal-4-openai-image-b64"
+    "ops/pending/amal-4-openai-image-b64",
+    "ops/pending/amal-4-openai-images-b65-b67"
   ],
   "checkpointSha256": {
-    "payload.enc": "8757ccb56f93d23e30c2cda0e9ca4181a446099a763ac07a17b139335492d5ff",
-    "key.enc": "7682845aa601d7c72e8a6b7dc261ce9e59af266070cbd91aaf640224738e84e4"
+    "payload.enc": "12cbe064c8715022ec5b3888623d1038008d60ce53323694a6e634c151937a9e",
+    "key.enc": "dbb0d02c6054abb135c707173f363d718892500eb221c35cfd583f03a37a1099"
   },
   "outlineMetrics": {
     "targetFilmBlocks": "170-180",
@@ -66,12 +67,16 @@
   },
   "imageProductionMetrics": {
     "planned": 83,
-    "generatedAndVisuallyApproved": 1,
-    "latestImageId": "b64",
+    "generatedAndVisuallyApproved": 4,
+    "latestImageId": "b67",
     "source": "openai-chatgpt-imagegen",
     "dimensions": "1672x941",
-    "imageSha256": "817af009a2ba7d27a6255db5e0b351db0fe59107b5333cec9c44f09e245c5564",
-    "storedFormat": "jpeg-quality-2-ffmpeg",
+    "latestBatchImageSha256": {
+      "b65": "9da402181a39a3ea4359de221acb7fc8793b77d9193f4c4f036ffdaadaecb008",
+      "b66": "619c4995007a3995b78af9f309e9b5dd1faef70e6cd5c4f33ef3b18933b59c6a",
+      "b67": "c129cbaf3d9cfe1332705f5ab765fad9e1312d0f90d9e8c912fe10b626dac810"
+    },
+    "storedFormat": "jpeg-quality-7-ffmpeg",
     "fallbackUsed": false
   },
   "next": [
