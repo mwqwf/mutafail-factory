@@ -14,7 +14,9 @@ def _strict_openai_images(root):
     try:
         slug = json.loads((root / 'meta.json').read_text(encoding='utf-8')).get('slug', '')
     except (OSError, ValueError, AttributeError):
-        return False
+        raise RuntimeError('missing or invalid meta.json; image policy cannot be selected safely')
+    if not isinstance(slug, str) or not slug:
+        raise RuntimeError('missing project slug; image policy fails closed')
     match = re.fullmatch(r'amal-(\d+)', slug)
     return bool(match and int(match.group(1)) >= 3)
 
@@ -39,7 +41,18 @@ def _documented_fallback(root):
         if root not in evidence.parents:
             return False
         raw = evidence.read_bytes()
-        return hashlib.sha256(raw).hexdigest() == data.get('evidenceSha256')
+        if hashlib.sha256(raw).hexdigest() != data.get('evidenceSha256'):
+            return False
+        proof = json.loads(raw.decode('utf-8'))
+        return (
+            proof.get('tool') == 'image_gen.imagegen'
+            and proof.get('runStatus') == 'failed-terminal'
+            and isinstance(proof.get('attemptCount'), int) and proof['attemptCount'] >= 1
+            and proof.get('outputCount') == 0
+            and proof.get('attemptedAt') == data.get('checkedAt')
+            and bool(re.fullmatch(r'[0-9a-f]{64}', proof.get('promptSha256', '')))
+            and isinstance(proof.get('errorClass'), str) and len(proof['errorClass']) >= 3
+        )
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
         return False
 

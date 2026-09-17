@@ -12,6 +12,7 @@ class ImageSourcesTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.p = Path(self.tmp.name)
+        self.write('meta.json', {'slug': 'amal-2'})
         self.write('images.json', [{'id': 'b01', 'prompt': 'documentary landscape'},
                                    {'id': 'b02', 'prompt': 'second landscape'}])
         (self.p / 'primary').mkdir()
@@ -34,15 +35,24 @@ class ImageSourcesTests(unittest.TestCase):
                    {'provider': 'openai-chatgpt-imagegen', 'primary': {'b01': self.entry}})
 
     def exception(self):
-        evidence = b'cloud image generation failed after authorized attempts'
-        (self.p / 'imagegen-evidence.txt').write_bytes(evidence)
+        proof = {
+            'tool': 'image_gen.imagegen',
+            'runStatus': 'failed-terminal',
+            'attemptCount': 1,
+            'outputCount': 0,
+            'attemptedAt': '2026-09-17T06:40:00Z',
+            'promptSha256': 'a' * 64,
+            'errorClass': 'ToolUnavailable',
+        }
+        evidence = json.dumps(proof, sort_keys=True).encode()
+        (self.p / 'imagegen-evidence.json').write_bytes(evidence)
         self.write('image_fallback_exception.json', {
             'provider': 'openai-chatgpt-imagegen',
             'status': 'unavailable-after-authorized-attempts',
             'authorizedAlternativesExhausted': True,
             'checkedAt': '2026-09-17T06:40:00Z',
             'reason': 'The embedded cloud image tool returned a terminal availability error.',
-            'evidenceFile': 'imagegen-evidence.txt',
+            'evidenceFile': 'imagegen-evidence.json',
             'evidenceSha256': hashlib.sha256(evidence).hexdigest(),
         })
 
@@ -80,6 +90,11 @@ class ImageSourcesTests(unittest.TestCase):
 
     def test_amal3_missing_manifest_fails_closed(self):
         self.strict()
+        with self.assertRaises(RuntimeError):
+            import_primary(self.p)
+
+    def test_missing_meta_fails_closed(self):
+        (self.p / 'meta.json').unlink()
         with self.assertRaises(RuntimeError):
             import_primary(self.p)
 
