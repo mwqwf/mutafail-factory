@@ -55,7 +55,9 @@ class GateTests(unittest.TestCase):
         review = {'a': {'decision': 'false_positive', 'input_sha256': self.digest,
                         'reason': 'reviewed pronunciation against text',
                         'review_kind': 'automated_independent',
-                        'reviewer': 'automated-independent-review:fixture'}}
+                        'reviewer': 'automated-independent-review:fixture',
+                        'independence': 'separate_call_same_model',
+                        'heard': 'test', 'written': 'test'}}
         self.write('listen_reviews.json', review)
         self.write('listen_results.0.json', {'a': {'ok': False, 'input_sha256': self.digest}})
         self.assertEqual(audit(self.p), [])
@@ -66,7 +68,8 @@ class GateTests(unittest.TestCase):
         self.write('listen_results.0.json', {'a': {'ok': False, 'input_sha256': self.digest}})
         self.write('listen_reviews.0.json', {'a': {'decision': 'false_positive',
             'input_sha256': self.digest, 'reason': 'second pass',
-            'review_kind': 'automated_independent', 'reviewer': 'human-owner'}})
+            'review_kind': 'automated_independent', 'reviewer': 'human-owner',
+            'independence': 'separate_call_same_model', 'heard': 'test', 'written': 'test'}})
         self.assertTrue(audit(self.p))
 
     def test_old_review_cannot_approve_changed_input(self):

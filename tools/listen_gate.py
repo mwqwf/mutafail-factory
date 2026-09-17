@@ -42,7 +42,10 @@ def audit(project):
         review_kind = review.get('review_kind')
         honest_reviewer = (review_kind == 'human' or
                            (review_kind == 'automated_independent' and
-                            str(review.get('reviewer', '')).startswith('automated-independent-review:')))
+                            str(review.get('reviewer', '')).startswith('automated-independent-review:') and
+                            review.get('independence') == 'separate_call_same_model' and
+                            isinstance(review.get('heard'), str) and bool(review['heard'].strip()) and
+                            isinstance(review.get('written'), str) and bool(review['written'].strip())))
         adjudicated = (isinstance(result, dict) and result.get('ok') is False
                        and isinstance(review, dict) and review.get('decision') == 'false_positive'
                        and review.get('input_sha256') == digest

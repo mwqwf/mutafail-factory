@@ -57,7 +57,9 @@ function parse(text, ids) {
   for (const row of rows) {
     if (!row || !need.has(row.id) || got.has(row.id) ||
         !['false_positive', 'true_error'].includes(row.decision) ||
-        typeof row.reason !== 'string' || !row.reason.trim()) throw new Error('invalid-review');
+        typeof row.reason !== 'string' || !row.reason.trim() ||
+        typeof row.heard !== 'string' || !row.heard.trim() ||
+        typeof row.written !== 'string' || !row.written.trim()) throw new Error('invalid-review');
     got.set(row.id, row);
   }
   if (got.size !== need.size) throw new Error('missing-review');
@@ -86,7 +88,9 @@ function parse(text, ids) {
     for (const x of flagged) {
       const v = verdicts.get(x.block.id);
       reviews[x.block.id] = {...v, input_sha256: x.digest,
-        review_kind: 'automated_independent', reviewer: `automated-independent-review:${MODEL}`};
+        review_kind: 'automated_independent', reviewer: `automated-independent-review:${MODEL}`,
+        primary_model: MODEL, review_model: MODEL,
+        independence: 'separate_call_same_model'};
       console.log(`${v.decision === 'false_positive' ? '✓' : '⛔'} ${x.block.id}: ${v.reason}`);
     }
     fs.writeFileSync(out + '.tmp', JSON.stringify(reviews, null, 1)); fs.renameSync(out + '.tmp', out);

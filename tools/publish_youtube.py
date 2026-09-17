@@ -428,8 +428,8 @@ def main():
         "slug": slug,
         "film": {"id": film_id, "title": meta["film"]["title"], "publishAt": when},
         "reels": reels,
-        "يتبقّى_يدويّاً": "ربطُ كلّ ريلز بالفيلم في حقل «فيديو مشابه» — "
-                          "من تطبيق يوتيوب: قناتك ← الشورت ← ⋮ ← تعديل ← فيديو مشابه.",
+        "قيد_واجهة_غير_متاح_API": "حقل «فيديو مشابه» للشورت لا تتيحه YouTube Data API؛ "
+                                  "وُضع رابط الفيلم في وصف كل ريلز، ولا يُنسب ربطٌ لم يقع.",
     }
     io.open(os.path.join(STATE, "last_publish.json"), "w", encoding="utf-8").write(
         json.dumps(out, ensure_ascii=False, indent=1))
