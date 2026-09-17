@@ -37,17 +37,22 @@ class ImageSourcesTests(unittest.TestCase):
     def exception(self):
         proof = {
             'tool': 'image_gen.imagegen',
+            'command': 'amal-3',
+            'executionEnvironment': 'chatgpt-cloud',
+            'resultKind': 'tool-error',
             'runStatus': 'failed-terminal',
             'attemptCount': 1,
             'outputCount': 0,
             'attemptedAt': '2026-09-17T06:40:00Z',
             'promptSha256': 'a' * 64,
+            'errorMessageSha256': 'b' * 64,
             'errorClass': 'ToolUnavailable',
         }
         evidence = json.dumps(proof, sort_keys=True).encode()
         (self.p / 'imagegen-evidence.json').write_bytes(evidence)
         self.write('image_fallback_exception.json', {
             'provider': 'openai-chatgpt-imagegen',
+            'command': 'amal-3',
             'status': 'unavailable-after-authorized-attempts',
             'authorizedAlternativesExhausted': True,
             'checkedAt': '2026-09-17T06:40:00Z',
@@ -98,6 +103,11 @@ class ImageSourcesTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             import_primary(self.p)
 
+    def test_corrupt_meta_fails_closed(self):
+        (self.p / 'meta.json').write_text('{broken', encoding='utf-8')
+        with self.assertRaises(RuntimeError):
+            import_primary(self.p)
+
     def test_amal3_missing_image_fails_closed(self):
         self.strict()
         self.strict_manifest()
@@ -110,6 +120,15 @@ class ImageSourcesTests(unittest.TestCase):
         report = import_primary(self.p)
         self.assertEqual(report['mode'], 'documented-original-fallback')
         self.assertEqual({x['id'] for x in report['fallback']}, {'b01', 'b02'})
+
+    def test_exception_for_another_command_does_not_unlock(self):
+        self.strict()
+        self.exception()
+        record = json.loads((self.p / 'image_fallback_exception.json').read_text())
+        record['command'] = 'amal-4'
+        self.write('image_fallback_exception.json', record)
+        with self.assertRaises(RuntimeError):
+            import_primary(self.p)
 
 
 if __name__ == '__main__':

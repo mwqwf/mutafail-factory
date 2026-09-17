@@ -10,7 +10,7 @@ import sys
 from PIL import Image
 
 
-def _strict_openai_images(root):
+def _image_policy(root):
     try:
         slug = json.loads((root / 'meta.json').read_text(encoding='utf-8')).get('slug', '')
     except (OSError, ValueError, AttributeError):
@@ -18,16 +18,18 @@ def _strict_openai_images(root):
     if not isinstance(slug, str) or not slug:
         raise RuntimeError('missing project slug; image policy fails closed')
     match = re.fullmatch(r'amal-(\d+)', slug)
-    return bool(match and int(match.group(1)) >= 3)
+    return slug, bool(match and int(match.group(1)) >= 3)
 
 
-def _documented_fallback(root):
+def _documented_fallback(root, command):
     record = root / 'image_fallback_exception.json'
     if not record.exists():
         return False
     try:
         data = json.loads(record.read_text(encoding='utf-8'))
         if data.get('provider') != 'openai-chatgpt-imagegen':
+            return False
+        if data.get('command') != command:
             return False
         if data.get('status') != 'unavailable-after-authorized-attempts':
             return False
@@ -46,11 +48,15 @@ def _documented_fallback(root):
         proof = json.loads(raw.decode('utf-8'))
         return (
             proof.get('tool') == 'image_gen.imagegen'
+            and proof.get('command') == command
+            and proof.get('executionEnvironment') == 'chatgpt-cloud'
+            and proof.get('resultKind') == 'tool-error'
             and proof.get('runStatus') == 'failed-terminal'
             and isinstance(proof.get('attemptCount'), int) and proof['attemptCount'] >= 1
             and proof.get('outputCount') == 0
             and proof.get('attemptedAt') == data.get('checkedAt')
             and bool(re.fullmatch(r'[0-9a-f]{64}', proof.get('promptSha256', '')))
+            and bool(re.fullmatch(r'[0-9a-f]{64}', proof.get('errorMessageSha256', '')))
             and isinstance(proof.get('errorClass'), str) and len(proof['errorClass']) >= 3
         )
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
@@ -59,8 +65,8 @@ def _documented_fallback(root):
 
 def import_primary(project):
     root = Path(project).resolve()
-    strict = _strict_openai_images(root)
-    exception = _documented_fallback(root) if strict else False
+    command, strict = _image_policy(root)
+    exception = _documented_fallback(root, command) if strict else False
     manifest = root / 'image_sources.json'
     if not manifest.exists():
         if strict and not exception:
