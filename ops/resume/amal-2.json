@@ -1,7 +1,8 @@
 {
-  "sourceRun": 35130379820,
-  "command": "amal-2",
-  "تمّ": "2026-09-17T06:48:00Z",
-  "listeningGatePassed": false,
-  "outcome": "owner-authorized-listening-bypass-publish-pending"
+ "sourceRun": 35130379820,
+ "command": "amal-2",
+ "تمّ": "2026-09-17T06:51:25Z",
+ "listeningGatePassed": false,
+ "outcome": "owner-authorized-listening-bypass-published",
+ "videoId": "D1T90zBalSQ"
 }
