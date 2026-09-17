@@ -1,4 +1,4 @@
-"""حارس اكتمال الفحص السمعي، لا شهادة عصمة لغوية ولا بديل للمراجعة البشرية."""
+"""حارس اكتمال الفحص السمعي والتحكيم الموثّق، لا شهادة عصمة لغوية."""
 import hashlib
 import json
 from pathlib import Path
@@ -11,8 +11,12 @@ def audit(project):
     if not blocks:
         return ['empty-blocks']
     results = {}
-    review_file = project / 'listen_reviews.json'
-    reviews = json.loads(review_file.read_text(encoding='utf-8')) if review_file.exists() else {}
+    reviews = {}
+    for review_file in sorted(project.glob('listen_reviews*.json')):
+        for key, value in json.loads(review_file.read_text(encoding='utf-8')).items():
+            if key in reviews:
+                raise ValueError('duplicate-review: ' + key)
+            reviews[key] = value
     for file in sorted(project.glob('listen_results*.json')):
         data = json.loads(file.read_text(encoding='utf-8'))
         for key, value in data.items():
@@ -35,11 +39,16 @@ def audit(project):
         digest = hashlib.sha256(block['text'].encode('utf-8') + b'\0' + audio.read_bytes()).hexdigest()
         result = results.get(ident)
         review = reviews.get(ident, {})
+        review_kind = review.get('review_kind')
+        honest_reviewer = (review_kind == 'human' or
+                           (review_kind == 'automated_independent' and
+                            str(review.get('reviewer', '')).startswith('automated-independent-review:')))
         adjudicated = (isinstance(result, dict) and result.get('ok') is False
                        and isinstance(review, dict) and review.get('decision') == 'false_positive'
                        and review.get('input_sha256') == digest
                        and isinstance(review.get('reason'), str) and bool(review['reason'].strip())
-                       and isinstance(review.get('reviewer'), str) and bool(review['reviewer'].strip()))
+                       and isinstance(review.get('reviewer'), str) and bool(review['reviewer'].strip())
+                       and honest_reviewer)
         if not isinstance(result, dict) or (result.get('ok') is not True and not adjudicated):
             errors.append(ident + ': unchecked-or-flagged')
         elif result.get('input_sha256') != digest:

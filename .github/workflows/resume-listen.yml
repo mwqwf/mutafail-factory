@@ -1,0 +1,188 @@
+name: مصنع المتفائل — استئناف الفحص والنشر
+
+run-name: 🎧 استئناف ${{ github.event.head_commit.message || inputs.command_file }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      command_file:
+        description: ملف استئناف JSON داخل ops/resume
+        required: true
+        type: string
+  push:
+    branches: [master]
+    paths: ["ops/resume/*.json"]
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: mutafail-film
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      source_run: ${{ steps.control.outputs.source_run }}
+      command: ${{ steps.control.outputs.command }}
+      control: ${{ steps.control.outputs.control }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - id: control
+        env:
+          REQUESTED_FILE: ${{ inputs.command_file }}
+        run: |
+          set -euo pipefail
+          F="$REQUESTED_FILE"
+          if [ -z "$F" ]; then
+            mapfile -t FILES < <(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/resume/.*\.json$' || true)
+            [ "${#FILES[@]}" = 1 ] || { echo "يلزم ملف استئناف واحد"; exit 1; }
+            F="${FILES[0]}"
+          fi
+          python3 - "$F" >> "$GITHUB_OUTPUT" <<'PY'
+          import json, os, re, sys
+          f = sys.argv[1]
+          if not re.fullmatch(r'ops/resume/[a-z0-9-]+\.json', f): raise SystemExit('invalid control path')
+          d = json.load(open(f, encoding='utf-8'))
+          if d.get('تمّ'): raise SystemExit('resume already completed')
+          run = str(d.get('sourceRun', ''))
+          cmd = d.get('command', '')
+          if not run.isdigit() or not re.fullmatch(r'[a-z0-9-]+', cmd): raise SystemExit('invalid resume control')
+          if not os.path.isfile(f'ops/commands/{cmd}/payload.enc'): raise SystemExit('missing sealed command')
+          print('source_run=' + run); print('command=' + cmd); print('control=' + f)
+          PY
+
+  listen:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix: { shard: [0, 1, 2] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - uses: ./.github/actions/private-download
+        with:
+          name: proj
+          path: proj
+          run-id: ${{ needs.prepare.outputs.source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - uses: ./.github/actions/private-download
+        with:
+          pattern: audio-*
+          path: proj/audio
+          run-id: ${{ needs.prepare.outputs.source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - uses: ./.github/actions/private-download
+        continue-on-error: true
+        with:
+          name: listen-${{ matrix.shard }}
+          path: proj
+          run-id: ${{ needs.prepare.outputs.source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - name: افحص غير المكتمل فقط بتجميع أربعة مقاطع في النداء
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          [ -n "$GEMINI_KEYS_JSON" ] || { echo "لا سر فحص"; exit 1; }
+          printf '%s' "$GEMINI_KEYS_JSON" > keys.json
+          node tools/listen.js proj 2 --batch 4 --shard ${{ matrix.shard }} --shards 3 --keys keys.json
+          node tools/adjudicate_listen.js proj --shard ${{ matrix.shard }} --shards 3 --keys keys.json
+      - if: always()
+        run: rm -f keys.json
+      - uses: ./.github/actions/private-upload
+        if: always()
+        with:
+          name: listen-${{ matrix.shard }}
+          path: |
+            proj/listen_results*.json
+            proj/listen_reviews*.json
+          retention-days: 30
+
+  listening-gate:
+    needs: [prepare, listen]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - uses: ./.github/actions/private-download
+        with:
+          name: proj
+          path: proj
+          run-id: ${{ needs.prepare.outputs.source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - uses: ./.github/actions/private-download
+        with:
+          pattern: audio-*
+          path: proj/audio
+          run-id: ${{ needs.prepare.outputs.source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - uses: ./.github/actions/private-download
+        with: { pattern: listen-*, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      - run: python tools/listen_gate.py proj
+
+  publish:
+    needs: [prepare, listening-gate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
+      - uses: ./.github/actions/private-download
+        with:
+          name: proj
+          path: proj
+          run-id: ${{ needs.prepare.outputs.source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - uses: ./.github/actions/private-download
+        with:
+          name: film
+          path: proj
+          run-id: ${{ needs.prepare.outputs.source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - name: انشر وتحقق من خادم يوتيوب
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: |
+          [ -n "$YT_OAUTH_JSON" ] || { echo "لا سر نشر"; exit 1; }
+          python tools/publish_youtube.py proj
+      - name: اختم الاستئناف واحفظ الحالة
+        env:
+          CONTROL: ${{ needs.prepare.outputs.control }}
+        run: |
+          python3 - "$CONTROL" <<'PY'
+          import json, sys, time
+          f=sys.argv[1]; d=json.load(open(f,encoding='utf-8')); d['تمّ']=time.strftime('%FT%TZ',time.gmtime())
+          open(f,'w',encoding='utf-8').write(json.dumps(d,ensure_ascii=False,indent=1)+'\n')
+          PY
+          git config user.name "مصنع المتفائل"
+          git config user.email "factory@mutafail.local"
+          rm -rf /tmp/resume_keep && mkdir -p /tmp/resume_keep/state /tmp/resume_keep/resume
+          cp -a ops/state/. /tmp/resume_keep/state/
+          cp -a ops/resume/. /tmp/resume_keep/resume/
+          for i in 1 2 3 4; do
+            git fetch -q origin master && git reset -q --hard origin/master || { sleep $((i*3)); continue; }
+            cp -a /tmp/resume_keep/state/. ops/state/
+            cp -a /tmp/resume_keep/resume/. ops/resume/
+            git add -A ops/state ops/resume
+            git diff --cached --quiet && exit 0
+            git commit -qm "✅ نُشر واستؤنف: ${{ needs.prepare.outputs.command }}" && git push -q origin HEAD:master && exit 0
+          done
+          exit 1

@@ -11,6 +11,7 @@ import json
 import os
 import subprocess as sp
 import sys
+from duration_policy import audit_duration
 
 P = os.path.abspath(sys.argv[1])
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -171,10 +172,8 @@ print("كتلُ الفيلم: %d | كتلُ الريلز: %d | صور: %d | لق
       % (len(film), len(reel_only), len(imgs), len(shots)))
 print("حروفٌ بلا تشكيل: %d ⇒ المدّةُ المقدَّرة: %.1f دقيقة" % (n, mins))
 print("نداءاتُ التوليد المتوقَّعة: %d (والسعةُ نحو ست مئةٍ في اليوم)" % (len(blocks) + 20))
-if mins > 55:
-    bad.append("المدّةُ تتجاوز سقفَ خمسٍ وخمسين دقيقة: %.1f" % mins)
-if mins < 18:
-    bad.append("المدّةُ دون الحدّ الأدنى ثمانَ عشرةَ دقيقة: %.1f" % mins)
+for problem in audit_duration(mins, J("meta.json")):
+    bad.append(problem + ": %.1f دقيقة / %d حرف بلا تشكيل" % (mins, n))
 
 print()
 if bad:

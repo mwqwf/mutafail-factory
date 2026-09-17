@@ -13,6 +13,7 @@
 // بوابة listen_gate تمنع النشر قبل اكتمال النتائج وحداثتها وتحكيم الرايات.
 const fs = require('fs'), path = require('path'), os = require('os');
 const { fingerprint, reusable } = require('./listen_cache');
+const { pack, requestParts, parseResponse } = require('./listen_batch');
 
 const argv = process.argv.slice(2);
 function flag(name, def) {
@@ -27,6 +28,7 @@ const KEYFILE = flag('keys', null);
 const SHARD = parseInt(flag('shard', '0'), 10);
 const SHARDS = parseInt(flag('shards', '1'), 10);
 const MODEL = flag('model', 'gemini-3.5-flash');
+const BATCH = Math.max(1, parseInt(flag('batch', '4'), 10));
 if (!PROJ) { console.error('usage: node listen.js <projectDir> [workers] [--keys f]'); process.exit(1); }
 
 const KEYFILES = [
@@ -67,31 +69,23 @@ function nextKey() {
   return null;
 }
 
-const PROMPT = `أنت مدقّقٌ لغويّ عربيّ دقيق. سأعطيك مقطعاً صوتيّاً والنصَّ المشكولَ الذي وُلِّد منه.
-قارن **المنطوق** بـ**المكتوب** حرفاً حرفاً وحركةً حركة، ثمّ أجب بـJSON وحده بلا أيّ شرحٍ خارجه:
-{"ok": true}  إذا طابق المنطوقُ المكتوبَ في الكلمات وفي الإعراب والتشكيل.
-{"ok": false, "why": "<سببٌ في سطرٍ واحد>", "heard": "<الكلمة كما سُمعت>", "written": "<الكلمة كما كُتبت>"}  إذا خالف.
+const PROMPT = `أنت مدقّقٌ لغويّ عربيّ دقيق. ستتلقى {COUNT} مقاطع مستقلة، ولكل مقطع معرّف ونص مشكول يسبقان صوته مباشرة.
+قارن كل منطوق بمكتوبه حرفاً حرفاً وحركةً حركة. لا تخلط المقاطع، ولا تسقط واحداً، وأجب بـJSON وحده:
+{"results":[{"id":"<المعرّف نفسه>","ok":true},{"id":"<المعرّف نفسه>","ok":false,"why":"<سبب موجز>","heard":"<المسموع>","written":"<المكتوب>"}]}
 وانتبه لهذه الأنماط خاصّةً: سقوطُ كلمةٍ أو إبدالُها بمرادف · تنوينٌ في موضع السكون أو عكسه ·
 حركةُ إعرابٍ مخالفة · ابتلاعُ آخر كلمة · حروفُ العلم الأعجميّ الناقصة.
 ⚠️ ولا تعتبر اختلافَ النبر أو مدَّ الصوت مخالفةً — المخالفةُ في الحرف والحركة وحدهما.
-
-النصّ المشكول:
 `;
 
-async function checkOne(blk) {
-  const wav = path.join(PROJ, 'audio', blk.id + '.wav');
-  if (!fs.existsSync(wav)) return { ok: null, why: 'لا ملفَّ صوتٍ' };
-  const b64 = fs.readFileSync(wav).toString('base64');
+async function checkGroup(group) {
+  const ids = group.map(x => x.block.id);
   const deadline = Date.now() + 3 * 60 * 1000;
   while (Date.now() < deadline) {
     const key = nextKey();
-    if (!key) return { ok: null, why: 'nokeys' };
+    if (!key) return Object.fromEntries(ids.map(id => [id, {ok: null, why: 'nokeys'}]));
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
     const body = {
-      contents: [{ parts: [
-        { text: PROMPT + blk.text },
-        { inlineData: { mimeType: 'audio/wav', data: b64 } },
-      ] }],
+      contents: [{ parts: requestParts(group, PROMPT) }],
       generationConfig: { temperature: 0, responseMimeType: 'application/json' },
     };
     try {
@@ -106,37 +100,41 @@ async function checkOne(blk) {
       }
       if (r.status === 404 || r.status === 400) {
         const txt = await r.text();
-        return { ok: null, why: `${r.status}: ${txt.slice(0, 120).replace(/\s+/g, ' ')}` };
+        return Object.fromEntries(ids.map(id => [id, {ok: null, why: `${r.status}: ${txt.slice(0, 120).replace(/\s+/g, ' ')}`} ]));
       }
       if (!r.ok) { await new Promise(z => setTimeout(z, 2000)); continue; }
       const j = await r.json();
       const txt = j?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
       try {
-        const parsed = JSON.parse(txt);
-        return parsed && typeof parsed.ok === 'boolean' ? parsed : { ok: null, why: 'بنية رد غير صالحة' };
-      } catch (e) { return { ok: null, why: 'ردٌّ غيرُ مفهوم' }; }
+        return parseResponse(txt, ids);
+      } catch (e) { return Object.fromEntries(ids.map(id => [id, {ok: null, why: 'ردٌّ مجمّع غير صالح'}])); }
     } catch (e) { await new Promise(z => setTimeout(z, 2000)); }
   }
-  return { ok: null, why: 'مهلةٌ منتهية' };
+  return Object.fromEntries(ids.map(id => [id, {ok: null, why: 'مهلةٌ منتهية'}]));
 }
 
 (async () => {
-  console.log(`مفاتيح: ${keys.length} | كتلُ الحصّة ${SHARD}/${SHARDS}: ${blocks.length} | نموذج: ${MODEL}`);
+  console.log(`مفاتيح: ${keys.length} | كتلُ الحصّة ${SHARD}/${SHARDS}: ${blocks.length} | نموذج: ${MODEL} | تجميع: ${BATCH}`);
   if (!keys.length) { console.error('⛔ لا مفاتيح — الفحصُ السمعيّ لم يجرِ'); process.exit(1); }
   const digests = new Map(blocks.map(b => {
     const file = path.join(PROJ, 'audio', b.id + '.wav');
     return [b.id, fs.existsSync(file) ? fingerprint(b.text, fs.readFileSync(file)) : null];
   }));
-  const todo = blocks.filter(b => !digests.get(b.id) || !reusable(res[b.id], digests.get(b.id)));
+  const todo = blocks.filter(b => !digests.get(b.id) || !reusable(res[b.id], digests.get(b.id)))
+    .map(block => ({block, audio: fs.readFileSync(path.join(PROJ, 'audio', block.id + '.wav'))}));
+  const batches = pack(todo, BATCH);
   let i = 0, done = 0;
   await Promise.all(Array.from({ length: WORKERS }, async () => {
-    while (i < todo.length) {
-      const blk = todo[i++];
-      res[blk.id] = await checkOne(blk);
-      res[blk.id].input_sha256 = digests.get(blk.id);
+    while (i < batches.length) {
+      const group = batches[i++];
+      const verdicts = await checkGroup(group);
+      for (const {block} of group) {
+        res[block.id] = verdicts[block.id];
+        res[block.id].input_sha256 = digests.get(block.id);
+      }
       fs.writeFileSync(OUT + '.tmp', JSON.stringify(res, null, 1));
       fs.renameSync(OUT + '.tmp', OUT);
-      done++;
+      done += group.length;
       if (done % 20 === 0) {
         console.log(`… ${done}/${todo.length}`);
       }
