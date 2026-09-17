@@ -2,7 +2,7 @@
   "slug": "amal-4",
   "title": "الصبر ليس سلبية",
   "stage": "script_complete_pending_full_merge",
-  "updatedAt": "2026-09-17T23:56:00Z",
+  "updatedAt": "2026-09-18T00:01:00Z",
   "completed": {
     "plan_and_initial_sources": true,
     "psychology_and_safety_report": true,
@@ -29,7 +29,7 @@
   ],
   "refuterCommit": "cb53bea36396d05904c220f724e7c0cb0993fb6d",
   "sourceFingerprintCommit": "11ff03acedf039f9dbf3fc5b4e9b712ba6e878ce",
-  "latestEncryptedCheckpoint": "ops/pending/amal-4-openai-images-b22-b24",
+  "latestEncryptedCheckpoint": "ops/pending/amal-4-openai-images-b25-b27",
   "checkpointChain": [
     "ops/pending/amal-4-script-001-045",
     "ops/pending/amal-4-script-046-100",
@@ -46,11 +46,12 @@
     "ops/pending/amal-4-openai-image-b83",
     "ops/pending/amal-4-openai-images-b16-b18",
     "ops/pending/amal-4-openai-images-b19-b21",
-    "ops/pending/amal-4-openai-images-b22-b24"
+    "ops/pending/amal-4-openai-images-b22-b24",
+    "ops/pending/amal-4-openai-images-b25-b27"
   ],
   "checkpointSha256": {
-    "payload.enc": "d7c183dda2e6860e396da203ec028f3dfc29f88747a9803d385937e97c74611d",
-    "key.enc": "f8e7b077c8b19871317d0e2729fdab5e72beaa4d20c002acb82d30b9d54fb18d"
+    "payload.enc": "18410c3dfd63a7f2edc23421c72248992d1b9a510b74b7c2877cba17500b17ac",
+    "key.enc": "e89793fdf5a3239e1d299218e434864916d78ef4f3a93246680983a9c847aeb6"
   },
   "outlineMetrics": {
     "targetFilmBlocks": "170-180",
@@ -76,14 +77,14 @@
   },
   "imageProductionMetrics": {
     "planned": 83,
-    "generatedAndVisuallyApproved": 29,
-    "latestImageId": "b24",
+    "generatedAndVisuallyApproved": 32,
+    "latestImageId": "b27",
     "source": "openai-chatgpt-imagegen",
     "dimensions": "1672x941",
     "latestBatchImageSha256": {
-      "b22": "82a989eb25b6008b2f7483b82bdb8d3a7c0002889a740b9cea43b38e82c0a365",
-      "b23": "f13bb5062ccff838eb971a37df7a9624e0dbf9b9e97d163229c92b751f17f699",
-      "b24": "83e29f8b13b94200991e9acf07c734cd8499767a55a5c0f0e860a7b8f918c0a4"
+      "b25": "e4d2e2ce5ad539625c867a910d2e524e82542db0062fe8997c93ce731438c7f9",
+      "b26": "33bfd3307d6467931f84db5a75d9f5f8638e6df21a132df716624ca345691ea6",
+      "b27": "5c783defe3f52be6b145a59b05ec410a58e1dfc1657b196f09e07ea73b4c614f"
     },
     "storedFormat": "jpeg-quality-7-ffmpeg",
     "fallbackUsed": false
