@@ -1,6 +1,7 @@
 {
   "command": "amal-3",
-  "sourceRun": 35214763515,
+  "sourceRun": 35226554281,
+  "audioSourceRun": 35195010115,
   "ownerAuthorized": true,
   "exceptionScope": "listening-gate-only",
   "listeningGatePassed": false,
@@ -13,6 +14,6 @@
     "falsePositive": 9,
     "trueError": 7,
     "unresolved": 6,
-    "note": "لا يُدّعى اجتياز الاستماع ولا مراجعة بشرية؛ مسار الاستثناء ينتظر اكتمال الفيلم وحارس الشعار وفحوص النشر"
+    "note": "لا يُدّعى اجتياز الاستماع ولا مراجعة بشرية؛ مصدر النشر هو شوط الفيلم النهائي الذي نجح فيه التجميع وحارس الشعار والمصغّرات"
   }
 }
