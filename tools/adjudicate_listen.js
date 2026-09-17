@@ -78,7 +78,15 @@ function parse(text, ids) {
       const key = nextKey(); if (!key) throw new Error('nokeys-adjudication');
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
       const response = await fetch(url, {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({
-        contents: [{parts: parts(group)}], generationConfig: {temperature: 0, responseMimeType: 'application/json'}
+        contents: [{parts: parts(group)}], generationConfig: {
+          temperature: 0, responseMimeType: 'application/json',
+          responseSchema: {type: 'OBJECT', required: ['reviews'], properties: {
+            reviews: {type: 'ARRAY', items: {type: 'OBJECT', required: ['id','decision','reason','heard','written'], properties: {
+              id: {type: 'STRING'}, decision: {type: 'STRING', enum: ['false_positive','true_error']},
+              reason: {type: 'STRING'}, heard: {type: 'STRING'}, written: {type: 'STRING'}
+            }}}
+          }}
+        }
       })});
       if (response.status === 429) {
         const body = await response.text();
