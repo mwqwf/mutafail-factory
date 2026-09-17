@@ -225,9 +225,9 @@ jobs:
           python tools/mont3d.py "$PWD/proj"
           python tools/logocheck.py "$PWD/proj/film.mp4" "$PWD/proj/work/video_silent.mp4" film
           python tools/mkreel3d.py "$PWD/proj" r1
-          python tools/logocheck.py "$PWD/proj/reels/r1.mp4" "$PWD/proj/reelwork/r1/v.mp4" reel
+          python tools/logocheck.py "$PWD/proj/reels/r1.mp4" "$PWD/proj/reelwork/r1/v.mp4" reel "$PWD/proj/reelwork/r1/ov_no_logo.png"
           python tools/mkreel3d.py "$PWD/proj" r2
-          python tools/logocheck.py "$PWD/proj/reels/r2.mp4" "$PWD/proj/reelwork/r2/v.mp4" reel
+          python tools/logocheck.py "$PWD/proj/reels/r2.mp4" "$PWD/proj/reelwork/r2/v.mp4" reel "$PWD/proj/reelwork/r2/ov_no_logo.png"
           python tools/mkthumbs.py "$PWD/proj"
           python tools/chapters.py "$PWD/proj" "$PWD/proj/sections.json"
       - uses: ./.github/actions/private-upload

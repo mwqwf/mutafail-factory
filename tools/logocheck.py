@@ -6,7 +6,7 @@
 ② لا أداةَ تتخطّى الشعارَ صامتةً (‏`if LOGO:` ممنوعٌ في أدوات المخرَجات).
 ③ أداةُ تركيب الفيلم تُركّب الشعارَ فعلاً (وهي التي كانت لا تفعل).
 
-الاستعمال: python tools/logocheck.py [<output.mp4> <baseline.mp4> [film|reel]]
+الاستعمال: python tools/logocheck.py [<output.mp4> <baseline.mp4> [film|reel] [overlay_without_logo.png]]
 وإن مُرِّر مخرجٌ فُحص **إطارٌ منه فعلاً** مقابل الإطار نفسه قبل تركيب الشعار.
 لا يكفي ارتفاعُ التباين في الركن، لأن المشهد نفسه قد يرفعه ويعطي نجاحاً زائفاً.
 """
@@ -56,6 +56,8 @@ if len(sys.argv) > 1 and os.path.exists(sys.argv[1]):
         bad.append("⛔ لا خطَّ أساسٍ بصرياً قبل الشعار؛ لا يمكن إثبات ظهوره فعلياً")
     if layout not in ("film", "reel"):
         bad.append("⛔ تخطيطُ فحص الشعار غير معروف: %s" % layout)
+    if layout == "reel" and (len(sys.argv) < 5 or not os.path.exists(sys.argv[4])):
+        bad.append("⛔ لا طبقةَ ريلٍ مرجعيةً بلا شعار؛ لا يمكن عزل ظهور الشعار")
 
 if len(sys.argv) > 2 and os.path.exists(sys.argv[1]) and os.path.exists(sys.argv[2]):
     f, baseline = sys.argv[1], sys.argv[2]
@@ -68,6 +70,13 @@ if len(sys.argv) > 2 and os.path.exists(sys.argv[1]) and os.path.exists(sys.argv
                 "-frames:v", "1", frame], check=True)
     im = Image.open(png).convert("RGB")
     base = Image.open(base_png).convert("RGB")
+    if layout == "reel" and len(sys.argv) > 4 and os.path.exists(sys.argv[4]):
+        overlay = Image.open(sys.argv[4]).convert("RGBA")
+        if overlay.size != base.size:
+            bad.append("⛔ أبعادُ طبقة الريل المرجعية مختلفة: %s != %s" %
+                       (overlay.size, base.size))
+        else:
+            base = Image.alpha_composite(base.convert("RGBA"), overlay).convert("RGB")
     if im.size != base.size:
         bad.append("⛔ أبعادُ المخرج وخطِّ الأساس مختلفة: %s != %s" % (im.size, base.size))
     W, H = im.size

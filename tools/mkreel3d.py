@@ -73,6 +73,10 @@ for i, ln in enumerate(lines[:3]):
         d.text(((W - tw) / 2 + dx, y + dy), t, font=f, fill=(0, 0, 0, 255))
     d.text(((W - tw) / 2, y), t, font=f, fill=col)
     y += size + 18
+# نسخةُ الطبقة قبل الشعار: يستعملها logocheck خطَّ أساسٍ بصرياً، كي يقيس
+# إضافةَ الشعار وحدها لا الشريطَ والعنوانَ معاً.
+ov_no_logo = os.path.join(WORK, "ov_no_logo.png")
+ov.save(ov_no_logo)
 # ⛔ لا شرطَ هنا: غيابُ الشعار أسقط الشوطَ في envpaths.logo() قبل أن نصل
 lg = Image.open(LOGO).convert("RGBA").resize((118, 118), Image.LANCZOS)
 m = Image.new("L", (472, 472), 0)

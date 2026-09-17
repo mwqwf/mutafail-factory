@@ -56,7 +56,7 @@ jobs:
           [ "$n" -ge 3 ] || { echo "⛔ خرائطُ العمق لم تُولَّد — التحريكُ مسطَّحٌ لا مجسَّم"; exit 1; }
           # ⛔ الشعارُ يُفحص في إطارٍ من الفيلم المصيَّر لا في الشيفرة وحدها
           python tools/logocheck.py /tmp/proj/film.mp4 /tmp/proj/work/video_silent.mp4 film
-          python tools/logocheck.py /tmp/proj/reels/r1.mp4 /tmp/proj/reelwork/r1/v.mp4 reel
+          python tools/logocheck.py /tmp/proj/reels/r1.mp4 /tmp/proj/reelwork/r1/v.mp4 reel /tmp/proj/reelwork/r1/ov_no_logo.png
           ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 /tmp/proj/film.mp4
           ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 /tmp/proj/reels/r1.mp4
           cat /tmp/proj/الفصول.txt
