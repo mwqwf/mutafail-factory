@@ -29,7 +29,7 @@
   ],
   "refuterCommit": "cb53bea36396d05904c220f724e7c0cb0993fb6d",
   "sourceFingerprintCommit": "11ff03acedf039f9dbf3fc5b4e9b712ba6e878ce",
-  "latestEncryptedCheckpoint": "ops/pending/amal-4-openai-images-b65-b67",
+  "latestEncryptedCheckpoint": "ops/pending/amal-4-openai-images-b68-b70",
   "checkpointChain": [
     "ops/pending/amal-4-script-001-045",
     "ops/pending/amal-4-script-046-100",
@@ -37,11 +37,12 @@
     "ops/pending/amal-4-script-146-188",
     "ops/pending/amal-4-images-extra-064-083",
     "ops/pending/amal-4-openai-image-b64",
-    "ops/pending/amal-4-openai-images-b65-b67"
+    "ops/pending/amal-4-openai-images-b65-b67",
+    "ops/pending/amal-4-openai-images-b68-b70"
   ],
   "checkpointSha256": {
-    "payload.enc": "12cbe064c8715022ec5b3888623d1038008d60ce53323694a6e634c151937a9e",
-    "key.enc": "dbb0d02c6054abb135c707173f363d718892500eb221c35cfd583f03a37a1099"
+    "payload.enc": "e616267d13f87636226a70b1c657cbb55be05a5b2369ae2a69d4d9c71a2a7743",
+    "key.enc": "5d181090c67226a894745a8328827a36ced8fe2b17d047fd3e5f41be995f061b"
   },
   "outlineMetrics": {
     "targetFilmBlocks": "170-180",
@@ -67,14 +68,14 @@
   },
   "imageProductionMetrics": {
     "planned": 83,
-    "generatedAndVisuallyApproved": 4,
-    "latestImageId": "b67",
+    "generatedAndVisuallyApproved": 7,
+    "latestImageId": "b70",
     "source": "openai-chatgpt-imagegen",
     "dimensions": "1672x941",
     "latestBatchImageSha256": {
-      "b65": "9da402181a39a3ea4359de221acb7fc8793b77d9193f4c4f036ffdaadaecb008",
-      "b66": "619c4995007a3995b78af9f309e9b5dd1faef70e6cd5c4f33ef3b18933b59c6a",
-      "b67": "c129cbaf3d9cfe1332705f5ab765fad9e1312d0f90d9e8c912fe10b626dac810"
+      "b68": "8a0acb8606f75b8f04eefb39df92443d36b6006c7abf9b61e40555b2b5d04956",
+      "b69": "49209806a0f5a223d558dc0be84c17b6c8a713c958636120f59b6dfcb95a1354",
+      "b70": "564b8b36277b0b1182560d56f6c3b1891c6a66e801c333981d11ea4fb2fbda44"
     },
     "storedFormat": "jpeg-quality-7-ffmpeg",
     "fallbackUsed": false
