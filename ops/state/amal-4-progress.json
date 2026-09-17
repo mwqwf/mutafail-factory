@@ -29,17 +29,18 @@
   ],
   "refuterCommit": "cb53bea36396d05904c220f724e7c0cb0993fb6d",
   "sourceFingerprintCommit": "11ff03acedf039f9dbf3fc5b4e9b712ba6e878ce",
-  "latestEncryptedCheckpoint": "ops/pending/amal-4-images-extra-064-083",
+  "latestEncryptedCheckpoint": "ops/pending/amal-4-openai-image-b64",
   "checkpointChain": [
     "ops/pending/amal-4-script-001-045",
     "ops/pending/amal-4-script-046-100",
     "ops/pending/amal-4-script-101-145",
     "ops/pending/amal-4-script-146-188",
-    "ops/pending/amal-4-images-extra-064-083"
+    "ops/pending/amal-4-images-extra-064-083",
+    "ops/pending/amal-4-openai-image-b64"
   ],
   "checkpointSha256": {
-    "payload.enc": "a07308813b1a35c3a67921ac30f3941498d6b6016c0ed63600e77cd332825c27",
-    "key.enc": "738886b863053c65039638730f9c6724b86c60e3ceffcdcc21211a6d1244f6b2"
+    "payload.enc": "8757ccb56f93d23e30c2cda0e9ca4181a446099a763ac07a17b139335492d5ff",
+    "key.enc": "7682845aa601d7c72e8a6b7dc261ce9e59af266070cbd91aaf640224738e84e4"
   },
   "outlineMetrics": {
     "targetFilmBlocks": "170-180",
@@ -62,6 +63,16 @@
       "lint": "pass",
       "guard": "pass"
     }
+  },
+  "imageProductionMetrics": {
+    "planned": 83,
+    "generatedAndVisuallyApproved": 1,
+    "latestImageId": "b64",
+    "source": "openai-chatgpt-imagegen",
+    "dimensions": "1672x941",
+    "imageSha256": "817af009a2ba7d27a6255db5e0b351db0fe59107b5333cec9c44f09e245c5564",
+    "storedFormat": "jpeg-quality-2-ffmpeg",
+    "fallbackUsed": false
   },
   "next": [
     "generate and visually inspect 83 images through the built-in OpenAI image tool, preserving source and fingerprint metadata",
