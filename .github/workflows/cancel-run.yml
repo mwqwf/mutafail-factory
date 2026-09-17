@@ -14,11 +14,11 @@ jobs:
     if: >-
       github.actor == github.repository_owner &&
       github.event.issue.title == '[factory] cancel wrong run' &&
-      github.event.issue.body == '35210624049'
+      (github.event.issue.body == '35210624049' || github.event.issue.body == '35214923860')
     runs-on: ubuntu-latest
     steps:
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh run cancel 35210624049 --repo "$GITHUB_REPOSITORY"
+          gh run cancel "${{ github.event.issue.body }}" --repo "$GITHUB_REPOSITORY"
           gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment "أُلغي الشوط المكرر لحماية الصوت المحفوظ وحصة المزود."
