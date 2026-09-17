@@ -69,32 +69,41 @@ function parse(text, ids) {
 (async () => {
   if (!flagged.length) { console.log('لا رايات جديدة للتحكيم'); return; }
   if (!keys.length) throw new Error('لا مفاتيح للتحكيم');
-  const ids = flagged.map(x => x.block.id);
-  while (true) {
-    const key = nextKey(); if (!key) throw new Error('nokeys-adjudication');
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
-    const response = await fetch(url, {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({
-      contents: [{parts: parts(flagged)}], generationConfig: {temperature: 0, responseMimeType: 'application/json'}
-    })});
-    if (response.status === 429) {
-      const body = await response.text();
-      if (/PerDay/i.test(body)) { dead.add(key); continue; }
-      await new Promise(r => setTimeout(r, 3000)); continue;
+  let hasTrueError = false;
+  for (let start = 0; start < flagged.length; start += 4) {
+    const group = flagged.slice(start, start + 4);
+    const ids = group.map(x => x.block.id);
+    let verdicts = null, invalid = 0;
+    while (!verdicts) {
+      const key = nextKey(); if (!key) throw new Error('nokeys-adjudication');
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
+      const response = await fetch(url, {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({
+        contents: [{parts: parts(group)}], generationConfig: {temperature: 0, responseMimeType: 'application/json'}
+      })});
+      if (response.status === 429) {
+        const body = await response.text();
+        if (/PerDay/i.test(body)) { dead.add(key); continue; }
+        await new Promise(r => setTimeout(r, 3000)); continue;
+      }
+      if (!response.ok) throw new Error(`adjudication-http-${response.status}`);
+      const j = await response.json();
+      const text = j?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
+      try { verdicts = parse(text, ids); }
+      catch (_) {
+        invalid += 1;
+        if (invalid >= 3) throw new Error('adjudication-invalid-response-after-3-attempts');
+      }
     }
-    if (!response.ok) throw new Error(`adjudication-http-${response.status}`);
-    const j = await response.json();
-    const text = j?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
-    const verdicts = parse(text, ids);
-    for (const x of flagged) {
+    for (const x of group) {
       const v = verdicts.get(x.block.id);
       reviews[x.block.id] = {...v, input_sha256: x.digest,
         review_kind: 'automated_independent', reviewer: `automated-independent-review:${MODEL}`,
         primary_model: MODEL, review_model: MODEL,
         independence: 'separate_call_same_model'};
+      if (v.decision === 'true_error') hasTrueError = true;
       console.log(`${v.decision === 'false_positive' ? '✓' : '⛔'} ${x.block.id}: ${v.reason}`);
     }
     fs.writeFileSync(out + '.tmp', JSON.stringify(reviews, null, 1)); fs.renameSync(out + '.tmp', out);
-    if (flagged.some(x => verdicts.get(x.block.id).decision === 'true_error')) process.exitCode = 2;
-    return;
   }
+  if (hasTrueError) process.exitCode = 2;
 })().catch(e => { console.error('⛔', e.message); process.exit(1); });
