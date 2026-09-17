@@ -29,16 +29,17 @@
   ],
   "refuterCommit": "cb53bea36396d05904c220f724e7c0cb0993fb6d",
   "sourceFingerprintCommit": "11ff03acedf039f9dbf3fc5b4e9b712ba6e878ce",
-  "latestEncryptedCheckpoint": "ops/pending/amal-4-script-146-188",
+  "latestEncryptedCheckpoint": "ops/pending/amal-4-images-extra-064-083",
   "checkpointChain": [
     "ops/pending/amal-4-script-001-045",
     "ops/pending/amal-4-script-046-100",
     "ops/pending/amal-4-script-101-145",
-    "ops/pending/amal-4-script-146-188"
+    "ops/pending/amal-4-script-146-188",
+    "ops/pending/amal-4-images-extra-064-083"
   ],
   "checkpointSha256": {
-    "payload.enc": "7c43ec7cd3868acf844e8d915e093ec2e3a119131d311d5a22db10bdfc2f0a3a",
-    "key.enc": "f26548bc9893da386cf3fd2a35350dd11d26b9a17ef5e89b3914d284808beb5b"
+    "payload.enc": "a07308813b1a35c3a67921ac30f3941498d6b6016c0ed63600e77cd332825c27",
+    "key.enc": "738886b863053c65039638730f9c6724b86c60e3ceffcdcc21211a6d1244f6b2"
   },
   "outlineMetrics": {
     "targetFilmBlocks": "170-180",
@@ -48,7 +49,7 @@
   "scriptDraftMetrics": {
     "completedFilmBlocks": 188,
     "completedReelBlocks": 4,
-    "completedOpenAIImagePrompts": 63,
+    "completedOpenAIImagePrompts": 83,
     "charactersWithoutDiacriticsApprox": 15167,
     "estimatedMinutes": 30.33,
     "targetBlockCountException": "Eight additional film blocks beyond the 170-180 outline were required to cross the measured 30-minute floor with substantive safety and application material, not filler.",
@@ -63,7 +64,7 @@
     }
   },
   "next": [
-    "add twenty non-duplicative OpenAI image prompts to reach the 83-image visual cadence used by the prior 30-minute film",
+    "generate and visually inspect 83 images through the built-in OpenAI image tool, preserving source and fingerprint metadata",
     "run full-payload lint and guard after combining encrypted checkpoints",
     "seal final private payload before creating one production command"
   ],
