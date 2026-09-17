@@ -240,9 +240,11 @@ jobs:
           python tools/bidicheck.py
           python tools/logocheck.py
           python tools/mont3d.py "$PWD/proj"
-          python tools/logocheck.py "$PWD/proj/film.mp4"
+          python tools/logocheck.py "$PWD/proj/film.mp4" "$PWD/proj/work/video_silent.mp4" film
           python tools/mkreel3d.py "$PWD/proj" r1
+          python tools/logocheck.py "$PWD/proj/reels/r1.mp4" "$PWD/proj/reelwork/r1/v.mp4" reel
           python tools/mkreel3d.py "$PWD/proj" r2
+          python tools/logocheck.py "$PWD/proj/reels/r2.mp4" "$PWD/proj/reelwork/r2/v.mp4" reel
           python tools/mkthumbs.py "$PWD/proj"
           python tools/chapters.py "$PWD/proj" "$PWD/proj/sections.json"
       - uses: ./.github/actions/private-upload
@@ -392,9 +394,11 @@ jobs:
           python tools/logocheck.py
           python tools/mont3d.py "$PWD/proj"
           # ⛔ ثمّ يُفحص إطارٌ **من الفيلم نفسِه**: أظهر الشعارُ فعلاً أم لا؟
-          python tools/logocheck.py "$PWD/proj/film.mp4"
+          python tools/logocheck.py "$PWD/proj/film.mp4" "$PWD/proj/work/video_silent.mp4" film
           python tools/mkreel3d.py "$PWD/proj" r1
+          python tools/logocheck.py "$PWD/proj/reels/r1.mp4" "$PWD/proj/reelwork/r1/v.mp4" reel
           python tools/mkreel3d.py "$PWD/proj" r2
+          python tools/logocheck.py "$PWD/proj/reels/r2.mp4" "$PWD/proj/reelwork/r2/v.mp4" reel
           python tools/mkthumbs.py "$PWD/proj"
           python tools/chapters.py "$PWD/proj" "$PWD/proj/sections.json"
           # ⛔ لا يُنسخ مخرَجٌ قبل أن يُغلق ffmpeg ملفَّه — الفحصُ بـffprobe
