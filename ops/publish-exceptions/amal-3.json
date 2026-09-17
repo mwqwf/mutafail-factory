@@ -5,8 +5,17 @@
   "ownerAuthorized": true,
   "exceptionScope": "listening-gate-only",
   "listeningGatePassed": false,
-  "status": "pending",
+  "status": "published",
   "authorization": "المالك أمر صراحة في 2026-09-17 بنشر فيلم اليوم بأي ثمن وعدم تفويت يوم نشر",
+  "publishedAt": "2026-09-17T14:15:36Z",
+  "result": "owner-authorized-listening-bypass-not-a-gate-pass",
+  "videoIds": {
+    "film": "xfZGOBnMOOM",
+    "reels": [
+      "VvMNivvfpEY",
+      "YJ-atBTXcLk"
+    ]
+  },
   "audit": {
     "primaryListening": "170/170",
     "flags": 22,
@@ -14,6 +23,6 @@
     "falsePositive": 9,
     "trueError": 7,
     "unresolved": 6,
-    "note": "لا يُدّعى اجتياز الاستماع ولا مراجعة بشرية؛ مصدر النشر هو شوط الفيلم النهائي الذي نجح فيه التجميع وحارس الشعار والمصغّرات"
+    "note": "لا يُدّعى اجتياز الاستماع ولا مراجعة بشرية؛ نجح الفيلم والمصغّرة والشعار وفحوص يوتيوب، والاستثناء محصور بالاستماع"
   }
 }
