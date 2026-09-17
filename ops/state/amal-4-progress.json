@@ -1,8 +1,8 @@
 {
   "slug": "amal-4",
   "title": "الصبر ليس سلبية",
-  "stage": "script_draft_in_progress",
-  "updatedAt": "2026-09-17T19:40:00Z",
+  "stage": "script_complete_pending_full_merge",
+  "updatedAt": "2026-09-17T19:04:40Z",
   "completed": {
     "plan_and_initial_sources": true,
     "psychology_and_safety_report": true,
@@ -12,7 +12,7 @@
     "pre_script_refuter": true,
     "source_fingerprint_manifest": true,
     "script_outline": true,
-    "script": false,
+    "script": true,
     "lint": false,
     "guard": false,
     "sealed_payload": false,
@@ -29,14 +29,16 @@
   ],
   "refuterCommit": "cb53bea36396d05904c220f724e7c0cb0993fb6d",
   "sourceFingerprintCommit": "11ff03acedf039f9dbf3fc5b4e9b712ba6e878ce",
-  "latestEncryptedCheckpoint": "ops/pending/amal-4-script-046-100",
+  "latestEncryptedCheckpoint": "ops/pending/amal-4-script-146-188",
   "checkpointChain": [
     "ops/pending/amal-4-script-001-045",
-    "ops/pending/amal-4-script-046-100"
+    "ops/pending/amal-4-script-046-100",
+    "ops/pending/amal-4-script-101-145",
+    "ops/pending/amal-4-script-146-188"
   ],
   "checkpointSha256": {
-    "payload.enc": "19892714003c0ff2eb0b30992d07dde2cea3724e2bb97cc3538202220a8e2e81",
-    "key.enc": "584967ab2711e855f5338265b988974b05495b877afba1a821c04eb46d17a36c"
+    "payload.enc": "7c43ec7cd3868acf844e8d915e093ec2e3a119131d311d5a22db10bdfc2f0a3a",
+    "key.enc": "f26548bc9893da386cf3fd2a35350dd11d26b9a17ef5e89b3914d284808beb5b"
   },
   "outlineMetrics": {
     "targetFilmBlocks": "170-180",
@@ -44,22 +46,24 @@
     "initialImageEstimate": "85-95 OpenAI images"
   },
   "scriptDraftMetrics": {
-    "completedFilmBlocks": 100,
-    "completedOpenAIImagePrompts": 33,
-    "charactersWithoutDiacriticsApprox": 7578,
-    "estimatedMinutes": 15.16,
+    "completedFilmBlocks": 188,
+    "completedReelBlocks": 4,
+    "completedOpenAIImagePrompts": 63,
+    "charactersWithoutDiacriticsApprox": 15167,
+    "estimatedMinutes": 30.33,
+    "targetBlockCountException": "Eight additional film blocks beyond the 170-180 outline were required to cross the measured 30-minute floor with substantive safety and application material, not filler.",
     "latestBatch": {
-      "range": "d_046-d_100",
-      "filmBlocks": 55,
-      "imagePrompts": 18,
-      "charactersWithoutDiacritics": 4578,
+      "range": "d_146-d_188 plus r_001-r_004",
+      "filmBlocks": 43,
+      "reelBlocks": 4,
+      "imagePrompts": 15,
+      "charactersWithoutDiacritics": 3777,
       "lint": "pass",
       "guard": "pass"
     }
   },
   "next": [
-    "complete blocks d_101 onward to 30-40 measured minutes without filler",
-    "derive final OpenAI image count from the completed script",
+    "add twenty non-duplicative OpenAI image prompts to reach the 83-image visual cadence used by the prior 30-minute film",
     "run full-payload lint and guard after combining encrypted checkpoints",
     "seal final private payload before creating one production command"
   ],
