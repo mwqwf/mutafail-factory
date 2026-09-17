@@ -70,8 +70,8 @@ function parse(text, ids) {
   if (!flagged.length) { console.log('لا رايات جديدة للتحكيم'); return; }
   if (!keys.length) throw new Error('لا مفاتيح للتحكيم');
   let hasTrueError = false;
-  for (let start = 0; start < flagged.length; start += 4) {
-    const group = flagged.slice(start, start + 4);
+  for (let start = 0; start < flagged.length; start += 1) {
+    const group = flagged.slice(start, start + 1);
     const ids = group.map(x => x.block.id);
     let verdicts = null, invalid = 0;
     while (!verdicts) {
