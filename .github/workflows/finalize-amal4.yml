@@ -1,0 +1,242 @@
+name: Finalize and dispatch amal-4
+
+on:
+  push:
+    paths:
+      - .github/workflows/finalize-amal4.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: finalize-amal4
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -q pillow numpy
+
+      - name: Reconstruct the private project from encrypted checkpoints
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJ="$RUNNER_TEMP/amal-4-project"
+          mkdir -p "$PROJ"
+          bash tools/unseal.sh ops/pending/amal-4-script-001-045 "$PROJ"
+          while read -r name; do
+            part="$RUNNER_TEMP/$name"
+            bash tools/unseal.sh "ops/pending/$name" "$part"
+            cat "$part/script-continuation.md" >> "$PROJ/script.md"
+            rm -rf "$part"
+          done <<'EOF'
+          amal-4-script-046-100
+          amal-4-script-101-145
+          amal-4-script-146-188
+          EOF
+          extra="$RUNNER_TEMP/amal-4-images-extra"
+          bash tools/unseal.sh ops/pending/amal-4-images-extra-064-083 "$extra"
+          cp "$extra/images-extra.md" "$PROJ/images-extra.md"
+          rm -rf "$extra"
+          printf '%s\n' "$PROJ" > "$RUNNER_TEMP/project-path"
+
+      - name: Restore all 83 approved OpenAI images
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJ=$(cat "$RUNNER_TEMP/project-path")
+          mkdir -p "$PROJ/openai-images" "$RUNNER_TEMP/image-parts"
+          while read -r name; do
+            part="$RUNNER_TEMP/image-parts/$name"
+            bash tools/unseal.sh "ops/pending/$name" "$part"
+            find "$part" -maxdepth 1 -type f -name 'b*.jpg' -exec cp {} "$PROJ/openai-images/" \;
+          done <<'EOF'
+          amal-4-openai-images-b01-b03
+          amal-4-openai-images-b04-b06
+          amal-4-openai-images-b07-b09
+          amal-4-openai-images-b10-b12
+          amal-4-openai-images-b13-b15
+          amal-4-openai-images-b16-b18
+          amal-4-openai-images-b19-b21
+          amal-4-openai-images-b22-b24
+          amal-4-openai-images-b25-b27
+          amal-4-openai-images-b28-b30
+          amal-4-openai-images-b31-b33
+          amal-4-openai-images-b34-b36
+          amal-4-openai-images-b37-b39
+          amal-4-openai-images-b40-b42
+          amal-4-openai-images-b43-b45
+          amal-4-openai-images-b46-b48
+          amal-4-openai-images-b49-b51
+          amal-4-openai-images-b52-b54
+          amal-4-openai-images-b55-b57
+          amal-4-openai-images-b58-b60
+          amal-4-openai-images-b61-b63
+          amal-4-openai-image-b64
+          amal-4-openai-images-b65-b67
+          amal-4-openai-images-b68-b70
+          amal-4-openai-images-b71-b73
+          amal-4-openai-images-b74-b76
+          amal-4-openai-images-b77-b79
+          amal-4-openai-images-b80-b82
+          amal-4-openai-image-b83
+          EOF
+          count=$(find "$PROJ/openai-images" -maxdepth 1 -type f -name 'b*.jpg' | wc -l)
+          [ "$count" = 83 ] || { echo "Expected 83 unique OpenAI images; got $count"; exit 1; }
+
+      - name: Create final metadata, hooks, reels and source manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJ=$(cat "$RUNNER_TEMP/project-path")
+          python3 - "$PROJ" <<'PY'
+          import hashlib, json, pathlib, sys
+          p = pathlib.Path(sys.argv[1])
+          def put(name, value):
+              (p/name).write_text(json.dumps(value, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+          put('meta.json', {
+              'slug':'amal-4', 'title':'الصبر ليس سلبية', 'targetMinutes':30.33,
+              'visualMotionPolicy':'parallax-depth-and-purposeful-diagrams',
+              'imageProviderPriority':'openai-chatgpt-imagegen',
+              'voiceProviderDecision':'documented-fallback-after-no-callable-openai-audio-tool'
+          })
+          put('sections.json', [
+              {'id':'d_001','title':'لماذا يبدو الصبر ساكناً؟'},
+              {'id':'d_021','title':'بين الثبات والاستسلام'},
+              {'id':'d_046','title':'دوائر القدرة والعمل'},
+              {'id':'d_067','title':'المرض والفقد وحدود الطاقة'},
+              {'id':'d_091','title':'بروتوكول الصبر الفاعل'},
+              {'id':'d_116','title':'متى نغيّر الطريق؟'},
+              {'id':'d_139','title':'الصبر مع الناس والمؤسسات'},
+              {'id':'d_161','title':'تدريب عملي قابل للقياس'},
+              {'id':'d_181','title':'ما الخطوة التي تبدأ الآن؟'}
+          ])
+          put('reels.json', [
+              {'id':'r1','title':'الصبر ليس أن تبقى أمام الباب المغلق',
+               'blocks':['r_001','r_002'],'imgs':['b01','b06','b13']},
+              {'id':'r2','title':'خطوة صغيرة قد تكون أشجع من انتظار طويل',
+               'blocks':['r_003','r_004'],'imgs':['b32','b63','b83']}
+          ])
+          tags=['الصبر','الصبر الفاعل','الصبر ليس سلبية','الأمل','التوكل','العمل','تغيير العادات',
+                'تطوير الذات','الصحة النفسية','مقاومة اليأس','إدارة الأزمات','حل المشكلات',
+                'المرونة النفسية','الثبات','اتخاذ القرار','الوعي','المتفائل','دروس إيمانية',
+                'علم النفس','الدعم النفسي','طلب المساعدة','الابتلاء','النجاح','التحفيز','حسن الظن']
+          put('publish.json', {
+              'publicNow':True, 'series':'الأمل الذي لا ينكسر',
+              'film':{
+                  'title':'الصبر ليس سلبية: كيف تتحرك حين يطول الطريق؟',
+                  'description':'هل الصبر انتظار صامت، أم مهارة تجمع الثبات والفهم والعمل؟ هذا الفيلم يميّز بين الصبر والاستسلام، ويحوّل الفكرة إلى خطوات عملية مع حدود واضحة للسلامة وطلب المساعدة.\n\n{CHAPTERS}\n\nاشترك في قناة المتفائل لمزيد من الأفلام المحققة.',
+                  'tags':tags
+              },
+              'reels':[
+                  {'file':'r1.mp4','title':'الصبر ليس أن تبقى أمام الباب المغلق',
+                   'description':'الصبر الفاعل يراجع الباب والطريق والغاية. شاهد الفيلم كاملاً: {FILM_URL}'},
+                  {'file':'r2.mp4','title':'خطوة صغيرة قد تكون أشجع من انتظار طويل',
+                   'description':'لا تنتظر المزاج المثالي؛ اختر أصغر فعل ذي معنى. الفيلم كاملاً: {FILM_URL}'}
+              ],
+              'thumbs':[
+                  {'bg':'b01','l1':'الصبر ليس','l2':'سلبية','badge':'ماذا تفعل الآن؟'},
+                  {'bg':'b83','l1':'لا تنتظر','l2':'تحرّك بوعي','badge':'الصبر الفاعل'}
+              ]
+          })
+          put('openai_voice_fallback.json', {
+              'command':'amal-4',
+              'preferredProvider':'openai-built-in-audio',
+              'status':'unavailable-terminal-in-authorized-environment',
+              'checkedAt':'2026-09-18T04:35:00Z',
+              'reason':'The ChatGPT cloud execution environment exposes built-in OpenAI image generation but no callable audio-generation tool. Paid OpenAI API use and sending a new API key were not authorized. The existing cloud TTS path is therefore used only as the permitted necessity fallback.',
+              'paidApiUsed':False,
+              'fallbackProvider':'existing-factory-tts'
+          })
+          PY
+          python tools/build.py "$PROJ"
+          python3 - "$PROJ" <<'PY'
+          import hashlib, json, pathlib, re, sys
+          p=pathlib.Path(sys.argv[1])
+          prompts={x['id']:x['prompt'] for x in json.loads((p/'images.json').read_text(encoding='utf-8'))}
+          expected={f'b{i:02d}' for i in range(1,84)}
+          if set(prompts)!=expected:
+              raise SystemExit(f'image prompt IDs mismatch: {len(prompts)}')
+          primary={}
+          for ident in sorted(expected):
+              f=p/'openai-images'/f'{ident}.jpg'
+              raw=f.read_bytes()
+              primary[ident]={
+                  'file':f'openai-images/{ident}.jpg',
+                  'sha256':hashlib.sha256(raw).hexdigest(),
+                  'prompt_sha256':hashlib.sha256(prompts[ident].encode('utf-8')).hexdigest(),
+                  'approved':True,
+                  'source':'openai-chatgpt-imagegen'
+              }
+          (p/'image_sources.json').write_text(json.dumps({
+              'provider':'openai-chatgpt-imagegen',
+              'toolMode':'built-in',
+              'count':83,
+              'primary':primary
+          },indent=2),encoding='utf-8')
+          PY
+
+      - name: Run full gates and verify all OpenAI images
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJ=$(cat "$RUNNER_TEMP/project-path")
+          python tools/precheck.py "$PROJ"
+          python tools/image_sources.py "$PROJ" | tee "$RUNNER_TEMP/image-report.txt"
+          grep -F 'primary=83 fallback=0 mode=openai-required' "$RUNNER_TEMP/image-report.txt"
+          rm -rf "$PROJ/img" "$PROJ/blocks.json" "$PROJ/images.json" "$PROJ/shots.json" "$PROJ/image_source_report.json"
+
+      - name: Seal one production command and update public state
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJ=$(cat "$RUNNER_TEMP/project-path")
+          [ ! -e ops/commands/amal-4 ] || { echo "amal-4 command already exists; refusing duplicate"; exit 1; }
+          bash tools/seal.sh "$PROJ" ops/commands/amal-4
+          python3 - <<'PY'
+          import json, pathlib
+          p=pathlib.Path('ops/state/amal-4-progress.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          d['stage']='command_sealed_and_dispatching'
+          d['updatedAt']='2026-09-18T04:35:00Z'
+          d['completed']['lint']=True
+          d['completed']['guard']=True
+          d['completed']['sealed_payload']=True
+          d['completed']['production_command']=True
+          d['latestEncryptedCheckpoint']='ops/commands/amal-4'
+          d['next']=['verify film.yml prepare and TTS jobs','complete listening gate without exception','render with depth motion and verified logo','publish film and two reels after YouTube verification']
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add ops/commands/amal-4 ops/state/amal-4-progress.json
+          git commit -m "production: seal amal-4 with 83 OpenAI images"
+          for attempt in 1 2 3; do
+            git pull --rebase origin master && git push origin HEAD:master && exit 0
+            sleep $((attempt * 5))
+          done
+          exit 1
+
+      - name: Dispatch the single film workflow explicitly
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run film.yml --ref master -f command_dir=ops/commands/amal-4
+          sleep 5
+          gh run list --workflow film.yml --branch master --limit 5 --json databaseId,status,conclusion,createdAt,displayTitle
