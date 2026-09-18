@@ -22,7 +22,7 @@ permissions:
 
 concurrency:
   group: mutafail-film
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   prepare:
@@ -173,6 +173,7 @@ jobs:
     timeout-minutes: 180
     outputs:
       rebuilt: ${{ steps.plan.outputs.rebuilt }}
+      regenerate: ${{ steps.plan.outputs.regenerate }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -193,6 +194,10 @@ jobs:
           run-id: ${{ needs.prepare.outputs.source_run }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - name: احفظ خط أساس الصوت الأصلي للمقارنة
+        run: |
+          rm -rf proj/audio-source
+          cp -a proj/audio proj/audio-source
       - uses: ./.github/actions/private-download
         if: needs.prepare.outputs.repair_source_run != ''
         with:
@@ -211,10 +216,24 @@ jobs:
         name: استخرج الأخطاء المؤكدة وحدها
         run: |
           python tools/repair_true_errors.py proj repair.json
-          N=$(python3 -c "import json;print(len(json.load(open('repair.json'))['ids']))")
-          [ "$N" = 0 ] && echo "rebuilt=false" >> "$GITHUB_OUTPUT" || echo "rebuilt=true" >> "$GITHUB_OUTPUT"
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import glob, hashlib, json, os
+          def sha(p):
+              h=hashlib.sha256()
+              with open(p,'rb') as f:
+                  for chunk in iter(lambda:f.read(1024*1024), b''): h.update(chunk)
+              return h.hexdigest()
+          ids=json.load(open('repair.json',encoding='utf-8'))['ids']
+          changed=[]
+          for p in glob.glob('proj/audio/*.wav'):
+              q='proj/audio-source/'+os.path.basename(p)
+              if os.path.isfile(q) and sha(p) != sha(q): changed.append(os.path.splitext(os.path.basename(p))[0])
+          print('regenerate=' + ('true' if ids else 'false'))
+          print('rebuilt=' + ('true' if ids or changed else 'false'))
+          print('changed_count=' + str(len(changed)))
+          PY
       - name: أعد صوت الكتل المخطئة وافحص بصمتها الجديدة
-        if: steps.plan.outputs.rebuilt == 'true'
+        if: steps.plan.outputs.regenerate == 'true'
         env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: |
