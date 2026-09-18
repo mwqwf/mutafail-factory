@@ -74,10 +74,15 @@ function parse(text, ids) {
     const group = flagged.slice(start, start + 1);
     const ids = group.map(x => x.block.id);
     let verdicts = null, invalid = 0;
-    while (!verdicts) {
+    const deadline = Date.now() + 3 * 60 * 1000;
+    while (!verdicts && Date.now() < deadline) {
       const key = nextKey(); if (!key) throw new Error('nokeys-adjudication');
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
-      const response = await fetch(url, {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), 120000);
+      let response;
+      try {
+        response = await fetch(url, {method: 'POST', headers: {'content-type': 'application/json'}, signal: ctl.signal, body: JSON.stringify({
         contents: [{parts: parts(group)}], generationConfig: {
           temperature: 0, responseMimeType: 'application/json',
           responseSchema: {type: 'OBJECT', required: ['reviews'], properties: {
@@ -88,6 +93,12 @@ function parse(text, ids) {
           }}
         }
       })});
+      } catch (_) {
+        clearTimeout(timer);
+        await new Promise(r => setTimeout(r, 2000));
+        continue;
+      }
+      clearTimeout(timer);
       if (response.status === 429) {
         const body = await response.text();
         if (/PerDay/i.test(body)) { dead.add(key); continue; }
@@ -102,6 +113,7 @@ function parse(text, ids) {
         if (invalid >= 3) throw new Error('adjudication-invalid-response-after-3-attempts');
       }
     }
+    if (!verdicts) throw new Error('adjudication-timeout');
     for (const x of group) {
       const v = verdicts.get(x.block.id);
       reviews[x.block.id] = {...v, input_sha256: x.digest,
