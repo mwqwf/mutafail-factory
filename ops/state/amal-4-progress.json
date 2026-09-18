@@ -2,7 +2,7 @@
   "slug": "amal-4",
   "title": "الصبر ليس سلبية",
   "stage": "script_complete_pending_full_merge",
-  "updatedAt": "2026-09-18T03:56:00Z",
+  "updatedAt": "2026-09-18T04:59:00Z",
   "completed": {
     "plan_and_initial_sources": true,
     "psychology_and_safety_report": true,
@@ -29,7 +29,7 @@
   ],
   "refuterCommit": "cb53bea36396d05904c220f724e7c0cb0993fb6d",
   "sourceFingerprintCommit": "11ff03acedf039f9dbf3fc5b4e9b712ba6e878ce",
-  "latestEncryptedCheckpoint": "ops/pending/amal-4-openai-images-b61-b63",
+  "latestEncryptedCheckpoint": "ops/pending/amal-4-openai-images-b13-b15",
   "checkpointChain": [
     "ops/pending/amal-4-script-001-045",
     "ops/pending/amal-4-script-046-100",
@@ -59,11 +59,16 @@
     "ops/pending/amal-4-openai-images-b52-b54",
     "ops/pending/amal-4-openai-images-b55-b57",
     "ops/pending/amal-4-openai-images-b58-b60",
-    "ops/pending/amal-4-openai-images-b61-b63"
+    "ops/pending/amal-4-openai-images-b61-b63",
+    "ops/pending/amal-4-openai-images-b01-b03",
+    "ops/pending/amal-4-openai-images-b04-b06",
+    "ops/pending/amal-4-openai-images-b07-b09",
+    "ops/pending/amal-4-openai-images-b10-b12",
+    "ops/pending/amal-4-openai-images-b13-b15"
   ],
   "checkpointSha256": {
-    "payload.enc": "d096b6b58af2b7cc913781543b32723f9f2e53854edcd9358371aadeada16df7",
-    "key.enc": "006412bab6d6d1ee106e9954c4b98eaeb3073cb7d8b9f71702a9323a0e1c137d"
+    "payload.enc": "5f20940f56b11201d839b5f6e16fb1c7ab4aead4fff31f94538311152e0717e6",
+    "key.enc": "0289f91478beec8f353c5b963a3e0ca4e506436bf237bc6889ed44ed24b879d3"
   },
   "outlineMetrics": {
     "targetFilmBlocks": "170-180",
@@ -89,15 +94,16 @@
   },
   "imageProductionMetrics": {
     "planned": 83,
-    "generatedAndVisuallyApproved": 68,
-    "latestImageId": "b63",
+    "generatedAndVisuallyApproved": 83,
+    "latestImageId": "b15",
     "source": "openai-chatgpt-imagegen",
     "dimensions": "1672x941",
     "latestBatchImageSha256": {
-      "b61": "9ebcfefb98dc9d4e8317c4a484918a2c92c32be46906dc125a511b6cce2876cc",
-      "b62": "73f7db09311c87afadcf800203f2dd84579da8195473790f3021dac4c432cfab",
-      "b63": "d2118ae0ac25009e529377b4cc31a5ae12c0a41328ce3c654eef89afbc9f5d20"
+      "b13": "d7e99c8fc2d30ef60985bcfc52245c76dc6fb19a4d023ed691d245b2b29c8516",
+      "b14": "44b443ea2abb94940a6591dcf6195ea5f61f2b4c92479157f01f3ca39756b6df",
+      "b15": "9f0612f7d0030fa1e8a7e895da22f7d5cc3047a669c89cabc13ec1afcdef2fd0"
     },
+    "visualReview": "83/83 pass; four rejected drafts were regenerated for writing, glyph, symbol, or corner-mark concerns before approval",
     "storedFormat": "jpeg-quality-7-ffmpeg",
     "fallbackUsed": false
   },
