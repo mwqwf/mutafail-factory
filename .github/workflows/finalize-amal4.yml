@@ -1,5 +1,6 @@
 name: Finalize and dispatch amal-4
 # Retry marker: JPEG-only b01-b06 checkpoint seals verified by Git blob hash.
+# Retry marker: JPEG-only b52-b63 checkpoint seals verified by Git blob hash.
 
 on:
   push:
