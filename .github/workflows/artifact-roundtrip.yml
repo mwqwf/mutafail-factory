@@ -5,7 +5,10 @@ permissions:
   contents: read
 jobs:
   seal:
-    if: github.ref == 'refs/heads/master'
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
+    # Previous job condition retained below for reversal:
+    # if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -20,6 +23,8 @@ jobs:
           path: synthetic
           retention-days: '1'
   unseal:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: seal
     runs-on: ubuntu-latest
     timeout-minutes: 5
