@@ -123,6 +123,11 @@ jobs:
           printf '%s' "$GEMINI_KEYS_JSON" > keys.json
           code=0
           node tools/listen.js proj 2 --batch 4 --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/listen.log 2>&1 || code=$?
+          if [ "$code" != 0 ]; then
+            # Salvage only unresolved clips singly when a grouped judgment is invalid.
+            code=0
+            node tools/listen.js proj 2 --batch 1 --shard ${{ matrix.shard }} --shards 3 --keys keys.json >>/tmp/listen.log 2>&1 || code=$?
+          fi
           python tools/listen_public_summary.py proj
           rm -f /tmp/listen.log
           [ "$code" = 0 ] || exit "$code"
