@@ -1,0 +1,35 @@
+name: Inspect amal-4 encrypted checkpoint layout
+
+on:
+  push:
+    paths:
+      - .github/workflows/inspect-amal4-layout.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: inspect-amal4-layout
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report safe checkpoint structure only
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in +            amal-4-script-001-045 +            amal-4-script-046-100 +            amal-4-script-101-145 +            amal-4-script-146-188 +            amal-4-images-extra-064-083
+          do
+            src="ops/pending/$name"
+            out="$RUNNER_TEMP/$name"
+            bash tools/unseal.sh "$src" "$out"
+            echo "CHECKPOINT $name"
+            find "$out" -type f -printf '%P\t%s bytes\n' | LC_ALL=C sort
+            rm -rf "$out"
+          done
