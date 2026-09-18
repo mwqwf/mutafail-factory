@@ -117,14 +117,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - uses: ./.github/actions/private-download
-        if: needs.prepare.outputs.repair_source_run != ''
-        with:
-          name: audio-final
-          path: proj/audio
-          run-id: ${{ needs.prepare.outputs.repair_source_run }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
-      - uses: ./.github/actions/private-download
         continue-on-error: true
         with:
           name: listen-${{ matrix.shard }}
@@ -198,6 +190,14 @@ jobs:
           pattern: audio-*
           path: proj/audio
           run-id: ${{ needs.prepare.outputs.source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - uses: ./.github/actions/private-download
+        if: needs.prepare.outputs.repair_source_run != ''
+        with:
+          name: audio-final
+          path: proj/audio
+          run-id: ${{ needs.prepare.outputs.repair_source_run }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - uses: ./.github/actions/private-download
