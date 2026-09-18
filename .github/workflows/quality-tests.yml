@@ -8,6 +8,8 @@ permissions:
   contents: read
 jobs:
   test:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
