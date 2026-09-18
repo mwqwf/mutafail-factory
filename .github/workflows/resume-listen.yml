@@ -223,7 +223,12 @@ jobs:
           node tools/gen25.js proj 1 --keys keys.json >/tmp/tts-repair.log 2>&1
           code=0
           for shard in 0 1 2; do
+            code=0
             node tools/listen.js proj 1 --batch 4 --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
+            if [ "$code" != 0 ]; then
+              code=0
+              node tools/listen.js proj 1 --batch 1 --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
+            fi
             [ "$code" = 0 ] || break
           done
           [ "$code" = 0 ] || { rm -f keys.json /tmp/*.log; exit "$code"; }
