@@ -8,9 +8,9 @@ All default-branch workflow jobs have a reversible `if: ${{ false }}` stop. This
 
 21 workflows; 40 jobs. All YAML files were parsed locally and every job condition checked before committing. No Actions test or cancellation workflow was launched. Commits use [skip ci]. Triggers (push, PR, schedule and workflow chains where present) remain declared, but jobs on the modified version cannot allocate runners. Old branch/PR versions remain a risk; do not run them.
 
-## Outstanding cancellation
+## Cancellation result
 
-The GitHub connector exposes no cancellation/disable operation, and the available browser is signed out. Active runs on earlier snapshots were not cancelled by these edits. An authenticated administrator must cancel remaining runs and can disable workflows through repository Actions settings. Do not run another workflow to cancel them. No claim is made about the source of reported charges.
+The earlier paid-capable run [35327242621](https://github.com/mwqwf/mutafail-factory/actions/runs/35327242621) completed with `conclusion=cancelled` at 2026-09-18T09:20:27Z. A zero-runner concurrency interlock created [35328969582](https://github.com/mwqwf/mutafail-factory/actions/runs/35328969582); it completed `skipped`, with no job or runner allocation. A subsequent repository scan found no run in `active`, `queued`, `waiting`, `pending`, or `requested` state. Do not recreate either run. No claim is made about the source of the reported charges.
 
 ## Free fallback
 
