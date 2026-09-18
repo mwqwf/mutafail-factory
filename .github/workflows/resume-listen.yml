@@ -22,7 +22,7 @@ permissions:
 
 concurrency:
   group: mutafail-film
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   prepare:
@@ -213,6 +213,9 @@ jobs:
           path: proj
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - name: طبّق إصلاح النص المستهدف وأبطل كاش مقطعه
+        run: |
+          python tools/apply_audio_text_fixes.py proj "ops/audio-fixes/${{ needs.prepare.outputs.command }}.json" text_fixes.json
       - id: plan
         name: استخرج الأخطاء المؤكدة وحدها
         run: |
@@ -225,12 +228,13 @@ jobs:
                   for chunk in iter(lambda:f.read(1024*1024), b''): h.update(chunk)
               return h.hexdigest()
           ids=json.load(open('repair.json',encoding='utf-8'))['ids']
+          text_fixed=json.load(open('text_fixes.json',encoding='utf-8'))['ids']
           changed=[]
           for p in glob.glob('proj/audio/*.wav'):
               q='proj/audio-source/'+os.path.basename(p)
               if os.path.isfile(q) and sha(p) != sha(q): changed.append(os.path.splitext(os.path.basename(p))[0])
-          print('regenerate=' + ('true' if ids else 'false'))
-          print('rebuilt=' + ('true' if ids or changed else 'false'))
+          print('regenerate=' + ('true' if ids or text_fixed else 'false'))
+          print('rebuilt=' + ('true' if ids or text_fixed or changed else 'false'))
           print('changed_count=' + str(len(changed)))
           PY
       - name: أعد صوت الكتل المخطئة وافحص بصمتها الجديدة
