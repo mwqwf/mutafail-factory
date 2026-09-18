@@ -152,6 +152,7 @@ jobs:
           [ "$code" = 0 ] || exit "$code"
           code=0
           node tools/adjudicate_listen.js proj --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/adjudicate.log 2>&1 || code=$?
+          grep -E '^(✓|⛔) [a-z0-9_-]+:' /tmp/adjudicate.log || true
           python tools/listen_public_summary.py proj
           rm -f /tmp/adjudicate.log
           [ "$code" = 0 ] || [ "$code" = 1 ] || [ "$code" = 2 ] || exit "$code"
@@ -267,6 +268,7 @@ jobs:
             for shard in 0 1 2; do
               adjudication=0
               node tools/adjudicate_listen.js proj --shard "$shard" --shards 3 --keys keys.json >>/tmp/adjudicate-repair.log 2>&1 || adjudication=$?
+              tail -n 8 /tmp/adjudicate-repair.log | grep -E '^(✓|⛔) [a-z0-9_-]+:' || true
               if [ "$adjudication" = 1 ]; then code=1; break; fi
               if [ "$adjudication" = 2 ]; then code=2; break; fi
             done
