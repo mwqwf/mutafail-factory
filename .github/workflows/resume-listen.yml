@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'ops/resume-free-amal4.txt'
+      - 'ops/resume-wake.txt'
 
 permissions:
   actions: write
