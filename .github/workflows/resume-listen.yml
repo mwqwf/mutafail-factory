@@ -22,7 +22,7 @@ permissions:
 
 concurrency:
   group: mutafail-film
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   prepare:
