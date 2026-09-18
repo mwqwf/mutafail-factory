@@ -247,7 +247,12 @@ jobs:
               if [ "$count" = 0 ]; then code=0; break; fi
             fi
             echo "محاولة إصلاح الصوت $attempt/3"
-            node tools/gen25.js proj 1 --keys keys.json >>/tmp/tts-repair.log 2>&1
+            if [ "$attempt" = 3 ]; then
+              echo "تعذر النطق الصحيح بالنموذج الأحدث مرتين؛ تجربة الاحتياط للمقطع وحده"
+              node tools/gen25.js proj 1 --keys keys.json --model gemini-2.5-flash-preview-tts >>/tmp/tts-repair.log 2>&1
+            else
+              node tools/gen25.js proj 1 --keys keys.json >>/tmp/tts-repair.log 2>&1
+            fi
             code=0
             for shard in 0 1 2; do
               code=0
