@@ -26,6 +26,8 @@ concurrency:
 
 jobs:
   prepare:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     outputs:
       source_run: ${{ steps.control.outputs.source_run }}
@@ -83,8 +85,11 @@ jobs:
           PY
 
   listen:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: prepare
-    if: needs.prepare.outputs.active == 'true'
+    # Previous job condition retained below for reversal:
+    # if: needs.prepare.outputs.active == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     strategy:
@@ -168,8 +173,11 @@ jobs:
           retention-days: 30
 
   repair:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: [prepare, listen]
-    if: needs.prepare.outputs.active == 'true'
+    # Previous job condition retained below for reversal:
+    # if: needs.prepare.outputs.active == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 180
     outputs:
@@ -346,8 +354,11 @@ jobs:
           retention-days: 30
 
   listening-gate:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: [prepare, repair]
-    if: needs.prepare.outputs.active == 'true'
+    # Previous job condition retained below for reversal:
+    # if: needs.prepare.outputs.active == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -367,8 +378,11 @@ jobs:
       - run: python tools/listen_gate.py proj
 
   publish:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: [prepare, repair, listening-gate]
-    if: needs.prepare.outputs.active == 'true'
+    # Previous job condition retained below for reversal:
+    # if: needs.prepare.outputs.active == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
