@@ -3,6 +3,9 @@ name: مصنع المتفائل — استئناف الفحص والنشر
 run-name: 🎧 استئناف ${{ github.event.head_commit.message || inputs.command_file }}
 
 on:
+  push:
+    paths:
+      - 'ops/resume-wake.txt'
   schedule:
     # كل نافذة تجدّد: أول ملف استئناف غير مكتمل، وحالة «تمّ» تمنع التكرار.
     - cron: "5 7 * * *"
@@ -42,7 +45,7 @@ jobs:
           # هذا المسار يستعمل النموذج الأساسي؛ لا يُدفع قبل تجدّد حصته اليومية.
           [ "$(date -u +%H)" -ge 7 ] || { echo "الحصة الأساسية لم تتجدد بعد"; exit 1; }
           F="$REQUESTED_FILE"
-          if [ -z "$F" ] && [ "$EVENT_NAME" = schedule ]; then
+          if [ -z "$F" ] && { [ "$EVENT_NAME" = schedule ] || [ "$EVENT_NAME" = push ]; }; then
             F=$(python3 - <<'PY'
           import glob,json
           for f in sorted(glob.glob('ops/resume/*.json')):
