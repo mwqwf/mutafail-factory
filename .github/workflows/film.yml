@@ -29,6 +29,8 @@ env:
 jobs:
   # ══════════ ١) الفضُّ والتهيئة ══════════
   prepare:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
@@ -96,6 +98,8 @@ jobs:
 
   # ══════════ ٢) الصوت — ستّة أسهم متوازية ══════════
   tts:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -151,6 +155,8 @@ jobs:
   #    يُخرج أفلاماً بلا واحدةٍ منها. وحصّةُ نموذج الفحص منفصلةٌ فلا تزاحم التوليد.
   # الرايات تُحكّم؛ أما الفحص الناقص فيفشل. ولا نشر قبل اجتياز listening-gate.
   listen:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: [prepare, tts]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -202,6 +208,8 @@ jobs:
           retention-days: 30
   # الخطأ المؤكد لا يُمرّر: يعاد المقطع وحده، ثم يفحص على بصمته الجديدة.
   repair:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: [prepare, listen, assemble]
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -296,6 +304,8 @@ jobs:
 
   # التقرير الاستشاري لا يكفي للنشر: كل كتلة مفحوصة ومرتبطة بالنص والصوت الحاليين.
   listening-gate:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: [prepare, repair]
     runs-on: ubuntu-latest
     steps:
@@ -312,6 +322,8 @@ jobs:
 
   # ══════════ ٣) الصور — عاملٌ واحد (بوليناشنز: طابورٌ واحد) ══════════
   images:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -337,6 +349,8 @@ jobs:
   # ⛔ كانت تُحسب داخل كلّ عامل تصييرٍ من العشرة: عشرُ تثبيتاتٍ لـtorch وعشرُ حسابات
   #    للخرائط نفسها — وكلُّها تفشل أصلاً لأنّ `transformers` لم يكن مثبَّتاً البتّة.
   depth:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: [prepare, images]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -358,6 +372,8 @@ jobs:
 
   # ══════════ ٥) التصيير المجسَّم — عشرة عمّال ══════════
   render:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: [prepare, tts, images, depth]
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -390,6 +406,8 @@ jobs:
 
   # ══════════ ٦) التركيب والريلزات والمصغّرات ══════════
   assemble:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: [prepare, render]
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -447,6 +465,8 @@ jobs:
 
   # ══════════ ٧) النشر على يوتيوب ══════════
   publish:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: [prepare, assemble, repair, listening-gate]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -523,8 +543,11 @@ jobs:
   # إن اكتمل الفيلم وتعطّل الفحص/النشر، يحفظ شوط المصدر ليستأنف من آثاره
   # المشفرة في نافذة الحصة التالية بدلاً من إعادة الصوت أو الصور أو التصيير.
   defer-resume:
+    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+    if: ${{ false }}
     needs: [prepare, assemble, listen, repair, listening-gate, publish]
-    if: always() && needs.prepare.result == 'success' && needs.assemble.result == 'success' && needs.publish.result != 'success'
+    # Previous job condition retained below for reversal:
+    # if: always() && needs.prepare.result == 'success' && needs.assemble.result == 'success' && needs.publish.result != 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
