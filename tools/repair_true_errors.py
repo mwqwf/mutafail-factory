@@ -72,7 +72,7 @@ def main(project, output_file):
             for ident in repair:
                 data.pop(ident, None)
             io.open(name, "w", encoding="utf-8").write(json.dumps(data, ensure_ascii=False, indent=1))
-    print("كتل الإصلاح المستهدف:", len(repair))
+    print("كتل الإصلاح المستهدف:", len(repair), "· المعرّفات:", ",".join(repair))
 
 
 if __name__ == "__main__":
