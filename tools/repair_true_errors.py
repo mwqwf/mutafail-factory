@@ -49,6 +49,23 @@ def main(project, output_file):
 
     for ident in repair:
         os.remove(os.path.join(project, "audio", ident + ".wav"))
+
+    # لا يكفي حذف الملف: gen25 يتخطى كل معرّف موسوم done حتى لو بقيت
+    # حالته من محاولة سابقة. أسقط حالة المقطع كي تكون إعادة التوليد حقيقية.
+    for state_name in glob.glob(os.path.join(project, "gen_state*.json")):
+        try:
+            state = json.load(io.open(state_name, encoding="utf-8"))
+        except Exception:
+            continue
+        for ident in repair:
+            if isinstance(state.get("done"), dict):
+                state["done"].pop(ident, None)
+            if isinstance(state.get("model_of"), dict):
+                state["model_of"].pop(ident, None)
+        io.open(state_name, "w", encoding="utf-8").write(
+            json.dumps(state, ensure_ascii=False, indent=1)
+        )
+
     for pattern in ("listen_results*.json", "listen_reviews*.json"):
         for name in glob.glob(os.path.join(project, pattern)):
             data = json.load(io.open(name, encoding="utf-8"))
