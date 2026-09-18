@@ -73,6 +73,9 @@ def main(project, output_file):
                 data.pop(ident, None)
             io.open(name, "w", encoding="utf-8").write(json.dumps(data, ensure_ascii=False, indent=1))
     print("كتل الإصلاح المستهدف:", len(repair), "· المعرّفات:", ",".join(repair))
+    for ident in repair:
+        reason = str(reviews.get(ident, {}).get("reason", "")).replace("\n", " ").strip()
+        print("سبب الحكم", ident + ":", reason[:240] or "غير مسجل")
 
 
 if __name__ == "__main__":
