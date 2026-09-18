@@ -1,324 +1,126 @@
-name: مصنع المتفائل — استئناف الفحص والنشر
-
-run-name: 🎧 استئناف ${{ github.event.head_commit.message || inputs.command_file }}
+name: مصنع المتفائل — نشر amal-4 المجاني مرة واحدة
 
 on:
   push:
     paths:
-      - 'ops/resume-wake.txt'
-  schedule:
-    # كل نافذة تجدّد: أول ملف استئناف غير مكتمل، وحالة «تمّ» تمنع التكرار.
-    - cron: "5 7 * * *"
-  workflow_dispatch:
-    inputs:
-      command_file:
-        description: ملف استئناف JSON داخل ops/resume
-        required: true
-        type: string
+      - 'ops/resume-free-amal4.txt'
 
 permissions:
-  actions: read
+  actions: write
   contents: write
 
 concurrency:
   group: mutafail-film
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  prepare:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
+  publish-amal4-free:
+    if: ${{ github.event.repository.private == false }}
     runs-on: ubuntu-latest
-    outputs:
-      source_run: ${{ steps.control.outputs.source_run }}
-      listen_source_run: ${{ steps.control.outputs.listen_source_run }}
-      repair_source_run: ${{ steps.control.outputs.repair_source_run }}
-      command: ${{ steps.control.outputs.command }}
-      control: ${{ steps.control.outputs.control }}
-      active: ${{ steps.control.outputs.active }}
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 2 }
-      - id: control
-        env:
-          REQUESTED_FILE: ${{ inputs.command_file }}
-          EVENT_NAME: ${{ github.event_name }}
+
+      - id: guard
+        name: تحقق من المجانية ومنع التكرار
+        shell: bash
         run: |
           set -euo pipefail
-          # هذا المسار يستعمل النموذج الأساسي؛ لا يُدفع قبل تجدّد حصته اليومية.
-          [ "$(date -u +%H)" -ge 7 ] || { echo "الحصة الأساسية لم تتجدد بعد"; exit 1; }
-          F="$REQUESTED_FILE"
-          if [ -z "$F" ] && { [ "$EVENT_NAME" = schedule ] || [ "$EVENT_NAME" = push ]; }; then
-            F=$(python3 - <<'PY'
-          import glob,json
-          for f in sorted(glob.glob('ops/resume/*.json')):
-              try: d=json.load(open(f,encoding='utf-8'))
-              except Exception: continue
-              if not d.get('تمّ'):
-                  print(f); break
-          PY
-          )
-            if [ -z "$F" ]; then echo "active=false" >> "$GITHUB_OUTPUT"; echo "لا استئناف معلق"; exit 0; fi
-          fi
-          if [ -z "$F" ]; then
-            mapfile -t FILES < <(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/resume/.*\.json$' || true)
-            [ "${#FILES[@]}" = 1 ] || { echo "يلزم ملف استئناف واحد"; exit 1; }
-            F="${FILES[0]}"
-          fi
-          python3 - "$F" >> "$GITHUB_OUTPUT" <<'PY'
-          import json, os, re, sys
-          f = sys.argv[1]
-          if not re.fullmatch(r'ops/resume/[a-z0-9-]+\.json', f): raise SystemExit('invalid control path')
-          d = json.load(open(f, encoding='utf-8'))
-          if d.get('تمّ'):
-              print('active=false')
-              raise SystemExit
-          run = str(d.get('sourceRun', ''))
-          listen_run = str(d.get('listenSourceRun', run))
-          repair_run = str(d.get('repairSourceRun', ''))
-          cmd = d.get('command', '')
-          if not run.isdigit() or not listen_run.isdigit() or (repair_run and not repair_run.isdigit()) or not re.fullmatch(r'[a-z0-9-]+', cmd): raise SystemExit('invalid resume control')
-          if not os.path.isfile(f'ops/commands/{cmd}/payload.enc'): raise SystemExit('missing sealed command')
-          print('source_run=' + run); print('listen_source_run=' + listen_run); print('repair_source_run=' + repair_run)
-          print('command=' + cmd); print('control=' + f)
-          print('active=true')
+          [ "${{ github.event.repository.private }}" = "false" ] || { echo "المستودع ليس عاماً"; exit 1; }
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, pathlib
+          p=pathlib.Path('ops/state/last_publish.json')
+          d=json.loads(p.read_text(encoding='utf-8')) if p.exists() else {}
+          print("active=" + ("false" if d.get("slug") == "amal-4" else "true"))
           PY
 
-  listen:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
-    needs: prepare
-    # Previous job condition retained below for reversal:
-    # if: needs.prepare.outputs.active == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix: { shard: [0, 1, 2] }
-    steps:
-      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        if: steps.guard.outputs.active == 'true'
+        with: { python-version: "3.11" }
       - uses: actions/setup-node@v4
+        if: steps.guard.outputs.active == 'true'
         with: { node-version: "22" }
+
       - uses: ./.github/actions/private-download
+        if: steps.guard.outputs.active == 'true'
         with:
           name: proj
           path: proj
-          run-id: ${{ needs.prepare.outputs.source_run }}
+          run-id: 35307817868
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+
       - uses: ./.github/actions/private-download
+        if: steps.guard.outputs.active == 'true'
         with:
           pattern: audio-*
           path: proj/audio
-          run-id: ${{ needs.prepare.outputs.source_run }}
+          run-id: 35307817868
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+
+      - name: طبّق نص d_156 قبل استعادة الصوت المصحح
+        if: steps.guard.outputs.active == 'true'
+        run: python tools/apply_audio_text_fixes.py proj ops/audio-fixes/amal-4.json text_fixes.json
+
       - uses: ./.github/actions/private-download
-        if: needs.prepare.outputs.repair_source_run != ''
+        if: steps.guard.outputs.active == 'true'
         with:
           name: audio-final
           path: proj/audio
-          run-id: ${{ needs.prepare.outputs.repair_source_run }}
+          run-id: 35327242621
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+
       - uses: ./.github/actions/private-download
-        if: needs.prepare.outputs.repair_source_run != ''
+        if: steps.guard.outputs.active == 'true'
         with:
           name: listen-final
           path: proj
-          run-id: ${{ needs.prepare.outputs.repair_source_run }}
+          run-id: 35327242621
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
-      - uses: ./.github/actions/private-download
-        if: needs.prepare.outputs.repair_source_run == '' || needs.prepare.outputs.listen_source_run != needs.prepare.outputs.repair_source_run
-        continue-on-error: true
-        with:
-          name: listen-${{ matrix.shard }}
-          path: proj
-          run-id: ${{ needs.prepare.outputs.listen_source_run }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
-      - name: افحص غير المكتمل فقط بتجميع أربعة مقاطع في النداء
-        env:
-          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
-        run: |
-          set -euo pipefail
-          [ -n "$GEMINI_KEYS_JSON" ] || { echo "لا سر فحص"; exit 1; }
-          printf '%s' "$GEMINI_KEYS_JSON" > keys.json
-          code=0
-          node tools/listen.js proj 2 --batch 4 --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/listen.log 2>&1 || code=$?
-          if [ "$code" != 0 ]; then
-            # Salvage only unresolved clips singly when a grouped judgment is invalid.
-            code=0
-            node tools/listen.js proj 2 --batch 1 --shard ${{ matrix.shard }} --shards 3 --keys keys.json >>/tmp/listen.log 2>&1 || code=$?
-          fi
-          python tools/listen_public_summary.py proj
-          rm -f /tmp/listen.log
-          [ "$code" = 0 ] || exit "$code"
-          code=0
-          node tools/adjudicate_listen.js proj --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/adjudicate.log 2>&1 || code=$?
-          grep -E '^(✓|⛔) [a-z0-9_-]+:' /tmp/adjudicate.log || true
-          python tools/listen_public_summary.py proj
-          rm -f /tmp/adjudicate.log
-          [ "$code" = 0 ] || [ "$code" = 1 ] || [ "$code" = 2 ] || exit "$code"
-      - if: always()
-        run: rm -f keys.json
-      - uses: ./.github/actions/private-upload
-        if: always()
-        with:
-          name: listen-${{ matrix.shard }}
-          path: |
-            proj/listen_results.${{ matrix.shard }}.json
-            proj/listen_reviews.${{ matrix.shard }}.json
-          retention-days: 30
 
-  repair:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
-    needs: [prepare, listen]
-    # Previous job condition retained below for reversal:
-    # if: needs.prepare.outputs.active == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 180
-    outputs:
-      rebuilt: ${{ steps.plan.outputs.rebuilt }}
-      regenerate: ${{ steps.plan.outputs.regenerate }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: "22" }
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
+      - name: بوابة الاستماع على البصمة المصححة
+        if: steps.guard.outputs.active == 'true'
+        run: python tools/listen_gate.py proj
+
       - uses: ./.github/actions/private-download
-        with:
-          name: proj
-          path: proj
-          run-id: ${{ needs.prepare.outputs.source_run }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
-      - uses: ./.github/actions/private-download
-        with:
-          pattern: audio-*
-          path: proj/audio
-          run-id: ${{ needs.prepare.outputs.source_run }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
-      - name: احفظ خط أساس الصوت الأصلي للمقارنة
-        run: |
-          rm -rf proj/audio-source
-          cp -a proj/audio proj/audio-source
-      - uses: ./.github/actions/private-download
-        if: needs.prepare.outputs.repair_source_run != ''
-        with:
-          name: audio-final
-          path: proj/audio
-          run-id: ${{ needs.prepare.outputs.repair_source_run }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
-      - uses: ./.github/actions/private-download
-        with:
-          pattern: listen-*
-          path: proj
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
-      - name: طبّق إصلاح النص المستهدف وأبطل كاش مقطعه
-        run: |
-          python tools/apply_audio_text_fixes.py proj "ops/audio-fixes/${{ needs.prepare.outputs.command }}.json" text_fixes.json
-      - id: plan
-        name: استخرج الأخطاء المؤكدة وحدها
-        run: |
-          python tools/repair_true_errors.py proj repair.json
-          python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import glob, hashlib, json, os
-          def sha(p):
-              h=hashlib.sha256()
-              with open(p,'rb') as f:
-                  for chunk in iter(lambda:f.read(1024*1024), b''): h.update(chunk)
-              return h.hexdigest()
-          ids=json.load(open('repair.json',encoding='utf-8'))['ids']
-          text_fixed=json.load(open('text_fixes.json',encoding='utf-8'))['ids']
-          changed=[]
-          for p in glob.glob('proj/audio/*.wav'):
-              q='proj/audio-source/'+os.path.basename(p)
-              if os.path.isfile(q) and sha(p) != sha(q): changed.append(os.path.splitext(os.path.basename(p))[0])
-          print('regenerate=' + ('true' if ids or text_fixed else 'false'))
-          print('rebuilt=' + ('true' if ids or text_fixed or changed else 'false'))
-          print('changed_count=' + str(len(changed)))
-          PY
-      - name: أعد صوت الكتل المخطئة وافحص بصمتها الجديدة
-        if: steps.plan.outputs.regenerate == 'true'
-        env:
-          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
-        run: |
-          set -euo pipefail
-          printf '%s' "$GEMINI_KEYS_JSON" > keys.json
-          code=2
-          for attempt in 1 2 3; do
-            if [ "$attempt" -gt 1 ]; then
-              python tools/repair_true_errors.py proj repair.json
-              count=$(python3 -c "import json; print(len(json.load(open('repair.json'))['ids']))")
-              if [ "$count" = 0 ]; then code=0; break; fi
-            fi
-            echo "محاولة إصلاح الصوت $attempt/3"
-            if [ "$attempt" = 3 ]; then
-              echo "تعذر النطق الصحيح بالنموذج الأحدث مرتين؛ تجربة الاحتياط للمقطع وحده"
-              node tools/gen25.js proj 1 --keys keys.json --model gemini-2.5-flash-preview-tts >>/tmp/tts-repair.log 2>&1
-            else
-              node tools/gen25.js proj 1 --keys keys.json >>/tmp/tts-repair.log 2>&1
-            fi
-            code=0
-            for shard in 0 1 2; do
-              code=0
-              node tools/listen.js proj 1 --batch 4 --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
-              if [ "$code" != 0 ]; then
-                code=0
-                node tools/listen.js proj 1 --batch 1 --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
-              fi
-              [ "$code" = 0 ] || break
-            done
-            [ "$code" = 0 ] || break
-            for shard in 0 1 2; do
-              adjudication=0
-              node tools/adjudicate_listen.js proj --shard "$shard" --shards 3 --keys keys.json >>/tmp/adjudicate-repair.log 2>&1 || adjudication=$?
-              tail -n 8 /tmp/adjudicate-repair.log | grep -E '^(✓|⛔) [a-z0-9_-]+:' || true
-              if [ "$adjudication" = 1 ]; then code=1; break; fi
-              if [ "$adjudication" = 2 ]; then code=2; break; fi
-            done
-            [ "$code" = 0 ] && break
-            [ "$code" = 2 ] || break
-          done
-          python tools/listen_public_summary.py proj
-          rm -f keys.json /tmp/tts-repair.log /tmp/listen-repair.log /tmp/adjudicate-repair.log
-          [ "$code" = 0 ] || exit "$code"
-      - if: steps.plan.outputs.rebuilt == 'true'
-        uses: ./.github/actions/private-download
+        if: steps.guard.outputs.active == 'true'
         with:
           name: img
           path: proj/img
-          run-id: ${{ needs.prepare.outputs.source_run }}
+          run-id: 35307817868
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
-      - if: steps.plan.outputs.rebuilt == 'true'
-        uses: ./.github/actions/private-download
+
+      - uses: ./.github/actions/private-download
+        if: steps.guard.outputs.active == 'true'
         with:
           name: depth
           path: proj/img
-          run-id: ${{ needs.prepare.outputs.source_run }}
+          run-id: 35307817868
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
-      - if: steps.plan.outputs.rebuilt == 'true'
-        uses: ./.github/actions/private-download
+
+      - uses: ./.github/actions/private-download
+        if: steps.guard.outputs.active == 'true'
         with:
           pattern: seg-*
           path: proj/work/seg
-          run-id: ${{ needs.prepare.outputs.source_run }}
+          run-id: 35307817868
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
-      - name: أعد فقط اللقطة المتأثرة ثم ركّب المخرجات
-        if: steps.plan.outputs.rebuilt == 'true'
+
+      - name: أعد اللقطة المتأثرة واجمع الفيلم والريلزين
+        if: steps.guard.outputs.active == 'true'
+        shell: bash
         run: |
-          pip install -q pillow numpy arabic-reshaper python-bidi
-          sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg fonts-hosny-amiri fonts-noto-core
+          set -euo pipefail
+          pip install -q pillow numpy arabic-reshaper python-bidi google-auth google-auth-oauthlib google-api-python-client
+          sudo apt-get -qq update
+          sudo apt-get -qq install -y ffmpeg fonts-hosny-amiri fonts-noto-core
           python tools/turbo.py "$PWD/proj" 0 1
           python tools/bidicheck.py
           python tools/logocheck.py
@@ -330,111 +132,48 @@ jobs:
           python tools/logocheck.py "$PWD/proj/reels/r2.mp4" "$PWD/proj/reelwork/r2/v.mp4" reel "$PWD/proj/reelwork/r2/ov_no_logo.png"
           python tools/mkthumbs.py "$PWD/proj"
           python tools/chapters.py "$PWD/proj" "$PWD/proj/sections.json"
-      - uses: ./.github/actions/private-upload
-        if: always()
-        with: { name: audio-final, path: proj/audio, retention-days: 30 }
-      - uses: ./.github/actions/private-upload
-        if: always()
-        with:
-          name: listen-final
-          path: |
-            proj/listen_results*.json
-            proj/listen_reviews*.json
-          retention-days: 30
-      - if: steps.plan.outputs.rebuilt == 'true'
-        uses: ./.github/actions/private-upload
-        with:
-          name: film-final
-          path: |
-            proj/film.mp4
-            proj/reels
-            proj/thumb-a.jpg
-            proj/thumb-b.jpg
-            proj/الفصول.txt
-          retention-days: 30
 
-  listening-gate:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
-    needs: [prepare, repair]
-    # Previous job condition retained below for reversal:
-    # if: needs.prepare.outputs.active == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - uses: ./.github/actions/private-download
-        with:
-          name: proj
-          path: proj
-          run-id: ${{ needs.prepare.outputs.source_run }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
-      - uses: ./.github/actions/private-download
-        with: { name: audio-final, path: proj/audio, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
-      - uses: ./.github/actions/private-download
-        with: { name: listen-final, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
-      - run: python tools/listen_gate.py proj
-
-  publish:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
-    needs: [prepare, repair, listening-gate]
-    # Previous job condition retained below for reversal:
-    # if: needs.prepare.outputs.active == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 2 }
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
-      - uses: ./.github/actions/private-download
-        with:
-          name: proj
-          path: proj
-          run-id: ${{ needs.prepare.outputs.source_run }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
-      - uses: ./.github/actions/private-download
-        with:
-          name: film
-          path: proj
-          run-id: ${{ needs.prepare.outputs.source_run }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
-      - if: needs.repair.outputs.rebuilt == 'true'
-        uses: ./.github/actions/private-download
-        with: { name: film-final, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - name: انشر وتحقق من خادم يوتيوب
+        if: steps.guard.outputs.active == 'true'
         env:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        shell: bash
         run: |
+          set -euo pipefail
           [ -n "$YT_OAUTH_JSON" ] || { echo "لا سر نشر"; exit 1; }
-          python tools/publish_preflight.py proj "${{ needs.prepare.outputs.command }}"
+          python tools/publish_preflight.py proj amal-4
           python tools/publish_youtube.py proj
-      - name: اختم الاستئناف واحفظ الحالة
-        env:
-          CONTROL: ${{ needs.prepare.outputs.control }}
+
+      - name: احفظ حالة النشر ومنع التكرار
+        if: steps.guard.outputs.active == 'true'
+        shell: bash
         run: |
-          python3 - "$CONTROL" <<'PY'
-          import json, sys, time
-          f=sys.argv[1]; d=json.load(open(f,encoding='utf-8')); d['تمّ']=time.strftime('%FT%TZ',time.gmtime())
+          set -euo pipefail
+          cp proj/last_publish.json ops/state/last_publish.json
+          python3 - <<'PY'
+          import json, time
+          f='ops/resume/amal-4.json'
+          d=json.load(open(f,encoding='utf-8'))
+          d['تمّ']=time.strftime('%FT%TZ',time.gmtime())
           open(f,'w',encoding='utf-8').write(json.dumps(d,ensure_ascii=False,indent=1)+'\n')
           PY
           git config user.name "مصنع المتفائل"
           git config user.email "factory@mutafail.local"
-          rm -rf /tmp/resume_keep && mkdir -p /tmp/resume_keep/state /tmp/resume_keep/resume
-          cp -a ops/state/. /tmp/resume_keep/state/
-          cp -a ops/resume/. /tmp/resume_keep/resume/
-          for i in 1 2 3 4; do
-            git fetch -q origin master && git reset -q --hard origin/master || { sleep $((i*3)); continue; }
-            cp -a /tmp/resume_keep/state/. ops/state/
-            cp -a /tmp/resume_keep/resume/. ops/resume/
-            git add -A ops/state ops/resume
-            git diff --cached --quiet && exit 0
-            git commit -qm "✅ نُشر واستؤنف: ${{ needs.prepare.outputs.command }}" && git push -q origin HEAD:master && exit 0
+          git add ops/state/last_publish.json ops/resume/amal-4.json
+          git commit -m "publish: verify amal-4 [skip ci]"
+          git pull --rebase origin master
+          git push origin HEAD:master
+
+      - name: احذف الآثار الكبيرة القديمة بعد تحقق النشر
+        if: steps.guard.outputs.active == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for run in 35307817868 35327242621; do
+            gh api "repos/${{ github.repository }}/actions/runs/$run/artifacts" --paginate --jq '.artifacts[].id' |
+            while read -r id; do
+              [ -n "$id" ] && gh api --method DELETE "repos/${{ github.repository }}/actions/artifacts/$id"
+            done
           done
-          exit 1
