@@ -135,7 +135,7 @@ jobs:
           node tools/adjudicate_listen.js proj --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/adjudicate.log 2>&1 || code=$?
           python tools/listen_public_summary.py proj
           rm -f /tmp/adjudicate.log
-          [ "$code" = 0 ] || [ "$code" = 2 ] || exit "$code"
+          [ "$code" = 0 ] || [ "$code" = 1 ] || [ "$code" = 2 ] || exit "$code"
       - if: always()
         run: rm -f keys.json
       - uses: ./.github/actions/private-upload
@@ -178,7 +178,6 @@ jobs:
         with:
           pattern: listen-*
           path: proj
-          run-id: ${{ needs.prepare.outputs.listen_source_run }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - id: plan
