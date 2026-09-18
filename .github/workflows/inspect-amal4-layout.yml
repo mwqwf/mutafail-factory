@@ -24,12 +24,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for name in +            amal-4-script-001-045 +            amal-4-script-046-100 +            amal-4-script-101-145 +            amal-4-script-146-188 +            amal-4-images-extra-064-083
-          do
+          while read -r name; do
             src="ops/pending/$name"
             out="$RUNNER_TEMP/$name"
             bash tools/unseal.sh "$src" "$out"
             echo "CHECKPOINT $name"
             find "$out" -type f -printf '%P\t%s bytes\n' | LC_ALL=C sort
             rm -rf "$out"
-          done
+          done <<'EOF'
+          amal-4-script-001-045
+          amal-4-script-046-100
+          amal-4-script-101-145
+          amal-4-script-146-188
+          amal-4-images-extra-064-083
+          EOF
