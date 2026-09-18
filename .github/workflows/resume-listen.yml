@@ -117,7 +117,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - uses: ./.github/actions/private-download
-        if: needs.prepare.outputs.repair_source_run == ''
+        if: needs.prepare.outputs.repair_source_run == '' || needs.prepare.outputs.listen_source_run != needs.prepare.outputs.repair_source_run
         continue-on-error: true
         with:
           name: listen-${{ matrix.shard }}
