@@ -7,7 +7,7 @@ description: صناعة وثائقيات تاريخية عربية لقناة «
 
 No new charges are authorized. Before any push, PR, workflow dispatch, rerun, schedule, deployment, storage write or external API use, establish that the entire operation is free within available quotas. `ubuntu-latest`, a public repository, or an available budget alone is not sufficient proof. Do not re-enable Actions or use old branch snapshots to bypass the stop. Paid work requires NEW explicit owner approval of the necessity, estimated cost and hard cap. Never make private repositories public or disclose private code/secrets to obtain free compute. Prefer verified free cloud, then the session environment, then lightweight local work. Continue read-only analysis and small offline checks; do not repeat rejected candidates or tests without a material reason. Existing Quran accuracy gates and the 5% threshold remain mandatory. Use existing follow-up cycles only.
 
-All default-branch workflow jobs have a reversible `if: ${{ false }}` stop. This does NOT cancel already running jobs or disable GitHub schedules at the API level. See `ops/FINANCIAL_STOP_2026-09-18.md` for rollback and outstanding cancellation.
+All default-branch workflow jobs have a reversible `if: ${{ false }}` stop. The earlier run `35327242621` was cancelled at 2026-09-18T09:20:27Z; the interlock run `35328969582` completed `skipped` without allocating a job or runner; and the subsequent scan found no active or queued factory run. Declared triggers remain inert because every job is stopped. See `ops/FINANCIAL_STOP_2026-09-18.md` for evidence and rollback.
 
 
 # مصنع الوثائقيات — كل ما تعلّمناه
