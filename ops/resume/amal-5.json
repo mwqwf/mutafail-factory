@@ -1,6 +1,6 @@
 {
-  "sourceRun": 35444438704,
-  "listenSourceRun": 35444438704,
-  "filmSourceRun": 35444438704,
-  "reason": "reuse-complete-audio-film-and-partial-listening-with-serialized-gemini-3.8-flash"
+  "sourceRun": 35445358652,
+  "listenSourceRun": 35445358652,
+  "filmSourceRun": 35445358652,
+  "reason": "reuse-complete-audio-film-and-partial-listening-with-free-stable-gemini-3.5-flash-lite-after-3.8-daily-quota"
 }

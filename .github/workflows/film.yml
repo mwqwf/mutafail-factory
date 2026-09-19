@@ -327,12 +327,12 @@ jobs:
           [ -n "$GEMINI_KEYS_JSON" ] || { echo "لا سر فحص"; exit 1; }
           printf '%s' "$GEMINI_KEYS_JSON" > keys.json
           code=0
-          node tools/listen.js proj 1 --batch 16 --model gemini-3.8-flash --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/listen.log 2>&1 || code=$?
+          node tools/listen.js proj 1 --batch 16 --model gemini-3.5-flash-lite --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/listen.log 2>&1 || code=$?
           python tools/listen_public_summary.py proj
           rm -f /tmp/listen.log
           [ "$code" = 0 ] || exit "$code"
           code=0
-          node tools/adjudicate_listen.js proj --model gemini-3.8-flash --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/adjudicate.log 2>&1 || code=$?
+          node tools/adjudicate_listen.js proj --model gemini-3.5-flash-lite --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/adjudicate.log 2>&1 || code=$?
           python tools/listen_public_summary.py proj
           rm -f /tmp/adjudicate.log
           [ "$code" = 0 ] || [ "$code" = 2 ] || exit "$code"
@@ -382,12 +382,12 @@ jobs:
           node tools/gen25.js proj 1 --keys keys.json >/tmp/tts-repair.log 2>&1
           code=0
           for shard in 0 1 2; do
-            node tools/listen.js proj 1 --batch 4 --model gemini-3.8-flash --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
+            node tools/listen.js proj 1 --batch 4 --model gemini-3.5-flash-lite --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
             [ "$code" = 0 ] || break
           done
           [ "$code" = 0 ] || { rm -f keys.json /tmp/*.log; exit "$code"; }
           for shard in 0 1 2; do
-            node tools/adjudicate_listen.js proj --model gemini-3.8-flash --shard "$shard" --shards 3 --keys keys.json >>/tmp/adjudicate-repair.log 2>&1 || code=$?
+            node tools/adjudicate_listen.js proj --model gemini-3.5-flash-lite --shard "$shard" --shards 3 --keys keys.json >>/tmp/adjudicate-repair.log 2>&1 || code=$?
             [ "$code" = 0 ] || break
           done
           rm -f keys.json /tmp/tts-repair.log /tmp/listen-repair.log /tmp/adjudicate-repair.log
