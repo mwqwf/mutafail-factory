@@ -1,0 +1,6 @@
+{
+  "source_run": 35445358652,
+  "purpose": "resume-listening-only",
+  "model": "gemini-3.5-flash-lite",
+  "reason": "gemini-3.8-flash-daily-quota-exhausted"
+}
