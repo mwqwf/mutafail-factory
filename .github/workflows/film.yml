@@ -29,8 +29,8 @@ env:
 jobs:
   # ══════════ ١) الفضُّ والتهيئة ══════════
   prepare:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
+    # Owner approval 2026-09-19: one capped amal-5 cycle only.
+    if: "${{ inputs.command_dir == 'ops/commands/amal-5' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'production: launch amal-5')) }}"
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
@@ -69,7 +69,60 @@ jobs:
             echo "⛔ لا مجلّد أمرٍ في هذه الدفعة"; exit 1
           fi
           echo "الأمر: $DIR"
-          bash tools/unseal.sh "$DIR" "$PWD/proj"
+          # The command contains only short-lived recovery URLs, sealed with the
+          # repository public key. They are never exposed in this public repo.
+          BOOTSTRAP="$RUNNER_TEMP/amal5-bootstrap"
+          PACKAGES="$RUNNER_TEMP/amal5-packages"
+          bash tools/unseal.sh "$DIR" "$BOOTSTRAP"
+          python3 - "$BOOTSTRAP/manifest.json" "$PACKAGES" <<'PY'
+          import json, pathlib, sys, time, urllib.request
+          manifest, root = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+          data = json.loads(manifest.read_text(encoding='utf-8'))
+          files = data.get('files', [])
+          if len(files) != 64:
+              raise SystemExit(f'expected 64 encrypted recovery files, got {len(files)}')
+          for index, item in enumerate(files, 1):
+              bundle, target = item['bundle'], item['target']
+              if not bundle.replace('-', '').isalnum() or target not in {'payload.enc','key.enc'}:
+                  raise SystemExit('invalid recovery manifest entry')
+              out = root / bundle / target
+              out.parent.mkdir(parents=True, exist_ok=True)
+              error = None
+              for attempt in range(4):
+                  try:
+                      with urllib.request.urlopen(item['url'], timeout=120) as src, out.open('wb') as dst:
+                          while chunk := src.read(1024 * 1024):
+                              dst.write(chunk)
+                      if out.stat().st_size != int(item['size']):
+                          raise RuntimeError(f'size mismatch for {bundle}/{target}')
+                      error = None
+                      break
+                  except Exception as exc:
+                      error = exc
+                      out.unlink(missing_ok=True)
+                      time.sleep(3 * (attempt + 1))
+              if error is not None:
+                  raise SystemExit(f'recovery failed for {bundle}/{target}: {error}')
+              print(f'restored {index}/64: {bundle}/{target}')
+          PY
+
+          # Restore the already-approved final project and its 92 OpenAI images.
+          printf '%s  %s\n' \
+            '16c1bd794d34791940b35df40d9ddaf6b9999126367efc66961de63fb3daab98' \
+            "$PACKAGES/final/payload.enc" | sha256sum -c -
+          printf '%s  %s\n' \
+            '242e8814064276ebf4e2321666f9bdf7c7adc7bd033532c23aeb518252fdc04c' \
+            "$PACKAGES/final/key.enc" | sha256sum -c -
+          bash tools/unseal.sh "$PACKAGES/final" "$PWD/proj"
+          mkdir -p "$PWD/proj/openai-images"
+          for bundle in "$PACKAGES"/[0-9][0-9][0-9]-[0-9][0-9][0-9]; do
+            part="$RUNNER_TEMP/part-$(basename "$bundle")"
+            bash tools/unseal.sh "$bundle" "$part"
+            find "$part" -maxdepth 1 -type f -name 'b*.jpg' -exec cp {} "$PWD/proj/openai-images/" \;
+            rm -rf "$part"
+          done
+          count=$(find "$PWD/proj/openai-images" -maxdepth 1 -type f -name 'b*.jpg' | wc -l)
+          [ "$count" = 92 ] || { echo "⛔ Expected 92 approved images; got $count"; exit 1; }
           ls -la proj
 
       - name: ⛔ البوّابتان وفحصُ الحمولة قبل أيّ توليد
@@ -94,12 +147,11 @@ jobs:
           PY
 
       - uses: ./.github/actions/private-upload
-        with: { name: proj, path: proj, retention-days: 2 }
+        with: { name: proj, path: proj, retention-days: 1 }
 
   # ══════════ ٢) الصوت — ستّة أسهم متوازية ══════════
   tts:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -148,15 +200,14 @@ jobs:
         with:
           name: "audio-${{ matrix.shard }}"
           path: proj/audio
-          retention-days: 2
+          retention-days: 1
 
   # ══════════ ٢ب) البوّابةُ الثانية بعد التوليد — الإصغاءُ المُشكَّل ══════════
   # ⛔ الدستورُ يوجب ثلاثَ بوّاباتٍ بعد التوليد، وهذه ثانيتُها — وكان المحرّكُ السحابيّ
   #    يُخرج أفلاماً بلا واحدةٍ منها. وحصّةُ نموذج الفحص منفصلةٌ فلا تزاحم التوليد.
   # الرايات تُحكّم؛ أما الفحص الناقص فيفشل. ولا نشر قبل اجتياز listening-gate.
   listen:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
     needs: [prepare, tts]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -205,11 +256,10 @@ jobs:
           path: |
             proj/listen_results*.json
             proj/listen_reviews*.json
-          retention-days: 30
+          retention-days: 1
   # الخطأ المؤكد لا يُمرّر: يعاد المقطع وحده، ثم يفحص على بصمته الجديدة.
   repair:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
     needs: [prepare, listen, assemble]
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -281,7 +331,7 @@ jobs:
           python tools/chapters.py "$PWD/proj" "$PWD/proj/sections.json"
       - uses: ./.github/actions/private-upload
         if: always()
-        with: { name: audio-final, path: proj/audio, retention-days: 30 }
+        with: { name: audio-final, path: proj/audio, retention-days: 1 }
       - uses: ./.github/actions/private-upload
         if: always()
         with:
@@ -289,7 +339,7 @@ jobs:
           path: |
             proj/listen_results*.json
             proj/listen_reviews*.json
-          retention-days: 30
+          retention-days: 1
       - if: steps.plan.outputs.rebuilt == 'true'
         uses: ./.github/actions/private-upload
         with:
@@ -300,12 +350,11 @@ jobs:
             proj/thumb-a.jpg
             proj/thumb-b.jpg
             proj/الفصول.txt
-          retention-days: 30
+          retention-days: 1
 
   # التقرير الاستشاري لا يكفي للنشر: كل كتلة مفحوصة ومرتبطة بالنص والصوت الحاليين.
   listening-gate:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
     needs: [prepare, repair]
     runs-on: ubuntu-latest
     steps:
@@ -322,8 +371,7 @@ jobs:
 
   # ══════════ ٣) الصور — عاملٌ واحد (بوليناشنز: طابورٌ واحد) ══════════
   images:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -343,14 +391,13 @@ jobs:
       # ⛔ والصورُ كذلك: ما نزل فعلاً يُرفع ولو سقط العامل، فلا يُعاد تنزيلُه
       - uses: ./.github/actions/private-upload
         if: always()
-        with: { name: img, path: proj/img, retention-days: 2 }
+        with: { name: img, path: proj/img, retention-days: 1 }
 
   # ══════════ ٤) خرائط العمق — مرّةً واحدةً للجميع ══════════
   # ⛔ كانت تُحسب داخل كلّ عامل تصييرٍ من العشرة: عشرُ تثبيتاتٍ لـtorch وعشرُ حسابات
   #    للخرائط نفسها — وكلُّها تفشل أصلاً لأنّ `transformers` لم يكن مثبَّتاً البتّة.
   depth:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
     needs: [prepare, images]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -368,12 +415,11 @@ jobs:
         with: { name: img, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - run: python -c "import sys;sys.path.insert(0,'tools');import kb3d;kb3d.depth_maps('proj')"
       - uses: ./.github/actions/private-upload
-        with: { name: depth, path: "proj/img/*_depth.png", retention-days: 2 }
+        with: { name: depth, path: "proj/img/*_depth.png", retention-days: 1 }
 
   # ══════════ ٥) التصيير المجسَّم — عشرة عمّال ══════════
   render:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
     needs: [prepare, tts, images, depth]
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -402,12 +448,11 @@ jobs:
         with:
           name: "seg-${{ matrix.w }}"
           path: proj/work/seg
-          retention-days: 2
+          retention-days: 1
 
   # ══════════ ٦) التركيب والريلزات والمصغّرات ══════════
   assemble:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
     needs: [prepare, render]
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -461,12 +506,11 @@ jobs:
             proj/الفصول.txt
           # ⭐ ثلاثون يوماً لا خمسة: إن تعذّر النشرُ (سرٌّ ناقص) فالفيلمُ جاهزٌ في الأثر،
           #   ويكفي «إعادةُ تشغيل الوظائف الساقطة» فيُرفع بلا إعادةِ توليدٍ ولا حرقِ حصّة.
-          retention-days: 30
+          retention-days: 1
 
   # ══════════ ٧) النشر على يوتيوب ══════════
   publish:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
     needs: [prepare, assemble, repair, listening-gate]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -543,8 +587,7 @@ jobs:
   # إن اكتمل الفيلم وتعطّل الفحص/النشر، يحفظ شوط المصدر ليستأنف من آثاره
   # المشفرة في نافذة الحصة التالية بدلاً من إعادة الصوت أو الصور أو التصيير.
   defer-resume:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
+    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && needs.prepare.result == 'success' && needs.assemble.result == 'success' && needs.publish.result != 'success' }}
     needs: [prepare, assemble, listen, repair, listening-gate, publish]
     # Previous job condition retained below for reversal:
     # if: always() && needs.prepare.result == 'success' && needs.assemble.result == 'success' && needs.publish.result != 'success'
