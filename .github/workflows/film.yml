@@ -125,6 +125,31 @@ jobs:
           count=$(find "$PWD/proj/openai-images" -maxdepth 1 -type f \
             \( -iname 'b*.png' -o -iname 'b*.jpg' -o -iname 'b*.jpeg' -o -iname 'b*.webp' \) | wc -l)
           [ "$count" = 92 ] || { echo "⛔ Expected 92 approved images; got $count"; exit 1; }
+          # image_sources.json is authoritative about each approved source path.
+          # Restore the flattened checkpoint file to that exact sealed path;
+          # image_sources.py will independently verify its SHA-256 and prompt hash.
+          python3 - "$PWD/proj" <<'PY'
+          import json, pathlib, shutil, sys
+          root = pathlib.Path(sys.argv[1]).resolve()
+          sources = json.loads((root / 'image_sources.json').read_text(encoding='utf-8'))
+          primary = sources.get('primary', {})
+          if len(primary) != 92:
+              raise SystemExit(f'expected 92 primary manifest entries, got {len(primary)}')
+          pool = root / 'openai-images'
+          for ident, entry in primary.items():
+              target = (root / entry['file']).resolve()
+              if root not in target.parents:
+                  raise SystemExit('image source target escapes project')
+              source = pool / pathlib.Path(entry['file']).name
+              if not source.is_file():
+                  matches = list(pool.glob(ident + '.*'))
+                  if len(matches) != 1:
+                      raise SystemExit(f'unresolved approved image: {ident}')
+                  source = matches[0]
+              target.parent.mkdir(parents=True, exist_ok=True)
+              if source.resolve() != target:
+                  shutil.copy2(source, target)
+          PY
           ls -la proj
 
       - name: ⛔ البوّابتان وفحصُ الحمولة قبل أيّ توليد
