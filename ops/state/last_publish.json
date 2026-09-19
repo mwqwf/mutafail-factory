@@ -1,30 +1,21 @@
 {
-  "slug": "amal-4",
-  "film": {
-    "id": "KK3ooIs_6bo",
-    "title": "الصبر ليس سلبية: كيف تتحرك حين يطول الطريق؟",
-    "publishAt": null
+ "slug": "amal-5",
+ "film": {
+  "id": "jb9Il_kdJvM",
+  "title": "بعد العسر يسر: ماذا يعني الوعد حين لا ينتهي الألم سريعًا؟",
+  "publishAt": null
+ },
+ "reels": [
+  {
+   "id": "AXJ9Bm4k3Tw",
+   "title": "اليسر قد يبدأ داخل العسر لا بعده فقط",
+   "file": "r1.mp4"
   },
-  "reels": [
-    {
-      "id": "pAgpyUo4Shw",
-      "title": "الصبر ليس أن تبقى أمام الباب المغلق",
-      "file": "r1.mp4"
-    },
-    {
-      "id": "bf27KgPPtbk",
-      "title": "خطوة صغيرة قد تكون أشجع من انتظار طويل",
-      "file": "r2.mp4"
-    }
-  ],
-  "قيد_واجهة_غير_متاح_API": "حقل «فيديو مشابه» للشورت لا تتيحه YouTube Data API؛ وُضع رابط الفيلم في وصف كل ريلز، ولا يُنسب ربطٌ لم يقع.",
-  "تحقق_الخادم": {
-    "run": 35332307921,
-    "verifiedAt": "2026-09-18T10:17:16Z",
-    "playlist": true,
-    "thumbnail": true,
-    "listeningGatePassed": true,
-    "logoFilm": true,
-    "logoReels": true
+  {
+   "id": "-0uRsr3VlcA",
+   "title": "لن يغلب عسر يسرين: هل هي حديث صحيح؟",
+   "file": "r2.mp4"
   }
+ ],
+ "قيد_واجهة_غير_متاح_API": "حقل «فيديو مشابه» للشورت لا تتيحه YouTube Data API؛ وُضع رابط الفيلم في وصف كل ريلز، ولا يُنسب ربطٌ لم يقع."
 }
