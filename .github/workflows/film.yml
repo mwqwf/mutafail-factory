@@ -39,6 +39,7 @@ jobs:
       shots:  ${{ steps.meta.outputs.shots }}
       audio_source_run: ${{ steps.meta.outputs.audio_source_run }}
       listen_source_run: ${{ steps.meta.outputs.listen_source_run }}
+      film_source_run: ${{ steps.meta.outputs.film_source_run }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 2 }
@@ -230,6 +231,7 @@ jobs:
           d=json.load(open(f,encoding='utf-8')) if os.path.isfile(f) else {}
           print('audio_source_run='+str(d.get('sourceRun','')))
           print('listen_source_run='+str(d.get('listenSourceRun','')))
+          print('film_source_run='+str(d.get('filmSourceRun','')))
           PY
 
       - uses: ./.github/actions/private-upload
@@ -324,12 +326,12 @@ jobs:
           [ -n "$GEMINI_KEYS_JSON" ] || { echo "لا سر فحص"; exit 1; }
           printf '%s' "$GEMINI_KEYS_JSON" > keys.json
           code=0
-          node tools/listen.js proj 2 --batch 4 --model gemini-2.5-flash --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/listen.log 2>&1 || code=$?
+          node tools/listen.js proj 2 --batch 4 --model gemini-3.8-flash --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/listen.log 2>&1 || code=$?
           python tools/listen_public_summary.py proj
           rm -f /tmp/listen.log
           [ "$code" = 0 ] || exit "$code"
           code=0
-          node tools/adjudicate_listen.js proj --model gemini-2.5-flash --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/adjudicate.log 2>&1 || code=$?
+          node tools/adjudicate_listen.js proj --model gemini-3.8-flash --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/adjudicate.log 2>&1 || code=$?
           python tools/listen_public_summary.py proj
           rm -f /tmp/adjudicate.log
           [ "$code" = 0 ] || [ "$code" = 2 ] || exit "$code"
@@ -345,8 +347,8 @@ jobs:
           retention-days: 1
   # الخطأ المؤكد لا يُمرّر: يعاد المقطع وحده، ثم يفحص على بصمته الجديدة.
   repair:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
-    needs: [prepare, listen, assemble]
+    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && needs.listen.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
+    needs: [prepare, listen, assemble, reuse-film]
     runs-on: ubuntu-latest
     timeout-minutes: 180
     outputs:
@@ -379,12 +381,12 @@ jobs:
           node tools/gen25.js proj 1 --keys keys.json >/tmp/tts-repair.log 2>&1
           code=0
           for shard in 0 1 2; do
-            node tools/listen.js proj 1 --batch 4 --model gemini-2.5-flash --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
+            node tools/listen.js proj 1 --batch 4 --model gemini-3.8-flash --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
             [ "$code" = 0 ] || break
           done
           [ "$code" = 0 ] || { rm -f keys.json /tmp/*.log; exit "$code"; }
           for shard in 0 1 2; do
-            node tools/adjudicate_listen.js proj --model gemini-2.5-flash --shard "$shard" --shards 3 --keys keys.json >>/tmp/adjudicate-repair.log 2>&1 || code=$?
+            node tools/adjudicate_listen.js proj --model gemini-3.8-flash --shard "$shard" --shards 3 --keys keys.json >>/tmp/adjudicate-repair.log 2>&1 || code=$?
             [ "$code" = 0 ] || break
           done
           rm -f keys.json /tmp/tts-repair.log /tmp/listen-repair.log /tmp/adjudicate-repair.log
@@ -457,7 +459,7 @@ jobs:
 
   # ══════════ ٣) الصور — عاملٌ واحد (بوليناشنز: طابورٌ واحد) ══════════
   images:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.film_source_run == '' }}
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -483,7 +485,7 @@ jobs:
   # ⛔ كانت تُحسب داخل كلّ عامل تصييرٍ من العشرة: عشرُ تثبيتاتٍ لـtorch وعشرُ حسابات
   #    للخرائط نفسها — وكلُّها تفشل أصلاً لأنّ `transformers` لم يكن مثبَّتاً البتّة.
   depth:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.film_source_run == '' }}
     needs: [prepare, images]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -505,7 +507,7 @@ jobs:
 
   # ══════════ ٥) التصيير المجسَّم — عشرة عمّال ══════════
   render:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.film_source_run == '' }}
     needs: [prepare, tts, images, depth]
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -538,7 +540,7 @@ jobs:
 
   # ══════════ ٦) التركيب والريلزات والمصغّرات ══════════
   assemble:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.film_source_run == '' }}
     needs: [prepare, render]
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -594,10 +596,35 @@ jobs:
           #   ويكفي «إعادةُ تشغيل الوظائف الساقطة» فيُرفع بلا إعادةِ توليدٍ ولا حرقِ حصّة.
           retention-days: 1
 
+  # استئناف موجّه: انسخ الفيلم المكتمل من الشوط السابق بلا تصيير جديد.
+  reuse-film:
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.film_source_run != '' }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/private-download
+        with:
+          name: film
+          path: proj
+          run-id: ${{ needs.prepare.outputs.film_source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - uses: ./.github/actions/private-upload
+        with:
+          name: film
+          path: |
+            proj/film.mp4
+            proj/reels
+            proj/thumb-a.jpg
+            proj/thumb-b.jpg
+            proj/الفصول.txt
+          retention-days: 1
+
   # ══════════ ٧) النشر على يوتيوب ══════════
   publish:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
-    needs: [prepare, assemble, repair, listening-gate]
+    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && needs.repair.result == 'success' && needs.listening-gate.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
+    needs: [prepare, assemble, reuse-film, repair, listening-gate]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -673,8 +700,8 @@ jobs:
   # إن اكتمل الفيلم وتعطّل الفحص/النشر، يحفظ شوط المصدر ليستأنف من آثاره
   # المشفرة في نافذة الحصة التالية بدلاً من إعادة الصوت أو الصور أو التصيير.
   defer-resume:
-    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && needs.prepare.result == 'success' && needs.assemble.result == 'success' && needs.publish.result != 'success' }}
-    needs: [prepare, assemble, listen, repair, listening-gate, publish]
+    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && needs.prepare.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') && needs.publish.result != 'success' }}
+    needs: [prepare, assemble, reuse-film, listen, repair, listening-gate, publish]
     # Previous job condition retained below for reversal:
     # if: always() && needs.prepare.result == 'success' && needs.assemble.result == 'success' && needs.publish.result != 'success'
     runs-on: ubuntu-latest
