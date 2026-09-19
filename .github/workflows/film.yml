@@ -118,10 +118,12 @@ jobs:
           for bundle in "$PACKAGES"/[0-9][0-9][0-9]-[0-9][0-9][0-9]; do
             part="$RUNNER_TEMP/part-$(basename "$bundle")"
             bash tools/unseal.sh "$bundle" "$part"
-            find "$part" -type f -name 'b*.jpg' -exec cp {} "$PWD/proj/openai-images/" \;
+            find "$part" -type f \( -iname 'b*.png' -o -iname 'b*.jpg' -o -iname 'b*.jpeg' -o -iname 'b*.webp' \) \
+              -exec cp {} "$PWD/proj/openai-images/" \;
             rm -rf "$part"
           done
-          count=$(find "$PWD/proj/openai-images" -maxdepth 1 -type f -name 'b*.jpg' | wc -l)
+          count=$(find "$PWD/proj/openai-images" -maxdepth 1 -type f \
+            \( -iname 'b*.png' -o -iname 'b*.jpg' -o -iname 'b*.jpeg' -o -iname 'b*.webp' \) | wc -l)
           [ "$count" = 92 ] || { echo "⛔ Expected 92 approved images; got $count"; exit 1; }
           ls -la proj
 
