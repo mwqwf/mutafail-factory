@@ -131,13 +131,34 @@ jobs:
           python3 - "$PWD/proj" <<'PY'
           import json, pathlib, shutil, sys
           root = pathlib.Path(sys.argv[1]).resolve()
-          sources = json.loads((root / 'image_sources.json').read_text(encoding='utf-8'))
+          manifest_path = root / 'image_sources.json'
+          sources = json.loads(manifest_path.read_text(encoding='utf-8'))
           primary = sources.get('primary', {})
+          # Accept the checkpoint writer's list form, then persist the canonical
+          # dictionary consumed by image_sources.py. No approval or hash is invented.
+          if not primary:
+              for key in ('images', 'files', 'sources', 'entries', 'assets'):
+                  candidate = sources.get(key)
+                  if isinstance(candidate, list):
+                      primary = {item['id']: item for item in candidate
+                                 if isinstance(item, dict) and isinstance(item.get('id'), str)}
+                      if primary:
+                          break
+                  if isinstance(candidate, dict) and candidate:
+                      primary = candidate
+                      break
           if len(primary) != 92:
               raise SystemExit(f'expected 92 primary manifest entries, got {len(primary)}')
           pool = root / 'openai-images'
           for ident, entry in primary.items():
-              target = (root / entry['file']).resolve()
+              declared = entry.get('file')
+              if not isinstance(declared, str) or not declared:
+                  matches = list(pool.glob(ident + '.*'))
+                  if len(matches) != 1:
+                      raise SystemExit(f'unresolved approved image: {ident}')
+                  declared = 'openai-images/' + matches[0].name
+                  entry['file'] = declared
+              target = (root / declared).resolve()
               if root not in target.parents:
                   raise SystemExit('image source target escapes project')
               source = pool / pathlib.Path(entry['file']).name
@@ -149,6 +170,10 @@ jobs:
               target.parent.mkdir(parents=True, exist_ok=True)
               if source.resolve() != target:
                   shutil.copy2(source, target)
+          sources['provider'] = 'openai-chatgpt-imagegen'
+          sources['primary'] = primary
+          manifest_path.write_text(json.dumps(sources, ensure_ascii=False, indent=2) + '\n',
+                                   encoding='utf-8')
           PY
           ls -la proj
 
