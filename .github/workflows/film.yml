@@ -150,14 +150,36 @@ jobs:
           if len(primary) != 92:
               raise SystemExit(f'expected 92 primary manifest entries, got {len(primary)}')
           pool = root / 'openai-images'
+          prompts = {item['id']: item['prompt'] for item in
+                     json.loads((root / 'images.json').read_text(encoding='utf-8'))}
           for ident, entry in primary.items():
-              declared = entry.get('file')
+              declared = entry.get('file') or entry.get('path') or entry.get('source_file')
               if not isinstance(declared, str) or not declared:
                   matches = list(pool.glob(ident + '.*'))
                   if len(matches) != 1:
                       raise SystemExit(f'unresolved approved image: {ident}')
                   declared = 'openai-images/' + matches[0].name
-                  entry['file'] = declared
+              entry['file'] = declared
+              digest = entry.get('sha256') or entry.get('file_sha256') or entry.get('hash') or entry.get('fingerprint')
+              if not isinstance(digest, str) or len(digest) != 64:
+                  raise SystemExit(f'missing declared image fingerprint: {ident}')
+              entry['sha256'] = digest.lower()
+              prompt_digest = (entry.get('prompt_sha256') or entry.get('prompt_hash')
+                               or entry.get('promptHash'))
+              if not prompt_digest and isinstance(entry.get('prompt'), str):
+                  import hashlib
+                  prompt_digest = hashlib.sha256(entry['prompt'].encode('utf-8')).hexdigest()
+              if not isinstance(prompt_digest, str) or len(prompt_digest) != 64:
+                  raise SystemExit(f'missing declared prompt fingerprint: {ident}')
+              entry['prompt_sha256'] = prompt_digest.lower()
+              approval = entry.get('approved')
+              if approval is None:
+                  approval = entry.get('visual_approved', entry.get('accepted'))
+              if isinstance(approval, str):
+                  approval = approval.lower() in {'approved', 'accepted', 'pass', 'true'}
+              if approval is not True:
+                  raise SystemExit(f'image is not explicitly approved: {ident}')
+              entry['approved'] = True
               target = (root / declared).resolve()
               if root not in target.parents:
                   raise SystemExit('image source target escapes project')
@@ -170,6 +192,11 @@ jobs:
               target.parent.mkdir(parents=True, exist_ok=True)
               if source.resolve() != target:
                   shutil.copy2(source, target)
+              import hashlib
+              if hashlib.sha256(target.read_bytes()).hexdigest() != entry['sha256']:
+                  raise SystemExit(f'image fingerprint mismatch: {ident}')
+              if hashlib.sha256(prompts[ident].encode('utf-8')).hexdigest() != entry['prompt_sha256']:
+                  raise SystemExit(f'prompt fingerprint mismatch: {ident}')
           sources['provider'] = 'openai-chatgpt-imagegen'
           sources['primary'] = primary
           manifest_path.write_text(json.dumps(sources, ensure_ascii=False, indent=2) + '\n',
