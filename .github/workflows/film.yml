@@ -301,6 +301,7 @@ jobs:
     timeout-minutes: 90
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix: { shard: [0, 1, 2] }
     steps:
       - uses: actions/checkout@v4
@@ -326,7 +327,7 @@ jobs:
           [ -n "$GEMINI_KEYS_JSON" ] || { echo "لا سر فحص"; exit 1; }
           printf '%s' "$GEMINI_KEYS_JSON" > keys.json
           code=0
-          node tools/listen.js proj 2 --batch 4 --model gemini-3.8-flash --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/listen.log 2>&1 || code=$?
+          node tools/listen.js proj 1 --batch 16 --model gemini-3.8-flash --shard ${{ matrix.shard }} --shards 3 --keys keys.json >/tmp/listen.log 2>&1 || code=$?
           python tools/listen_public_summary.py proj
           rm -f /tmp/listen.log
           [ "$code" = 0 ] || exit "$code"

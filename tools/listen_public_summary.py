@@ -20,3 +20,10 @@ false_positive = sum(v.get("decision") == "false_positive" for v in reviews.valu
 true_error = sum(v.get("decision") == "true_error" for v in reviews.values())
 print("listen-summary checked=%d flags=%d pending=%d false_positive=%d true_error=%d" %
       (checked, flags, pending, false_positive, true_error))
+reasons = {}
+for value in results.values():
+    if isinstance(value, dict) and type(value.get("ok")) is not bool:
+        reason = str(value.get("why") or "no-result")[:80].replace("\n", " ")
+        reasons[reason] = reasons.get(reason, 0) + 1
+for reason, count in sorted(reasons.items(), key=lambda item: (-item[1], item[0])):
+    print("listen-pending-reason count=%d reason=%s" % (count, reason))
