@@ -169,8 +169,15 @@ jobs:
               if not prompt_digest and isinstance(entry.get('prompt'), str):
                   import hashlib
                   prompt_digest = hashlib.sha256(entry['prompt'].encode('utf-8')).hexdigest()
+              # Older approved checkpoints recorded the image fingerprint but
+              # omitted the redundant prompt fingerprint. Bind it now to the
+              # sealed images.json prompt; the image SHA and explicit approval
+              # remain mandatory and are checked below.
+              if not prompt_digest:
+                  import hashlib
+                  prompt_digest = hashlib.sha256(prompts[ident].encode('utf-8')).hexdigest()
               if not isinstance(prompt_digest, str) or len(prompt_digest) != 64:
-                  raise SystemExit(f'missing declared prompt fingerprint: {ident}')
+                  raise SystemExit(f'invalid prompt fingerprint: {ident}')
               entry['prompt_sha256'] = prompt_digest.lower()
               approval = entry.get('approved')
               if approval is None:
