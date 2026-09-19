@@ -41,6 +41,7 @@ jobs:
       audio_final_source_run: ${{ steps.meta.outputs.audio_final_source_run }}
       listen_source_run: ${{ steps.meta.outputs.listen_source_run }}
       film_source_run: ${{ steps.meta.outputs.film_source_run }}
+      final_source_run: ${{ steps.meta.outputs.final_source_run }}
       force_repair_render: ${{ steps.meta.outputs.force_repair_render }}
     steps:
       - uses: actions/checkout@v4
@@ -235,6 +236,7 @@ jobs:
           print('audio_final_source_run='+str(d.get('audioFinalSourceRun','')))
           print('listen_source_run='+str(d.get('listenSourceRun','')))
           print('film_source_run='+str(d.get('filmSourceRun','')))
+          print('final_source_run='+str(d.get('finalSourceRun','')))
           print('force_repair_render='+('true' if d.get('forceRepairRender') else 'false'))
           PY
 
@@ -243,7 +245,7 @@ jobs:
 
   # ══════════ ٢) الصوت — ستّة أسهم متوازية ══════════
   tts:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.final_source_run == '' }}
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -309,7 +311,7 @@ jobs:
   #    يُخرج أفلاماً بلا واحدةٍ منها. وحصّةُ نموذج الفحص منفصلةٌ فلا تزاحم التوليد.
   # الرايات تُحكّم؛ أما الفحص الناقص فيفشل. ولا نشر قبل اجتياز listening-gate.
   listen:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.final_source_run == '' }}
     needs: [prepare, tts]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -362,7 +364,7 @@ jobs:
           retention-days: 1
   # الخطأ المؤكد لا يُمرّر: يعاد المقطع وحده، ثم يفحص على بصمته الجديدة.
   repair:
-    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && needs.listen.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
+    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.final_source_run == '' && needs.listen.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
     needs: [prepare, listen, assemble, reuse-film]
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -476,8 +478,8 @@ jobs:
 
   # التقرير الاستشاري لا يكفي للنشر: كل كتلة مفحوصة ومرتبطة بالنص والصوت الحاليين.
   listening-gate:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' }}
-    needs: [prepare, repair]
+    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && (needs.repair.result == 'success' || needs.reuse-final.result == 'success') }}
+    needs: [prepare, repair, reuse-final]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -655,10 +657,59 @@ jobs:
             proj/الفصول.txt
           retention-days: 1
 
+  # استئناف نشر فقط: استعد الفيلم والصوت وأدلة الاستماع النهائية المكتملة، ولا
+  # تعد أي توليد أو تصيير سبق نجاحه.
+  reuse-final:
+    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.final_source_run != '' }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/private-download
+        with:
+          name: audio-final
+          path: proj/audio
+          run-id: ${{ needs.prepare.outputs.final_source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - uses: ./.github/actions/private-download
+        with:
+          name: listen-final
+          path: proj
+          run-id: ${{ needs.prepare.outputs.final_source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - uses: ./.github/actions/private-download
+        with:
+          name: film-final
+          path: proj
+          run-id: ${{ needs.prepare.outputs.final_source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      - uses: ./.github/actions/private-upload
+        with: { name: audio-final, path: proj/audio, retention-days: 1 }
+      - uses: ./.github/actions/private-upload
+        with:
+          name: listen-final
+          path: |
+            proj/listen_results*.json
+            proj/listen_reviews*.json
+          retention-days: 1
+      - uses: ./.github/actions/private-upload
+        with:
+          name: film-final
+          path: |
+            proj/film.mp4
+            proj/reels
+            proj/thumb-a.jpg
+            proj/thumb-b.jpg
+            proj/الفصول.txt
+          retention-days: 1
+
   # ══════════ ٧) النشر على يوتيوب ══════════
   publish:
-    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && needs.repair.result == 'success' && needs.listening-gate.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
-    needs: [prepare, assemble, reuse-film, repair, listening-gate]
+    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && (needs.repair.result == 'success' || needs.reuse-final.result == 'success') && needs.listening-gate.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
+    needs: [prepare, assemble, reuse-film, reuse-final, repair, listening-gate]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -670,7 +721,7 @@ jobs:
         with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - uses: ./.github/actions/private-download
         with: { name: film, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
-      - if: needs.repair.outputs.rebuilt == 'true'
+      - if: needs.repair.outputs.rebuilt == 'true' || needs.reuse-final.result == 'success'
         uses: ./.github/actions/private-download
         with: { name: film-final, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - name: رفعٌ ونشر
@@ -735,7 +786,7 @@ jobs:
   # المشفرة في نافذة الحصة التالية بدلاً من إعادة الصوت أو الصور أو التصيير.
   defer-resume:
     if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && needs.prepare.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') && needs.publish.result != 'success' }}
-    needs: [prepare, assemble, reuse-film, listen, repair, listening-gate, publish]
+    needs: [prepare, assemble, reuse-film, reuse-final, listen, repair, listening-gate, publish]
     # Previous job condition retained below for reversal:
     # if: always() && needs.prepare.result == 'success' && needs.assemble.result == 'success' && needs.publish.result != 'success'
     runs-on: ubuntu-latest
