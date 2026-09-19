@@ -1,6 +1,7 @@
 {
-  "source_run": 35445358652,
-  "purpose": "resume-listening-only",
+  "source_run": 35446041868,
+  "film_source_run": 35441993555,
+  "purpose": "render-repaired-a009-and-publish",
   "model": "gemini-3.5-flash-lite",
-  "reason": "gemini-3.8-flash-daily-quota-exhausted"
+  "reason": "listening-complete-and-a009-audio-repaired; material-artifacts-must-come-from-original-production-run"
 }

@@ -38,8 +38,10 @@ jobs:
       blocks: ${{ steps.meta.outputs.blocks }}
       shots:  ${{ steps.meta.outputs.shots }}
       audio_source_run: ${{ steps.meta.outputs.audio_source_run }}
+      audio_final_source_run: ${{ steps.meta.outputs.audio_final_source_run }}
       listen_source_run: ${{ steps.meta.outputs.listen_source_run }}
       film_source_run: ${{ steps.meta.outputs.film_source_run }}
+      force_repair_render: ${{ steps.meta.outputs.force_repair_render }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 2 }
@@ -230,8 +232,10 @@ jobs:
           f=f"ops/resume/{sys.argv[1]}.json"
           d=json.load(open(f,encoding='utf-8')) if os.path.isfile(f) else {}
           print('audio_source_run='+str(d.get('sourceRun','')))
+          print('audio_final_source_run='+str(d.get('audioFinalSourceRun','')))
           print('listen_source_run='+str(d.get('listenSourceRun','')))
           print('film_source_run='+str(d.get('filmSourceRun','')))
+          print('force_repair_render='+('true' if d.get('forceRepairRender') else 'false'))
           PY
 
       - uses: ./.github/actions/private-upload
@@ -258,6 +262,16 @@ jobs:
           pattern: audio-*
           path: proj/audio
           run-id: ${{ needs.prepare.outputs.audio_source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+      # إن كان إصلاحٌ صوتيٌّ مستهدف قد اكتمل في شوط سابق، فهو الأحدث ويجب أن
+      # يكتب فوق أسهم الصوت الأصلية قبل إعادة الفحص والتركيب.
+      - uses: ./.github/actions/private-download
+        if: needs.prepare.outputs.audio_final_source_run != ''
+        with:
+          name: audio-final
+          path: proj/audio
+          run-id: ${{ needs.prepare.outputs.audio_final_source_run }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       # ⛔ ما وُلِّد في محاولةٍ سابقةٍ من هذا الشوط يُنزَّل أوّلاً فلا يُعاد توليدُه
@@ -371,7 +385,11 @@ jobs:
         run: |
           python tools/repair_true_errors.py proj repair.json
           N=$(python3 -c "import json;print(len(json.load(open('repair.json'))['ids']))")
-          [ "$N" = 0 ] && echo "rebuilt=false" >> "$GITHUB_OUTPUT" || echo "rebuilt=true" >> "$GITHUB_OUTPUT"
+          if [ "$N" != 0 ] || [ '${{ needs.prepare.outputs.force_repair_render }}' = true ]; then
+            echo "rebuilt=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "rebuilt=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: أعد صوت الكتل المخطئة وافحص بصمتها الجديدة
         if: steps.plan.outputs.rebuilt == 'true'
         env:
@@ -395,13 +413,28 @@ jobs:
           [ "$code" = 0 ] || exit "$code"
       - if: steps.plan.outputs.rebuilt == 'true'
         uses: ./.github/actions/private-download
-        with: { name: img, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+        with:
+          name: img
+          path: proj/img
+          run-id: ${{ needs.prepare.outputs.film_source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - if: steps.plan.outputs.rebuilt == 'true'
         uses: ./.github/actions/private-download
-        with: { name: depth, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+        with:
+          name: depth
+          path: proj/img
+          run-id: ${{ needs.prepare.outputs.film_source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - if: steps.plan.outputs.rebuilt == 'true'
         uses: ./.github/actions/private-download
-        with: { pattern: seg-*, path: proj/work/seg, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+        with:
+          pattern: seg-*
+          path: proj/work/seg
+          run-id: ${{ needs.prepare.outputs.film_source_run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - name: أعد اللقطات المتأثرة ثم ركّب المخرجات
         if: steps.plan.outputs.rebuilt == 'true'
         run: |

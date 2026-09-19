@@ -1,6 +1,8 @@
 {
-  "sourceRun": 35445358652,
-  "listenSourceRun": 35445358652,
-  "filmSourceRun": 35445358652,
-  "reason": "reuse-complete-audio-film-and-partial-listening-with-free-stable-gemini-3.5-flash-lite-after-3.8-daily-quota"
+  "sourceRun": 35446041868,
+  "audioFinalSourceRun": 35446041868,
+  "listenSourceRun": 35446041868,
+  "filmSourceRun": 35441993555,
+  "forceRepairRender": true,
+  "reason": "reuse-repaired-a009-audio-and-complete-listening-then-render-from-original-production-artifacts"
 }
