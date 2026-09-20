@@ -29,8 +29,8 @@ env:
 jobs:
   # ══════════ ١) الفضُّ والتهيئة ══════════
   prepare:
-    # Owner approval 2026-09-19: one capped amal-5 cycle only.
-    if: "${{ inputs.command_dir == 'ops/commands/amal-5' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'production: launch amal-5')) }}"
+    # Owner approval: one amal-6 production cycle. Fail closed for every other command.
+    if: "${{ inputs.command_dir == 'ops/commands/amal-6' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'production: launch amal-6')) }}"
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
@@ -68,67 +68,32 @@ jobs:
             DIR="${DIRS[0]}"
           fi
           [[ "$DIR" =~ ^ops/commands/[a-z0-9-]+$ ]] || { echo "⛔ مسار أمر غير صالح"; exit 1; }
-          [ -f "$DIR/payload.enc" ] && [ -f "$DIR/key.enc" ] || { echo "⛔ الأمر المختوم ناقص"; exit 1; }
+          compgen -G "$DIR/payload.part.*" >/dev/null && [ -f "$DIR/key.enc" ] || { echo "⛔ الأمر المختوم ناقص"; exit 1; }
           if [ -z "$DIR" ]; then
             echo "⛔ لا مجلّد أمرٍ في هذه الدفعة"; exit 1
           fi
           echo "الأمر: $DIR"
-          # The command contains only short-lived recovery URLs, sealed with the
-          # repository public key. They are never exposed in this public repo.
-          BOOTSTRAP="$RUNNER_TEMP/amal5-bootstrap"
-          PACKAGES="$RUNNER_TEMP/amal5-packages"
-          bash tools/unseal.sh "$DIR" "$BOOTSTRAP"
-          python3 - "$BOOTSTRAP/manifest.json" "$PACKAGES" <<'PY'
-          import json, pathlib, sys, time, urllib.request
-          manifest, root = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
-          data = json.loads(manifest.read_text(encoding='utf-8'))
-          files = data.get('files', [])
-          if len(files) != 64:
-              raise SystemExit(f'expected 64 encrypted recovery files, got {len(files)}')
-          for index, item in enumerate(files, 1):
-              bundle, target = item['bundle'], item['target']
-              if not bundle.replace('-', '').isalnum() or target not in {'payload.enc','key.enc'}:
-                  raise SystemExit('invalid recovery manifest entry')
-              out = root / bundle / target
-              out.parent.mkdir(parents=True, exist_ok=True)
-              error = None
-              for attempt in range(4):
-                  try:
-                      with urllib.request.urlopen(item['url'], timeout=120) as src, out.open('wb') as dst:
-                          while chunk := src.read(1024 * 1024):
-                              dst.write(chunk)
-                      if out.stat().st_size != int(item['size']):
-                          raise RuntimeError(f'size mismatch for {bundle}/{target}')
-                      error = None
-                      break
-                  except Exception as exc:
-                      error = exc
-                      out.unlink(missing_ok=True)
-                      time.sleep(3 * (attempt + 1))
-              if error is not None:
-                  raise SystemExit(f'recovery failed for {bundle}/{target}: {error}')
-              print(f'restored {index}/64: {bundle}/{target}')
-          PY
-
-          # Restore the already-approved final project and its 92 OpenAI images.
+          # The encrypted payload is split only to stay below GitHub's per-file
+          # limit. Reassembly is byte-for-byte and verified before decryption.
+          cat "$DIR"/payload.part.* > "$RUNNER_TEMP/payload.enc"
           printf '%s  %s\n' \
-            '16c1bd794d34791940b35df40d9ddaf6b9999126367efc66961de63fb3daab98' \
-            "$PACKAGES/final/payload.enc" | sha256sum -c -
+            'fb6432c751bfd2b06700642c3a4a67ba4191e9859345952d0d3f192a95fc79a1' \
+            "$RUNNER_TEMP/payload.enc" | sha256sum -c -
           printf '%s  %s\n' \
-            '242e8814064276ebf4e2321666f9bdf7c7adc7bd033532c23aeb518252fdc04c' \
-            "$PACKAGES/final/key.enc" | sha256sum -c -
-          bash tools/unseal.sh "$PACKAGES/final" "$PWD/proj"
+            '4db264c5810d8fb2844504d4c915a5f83e208db501ed959ae04f74700485db2d' \
+            "$DIR/key.enc" | sha256sum -c -
+          FINAL="$RUNNER_TEMP/amal6-final"
+          mkdir -p "$FINAL"
+          mv "$RUNNER_TEMP/payload.enc" "$FINAL/payload.enc"
+          cp "$DIR/key.enc" "$FINAL/key.enc"
+          bash tools/unseal.sh "$FINAL" "$PWD/proj"
           mkdir -p "$PWD/proj/openai-images"
-          for bundle in "$PACKAGES"/[0-9][0-9][0-9]-[0-9][0-9][0-9]; do
-            part="$RUNNER_TEMP/part-$(basename "$bundle")"
-            bash tools/unseal.sh "$bundle" "$part"
-            find "$part" -type f \( -iname 'b*.png' -o -iname 'b*.jpg' -o -iname 'b*.jpeg' -o -iname 'b*.webp' \) \
-              -exec cp {} "$PWD/proj/openai-images/" \;
-            rm -rf "$part"
-          done
+          find "$PWD/proj/img" -maxdepth 1 -type f \
+            \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) \
+            -exec cp {} "$PWD/proj/openai-images/" \;
           count=$(find "$PWD/proj/openai-images" -maxdepth 1 -type f \
             \( -iname 'b*.png' -o -iname 'b*.jpg' -o -iname 'b*.jpeg' -o -iname 'b*.webp' \) | wc -l)
-          [ "$count" = 92 ] || { echo "⛔ Expected 92 approved images; got $count"; exit 1; }
+          [ "$count" = 79 ] || { echo "⛔ Expected 79 approved images; got $count"; exit 1; }
           # image_sources.json is authoritative about each approved source path.
           # Restore the flattened checkpoint file to that exact sealed path;
           # image_sources.py will independently verify its SHA-256 and prompt hash.
@@ -151,8 +116,8 @@ jobs:
                   if isinstance(candidate, dict) and candidate:
                       primary = candidate
                       break
-          if len(primary) != 92:
-              raise SystemExit(f'expected 92 primary manifest entries, got {len(primary)}')
+          if len(primary) != 79:
+              raise SystemExit(f'expected 79 primary manifest entries, got {len(primary)}')
           pool = root / 'openai-images'
           prompts = {item['id']: item['prompt'] for item in
                      json.loads((root / 'images.json').read_text(encoding='utf-8'))}
@@ -245,7 +210,7 @@ jobs:
 
   # ══════════ ٢) الصوت — ستّة أسهم متوازية ══════════
   tts:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.final_source_run == '' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.final_source_run == '' }}
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -311,7 +276,7 @@ jobs:
   #    يُخرج أفلاماً بلا واحدةٍ منها. وحصّةُ نموذج الفحص منفصلةٌ فلا تزاحم التوليد.
   # الرايات تُحكّم؛ أما الفحص الناقص فيفشل. ولا نشر قبل اجتياز listening-gate.
   listen:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.final_source_run == '' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.final_source_run == '' }}
     needs: [prepare, tts]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -364,7 +329,7 @@ jobs:
           retention-days: 1
   # الخطأ المؤكد لا يُمرّر: يعاد المقطع وحده، ثم يفحص على بصمته الجديدة.
   repair:
-    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.final_source_run == '' && needs.listen.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
+    if: ${{ always() && needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.final_source_run == '' && needs.listen.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
     needs: [prepare, listen, assemble, reuse-film]
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -478,7 +443,7 @@ jobs:
 
   # التقرير الاستشاري لا يكفي للنشر: كل كتلة مفحوصة ومرتبطة بالنص والصوت الحاليين.
   listening-gate:
-    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && (needs.repair.result == 'success' || needs.reuse-final.result == 'success') }}
+    if: ${{ always() && needs.prepare.outputs.slug == 'amal-6' && (needs.repair.result == 'success' || needs.reuse-final.result == 'success') }}
     needs: [prepare, repair, reuse-final]
     runs-on: ubuntu-latest
     steps:
@@ -495,7 +460,7 @@ jobs:
 
   # ══════════ ٣) الصور — عاملٌ واحد (بوليناشنز: طابورٌ واحد) ══════════
   images:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.film_source_run == '' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.film_source_run == '' }}
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -521,7 +486,7 @@ jobs:
   # ⛔ كانت تُحسب داخل كلّ عامل تصييرٍ من العشرة: عشرُ تثبيتاتٍ لـtorch وعشرُ حسابات
   #    للخرائط نفسها — وكلُّها تفشل أصلاً لأنّ `transformers` لم يكن مثبَّتاً البتّة.
   depth:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.film_source_run == '' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.film_source_run == '' }}
     needs: [prepare, images]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -543,7 +508,7 @@ jobs:
 
   # ══════════ ٥) التصيير المجسَّم — عشرة عمّال ══════════
   render:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.film_source_run == '' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.film_source_run == '' }}
     needs: [prepare, tts, images, depth]
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -576,7 +541,7 @@ jobs:
 
   # ══════════ ٦) التركيب والريلزات والمصغّرات ══════════
   assemble:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.film_source_run == '' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.film_source_run == '' }}
     needs: [prepare, render]
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -634,7 +599,7 @@ jobs:
 
   # استئناف موجّه: انسخ الفيلم المكتمل من الشوط السابق بلا تصيير جديد.
   reuse-film:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.film_source_run != '' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.film_source_run != '' }}
     needs: prepare
     runs-on: ubuntu-latest
     steps:
@@ -660,7 +625,7 @@ jobs:
   # استئناف نشر فقط: استعد الفيلم والصوت وأدلة الاستماع النهائية المكتملة، ولا
   # تعد أي توليد أو تصيير سبق نجاحه.
   reuse-final:
-    if: ${{ needs.prepare.outputs.slug == 'amal-5' && needs.prepare.outputs.final_source_run != '' }}
+    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.final_source_run != '' }}
     needs: prepare
     runs-on: ubuntu-latest
     steps:
@@ -708,7 +673,7 @@ jobs:
 
   # ══════════ ٧) النشر على يوتيوب ══════════
   publish:
-    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && (needs.repair.result == 'success' || needs.reuse-final.result == 'success') && needs.listening-gate.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
+    if: ${{ always() && needs.prepare.outputs.slug == 'amal-6' && (needs.repair.result == 'success' || needs.reuse-final.result == 'success') && needs.listening-gate.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
     needs: [prepare, assemble, reuse-film, reuse-final, repair, listening-gate]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -785,7 +750,7 @@ jobs:
   # إن اكتمل الفيلم وتعطّل الفحص/النشر، يحفظ شوط المصدر ليستأنف من آثاره
   # المشفرة في نافذة الحصة التالية بدلاً من إعادة الصوت أو الصور أو التصيير.
   defer-resume:
-    if: ${{ always() && needs.prepare.outputs.slug == 'amal-5' && needs.prepare.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') && needs.publish.result != 'success' }}
+    if: ${{ always() && needs.prepare.outputs.slug == 'amal-6' && needs.prepare.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') && needs.publish.result != 'success' }}
     needs: [prepare, assemble, reuse-film, reuse-final, listen, repair, listening-gate, publish]
     # Previous job condition retained below for reversal:
     # if: always() && needs.prepare.result == 'success' && needs.assemble.result == 'success' && needs.publish.result != 'success'
