@@ -68,24 +68,27 @@ jobs:
             DIR="${DIRS[0]}"
           fi
           [[ "$DIR" =~ ^ops/commands/[a-z0-9-]+$ ]] || { echo "⛔ مسار أمر غير صالح"; exit 1; }
-          compgen -G "$DIR/payload.part.*" >/dev/null && [ -f "$DIR/key.enc" ] || { echo "⛔ الأمر المختوم ناقص"; exit 1; }
+          [ -f "$DIR/trigger.json" ] || { echo "⛔ أمر الإنتاج ناقص"; exit 1; }
           if [ -z "$DIR" ]; then
             echo "⛔ لا مجلّد أمرٍ في هذه الدفعة"; exit 1
           fi
           echo "الأمر: $DIR"
           # The encrypted payload is split only to stay below GitHub's per-file
           # limit. Reassembly is byte-for-byte and verified before decryption.
-          cat "$DIR"/payload.part.* > "$RUNNER_TEMP/payload.enc"
+          STAGED="ops/pending/amal-6-final"
+          compgen -G "$STAGED/payload.part.*.b64" >/dev/null || { echo "⛔ أجزاء الحمولة ناقصة"; exit 1; }
+          for part in "$STAGED"/payload.part.*.b64; do base64 -d "$part"; done > "$RUNNER_TEMP/payload.enc"
           printf '%s  %s\n' \
-            'fb6432c751bfd2b06700642c3a4a67ba4191e9859345952d0d3f192a95fc79a1' \
+            '2744d1f334f7495d9e2c4be88cce511355f018badb22ec6ea4209c5558139bed' \
             "$RUNNER_TEMP/payload.enc" | sha256sum -c -
+          base64 -d "$STAGED/key.b64" > "$RUNNER_TEMP/key.enc"
           printf '%s  %s\n' \
-            '4db264c5810d8fb2844504d4c915a5f83e208db501ed959ae04f74700485db2d' \
-            "$DIR/key.enc" | sha256sum -c -
+            '427ef53b4be86bb785569592ea281757ba999d8bd0c0cbef3ddb1a27e5115749' \
+            "$RUNNER_TEMP/key.enc" | sha256sum -c -
           FINAL="$RUNNER_TEMP/amal6-final"
           mkdir -p "$FINAL"
           mv "$RUNNER_TEMP/payload.enc" "$FINAL/payload.enc"
-          cp "$DIR/key.enc" "$FINAL/key.enc"
+          mv "$RUNNER_TEMP/key.enc" "$FINAL/key.enc"
           bash tools/unseal.sh "$FINAL" "$PWD/proj"
           mkdir -p "$PWD/proj/openai-images"
           find "$PWD/proj/img" -maxdepth 1 -type f \
