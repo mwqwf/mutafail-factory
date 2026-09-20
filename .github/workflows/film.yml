@@ -95,7 +95,7 @@ jobs:
             \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) \
             -exec cp {} "$PWD/proj/openai-images/" \;
           count=$(find "$PWD/proj/openai-images" -maxdepth 1 -type f \
-            \( -iname 'b*.png' -o -iname 'b*.jpg' -o -iname 'b*.jpeg' -o -iname 'b*.webp' \) | wc -l)
+            \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) | wc -l)
           [ "$count" = 79 ] || { echo "⛔ Expected 79 approved images; got $count"; exit 1; }
           # image_sources.json is authoritative about each approved source path.
           # Restore the flattened checkpoint file to that exact sealed path;
