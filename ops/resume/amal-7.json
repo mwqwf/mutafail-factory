@@ -1,0 +1,43 @@
+{
+  "slug": "amal-7",
+  "series": "س٢·١ الأمل الذي لا ينكسر",
+  "episode": 7,
+  "working_title": "التوكّل ليس انتظاراً: ماذا تفعل حين تضيق الخيارات؟",
+  "status": "research_started",
+  "completed": [
+    "initial_angle",
+    "primary_source_seed",
+    "prefuter_round_1",
+    "three_openings",
+    "chapter_outline",
+    "two_reel_concepts",
+    "visual_hook_plan"
+  ],
+  "gates": {
+    "research_complete": false,
+    "counter_review_complete": false,
+    "script_complete": false,
+    "lint_passed": false,
+    "guard_passed": false,
+    "precheck_passed": false,
+    "images_complete": false,
+    "audio_complete": false,
+    "production_started": false,
+    "published": false
+  },
+  "next": [
+    "compare_classical_tafsir_for_quran_3_159_65_2_3_26_61_68",
+    "add_peer_reviewed_psychology_sources_without_equating_them_to_revelation",
+    "run_adversarial_counter_review_round_2",
+    "lock_title_and_promise_map",
+    "write_30_to_36_minute_script",
+    "build_visual_bible_and_shot_plan"
+  ],
+  "cost": {
+    "github_actions_started": false,
+    "paid_api_used": false,
+    "image_generation_started": false,
+    "note": "Research and planning performed in the session environment only."
+  },
+  "updated_at": "2026-09-20T17:10:00Z"
+}
