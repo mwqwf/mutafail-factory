@@ -3,12 +3,27 @@ name: video-factory
 description: صناعة وثائقيات تاريخية عربية لقناة «المتفائل» على يوتيوب — من البحث إلى السيناريو المشكول إلى الصوت والصور والمونتاج والنشر. استعمله عند أي طلب فيه «وثائقي» أو «فيلم» أو «ريلز» أو «مصغرة» أو «سيناريو» أو ذكر قناة المتفائل أو اسمِ أيّ فيلمٍ من أفلامها (قائمتها في `PLAN_STATE.json` — مثل الطوارق أو المرابطون).
 ---
 
-# Owner financial stop — 2026-09-18
+> **اللغة: كلُّ ردٍّ وتقريرٍ ورسالةِ إيداعٍ بالعربية — بلا استثناء**، ولو كان ما تقرؤه إنجليزيّاً.
+> أسماء الكود والمسارات تبقى بصيغتها داخل الجملة العربية.
+
+## ⛔ الإيقافُ الماليّ — أمرُ المالك 2026-09-18
+
+لا نفقاتٍ جديدةً مأذونٌ فيها. قبل أيّ دفعٍ أو PR أو إطلاقِ سيرِ عملٍ أو إعادةِ تشغيلٍ أو جدولةٍ أو نشرٍ
+أو كتابةِ تخزينٍ أو استعمالِ واجهةٍ خارجيّة، أثبِتْ أنّ العمليّةَ كاملةً مجّانيّةٌ ضمن الحصص المتاحة —
+ولا يكفي دليلاً اسمُ `ubuntu-latest` ولا كونُ المستودع عامّاً ولا وجودُ ميزانيّة. والعملُ المدفوعُ
+يحتاج موافقةً **جديدةً صريحةً** من المالك تُسمّي الضرورةَ والتكلفةَ المقدَّرةَ والسقف. والأولويّة:
+سحابةٌ مجّانيّةٌ متحقَّقة، ثمّ بيئةُ الجلسة، ثمّ عملٌ محلّيٌّ خفيف. وأعمالُ الفرع الافتراضيّ كلُّها
+عليها إيقافٌ قابلٌ للرجوع `if: ${{ false }}`؛ الأدلّةُ ومسارُ التراجع في `ops/FINANCIAL_STOP_2026-09-18.md`.
+
+<details><summary>النصُّ الإنجليزيُّ الأصليُّ للأمر (محفوظٌ كما ورد)</summary>
+
+**Owner financial stop — 2026-09-18**
 
 No new charges are authorized. Before any push, PR, workflow dispatch, rerun, schedule, deployment, storage write or external API use, establish that the entire operation is free within available quotas. `ubuntu-latest`, a public repository, or an available budget alone is not sufficient proof. Do not re-enable Actions or use old branch snapshots to bypass the stop. Paid work requires NEW explicit owner approval of the necessity, estimated cost and hard cap. Never make private repositories public or disclose private code/secrets to obtain free compute. Prefer verified free cloud, then the session environment, then lightweight local work. Continue read-only analysis and small offline checks; do not repeat rejected candidates or tests without a material reason. Existing Quran accuracy gates and the 5% threshold remain mandatory. Use existing follow-up cycles only.
 
 All default-branch workflow jobs have a reversible `if: ${{ false }}` stop. The earlier run `35327242621` was cancelled at 2026-09-18T09:20:27Z; the interlock run `35328969582` completed `skipped` without allocating a job or runner; and the subsequent scan found no active or queued factory run. Declared triggers remain inert because every job is stopped. See `ops/FINANCIAL_STOP_2026-09-18.md` for evidence and rollback.
 
+</details>
 
 # مصنع الوثائقيات — كل ما تعلّمناه
 
@@ -19,7 +34,13 @@ All default-branch workflow jobs have a reversible `if: ${{ false }}` stop. The 
 # 📚 المراجع — متى يُقرأ كلٌّ منها
 
 النواة تحمل ما يجب أن يكون **حاضراً قبل الفعل**؛ وهذه المراجع تفصيلُ كلّ مرحلة.
-⛔ **لا تدخل مرحلةً قبل قراءة مرجعها.** المسار: `~/.claude/skills/video-factory/references/`.
+⛔ **لا تدخل مرحلةً قبل قراءة مرجعها.** المسار: `skill/references/` داخل هذا المستودع.
+
+> ⛔ **ترجمةُ المسارات (الجلسةُ السحابيّةُ لا تملك جهاز المالك):** كلُّ ما ورد في هذا الملفّ
+> بصيغة `~/.claude/skills/video-factory/<س>` موضعُه هنا `skill/<س>` — مثل `skill/guard.py`
+> و`skill/lint.py` و`skill/references/`. وما كان تحت `Desktop` أو `Downloads` أو `$USERPROFILE`
+> فهو **تاريخيٌّ** لا مسارَ تشغيل؛ استعمل `tools/` ومخرجاتِ المستودع ومسارَ التنفيذ السحابيّ.
+> وغيابُ المسار المحلّيّ **ليس تعذُّراً** يُوقف الدورة.
 
 > ⭐⭐ **قبل كلّ شيء: `PLAN.md` — دستور القناة وخطّة الإنتاج.**
 > متى قال المالك «اصنع وثائقيًّا» أو «فيلمًا» أو «واصل» **بلا أن يذكر موضوعًا**، فاقرأ
