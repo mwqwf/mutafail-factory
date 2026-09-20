@@ -11,13 +11,10 @@ permissions:
 
 jobs:
   cancel:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
-    # Previous job condition retained below for reversal:
-    # if: >-
-    # github.actor == github.repository_owner &&
-    # github.event.issue.title == '[factory] cancel wrong run' &&
-    # (github.event.issue.body == '35210624049' || github.event.issue.body == '35214923860')
+    if: >-
+      github.actor == github.repository_owner &&
+      github.event.issue.title == '[factory] cancel wrong run' &&
+      (github.event.issue.body == '35210624049' || github.event.issue.body == '35214923860')
     runs-on: ubuntu-latest
     steps:
       - env:

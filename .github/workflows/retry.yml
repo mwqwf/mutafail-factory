@@ -21,12 +21,9 @@ permissions:
 
 jobs:
   retry:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
-    # Previous job condition retained below for reversal:
-    # if: >
-    # github.event.workflow_run.conclusion == 'failure' &&
-    # github.event.workflow_run.run_attempt < 3
+    if: >
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.run_attempt < 3
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -75,12 +72,9 @@ jobs:
 
   # ⛔ عند استنفاد السقف: لا صمت — يُكتب الخبرُ ليقرأه الدماغ
   exhausted:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
-    # Previous job condition retained below for reversal:
-    # if: >
-    # github.event.workflow_run.conclusion == 'failure' &&
-    # github.event.workflow_run.run_attempt >= 3
+    if: >
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.run_attempt >= 3
     runs-on: ubuntu-latest
     permissions: { contents: write }
     steps:

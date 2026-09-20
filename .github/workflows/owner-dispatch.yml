@@ -18,13 +18,10 @@ env:
 
 jobs:
   resume-film:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
-    # Previous job condition retained below for reversal:
-    # if: >-
-    # github.actor == github.repository_owner &&
-    # github.event.issue.title == '[factory] resume amal-3' &&
-    # github.event.issue.body == 'ops/commands/amal-3'
+    if: >-
+      github.actor == github.repository_owner &&
+      github.event.issue.title == '[factory] resume amal-3' &&
+      github.event.issue.body == 'ops/commands/amal-3'
     runs-on: ubuntu-latest
     steps:
       - name: أطلق الفيلم من الأمر المختوم صراحة
@@ -36,13 +33,10 @@ jobs:
         run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment "أُطلق استئناف الفيلم من الأمر المختوم؛ سجل Actions هو دليل النتيجة."
 
   prepare:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
-    # Previous job condition retained below for reversal:
-    # if: >-
-    # github.actor == github.repository_owner &&
-    # github.event.issue.title == '[factory] audio amal-3' &&
-    # github.event.issue.body == 'ops/commands/amal-3'
+    if: >-
+      github.actor == github.repository_owner &&
+      github.event.issue.title == '[factory] audio amal-3' &&
+      github.event.issue.body == 'ops/commands/amal-3'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -64,8 +58,6 @@ jobs:
         with: { name: proj, path: proj, retention-days: 2 }
 
   tts:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -98,10 +90,7 @@ jobs:
           retention-days: 2
 
   close-trigger:
-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
-    if: ${{ false }}
-    # Previous job condition retained below for reversal:
-    # if: always()
+    if: always()
     needs: [prepare, tts]
     runs-on: ubuntu-latest
     steps:

@@ -1,0 +1,331 @@
+diff -ruN .github/workflows/admin.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/admin.yml
+--- a/.github/workflows/admin.yml	2026-09-19 11:50:22.977678807 +0000
++++ b/.github/workflows/admin.yml	2026-09-20 15:35:38.644119039 +0000
+@@ -20,8 +20,6 @@
+ 
+ jobs:
+   admin:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 15
+     steps:
+diff -ruN .github/workflows/artifact-roundtrip.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/artifact-roundtrip.yml
+--- a/.github/workflows/artifact-roundtrip.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/artifact-roundtrip.yml	2026-09-20 15:35:38.644284491 +0000
+@@ -5,10 +5,7 @@
+   contents: read
+ jobs:
+   seal:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+-    # Previous job condition retained below for reversal:
+-    # if: github.ref == 'refs/heads/master'
++    if: github.ref == 'refs/heads/master'
+     runs-on: ubuntu-latest
+     timeout-minutes: 5
+     steps:
+@@ -23,8 +20,6 @@
+           path: synthetic
+           retention-days: '1'
+   unseal:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     needs: seal
+     runs-on: ubuntu-latest
+     timeout-minutes: 5
+diff -ruN .github/workflows/audit.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/audit.yml
+--- a/.github/workflows/audit.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/audit.yml	2026-09-20 15:35:38.644496616 +0000
+@@ -24,8 +24,6 @@
+ 
+ jobs:
+   audit:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 15
+     steps:
+diff -ruN .github/workflows/cancel-run.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/cancel-run.yml
+--- a/.github/workflows/cancel-run.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/cancel-run.yml	2026-09-20 15:35:38.644655571 +0000
+@@ -11,13 +11,10 @@
+ 
+ jobs:
+   cancel:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+-    # Previous job condition retained below for reversal:
+-    # if: >-
+-    # github.actor == github.repository_owner &&
+-    # github.event.issue.title == '[factory] cancel wrong run' &&
+-    # (github.event.issue.body == '35210624049' || github.event.issue.body == '35214923860')
++    if: >-
++      github.actor == github.repository_owner &&
++      github.event.issue.title == '[factory] cancel wrong run' &&
++      (github.event.issue.body == '35210624049' || github.event.issue.body == '35214923860')
+     runs-on: ubuntu-latest
+     steps:
+       - env:
+diff -ruN .github/workflows/daily-production.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/daily-production.yml
+--- a/.github/workflows/daily-production.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/daily-production.yml	2026-09-20 15:35:38.644882560 +0000
+@@ -18,8 +18,6 @@
+ 
+ jobs:
+   dispatch:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 10
+     steps:
+diff -ruN .github/workflows/export-amal4-prompts.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/export-amal4-prompts.yml
+--- a/.github/workflows/export-amal4-prompts.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/export-amal4-prompts.yml	2026-09-20 15:35:38.645055557 +0000
+@@ -14,8 +14,6 @@
+ 
+ jobs:
+   export:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v4
+diff -ruN .github/workflows/finalize-amal4.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/finalize-amal4.yml
+--- a/.github/workflows/finalize-amal4.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/finalize-amal4.yml	2026-09-20 15:35:38.645781342 +0000
+@@ -18,8 +18,6 @@
+ 
+ jobs:
+   finalize:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 45
+     steps:
+diff -ruN .github/workflows/finish.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/finish.yml
+--- a/.github/workflows/finish.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/finish.yml	2026-09-20 15:35:38.646094523 +0000
+@@ -29,8 +29,6 @@
+ 
+ jobs:
+   finish:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 90
+     steps:
+diff -ruN .github/workflows/inspect-amal4-layout.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/inspect-amal4-layout.yml
+--- a/.github/workflows/inspect-amal4-layout.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/inspect-amal4-layout.yml	2026-09-20 15:35:38.646255454 +0000
+@@ -15,8 +15,6 @@
+ 
+ jobs:
+   inspect:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v4
+diff -ruN .github/workflows/inspect-listen-probe.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/inspect-listen-probe.yml
+--- a/.github/workflows/inspect-listen-probe.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/inspect-listen-probe.yml	2026-09-20 15:35:38.646417354 +0000
+@@ -12,8 +12,6 @@
+ 
+ jobs:
+   inspect:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 10
+     steps:
+diff -ruN .github/workflows/listen-model-probe.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/listen-model-probe.yml
+--- a/.github/workflows/listen-model-probe.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/listen-model-probe.yml	2026-09-20 15:35:38.646585344 +0000
+@@ -18,8 +18,6 @@
+ 
+ jobs:
+   probe:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 15
+     steps:
+diff -ruN .github/workflows/logo.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/logo.yml
+--- a/.github/workflows/logo.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/logo.yml	2026-09-20 15:35:38.646741453 +0000
+@@ -16,8 +16,6 @@
+ 
+ jobs:
+   logo:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 10
+     steps:
+diff -ruN .github/workflows/owner-dispatch.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/owner-dispatch.yml
+--- a/.github/workflows/owner-dispatch.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/owner-dispatch.yml	2026-09-20 15:35:38.646940617 +0000
+@@ -18,13 +18,10 @@
+ 
+ jobs:
+   resume-film:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+-    # Previous job condition retained below for reversal:
+-    # if: >-
+-    # github.actor == github.repository_owner &&
+-    # github.event.issue.title == '[factory] resume amal-3' &&
+-    # github.event.issue.body == 'ops/commands/amal-3'
++    if: >-
++      github.actor == github.repository_owner &&
++      github.event.issue.title == '[factory] resume amal-3' &&
++      github.event.issue.body == 'ops/commands/amal-3'
+     runs-on: ubuntu-latest
+     steps:
+       - name: أطلق الفيلم من الأمر المختوم صراحة
+@@ -36,13 +33,10 @@
+         run: gh issue close "${{ github.event.issue.number }}" --repo "$GITHUB_REPOSITORY" --comment "أُطلق استئناف الفيلم من الأمر المختوم؛ سجل Actions هو دليل النتيجة."
+ 
+   prepare:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+-    # Previous job condition retained below for reversal:
+-    # if: >-
+-    # github.actor == github.repository_owner &&
+-    # github.event.issue.title == '[factory] audio amal-3' &&
+-    # github.event.issue.body == 'ops/commands/amal-3'
++    if: >-
++      github.actor == github.repository_owner &&
++      github.event.issue.title == '[factory] audio amal-3' &&
++      github.event.issue.body == 'ops/commands/amal-3'
+     runs-on: ubuntu-latest
+     timeout-minutes: 20
+     steps:
+@@ -64,8 +58,6 @@
+         with: { name: proj, path: proj, retention-days: 2 }
+ 
+   tts:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     needs: prepare
+     runs-on: ubuntu-latest
+     timeout-minutes: 120
+@@ -98,10 +90,7 @@
+           retention-days: 2
+ 
+   close-trigger:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+-    # Previous job condition retained below for reversal:
+-    # if: always()
++    if: always()
+     needs: [prepare, tts]
+     runs-on: ubuntu-latest
+     steps:
+diff -ruN .github/workflows/publish-amal2-exception.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/publish-amal2-exception.yml
+--- a/.github/workflows/publish-amal2-exception.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/publish-amal2-exception.yml	2026-09-20 15:35:38.647128212 +0000
+@@ -19,8 +19,6 @@
+ 
+ jobs:
+   publish:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 120
+     steps:
+diff -ruN .github/workflows/publish-amal3-exception.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/publish-amal3-exception.yml
+--- a/.github/workflows/publish-amal3-exception.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/publish-amal3-exception.yml	2026-09-20 15:35:38.647329218 +0000
+@@ -22,8 +22,6 @@
+ 
+ jobs:
+   publish:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 120
+     steps:
+diff -ruN .github/workflows/pulse.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/pulse.yml
+--- a/.github/workflows/pulse.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/pulse.yml	2026-09-20 15:35:38.647597245 +0000
+@@ -27,8 +27,6 @@
+ 
+ jobs:
+   pulse:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 10
+     steps:
+diff -ruN .github/workflows/quality-tests.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/quality-tests.yml
+--- a/.github/workflows/quality-tests.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/quality-tests.yml	2026-09-20 15:35:38.647752338 +0000
+@@ -8,8 +8,6 @@
+   contents: read
+ jobs:
+   test:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v4
+diff -ruN .github/workflows/resume-listen.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/resume-listen.yml
+--- a/.github/workflows/resume-listen.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/resume-listen.yml	2026-09-20 15:35:38.647958695 +0000
+@@ -16,7 +16,6 @@
+ 
+ jobs:
+   publish-amal4-free:
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 240
+     steps:
+diff -ruN .github/workflows/retry.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/retry.yml
+--- a/.github/workflows/retry.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/retry.yml	2026-09-20 15:35:38.648168993 +0000
+@@ -21,12 +21,9 @@
+ 
+ jobs:
+   retry:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+-    # Previous job condition retained below for reversal:
+-    # if: >
+-    # github.event.workflow_run.conclusion == 'failure' &&
+-    # github.event.workflow_run.run_attempt < 3
++    if: >
++      github.event.workflow_run.conclusion == 'failure' &&
++      github.event.workflow_run.run_attempt < 3
+     runs-on: ubuntu-latest
+     timeout-minutes: 10
+     steps:
+@@ -75,12 +72,9 @@
+ 
+   # ⛔ عند استنفاد السقف: لا صمت — يُكتب الخبرُ ليقرأه الدماغ
+   exhausted:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+-    # Previous job condition retained below for reversal:
+-    # if: >
+-    # github.event.workflow_run.conclusion == 'failure' &&
+-    # github.event.workflow_run.run_attempt >= 3
++    if: >
++      github.event.workflow_run.conclusion == 'failure' &&
++      github.event.workflow_run.run_attempt >= 3
+     runs-on: ubuntu-latest
+     permissions: { contents: write }
+     steps:
+diff -ruN .github/workflows/selftest.yml /tmp/claude-0/-home-user/84961b63-2a65-586b-b5a9-c14c64a5f62c/scratchpad/wf/mutafail-factory/.github/workflows/selftest.yml
+--- a/.github/workflows/selftest.yml	2026-09-19 11:50:22.978081531 +0000
++++ b/.github/workflows/selftest.yml	2026-09-20 15:35:38.648356526 +0000
+@@ -15,8 +15,6 @@
+ 
+ jobs:
+   selftest:
+-    # Owner financial stop 2026-09-18: no runner allocation until verified free.
+-    if: ${{ false }}
+     runs-on: ubuntu-latest
+     timeout-minutes: 60
+     steps:

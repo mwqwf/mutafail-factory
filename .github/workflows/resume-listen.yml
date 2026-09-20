@@ -16,7 +16,6 @@ concurrency:
 
 jobs:
   publish-amal4-free:
-    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 240
     steps:
