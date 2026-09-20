@@ -112,11 +112,14 @@ def import_primary(project):
             with Image.open(source) as image:
                 image.load()
                 width, height = image.size
-                if width < 1024 or height < 576 or abs(width / height - 16 / 9) > .02:
+                vertical = 'vertical' in item['prompt'].lower() or '9:16' in item['prompt']
+                expected_ratio = 9 / 16 if vertical else 16 / 9
+                if min(width, height) < 576 or max(width, height) < 1024 or abs(width / height - expected_ratio) > .02:
                     raise ValueError('size-or-aspect-ratio')
                 target = root / 'img' / (ident + '.jpg')
                 # نسخة مشتقة؛ المصدر يبقى بلا مساس. لا ندعي أن التكبير يزيد التفاصيل.
-                image.convert('RGB').resize((1920, 1080), Image.Resampling.LANCZOS).save(
+                target_size = (1080, 1920) if vertical else (1920, 1080)
+                image.convert('RGB').resize(target_size, Image.Resampling.LANCZOS).save(
                     target.with_suffix('.tmp'), format='JPEG', quality=94, subsampling=0)
                 target.with_suffix('.tmp').replace(target)
             report['primary'].append({'id': ident, 'native_dimensions': [width, height],
