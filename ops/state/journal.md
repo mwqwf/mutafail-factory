@@ -307,3 +307,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01Bx3mEcSKXgu48uvc2f1sSP
 - الرابط: https://github.com/mwqwf/mutafail-factory/actions/runs/35575675570
 - **المطلوب من الدماغ:** اقرأ سجلَّ الشوط، أصلِح السبب، وأعِد الدفع.
+## ⛔ شوطٌ استنفد الإعادات — 2026-09-21T11:10:37Z
+- الشوط: 35589969874
+- العنوان: 🎬 production: launch thawr
+
+استئنافٌ يعيد استعمال الفيلم والصوت والصور من الشوط 35575675570، ويفحص غيرَ المكتمل بعد إصلاح قسمة الدفعة، ثمّ ينشر فوراً (publicNow).
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Bx3mEcSKXgu48uvc2f1sSP
+- الرابط: https://github.com/mwqwf/mutafail-factory/actions/runs/35589969874
+- **المطلوب من الدماغ:** اقرأ سجلَّ الشوط، أصلِح السبب، وأعِد الدفع.
