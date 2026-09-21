@@ -378,21 +378,39 @@ jobs:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: |
           set -euo pipefail
+          # ⛔⛔ الدرسُ المقيسُ 2026-09-21 (حلقة «الثور»): كانت الدورةُ جولةً واحدة —
+          #    يُبطَل الخطأُ ثمّ يُعاد التوليدُ ثمّ الفحصُ ثمّ التحكيم. فإن حكّم التحكيمُ
+          #    **خطأً جديداً** في آخر الجولة لم يُعَد صوتُه في هذا الشوط، فتسقط البوّابةُ
+          #    بـ`stale-result`، ويُعاد الشوطُ كلُّه لثلاثِ كتل. وقعت ثلاثَ دوراتٍ متتاليةً
+          #    (‏d_121/d_191/r_002 ← d_011/d_038/r_004 …) وكلُّ دورةٍ شوطٌ كامل.
+          # ⭐ ⇒ الدورةُ تُغلَق **داخل الشوط**: تُعاد حتى تستقرّ البوّابةُ أو ثلاثَ جولات.
+          #    والبوّابةُ نفسُها هي الحَكَم — لا عدُّ رايات، ولا ظنٌّ أنّها استقرّت.
           printf '%s' "$GEMINI_KEYS_JSON" > keys.json
-          node tools/gen25.js proj 1 --keys keys.json >/tmp/tts-repair.log 2>&1
-          code=0
-          for shard in 0 1 2; do
-            node tools/listen.js proj 1 --batch 4 --model gemini-3.5-flash-lite --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
-            [ "$code" = 0 ] || break
-          done
-          [ "$code" = 0 ] || { rm -f keys.json /tmp/*.log; exit "$code"; }
-          for shard in 0 1 2; do
-            node tools/adjudicate_listen.js proj --model gemini-3.5-flash-lite --shard "$shard" --shards 3 --keys keys.json >>/tmp/adjudicate-repair.log 2>&1 || code=$?
-            [ "$code" = 0 ] || break
+          settled=0
+          for round in 1 2 3; do
+            python tools/repair_true_errors.py proj repair.json
+            node tools/gen25.js proj 1 --keys keys.json >/tmp/tts-repair.log 2>&1
+            code=0
+            for shard in 0 1 2; do
+              node tools/listen.js proj 1 --batch 4 --model gemini-3.5-flash-lite --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
+              [ "$code" = 0 ] || break
+            done
+            [ "$code" = 0 ] || { rm -f keys.json /tmp/*.log; exit "$code"; }
+            for shard in 0 1 2; do
+              node tools/adjudicate_listen.js proj --model gemini-3.5-flash-lite --shard "$shard" --shards 3 --keys keys.json >>/tmp/adjudicate-repair.log 2>&1 || code=$?
+              [ "$code" = 0 ] || break
+            done
+            [ "$code" = 0 ] || { rm -f keys.json /tmp/*.log; exit "$code"; }
+            python tools/listen_public_summary.py proj
+            if python tools/listen_gate.py proj; then
+              settled=1
+              echo "✅ استقرّت دورةُ الإصلاح في الجولة $round"
+              break
+            fi
+            echo "↻ جولةُ إصلاحٍ أخرى: البوّابةُ لم تستقرّ بعد الجولة $round"
           done
           rm -f keys.json /tmp/tts-repair.log /tmp/listen-repair.log /tmp/adjudicate-repair.log
-          python tools/listen_public_summary.py proj
-          [ "$code" = 0 ] || exit "$code"
+          [ "$settled" = 1 ] || { echo "⛔ لم تستقرّ دورةُ الإصلاح في ثلاث جولات — يُقرأ السببُ ولا يُنشر"; exit 1; }
       - if: steps.plan.outputs.rebuilt == 'true'
         uses: ./.github/actions/private-download
         with:
