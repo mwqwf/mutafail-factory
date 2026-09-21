@@ -1,0 +1,8 @@
+{
+ "slug": "thawr",
+ "engine": "legacy-sealed-command",
+ "payload_sha256": "da6a2c38a52b4619f1f37d4ca91bb8797b42fae4804de4441376229222f2964e",
+ "requested_at": "2026-09-21T07:47:08Z",
+ "reason": "أمر المالك 2026-09-21: فيلم اليوم «الثور» بالمحرّك القديم لا بمسار OpenAI؛ والخطة تُترك كما هي بلا تعديل",
+ "artifact_retention_days": 1
+}

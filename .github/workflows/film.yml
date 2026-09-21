@@ -29,8 +29,10 @@ env:
 jobs:
   # ══════════ ١) الفضُّ والتهيئة ══════════
   prepare:
-    # Owner approval: one amal-6 production cycle. Fail closed for every other command.
-    if: "${{ inputs.command_dir == 'ops/commands/amal-6' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'production: launch amal-6')) }}"
+    # Owner approval: the amal-6 cycle, and the thawr cycle on the old engine
+    # (أمر المالك 2026-09-21: «اصنع فلم اليوم — الثور — بمحرّكنا القديم»).
+    # Fail closed for every other command.
+    if: "${{ inputs.command_dir == 'ops/commands/amal-6' || inputs.command_dir == 'ops/commands/thawr' || (github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'production: launch amal-6') || startsWith(github.event.head_commit.message, 'production: launch thawr'))) }}"
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
@@ -73,6 +75,16 @@ jobs:
             echo "⛔ لا مجلّد أمرٍ في هذه الدفعة"; exit 1
           fi
           echo "الأمر: $DIR"
+          # ⭐ المحرّكُ القديم: حمولةٌ مختومةٌ داخل مجلّد الأمر نفسِه (payload.enc + key.enc).
+          #    لا صورَ OpenAI معتمدةً مسبقاً في هذا المسار؛ الصورُ تُجلب في عامل `images`
+          #    بـ`imgdl3.py` كما كان قبل تثبيت مسار amal-6. وحارسُ `image_sources.py` يبقى
+          #    كما هو بلا تخفيف: سياستُه الصارمة مقصورةٌ أصلاً على الأسماء amal-N حيث N≥3.
+          if [ -f "$DIR/payload.enc" ] && [ -f "$DIR/key.enc" ]; then
+            echo "المحرّك: القديم — فضُّ الحمولة من مجلّد الأمر نفسِه"
+            bash tools/unseal.sh "$DIR" "$PWD/proj"
+            ls -la proj
+            exit 0
+          fi
           # The encrypted payload is split only to stay below GitHub's per-file
           # limit. Reassembly is byte-for-byte and verified before decryption.
           STAGED="ops/pending/amal-6-final"
@@ -213,7 +225,7 @@ jobs:
 
   # ══════════ ٢) الصوت — ستّة أسهم متوازية ══════════
   tts:
-    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.final_source_run == '' }}
+    if: ${{ contains(fromJSON('["amal-6","thawr"]'), needs.prepare.outputs.slug) && needs.prepare.outputs.final_source_run == '' }}
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -279,7 +291,7 @@ jobs:
   #    يُخرج أفلاماً بلا واحدةٍ منها. وحصّةُ نموذج الفحص منفصلةٌ فلا تزاحم التوليد.
   # الرايات تُحكّم؛ أما الفحص الناقص فيفشل. ولا نشر قبل اجتياز listening-gate.
   listen:
-    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.final_source_run == '' }}
+    if: ${{ contains(fromJSON('["amal-6","thawr"]'), needs.prepare.outputs.slug) && needs.prepare.outputs.final_source_run == '' }}
     needs: [prepare, tts]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -332,7 +344,7 @@ jobs:
           retention-days: 1
   # الخطأ المؤكد لا يُمرّر: يعاد المقطع وحده، ثم يفحص على بصمته الجديدة.
   repair:
-    if: ${{ always() && needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.final_source_run == '' && needs.listen.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
+    if: ${{ always() && contains(fromJSON('["amal-6","thawr"]'), needs.prepare.outputs.slug) && needs.prepare.outputs.final_source_run == '' && needs.listen.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
     needs: [prepare, listen, assemble, reuse-film]
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -446,7 +458,7 @@ jobs:
 
   # التقرير الاستشاري لا يكفي للنشر: كل كتلة مفحوصة ومرتبطة بالنص والصوت الحاليين.
   listening-gate:
-    if: ${{ always() && needs.prepare.outputs.slug == 'amal-6' && (needs.repair.result == 'success' || needs.reuse-final.result == 'success') }}
+    if: ${{ always() && contains(fromJSON('["amal-6","thawr"]'), needs.prepare.outputs.slug) && (needs.repair.result == 'success' || needs.reuse-final.result == 'success') }}
     needs: [prepare, repair, reuse-final]
     runs-on: ubuntu-latest
     steps:
@@ -463,7 +475,7 @@ jobs:
 
   # ══════════ ٣) الصور — عاملٌ واحد (بوليناشنز: طابورٌ واحد) ══════════
   images:
-    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.film_source_run == '' }}
+    if: ${{ contains(fromJSON('["amal-6","thawr"]'), needs.prepare.outputs.slug) && needs.prepare.outputs.film_source_run == '' }}
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -489,7 +501,7 @@ jobs:
   # ⛔ كانت تُحسب داخل كلّ عامل تصييرٍ من العشرة: عشرُ تثبيتاتٍ لـtorch وعشرُ حسابات
   #    للخرائط نفسها — وكلُّها تفشل أصلاً لأنّ `transformers` لم يكن مثبَّتاً البتّة.
   depth:
-    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.film_source_run == '' }}
+    if: ${{ contains(fromJSON('["amal-6","thawr"]'), needs.prepare.outputs.slug) && needs.prepare.outputs.film_source_run == '' }}
     needs: [prepare, images]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -511,7 +523,7 @@ jobs:
 
   # ══════════ ٥) التصيير المجسَّم — عشرة عمّال ══════════
   render:
-    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.film_source_run == '' }}
+    if: ${{ contains(fromJSON('["amal-6","thawr"]'), needs.prepare.outputs.slug) && needs.prepare.outputs.film_source_run == '' }}
     needs: [prepare, tts, images, depth]
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -544,7 +556,7 @@ jobs:
 
   # ══════════ ٦) التركيب والريلزات والمصغّرات ══════════
   assemble:
-    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.film_source_run == '' }}
+    if: ${{ contains(fromJSON('["amal-6","thawr"]'), needs.prepare.outputs.slug) && needs.prepare.outputs.film_source_run == '' }}
     needs: [prepare, render]
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -602,7 +614,7 @@ jobs:
 
   # استئناف موجّه: انسخ الفيلم المكتمل من الشوط السابق بلا تصيير جديد.
   reuse-film:
-    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.film_source_run != '' }}
+    if: ${{ contains(fromJSON('["amal-6","thawr"]'), needs.prepare.outputs.slug) && needs.prepare.outputs.film_source_run != '' }}
     needs: prepare
     runs-on: ubuntu-latest
     steps:
@@ -628,7 +640,7 @@ jobs:
   # استئناف نشر فقط: استعد الفيلم والصوت وأدلة الاستماع النهائية المكتملة، ولا
   # تعد أي توليد أو تصيير سبق نجاحه.
   reuse-final:
-    if: ${{ needs.prepare.outputs.slug == 'amal-6' && needs.prepare.outputs.final_source_run != '' }}
+    if: ${{ contains(fromJSON('["amal-6","thawr"]'), needs.prepare.outputs.slug) && needs.prepare.outputs.final_source_run != '' }}
     needs: prepare
     runs-on: ubuntu-latest
     steps:
@@ -676,7 +688,7 @@ jobs:
 
   # ══════════ ٧) النشر على يوتيوب ══════════
   publish:
-    if: ${{ always() && needs.prepare.outputs.slug == 'amal-6' && (needs.repair.result == 'success' || needs.reuse-final.result == 'success') && needs.listening-gate.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
+    if: ${{ always() && contains(fromJSON('["amal-6","thawr"]'), needs.prepare.outputs.slug) && (needs.repair.result == 'success' || needs.reuse-final.result == 'success') && needs.listening-gate.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') }}
     needs: [prepare, assemble, reuse-film, reuse-final, repair, listening-gate]
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -753,7 +765,7 @@ jobs:
   # إن اكتمل الفيلم وتعطّل الفحص/النشر، يحفظ شوط المصدر ليستأنف من آثاره
   # المشفرة في نافذة الحصة التالية بدلاً من إعادة الصوت أو الصور أو التصيير.
   defer-resume:
-    if: ${{ always() && needs.prepare.outputs.slug == 'amal-6' && needs.prepare.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') && needs.publish.result != 'success' }}
+    if: ${{ always() && contains(fromJSON('["amal-6","thawr"]'), needs.prepare.outputs.slug) && needs.prepare.result == 'success' && (needs.assemble.result == 'success' || needs.reuse-film.result == 'success') && needs.publish.result != 'success' }}
     needs: [prepare, assemble, reuse-film, reuse-final, listen, repair, listening-gate, publish]
     # Previous job condition retained below for reversal:
     # if: always() && needs.prepare.result == 'success' && needs.assemble.result == 'success' && needs.publish.result != 'success'
