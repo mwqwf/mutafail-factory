@@ -10,6 +10,8 @@
 
 ومذهبُ `imgdl3` المقيس محفوظٌ بنصّه:
 - عاملٌ **واحد** لا توازيَ البتّة (الطبقةُ المجانية: طابورٌ واحدٌ لكل عنوان).
+  ⭐ والتسريعُ بالقسمة على عدّائين فأكثر (`--shard/--shards`) لا يخالف هذا: كلُّ
+    عدّاءٍ عنوانٌ مستقلٌّ بطابورٍ مستقلّ. ⛔ أمّا داخل العدّاء فواحدٌ كما كان.
 - محاولاتٌ **قصيرة**: ٤٥ ثانية × ٨، وفاصلُ ٢٠ ثانية بعد الإخفاق و٣٥ بعد ٤٢٩.
 - **يقول لماذا فشل**: رمزُ الحالة والحجم في كل إخفاق — لا «✗ فشل» صمّاء.
 - `https://` مع اتّباع التحويل (`-L`): الخادمُ يردّ ٣٠١ على `http://`.
@@ -26,20 +28,48 @@ import urllib.parse
 
 from PIL import Image
 
-PROJ = os.path.abspath(sys.argv[1])
+# ⛔ تُقرأ الوسائطُ عند التشغيل لا عند الاستيراد، وإلّا سقط استيرادُ الاختبار
+#    (‏`sys.argv[1]` غيرُ موجودٍ في مشغّل الاختبارات) فبقي الحارسُ بلا اختبار.
+PROJ = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else ""
 TIMEOUT = 45          # محاولةٌ قصيرة تنجح حيث تفشل الطويلة (مقيس)
 ATTEMPTS = 8
 GAP_FAIL = 20         # بعد إخفاق
 GAP_429 = 35          # بعد خنق
 GAP_OK = 1.2          # بين صورتين ناجحتين
+
+
+def _shard_args(argv):
+    """`--shard N --shards M` — القسمةُ على عدّائين، لا خيوطٌ داخل العدّاء الواحد.
+
+    ⭐ المقياسُ الذي أوجبها (2026-09-21): خمسٌ وسبعون صورةً في ثمانين دقيقة، صفرُ
+       فشلٍ نهائيّ، وزمنُ الصورة الواحدة ≈٤٥ ثانيةً كلُّها انتظارُ توليدٍ عند الخادم.
+       ⇒ العنقُ ليس فواصلَنا بل زمنُ الخادم، ولا يُحلّ إلا بطابورٍ آخر.
+    ⛔ ومذهبُ «عاملٌ واحدٌ لا توازيَ البتّة» باقٍ على وجهه: **طابورٌ واحدٌ لكلّ
+       عنوان**. وكلُّ عدّاءٍ في مصفوفة الأعمال عنوانٌ مستقلّ، فلا يُخالَف المقياس.
+       ⛔ ولا يُزاد التوازي داخل العدّاء الواحد بخيوطٍ أو عمليّات.
+    """
+    shard, shards = 0, 1
+    for i, a in enumerate(argv):
+        if a == "--shard" and i + 1 < len(argv):
+            shard = int(argv[i + 1])
+        elif a == "--shards" and i + 1 < len(argv):
+            shards = int(argv[i + 1])
+    if shards < 1 or not (0 <= shard < shards):
+        raise SystemExit("⛔ قسمةٌ غيرُ صالحة: --shard %d من --shards %d" % (shard, shards))
+    return shard, shards
+
+
+def slice_for(items, shard, shards):
+    """قسمةٌ دوريّةٌ ثابتة: كلُّ صورةٍ في سهمٍ واحدٍ لا غير، وبلا فجوة."""
+    return [it for n, it in enumerate(items) if n % shards == shard]
+
+
+SHARD, SHARDS = _shard_args(sys.argv[2:]) if len(sys.argv) > 1 else (0, 1)
 MINBYTES = 25000      # ⛔ لا ترفع العتبة: السليم يبدأ من ٢٩ ك.ب
 TARGET = (1920, 1080)
 
-IMGS = json.load(io.open(os.path.join(PROJ, "images.json"), encoding="utf-8"))
 DIR = os.path.join(PROJ, "img")
 ORIG = os.path.join(PROJ, "img-orig")
-os.makedirs(DIR, exist_ok=True)
-os.makedirs(ORIG, exist_ok=True)
 
 
 def sound(path):
@@ -82,9 +112,15 @@ def fetch(prompt, out, seed):
 
 
 def main():
-    print("=== %s: %d صورة ===" % (os.path.basename(PROJ), len(IMGS)), flush=True)
+    global IMGS
+    IMGS = json.load(io.open(os.path.join(PROJ, "images.json"), encoding="utf-8"))
+    os.makedirs(DIR, exist_ok=True)
+    os.makedirs(ORIG, exist_ok=True)
+    mine = slice_for(IMGS, SHARD, SHARDS)
+    print("=== %s: %d صورة (سهم %d من %d ⇐ %d صورة) ==="
+          % (os.path.basename(PROJ), len(IMGS), SHARD, SHARDS, len(mine)), flush=True)
     ok, failed = 0, []
-    for it in IMGS:
+    for it in mine:
         out = os.path.join(DIR, it["id"] + ".jpg")
         if sound(out):
             upscale(out)

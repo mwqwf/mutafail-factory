@@ -396,7 +396,7 @@ jobs:
       - if: steps.plan.outputs.rebuilt == 'true'
         uses: ./.github/actions/private-download
         with:
-          name: img
+          pattern: 'img*'
           path: proj/img
           run-id: ${{ needs.prepare.outputs.film_source_run }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -479,6 +479,14 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    # ⭐ القسمةُ على ستّة عدّائين — مقياسُ 2026-09-21: ٧٥ صورةً في ٨٠ دقيقةً بعدّاءٍ
+    #    واحد، بصفر فشلٍ نهائيّ، وزمنُ الصورة ≈٤٥ ثانيةً كلُّها انتظارُ الخادم.
+    #    ⇒ العنقُ زمنُ التوليد لا فواصلُنا، فلا يُحلّ إلا بطابورٍ آخر.
+    # ⛔ ومذهبُ «عاملٌ واحدٌ لا توازيَ البتّة» **باق**: طابورٌ واحدٌ لكلّ عنوان،
+    #    وكلُّ عدّاءٍ عنوانٌ مستقلّ. ⛔ ولا خيوطَ ولا عمليّاتٍ متوازيةٍ داخل العدّاء.
+    strategy:
+      fail-fast: false
+      matrix: { shard: [0, 1, 2, 3, 4, 5] }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -487,15 +495,16 @@ jobs:
       - run: pip install -q pillow
       - uses: ./.github/actions/private-download
         with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+      # ما نزل في محاولةٍ سابقةٍ يُستعاد فلا يُعاد تنزيلُه (‏`img*` تشمل الأثر القديم `img`)
       - uses: ./.github/actions/private-download
         continue-on-error: true
-        with: { name: img, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+        with: { pattern: 'img*', path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - run: python tools/image_sources.py proj  # amal-3+: صور OpenAI المعتمدة أو استثناء مختوم موثق
-      - run: python tools/imgdl3.py proj      # احتياط فقط؛ الحارس السابق يمنعه من العمل بصمت
+      - run: python tools/imgdl3.py proj --shard ${{ matrix.shard }} --shards 6
       # ⛔ والصورُ كذلك: ما نزل فعلاً يُرفع ولو سقط العامل، فلا يُعاد تنزيلُه
       - uses: ./.github/actions/private-upload
         if: always()
-        with: { name: img, path: proj/img, retention-days: 1 }
+        with: { name: 'img-${{ matrix.shard }}', path: proj/img, retention-days: 1 }
 
   # ══════════ ٤) خرائط العمق — مرّةً واحدةً للجميع ══════════
   # ⛔ كانت تُحسب داخل كلّ عامل تصييرٍ من العشرة: عشرُ تثبيتاتٍ لـtorch وعشرُ حسابات
@@ -516,7 +525,7 @@ jobs:
       - uses: ./.github/actions/private-download
         with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - uses: ./.github/actions/private-download
-        with: { name: img, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+        with: { pattern: 'img*', path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - run: python -c "import sys;sys.path.insert(0,'tools');import kb3d;kb3d.depth_maps('proj')"
       - uses: ./.github/actions/private-upload
         with: { name: depth, path: "proj/img/*_depth.png", retention-days: 1 }
@@ -539,7 +548,7 @@ jobs:
       - uses: ./.github/actions/private-download
         with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - uses: ./.github/actions/private-download
-        with: { name: img, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+        with: { pattern: 'img*', path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - uses: ./.github/actions/private-download
         with: { name: depth, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - uses: ./.github/actions/private-download
@@ -570,7 +579,7 @@ jobs:
       - uses: ./.github/actions/private-download
         with: { name: proj, path: proj, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - uses: ./.github/actions/private-download
-        with: { name: img, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
+        with: { pattern: 'img*', path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - uses: ./.github/actions/private-download
         with: { name: depth, path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - uses: ./.github/actions/private-download
