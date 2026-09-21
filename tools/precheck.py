@@ -131,6 +131,12 @@ if len(f.get("description", "")) > 5000:
     bad.append("الوصفُ أطولُ من خمسةِ آلافِ حرف")
 if len(pub.get("reels", [])) != 2:
     bad.append("ملفُّ النشر: ريلزان اثنان لا غير")
+# ⛔⛔ درسٌ مقيسٌ 2026-09-21 (حلقة «الثور»): سقط عاملُ النشر بعد الشوط كلِّه على
+#    `⛔ ملفا الريلز ليسا r1.mp4 وr2.mp4 بالضبط` — لأنّ الحمولة كتبت `"file": "r1"`.
+#    وهو شرطٌ كان يُفحص في العدّاء آخرَ الطريق، فيُهدر شوطٌ كامل. ⇒ يُفحص هنا مجّاناً.
+if sorted(r.get("file", "") for r in pub.get("reels", [])) != ["r1.mp4", "r2.mp4"]:
+    bad.append("ملفّا الريلز في publish.json يجب أن يكونا r1.mp4 وr2.mp4 بالضبط "
+               "(شرطُ publish_preflight.py)")
 for r in pub.get("reels", []):
     if "{FILM_URL}" not in r.get("description", ""):
         bad.append("ريلز %s: وصفُه بلا رابطِ الفيلم" % r.get("file"))
