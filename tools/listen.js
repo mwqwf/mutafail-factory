@@ -29,6 +29,8 @@ const SHARD = parseInt(flag('shard', '0'), 10);
 const SHARDS = parseInt(flag('shards', '1'), 10);
 const MODEL = flag('model', 'gemini-3.5-flash');
 const BATCH = Math.max(1, parseInt(flag('batch', '4'), 10));
+// مهلةُ المجموعة الواحدة — تُخفَّض في الاختبار وحدَه لئلّا ينتظر أربع دقائق
+const GROUP_MS = Math.max(1, parseInt(flag('group-deadline-ms', String(4 * 60 * 1000)), 10));
 if (!PROJ) { console.error('usage: node listen.js <projectDir> [workers] [--keys f]'); process.exit(1); }
 
 const KEYFILES = [
@@ -77,9 +79,17 @@ const PROMPT = `أنت مدقّقٌ لغويّ عربيّ دقيق. ستتلقى
 ⚠️ ولا تعتبر اختلافَ النبر أو مدَّ الصوت مخالفةً — المخالفةُ في الحرف والحركة وحدهما.
 `;
 
-async function checkGroup(group) {
+// ⛔⛔ الدرسُ المقيس 2026-09-21 (حلقة «الثور»): دفعةٌ من ستّ عشرة كتلةً صوتيّةً
+//    تجاوزت مهلةَ النداء (١٢٠ث) مرّةً بعد مرّة، فانتهت مهلةُ المجموعة كلِّها
+//    (‏٣ دقائق) فرجعت **الستّ عشرة كلُّها** «مهلةٌ منتهية». ثمّ أعاد حارسُ
+//    `retry.yml` الشوطَ ثلاثاً، فكرّر الدفعةَ الكبيرةَ نفسَها وسقط السقوطَ نفسَه:
+//    ⇒ الإعادةُ العمياءُ لا تُصلح دفعةً أكبرَ من طاقة النداء.
+// ⭐ فالعلاجُ **قسمةُ الدفعة عند التعذّر** لا إعلانُها ميّتة: ١٦ ← ٨ ← ٤ … حتى
+//    الواحدة. فلا تُهدر كتلةٌ سليمةٌ لأنّ جارتَها أثقلت النداء.
+// ⛔ ولا يُقسَم عند `nokeys` (نفادُ الحصّة اليوميّة) — القسمةُ حينئذٍ طحنٌ بلا فحص.
+async function checkGroup(group, depth = 0) {
   const ids = group.map(x => x.block.id);
-  const deadline = Date.now() + 3 * 60 * 1000;
+  const deadline = Date.now() + GROUP_MS;
   while (Date.now() < deadline) {
     const key = nextKey();
     if (!key) return Object.fromEntries(ids.map(id => [id, {ok: null, why: 'nokeys'}]));
@@ -114,13 +124,26 @@ async function checkGroup(group) {
       const txt = j?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
       try {
         return parseResponse(txt, ids);
-      } catch (e) { return Object.fromEntries(ids.map(id => [id, {ok: null, why: 'ردٌّ مجمّع غير صالح'}])); }
+      } catch (e) {
+        // ردٌّ مجمّعٌ فاسدٌ لدفعةٍ كبيرة: تُقسم وتُعاد، فلعلّ الخلل في حجمها
+        if (group.length > 1) return splitAndCheck(group, depth, 'ردٌّ مجمّع غير صالح');
+        return Object.fromEntries(ids.map(id => [id, {ok: null, why: 'ردٌّ مجمّع غير صالح'}]));
+      }
     } catch (e) { await new Promise(z => setTimeout(z, 2000)); }
   }
+  if (group.length > 1) return splitAndCheck(group, depth, 'مهلةٌ منتهية');
   return Object.fromEntries(ids.map(id => [id, {ok: null, why: 'مهلةٌ منتهية'}]));
 }
 
-(async () => {
+async function splitAndCheck(group, depth, why) {
+  const mid = Math.ceil(group.length / 2);
+  console.log(`  ↯ قسمةُ دفعةٍ متعذّرة (${why}): ${group.length} ← ${mid}+${group.length - mid}`);
+  const left = await checkGroup(group.slice(0, mid), depth + 1);
+  const right = await checkGroup(group.slice(mid), depth + 1);
+  return {...left, ...right};
+}
+
+async function run() {
   console.log(`مفاتيح: ${keys.length} | كتلُ الحصّة ${SHARD}/${SHARDS}: ${blocks.length} | نموذج: ${MODEL} | تجميع: ${BATCH}`);
   if (!keys.length) { console.error('⛔ لا مفاتيح — الفحصُ السمعيّ لم يجرِ'); process.exit(1); }
   const digests = new Map(blocks.map(b => {
@@ -177,4 +200,7 @@ async function checkGroup(group) {
     Object.entries(tally).sort((a, b) => b[1] - a[1])
       .forEach(([w, n]) => console.log(`  · ${n} × ${w}`));
   }
-})();
+}
+
+module.exports = { checkGroup, splitAndCheck };
+if (require.main === module) run();
