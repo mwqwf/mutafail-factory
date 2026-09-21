@@ -1,9 +1,9 @@
 {
  "slug": "thawr",
  "engine": "legacy-sealed-command",
- "payload_sha256": "9851d5d185bd4b6378657eb5232c70015bb7749c876938fadec1fb1cda92128c",
- "requested_at": "2026-09-21T08:20:00Z",
- "reason": "أمر المالك 2026-09-21: فيلم اليوم «الثور»، والصورُ بالمحرّك القديم (imgdl3) لا بمسار OpenAI. وأُعيد ختمُ الحمولة بعد تمرير السيناريو على حارس الأسلوب البشريّ humanlint.py",
+ "payload_sha256": "b19e68e3c76d5a52d770009fe0d0eb44e49b685157d3494ea4a0b58185c446ff",
+ "requested_at": "2026-09-21T08:30:00Z",
+ "reason": "أمر المالك 2026-09-21: فيلم اليوم «الثور»، والصورُ بالمحرّك القديم (imgdl3) لا بمسار OpenAI. ولا موعدَ نشرٍ — متى جهزت الحزمة نُشرت، فحُذف publishAt وضُبط publicNow=true للفيلم وللشورتين",
  "style_guard": "humanlint.py — اجتاز المقاييس الثمانية بلا تحكيمٍ ولا استثناء",
  "artifact_retention_days": 1
 }
