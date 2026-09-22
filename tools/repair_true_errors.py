@@ -26,10 +26,30 @@ def digest(text, audio_path):
     return h.hexdigest()
 
 
+def stuck_unverified(project):
+    """كتلٌ تردّها بوّابةُ الاستماع بـ«غير مفحوصة أو مرفوعةُ راية» بعد تمام الفحص.
+
+    ⛔ الثقبُ المقيس (شوط 35705031085 · 2026-09-22): كتلةُ `r_002` لم يرجع لها
+    نتيجةُ فحصٍ أصلاً، فلم تكن «خطأً مؤكَّداً» فلم يُعِد العاملُ توليدَها، فدارت
+    دورةُ الإصلاح في محلّها ثلاثَ إعاداتٍ ثمّ سقط الشوط. والعلاجُ أنّ ما تردّه
+    البوّابةُ بعد الفحص **يُعاد توليدُه**، فلا يبقى في المنتَج صوتٌ لم يُتحقَّق منه.
+    ⭐ وهذا يزيد الحارسَ إحكاماً لا ليناً: لا يمرّ شيءٌ بلا نتيجةٍ مطابقةِ البصمة.
+    """
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import listen_gate
+    ids = []
+    for problem in listen_gate.audit(project):
+        ident, _, kind = str(problem).partition(": ")
+        if kind == "unchecked-or-flagged" and os.path.isfile(
+                os.path.join(project, "audio", ident + ".wav")):
+            ids.append(ident)
+    return ids
+
+
 def main(project, output_file):
     blocks = {b["id"]: b for b in json.load(io.open(os.path.join(project, "blocks.json"), encoding="utf-8"))}
     reviews = load_many(os.path.join(project, "listen_reviews*.json"))
-    repair = []
+    repair = [i for i in stuck_unverified(project) if i in blocks]
     for ident, review in reviews.items():
         if review.get("decision") != "true_error" or ident not in blocks:
             continue
