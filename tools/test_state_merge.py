@@ -37,3 +37,13 @@ class RepairRerenderSource(unittest.TestCase):
         block = wf[start:end]
         self.assertNotIn("run-id: ${{ needs.prepare.outputs.film_source_run }}\n", block)
         self.assertEqual(block.count("film_source_run || github.run_id"), 3)
+
+
+class MergeToolSurvivesReset(unittest.TestCase):
+    def test_tool_copied_before_reset(self):
+        wf = open(os.path.join(os.path.dirname(__file__), "..", ".github", "workflows", "film.yml"), encoding="utf-8").read()
+        i_cp = wf.index("cp tools/merge_playlists.py /tmp/state_keep/")
+        i_reset = wf.index("git reset -q --hard origin/master")
+        self.assertLess(i_cp, i_reset)
+        self.assertIn("python3 /tmp/state_keep/.merge_playlists.py", wf)
+        self.assertNotIn("python3 tools/merge_playlists.py", wf)

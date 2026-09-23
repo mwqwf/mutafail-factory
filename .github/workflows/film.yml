@@ -783,6 +783,9 @@ jobs:
           CHANGED=$(git status --porcelain --untracked-files=all ops/state ops/ready 2>/dev/null | sed -E 's/^...//')
           [ -n "$CHANGED" ] || { echo "لا جديد"; exit 0; }
           rm -rf /tmp/state_keep && mkdir -p /tmp/state_keep
+          # ⛔ درسٌ مقيسٌ 2026-09-23 (ismant): الأداةُ في الفرع لا في master، فيمحوها
+          #    reset --hard قبل استدعائها ⇒ تُنسخ جانباً أوّلاً.
+          cp tools/merge_playlists.py /tmp/state_keep/.merge_playlists.py
           printf '%s\n' "$CHANGED" > /tmp/state_keep/.list
           while IFS= read -r f; do
             [ -f "$f" ] || continue
@@ -794,7 +797,7 @@ jobs:
                 [ -f "/tmp/state_keep/$f" ] || continue
                 mkdir -p "$(dirname "$f")"
                 if [ "$f" = ops/state/playlists.json ] && [ -f "$f" ]; then
-                  python3 tools/merge_playlists.py "$f" "/tmp/state_keep/$f"
+                  python3 /tmp/state_keep/.merge_playlists.py "$f" "/tmp/state_keep/$f"
                 else
                   cp -a "/tmp/state_keep/$f" "$f"
                 fi
