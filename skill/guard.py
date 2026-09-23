@@ -4,6 +4,10 @@
    الاستعمال:  python guard.py <path/to/script.md>
    يعود بـ exit code 1 عند أي مخالفة، فيوقف خطّ الإنتاج."""
 import io, re, sys, os
+# طرفية وندوز (cp1252) تُسقط الطباعة العربية والرموز — يُفرض UTF-8 أيّاً كانت البيئة.
+for _s in (sys.stdout, sys.stderr):
+    try: _s.reconfigure(encoding='utf-8')
+    except Exception: pass
 
 # ⛔ محظورات صاحب القناة — لا تُخفَّف ولا يُستثنى منها شيء
 BANNED_IMG = {

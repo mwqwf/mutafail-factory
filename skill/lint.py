@@ -3,6 +3,10 @@
 الاستعمال:  python ~/.claude/skills/video-factory/lint.py <path>/script.md
 يمسك أنماط الخطأ التي أثبت القياس أنها تُنتج رايات."""
 import io, re, sys
+# طرفية وندوز (cp1252) تُسقط الطباعة العربية والرموز — يُفرض UTF-8 أيّاً كانت البيئة.
+for _s in (sys.stdout, sys.stderr):
+    try: _s.reconfigure(encoding='utf-8')
+    except Exception: pass
 
 TANWEEN = 'ًٌٍ'
 DIAC = 'ًٌٍَُِّْ'
