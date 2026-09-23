@@ -1,0 +1,11 @@
+{
+ "slug": "jamal",
+ "engine": "legacy-sealed-command",
+ "payload_sha256": "596de967935989169864596165a7596dc1625803cb5d2a83abf239961bebad93",
+ "requested_at": "2026-09-23T07:54:24Z",
+ "reason": "س٧·١ «كائنات غيّرت التاريخ» الحلقة ٢: الجمل. بقرار المالك 2026-09-23: فيلمان يوميّاً، واحدٌ من كلّ سلسلةٍ مفتوحة.",
+ "style_guard": "humanlint.py — اجتاز المقاييس الثمانية",
+ "thumb_guard": "thumbcheck.py — اجتاز",
+ "playlist": "PLJSofb55AafA صراحةً في publish.json",
+ "artifact_retention_days": 1
+}

@@ -1,0 +1,10 @@
+{
+ "slug": "kharita",
+ "engine": "legacy-sealed-command",
+ "payload_sha256": "9772607224b6808e8ed0a735d7c85c9aad192b7a354984b7932ecd610162600c",
+ "requested_at": "2026-09-23T08:01:31Z",
+ "reason": "س٣·١ «كيف قام هذا؟ تاريخ الأشياء» الحلقة ٣: الخريطة. بقرار المالك 2026-09-23: فيلمان يوميّاً، واحدٌ من كلّ سلسلةٍ مفتوحة.",
+ "style_guard": "humanlint.py — اجتاز",
+ "thumb_guard": "thumbcheck.py — اجتاز",
+ "artifact_retention_days": 1
+}
