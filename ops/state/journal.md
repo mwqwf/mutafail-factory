@@ -431,3 +431,13 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01Bx3mEcSKXgu48uvc2f1sSP
 - الرابط: https://github.com/mwqwf/mutafail-factory/actions/runs/35831330602
 - **المطلوب من الدماغ:** اقرأ سجلَّ الشوط، أصلِح السبب، وأعِد الدفع.
+## ⛔ شوطٌ استنفد الإعادات — 2026-09-23T09:55:33Z
+- الشوط: 35842056376
+- العنوان: 🎬 production: launch ismant — إعادةُ الاستئناف بعد إلغاء الشوط 35837205138 وهو معلَّق
+
+أُلغي الشوط المعلَّق حين دخلت المحاولةُ الثانية للرقاقة مجموعةَ التزامن. والرقاقةُ الآن قيد العمل، فهذا يقف خلفها ولا يُلغى.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Bx3mEcSKXgu48uvc2f1sSP
+- الرابط: https://github.com/mwqwf/mutafail-factory/actions/runs/35842056376
+- **المطلوب من الدماغ:** اقرأ سجلَّ الشوط، أصلِح السبب، وأعِد الدفع.
