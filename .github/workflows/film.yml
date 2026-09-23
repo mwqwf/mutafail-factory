@@ -773,14 +773,29 @@ jobs:
           # ⇒ لا دمجَ ولا rebase: حالةُ هذا الشوط هي الأحدثُ يقيناً (فهو الذي نفّذ
           #   الأثرَ على يوتيوب للتوّ)، فتُحفظ جانباً، ويُعاد الضبطُ إلى origin،
           #   ثمّ تُنسخ فوقه **ملفّاً ملفّاً** فلا تُمحى حالةُ حلقةٍ أخرى.
-          [ -n "$(git status --porcelain ops/state ops/ready 2>/dev/null)" ] || { echo "لا جديد"; exit 0; }
-          rm -rf /tmp/state_keep && mkdir -p /tmp/state_keep/state /tmp/state_keep/ready
-          cp -a ops/state/. /tmp/state_keep/state/
-          [ ! -d ops/ready ] || cp -a ops/ready/. /tmp/state_keep/ready/
+          # ⛔⛔ درسٌ مقيسٌ 2026-09-23: كان يُنسخ **مجلّدُ الحالة كلُّه** من نسخة الشوط فوق
+          #    master، فيمحو كلَّ ما كُتب في master بعد لقطة الفرع. هكذا محا نشرُ arbaeen
+          #    قائمةَ «كائنات غيّرت التاريخ» التي أنشأها نشرُ thawr قبله بيوم، فيُتِّمت سلسلةٌ
+          #    كاملة. ⇒ **لا يُنسخ إلا ما غيّره هذا الشوطُ نفسُه**، وplaylists.json يُدمج دمجاً.
+          CHANGED=$(git status --porcelain --untracked-files=all ops/state ops/ready 2>/dev/null | sed -E 's/^...//')
+          [ -n "$CHANGED" ] || { echo "لا جديد"; exit 0; }
+          rm -rf /tmp/state_keep && mkdir -p /tmp/state_keep
+          printf '%s\n' "$CHANGED" > /tmp/state_keep/.list
+          while IFS= read -r f; do
+            [ -f "$f" ] || continue
+            mkdir -p "/tmp/state_keep/$(dirname "$f")" && cp -a "$f" "/tmp/state_keep/$f"
+          done < /tmp/state_keep/.list
           for i in 1 2 3 4; do
             if git fetch -q origin master && git reset -q --hard origin/master; then
-              cp -a /tmp/state_keep/state/. ops/state/
-              mkdir -p ops/ready && cp -a /tmp/state_keep/ready/. ops/ready/
+              while IFS= read -r f; do
+                [ -f "/tmp/state_keep/$f" ] || continue
+                mkdir -p "$(dirname "$f")"
+                if [ "$f" = ops/state/playlists.json ] && [ -f "$f" ]; then
+                  python3 tools/merge_playlists.py "$f" "/tmp/state_keep/$f"
+                else
+                  cp -a "/tmp/state_keep/$f" "$f"
+                fi
+              done < /tmp/state_keep/.list
               git add -A ops/state ops/ready
               if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
               git commit -qm "✅ نُشرت: ${{ needs.prepare.outputs.slug }}" && git push -q origin HEAD:master && exit 0
