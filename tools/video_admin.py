@@ -23,6 +23,37 @@ svc = build("youtube", "v3", credentials=Credentials(
     token_uri="https://oauth2.googleapis.com/token",
     scopes=["https://www.googleapis.com/auth/youtube"]), cache_discovery=False)
 
+
+
+def _items(pl):
+    out, tok = [], None
+    while True:
+        p = svc.playlistItems().list(part="contentDetails", playlistId=pl,
+                                     maxResults=50, pageToken=tok).execute()
+        out += [i["contentDetails"]["videoId"] for i in p["items"]]
+        tok = p.get("nextPageToken")
+        if not tok:
+            return out
+
+
+# ⭐ توحيدُ قائمتين: {"copyPlaylist": {"from": "PL…", "into": "PL…"}}
+#    يُضيف ما في «from» إلى «into» بترتيبه، ولا يحذف شيئاً من أيٍّ منهما.
+if "copyPlaylist" in CMD:
+    src, dst = CMD["copyPlaylist"]["from"], CMD["copyPlaylist"]["into"]
+    have = _items(dst)
+    todo = [v for v in _items(src) if v not in have]
+    print("يُضاف إلى", dst, "من", src, ":", todo, flush=True)
+    for pos, v in enumerate(todo):
+        svc.playlistItems().insert(part="snippet", body={"snippet": {
+            "playlistId": dst, "position": pos,
+            "resourceId": {"kind": "youtube#video", "videoId": v}}}).execute()
+    time.sleep(3)
+    missing = [v for v in todo if v not in _items(dst)]
+    if missing:
+        raise SystemExit("⛔ لم يثبت في القائمة: " + ", ".join(missing))
+    print("✅ تحقّق: أُضيف", len(todo), "إلى", dst, "| مجموعها الآن", len(_items(dst)), flush=True)
+    raise SystemExit(0)
+
 vid = CMD["videoId"]
 r = svc.videos().list(part="snippet,status", id=vid).execute()
 if not r.get("items"):
