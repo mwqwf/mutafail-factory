@@ -411,12 +411,15 @@ jobs:
           done
           rm -f keys.json /tmp/tts-repair.log /tmp/listen-repair.log /tmp/adjudicate-repair.log
           [ "$settled" = 1 ] || { echo "⛔ لم تستقرّ دورةُ الإصلاح في ثلاث جولات — يُقرأ السببُ ولا يُنشر"; exit 1; }
+      # ⛔⛔ درسٌ مقيسٌ 2026-09-23 (شوط الإسمنت 35831301004): في الشوط الجديد يكون
+      #    film_source_run فارغاً، فبحث التنزيلُ في «الشوط NaN» وسقط بـNot Found بعد أن
+      #    استقرّت دورةُ الإصلاح. ⇒ مصدرُ اللقطات: شوطُ الفيلم المستأنَف إن وُجد، وإلّا هذا الشوط.
       - if: steps.plan.outputs.rebuilt == 'true'
         uses: ./.github/actions/private-download
         with:
           pattern: 'img*'
           path: proj/img
-          run-id: ${{ needs.prepare.outputs.film_source_run }}
+          run-id: ${{ needs.prepare.outputs.film_source_run || github.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - if: steps.plan.outputs.rebuilt == 'true'
@@ -424,7 +427,7 @@ jobs:
         with:
           name: depth
           path: proj/img
-          run-id: ${{ needs.prepare.outputs.film_source_run }}
+          run-id: ${{ needs.prepare.outputs.film_source_run || github.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - if: steps.plan.outputs.rebuilt == 'true'
@@ -432,7 +435,7 @@ jobs:
         with:
           pattern: seg-*
           path: proj/work/seg
-          run-id: ${{ needs.prepare.outputs.film_source_run }}
+          run-id: ${{ needs.prepare.outputs.film_source_run || github.run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
       - name: أعد اللقطات المتأثرة ثم ركّب المخرجات

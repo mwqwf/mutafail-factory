@@ -27,3 +27,13 @@ class StateMerge(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RepairRerenderSource(unittest.TestCase):
+    def test_repair_downloads_fall_back_to_this_run(self):
+        wf = io.open(os.path.join(ROOT, ".github", "workflows", "film.yml"), encoding="utf-8").read()
+        start = wf.index("  repair:")
+        end = wf.index("  listening-gate:")
+        block = wf[start:end]
+        self.assertNotIn("run-id: ${{ needs.prepare.outputs.film_source_run }}\n", block)
+        self.assertEqual(block.count("film_source_run || github.run_id"), 3)
