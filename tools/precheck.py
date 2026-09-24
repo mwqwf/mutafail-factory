@@ -37,7 +37,9 @@ if bad:
 # ⛔ `humanlint.py` حارسٌ مانعٌ لا مستشار (أمر المالك 2026-09-21: أسلوبٌ بشريّ،
 #    ولا مثاليّةَ زائدةً توحي بأنّ السيناريو كُتب بالذكاء الاصطناعيّ). وتخطّيه
 #    يكون بإصلاح النصّ أو بتحكيمٍ مكتوبٍ في `style_review.json`، لا بحذفه من هنا.
-for tool in ("lint.py", "guard.py", "humanlint.py"):
+# ⛔ `quranverify.py` (أمر المالك 2026-09-24: «لا تحرّف الآيات»): كلُّ ما بين ﴿ ﴾ يطابق
+#    المصحفَ المحلّيَّ حرفيّاً، ولا قرآنَ بلا وسم. مانعٌ لا مستشار.
+for tool in ("lint.py", "guard.py", "humanlint.py", "quranverify.py"):
     r = sp.run([sys.executable, os.path.join(HERE, tool), os.path.join(P, "script.md")],
                capture_output=True, text=True)
     print(r.stdout.strip())
