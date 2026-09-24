@@ -1,0 +1,13 @@
+{
+ "slug": "saa",
+ "engine": "legacy-sealed-command",
+ "payload_sha256": "4060ca43c0a81c26464e583bfb8a34d45937fd8a74769f9ec5eb2bf09459b791",
+ "requested_at": "2026-09-24T09:04:18Z",
+ "reason": "س٣·١ «كيف قام هذا؟ تاريخ الأشياء» الحلقة ٤: الساعة. أمر المالك الدائم 2026-09-24: فيلمان يوميّاً، واحدٌ من كلّ سلسلةٍ مفتوحة.",
+ "style_guard": "humanlint.py — اجتاز المقاييس الإحدى عشرة بلا تحكيم",
+ "quran_guard": "quranverify.py — لا اقتباس",
+ "thumb_guard": "thumbcheck.py — اجتاز",
+ "playlist": "PLHtqlIIaW2Uw صراحةً في publish.json",
+ "estimated_minutes": 35.8,
+ "artifact_retention_days": 1
+}
