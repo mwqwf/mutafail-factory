@@ -1,0 +1,13 @@
+{
+ "slug": "hisan",
+ "engine": "legacy-sealed-command",
+ "payload_sha256": "d662290a02c7d7300d7c86de6e04e119b0498e041de38aef462acb1bb176a0ef",
+ "requested_at": "2026-09-24T09:09:20Z",
+ "reason": "س٧·١ «كائنات غيّرت التاريخ» الحلقة ٣: الحصان. أمر المالك الدائم 2026-09-24: فيلمان يوميّاً، واحدٌ من كلّ سلسلةٍ مفتوحة.",
+ "style_guard": "humanlint.py — اجتاز المقاييس الإحدى عشرة بلا تحكيم",
+ "quran_guard": "quranverify.py — ثمانية اقتباساتٍ مطابقةٌ للمصحف المحلّيّ حرفيّاً",
+ "thumb_guard": "thumbcheck.py — اجتاز",
+ "playlist": "PLJSofb55AafA صراحةً في publish.json",
+ "estimated_minutes": 36.2,
+ "artifact_retention_days": 1
+}
