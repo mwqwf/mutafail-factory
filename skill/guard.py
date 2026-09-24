@@ -7,8 +7,8 @@ import io, re, sys, os
 
 # ⛔ محظورات صاحب القناة — لا تُخفَّف ولا يُستثنى منها شيء
 BANNED_IMG = {
-    'نساء': r'\b(woman|women|girl|girls|female|lady|ladies|mother|wife|bride|feminine)\b',
-    'آلات موسيقية': r'\b(lute|oud|guitar|instrument|instruments|musician|musicians|tidinit|ardin|drum|drums|flute|string\s+instrument|playing\s+music|band|orchestra)\b',
+    'نساء': r'\b(woman|women|girl|girls|female|lady|ladies|mother|wife|bride|feminine|queen|queens|princess|daughter|sister|maiden|goddess|grandmother|widow|nun|priestess|empress|veiled\s+figure)\b',
+    'آلات موسيقية': r'\b(lute|oud|guitar|instrument|instruments|musician|musicians|tidinit|ardin|drum|drums|drummer|drummers|flute|flutes|string\s+instrument|playing\s+music|band|orchestra|trumpet|trumpets|trumpeter|bugle|bugles|cymbal|cymbals|tambourine|harp|lyre|violin|piano|zither|qanun|rebab|darbuka|tabla|timpani|kettledrum|kettledrums|gong|gongs|bagpipe|bagpipes|bell|bells|chime|chimes|carillon|horn\s+player|war\s+horn)\b',
     'موسيقى': r'\b(music|musical|singing|singer|song|dancing|dancer|dance)\b',
     'كتابة في الصورة': r'\b(text|letters|caption|inscription|calligraphy|signboard|banner\s+with|written)\b(?!.*\bNo\b)',
 }

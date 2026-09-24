@@ -177,6 +177,18 @@ if not pub.get("playlistId"):
     if not _known and not (_series and _new):
         bad.append("لا سبيلَ إلى قائمةٍ: ضَع playlistId أو series مسجَّلاً في "
                    "ops/state/playlists.json أو playlistNew{title,description}")
+else:
+    # ⛔ معرّفٌ صريحٌ لسلسلةٍ مسجَّلةٍ يجب أن يطابق قائمتَها — وإلا دخل الفيلمُ قائمةَ
+    #    سلسلةٍ أخرى صامتاً (سلسلتان تُنشران يوميّاً منذ 2026-09-23، فالخلطُ واردٌ).
+    try:
+        _pl = json.load(io.open(os.path.join(os.path.dirname(HERE), "ops", "state",
+                                             "playlists.json"), encoding="utf-8"))
+    except Exception:
+        _pl = {}
+    _want = _pl.get("السلاسل", {}).get(_series) if _series else None
+    if _want and _want != pub["playlistId"]:
+        bad.append("playlistId %s لا يطابق قائمةَ السلسلة «%s» المسجَّلة %s"
+                   % (pub["playlistId"], _series, _want))
 
 # ⑦ تقديرُ المدّة والحصّة
 DIAC = "ًٌٍَُِّْـ"
