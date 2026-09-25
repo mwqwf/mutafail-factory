@@ -1,0 +1,7 @@
+{
+  "slug": "nahl",
+  "range": "b48-b50",
+  "payload_sha256": "5ed4247d2cb4c139ada267524db74e80d62c6b68549aa9a3d7ebe148a6365f44",
+  "openai_images_approved": 3,
+  "provider": "openai-chatgpt-imagegen"
+}
