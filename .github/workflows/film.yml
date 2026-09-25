@@ -274,7 +274,7 @@ jobs:
             exit 1
           fi
           printf '%s' "$GEMINI_KEYS_JSON" > keys.json
-          node tools/gen25.js proj 6 --shard ${{ matrix.shard }} --shards 6 --keys keys.json
+          node tools/gen25.js proj 6 --shard ${{ matrix.shard }} --shards 6 --keys keys.json --model gemini-3.1-flash-tts-preview
           rm -f keys.json
       - if: always()
         run: rm -f keys.json
@@ -392,7 +392,7 @@ jobs:
           settled=0
           for round in 1 2 3; do
             python tools/repair_true_errors.py proj repair.json
-            node tools/gen25.js proj 1 --keys keys.json >/tmp/tts-repair.log 2>&1
+            node tools/gen25.js proj 1 --keys keys.json --model gemini-3.1-flash-tts-preview >/tmp/tts-repair.log 2>&1
             code=0
             for shard in 0 1 2; do
               node tools/listen.js proj 1 --batch 4 --model gemini-3.5-flash-lite --shard "$shard" --shards 3 --keys keys.json >>/tmp/listen-repair.log 2>&1 || code=$?
