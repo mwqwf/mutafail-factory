@@ -36,6 +36,11 @@ ATTEMPTS = 8
 GAP_FAIL = 20         # بعد إخفاق
 GAP_429 = 35          # بعد خنق
 GAP_OK = 1.2          # بين صورتين ناجحتين
+# ⭐ جولاتٌ متأخّرة (2026-09-25): ردّ الخادمُ بـ500 على صورٍ بعينها ثماني مرّاتٍ متتالية ثمّ
+#    أجاب غيرها بعد دقائق، فسقط شوطا «الساعة» و«الحصان» بصورتين أو تسعٍ لكلّ سهم. ⇒ ما فشل
+#    يُعاد في آخر السهم بعد تبريد، ولا تُمسّ عتبةُ السلامة ولا يُركَّب فيلمٌ ناقص.
+ROUNDS = 3
+COOLDOWN = 180
 
 
 def _shard_args(argv):
@@ -111,6 +116,31 @@ def fetch(prompt, out, seed):
     return code, size
 
 
+def one(it, rnd):
+    """صورةٌ واحدة: ثماني محاولاتٍ قصيرة؛ والبذرةُ تتغيّر بين الجولات."""
+    out = os.path.join(DIR, it["id"] + ".jpg")
+    if sound(out):
+        upscale(out)
+        return True
+    for attempt in range(1, ATTEMPTS + 1):
+        seed = 1000 + attempt * 137 + (rnd - 1) * 7919 + sum(ord(c) for c in it["id"])
+        code, size = fetch(it["prompt"], out, seed)
+        wh = sound(out)
+        if wh:
+            wh = upscale(out)
+            print("✓ %s · %s · %d ب · %dx%d" % (it["id"], code, size, wh[0], wh[1]), flush=True)
+            return True
+        print("  … %s محاولة %d/%d · حالة %s · %d بايت" % (it["id"], attempt, ATTEMPTS, code, size), flush=True)
+        try:
+            if os.path.exists(out):
+                os.remove(out)
+        except OSError:
+            pass
+        time.sleep(GAP_429 if code == "429" else GAP_FAIL)
+    print("✗ فشل %s بعد %d محاولة (الجولة %d)" % (it["id"], ATTEMPTS, rnd), flush=True)
+    return False
+
+
 def main():
     global IMGS
     IMGS = json.load(io.open(os.path.join(PROJ, "images.json"), encoding="utf-8"))
@@ -119,36 +149,23 @@ def main():
     mine = slice_for(IMGS, SHARD, SHARDS)
     print("=== %s: %d صورة (سهم %d من %d ⇐ %d صورة) ==="
           % (os.path.basename(PROJ), len(IMGS), SHARD, SHARDS, len(mine)), flush=True)
-    ok, failed = 0, []
-    for it in mine:
-        out = os.path.join(DIR, it["id"] + ".jpg")
-        if sound(out):
-            upscale(out)
-            ok += 1
-            continue
-        got = False
-        for attempt in range(1, ATTEMPTS + 1):
-            seed = 1000 + attempt * 137 + sum(ord(c) for c in it["id"])
-            code, size = fetch(it["prompt"], out, seed)
-            wh = sound(out)
-            if wh:
-                wh = upscale(out)
-                print("✓ %s · %s · %d ب · %dx%d" % (it["id"], code, size, wh[0], wh[1]), flush=True)
-                got = True
+    ok, pending = 0, list(mine)
+    for rnd in range(1, ROUNDS + 1):
+        if rnd > 1:
+            if not pending:
                 break
-            print("  … %s محاولة %d/%d · حالة %s · %d بايت" % (it["id"], attempt, ATTEMPTS, code, size), flush=True)
-            try:
-                if os.path.exists(out):
-                    os.remove(out)
-            except OSError:
-                pass
-            time.sleep(GAP_429 if code == "429" else GAP_FAIL)
-        if got:
-            ok += 1
-        else:
-            failed.append(it["id"])
-            print("✗ فشل %s بعد %d محاولة" % (it["id"], ATTEMPTS), flush=True)
-        time.sleep(GAP_OK)
+            print("\n↻ جولةٌ متأخّرة %d/%d لـ%d صورة بعد تبريد %d ثانية"
+                  % (rnd, ROUNDS, len(pending), COOLDOWN), flush=True)
+            time.sleep(COOLDOWN)
+        failed = []
+        for it in pending:
+            if one(it, rnd):
+                ok += 1
+            else:
+                failed.append(it)
+            time.sleep(GAP_OK)
+        pending = failed
+    failed = [it["id"] for it in pending]
     print("\n%s: نجح %d | فشل %d" % (os.path.basename(PROJ), ok, len(failed)), flush=True)
     if failed:
         # ⛔ لا يُركَّب فيلمٌ ناقصُ الصور صامتاً
