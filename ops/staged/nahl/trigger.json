@@ -14,11 +14,11 @@
   "retention_guard": "retentioncheck.py — اجتاز؛ خريطةُ الاحتفاظ في ops/research/nahl/04-retention.md",
   "editorial_guard": "editorialcheck.py — اجتاز",
   "readiness": "preparation-incomplete",
-  "openai_images_generated": 44,
-  "openai_images_approved": 44,
+  "openai_images_generated": 47,
+  "openai_images_approved": 47,
   "openai_images_required": 54,
   "audio_files": 0,
   "rendered_outputs": 0,
   "logo_sha256": "fd3506abc3472dd8cade8b67641ba7b149aedf058300b1e145aab6d6fc408909",
-  "checkpoint_note": "حُفظ النص المنقح و44 صورة OpenAI معتمدة بصرياً وبصماتها؛ الصور b33-b44 في أربع نقاط استئناف مشفّرة تُدمج فوق الحمولة الأساسية. المتبقي 10 صور ثم الصوت والاستماع والتصيير وفحص الشعار قبل النشر. الختم نقطة استئناف آمنة وليس شهادة اكتمال."
+  "checkpoint_note": "حُفظ النص المنقح و47 صورة OpenAI معتمدة بصرياً وبصماتها؛ الصور b33-b47 في خمس نقاط استئناف مشفّرة تُدمج فوق الحمولة الأساسية. المتبقي 7 صور ثم الصوت والاستماع والتصيير وفحص الشعار قبل النشر. الختم نقطة استئناف آمنة وليس شهادة اكتمال."
 }
