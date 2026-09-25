@@ -75,10 +75,8 @@ jobs:
             echo "⛔ لا مجلّد أمرٍ في هذه الدفعة"; exit 1
           fi
           echo "الأمر: $DIR"
-          # ⭐ المحرّكُ القديم: حمولةٌ مختومةٌ داخل مجلّد الأمر نفسِه (payload.enc + key.enc).
-          #    لا صورَ OpenAI معتمدةً مسبقاً في هذا المسار؛ الصورُ تُجلب في عامل `images`
-          #    بـ`imgdl3.py` كما كان قبل تثبيت مسار amal-6. وحارسُ `image_sources.py` يبقى
-          #    كما هو بلا تخفيف: سياستُه الصارمة مقصورةٌ أصلاً على الأسماء amal-N حيث N≥3.
+          # الحمولة المختومة تحوي صور OpenAI المعتمدة أو نقاط استئنافها؛
+          # تُدمج النقاط قبل فحص المصدر، ولا يُستدعى مزوّد صور خارجي.
           if [ -f "$DIR/payload.enc" ] && [ -f "$DIR/key.enc" ]; then
             echo "المحرّك: القديم — فضُّ الحمولة من مجلّد الأمر نفسِه"
             bash tools/unseal.sh "$DIR" "$PWD/proj"
@@ -506,14 +504,11 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 180
-    # ⭐ القسمةُ على ستّة عدّائين — مقياسُ 2026-09-21: ٧٥ صورةً في ٨٠ دقيقةً بعدّاءٍ
-    #    واحد، بصفر فشلٍ نهائيّ، وزمنُ الصورة ≈٤٥ ثانيةً كلُّها انتظارُ الخادم.
-    #    ⇒ العنقُ زمنُ التوليد لا فواصلُنا، فلا يُحلّ إلا بطابورٍ آخر.
-    # ⛔ ومذهبُ «عاملٌ واحدٌ لا توازيَ البتّة» **باق**: طابورٌ واحدٌ لكلّ عنوان،
-    #    وكلُّ عدّاءٍ عنوانٌ مستقلّ. ⛔ ولا خيوطَ ولا عمليّاتٍ متوازيةٍ داخل العدّاء.
+    # الصور مختومة ومكتملة مسبقاً؛ عاملٌ واحدٌ يتحقق منها ويشتقّ النسخ
+    # بدلاً من ستة عمّالٍ متكرّرين أو أيّ اتصالٍ بمزوّدٍ بديل.
     strategy:
       fail-fast: false
-      matrix: { shard: [0, 1, 2, 3, 4, 5] }
+      matrix: { shard: [0] }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -526,8 +521,22 @@ jobs:
       - uses: ./.github/actions/private-download
         continue-on-error: true
         with: { pattern: 'img*', path: proj/img, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
-      - run: python tools/image_sources.py proj  # amal-3+: صور OpenAI المعتمدة أو استثناء مختوم موثق
-      - run: python tools/imgdl3.py proj --shard ${{ matrix.shard }} --shards 6
+      - run: python tools/image_sources.py proj
+      - name: ⛔ إثبات اكتمال صور OpenAI دون بديل
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path('proj')
+          report = json.loads((root / 'image_source_report.json').read_text(encoding='utf-8'))
+          wanted = {item['id'] for item in json.loads((root / 'images.json').read_text(encoding='utf-8'))}
+          actual = {item['id'] for item in report['primary']}
+          if report['mode'] != 'openai-required' or report['fallback'] or actual != wanted:
+              raise SystemExit('⛔ صور OpenAI غير مكتملة أو مسار بديل مرفوض')
+          if any(not (root / 'img' / (ident + '.jpg')).is_file() for ident in wanted):
+              raise SystemExit('⛔ ملف صورة معتمدة غير موجود')
+          print(f'✅ صور OpenAI المعتمدة {len(actual)}/{len(wanted)}؛ بلا بديل')
+          PY
       # ⛔ والصورُ كذلك: ما نزل فعلاً يُرفع ولو سقط العامل، فلا يُعاد تنزيلُه
       - uses: ./.github/actions/private-upload
         if: always()
