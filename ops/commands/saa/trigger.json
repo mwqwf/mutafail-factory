@@ -9,5 +9,7 @@
  "thumb_guard": "thumbcheck.py — اجتاز",
  "playlist": "PLHtqlIIaW2Uw صراحةً في publish.json",
  "estimated_minutes": 35.8,
- "artifact_retention_days": 1
+ "artifact_retention_days": 1,
+ "resumed_at": "2026-09-25",
+ "resume_from_run": 36106563899
 }
