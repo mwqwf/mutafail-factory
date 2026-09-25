@@ -16,8 +16,10 @@ permissions:
   actions: read
   contents: write
 
+# ⛔ مجموعةٌ خاصّة (2026-09-25، بإذن المالك): كانت `mutafail-film`، ويُطلق هذا السير عند انتهاء
+#    كلّ شوط فيلم، فكان يلغي أيَّ فيلمٍ معلَّقٍ ينتظر دوره. والاستثناءُ نُشر في 2026-09-17.
 concurrency:
-  group: mutafail-film
+  group: mutafail-amal3-exception
   cancel-in-progress: false
 
 jobs:
