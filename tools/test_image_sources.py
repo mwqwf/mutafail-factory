@@ -114,6 +114,18 @@ class ImageSourcesTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             import_primary(self.p)
 
+    def test_vertical_object_does_not_turn_landscape_into_portrait(self):
+        self.strict()
+        text = 'A vertical tree trunk in a documentary landscape, 16:9'
+        self.write('images.json', [{'id': 'b01', 'prompt': text}])
+        self.entry['prompt_sha256'] = hashlib.sha256(text.encode()).hexdigest()
+        self.strict_manifest()
+        report = import_primary(self.p)
+        self.assertEqual(len(report['primary']), 1)
+        self.assertEqual(report['fallback'], [])
+        with Image.open(self.p / 'img/b01.jpg') as image:
+            self.assertEqual(image.size, (1920, 1080))
+
     def test_amal3_documented_exception_unlocks_only_fallback(self):
         self.strict()
         self.exception()
