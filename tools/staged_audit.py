@@ -9,6 +9,18 @@ import tarfile
 import tempfile
 
 
+def sealed_digest(directory: Path) -> str:
+    """احسب بصمة الحمولة الواحدة أو أجزائها بالترتيب نفسه عند التجميع."""
+    parts = sorted(directory.glob('payload.part.*.enc'))
+    files = parts or [directory / 'payload.enc']
+    digest = hashlib.sha256()
+    for path in files:
+        with path.open('rb') as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b''):
+                digest.update(chunk)
+    return digest.hexdigest()
+
+
 def main():
     repo = Path(__file__).resolve().parents[1]
     out = repo / 'ops/audit/2026-09-25'
@@ -17,7 +29,7 @@ def main():
     for slug in ('waraq', 'nahl'):
         sealed = repo / 'ops/staged' / slug
         trigger = json.loads((sealed / 'trigger.json').read_text())
-        digest = hashlib.sha256((sealed / 'payload.enc').read_bytes()).hexdigest()
+        digest = sealed_digest(sealed)
         if digest != trigger['payload_sha256']:
             raise SystemExit('بصمة الحمولة لا تطابق الزناد: ' + slug)
         with tempfile.TemporaryDirectory() as temp:
