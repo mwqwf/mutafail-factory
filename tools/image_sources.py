@@ -112,7 +112,9 @@ def import_primary(project):
             with Image.open(source) as image:
                 image.load()
                 width, height = image.size
-                vertical = 'vertical' in item['prompt'].lower() or '9:16' in item['prompt']
+                # «vertical» قد تصف جسماً داخل صورة أفقية (مثل جذع شجرة)،
+                # فلا تُحوِّل اتجاه الصورة إلا صيغة أبعاد صريحة.
+                vertical = '9:16' in item['prompt']
                 expected_ratio = 9 / 16 if vertical else 16 / 9
                 if min(width, height) < 576 or max(width, height) < 1024 or abs(width / height - expected_ratio) > .02:
                     raise ValueError('size-or-aspect-ratio')
