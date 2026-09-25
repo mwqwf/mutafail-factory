@@ -48,7 +48,7 @@ class Retention(unittest.TestCase):
 
     def test_wired_into_precheck(self):
         src = io.open(os.path.join(HERE, "precheck.py"), encoding="utf-8").read()
-        self.assertIn('"retentioncheck.py")', src)
+        self.assertIn('"retentioncheck.py"', src)
 
 
 if __name__ == "__main__":

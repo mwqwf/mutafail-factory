@@ -41,7 +41,9 @@ if bad:
 #    المصحفَ المحلّيَّ حرفيّاً، ولا قرآنَ بلا وسم. مانعٌ لا مستشار.
 # ⛔ `retentioncheck.py` (أمر المالك 2026-09-25: «أساليب مجرّبة للاحتفاظ بالمشاهد»): افتتاحٌ
 #    بارد، وسؤالٌ كلَّ ٢٥ كتلة، وجسرٌ إلى الحلقة التالية، وبلا تلخيص. مانعٌ لا مستشار.
-for tool in ("lint.py", "guard.py", "humanlint.py", "quranverify.py", "retentioncheck.py"):
+# ⛔ `editorialcheck.py` (أمر المالك 2026-09-25): لا حكمَ جاهزاً على دول المسلمين وفتوحهم.
+for tool in ("lint.py", "guard.py", "humanlint.py", "quranverify.py", "retentioncheck.py",
+             "editorialcheck.py"):
     r = sp.run([sys.executable, os.path.join(HERE, tool), os.path.join(P, "script.md")],
                capture_output=True, text=True)
     print(r.stdout.strip())

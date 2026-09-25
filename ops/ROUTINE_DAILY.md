@@ -40,7 +40,7 @@
 4. **التسجيل** بعد كلّ نشر: المعرّفاتُ من `last_publish.json` على `master` ⇒ `plan_state.json`
    (`منجَز` + `قرار_التوازي`) + سطرٌ في `journal.md`.
 5. **تجهيزُ الغد**: الحلقةُ التالية من كلّ سلسلةٍ مفتوحة ببطاقتها في `PLAN §٨`: بحثٌ ومفنِّد ⇒ حمولةٌ خارج git
-   ⇒ أساليبُ الاحتفاظ الثمانية (`PLAN §٩ب`) وخريطتُها في `04-retention.md` ⇒ `python3 tools/precheck.py` حتى «✅» ⇒ `bash tools/seal.sh <الحمولة> ops/staged/<slug>/` + `trigger.json`
+   ⇒ الخطُّ التحريريّ في تاريخ المسلمين (`PLAN §١٠`) ⇒ أساليبُ الاحتفاظ الثمانية (`PLAN §٩ب`) وخريطتُها في `04-retention.md` ⇒ `python3 tools/precheck.py` حتى «✅» ⇒ `bash tools/seal.sh <الحمولة> ops/staged/<slug>/` + `trigger.json`
    ⇒ إيداعٌ ودفع. وإن خُتمت سلسلة فافتح التاليةَ من جدول الدوران (`PLAN §٣ب`) واكتب بطاقاتها أوّلاً،
    وأنشئ قائمتها في `publish.json › playlistNew` وسجّلها في `ops/state/playlists.json`.
 6. **الختام**: سطرٌ في `journal.md` بما نُشر وما جُهّز وما تعذّر بنصّه.
