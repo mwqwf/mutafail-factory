@@ -32,7 +32,7 @@ jobs:
     # Owner approval: the amal-6 cycle, and the thawr cycle on the old engine
     # (أمر المالك 2026-09-21: «اصنع فلم اليوم — الثور — بمحرّكنا القديم»).
     # Fail closed for every other command.
-    if: "${{ inputs.command_dir == 'ops/commands/amal-6' || inputs.command_dir == 'ops/commands/thawr' || inputs.command_dir == 'ops/commands/arbaeen' || inputs.command_dir == 'ops/commands/rida' || inputs.command_dir == 'ops/commands/ismant' || inputs.command_dir == 'ops/commands/raqaqa' || inputs.command_dir == 'ops/commands/jamal' || inputs.command_dir == 'ops/commands/kharita' || inputs.command_dir == 'ops/commands/hisan' || inputs.command_dir == 'ops/commands/saa' || inputs.command_dir == 'ops/commands/waraq' || inputs.command_dir == 'ops/commands/nahl' || (github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'production: launch amal-6') || startsWith(github.event.head_commit.message, 'production: launch thawr') || startsWith(github.event.head_commit.message, 'production: launch arbaeen') || startsWith(github.event.head_commit.message, 'production: launch rida') || startsWith(github.event.head_commit.message, 'production: launch ismant') || startsWith(github.event.head_commit.message, 'production: launch raqaqa') || startsWith(github.event.head_commit.message, 'production: launch jamal') || startsWith(github.event.head_commit.message, 'production: launch kharita') || startsWith(github.event.head_commit.message, 'production: launch hisan') || startsWith(github.event.head_commit.message, 'production: launch saa') || startsWith(github.event.head_commit.message, 'production: launch waraq') || startsWith(github.event.head_commit.message, 'production: launch nahl'))) }}"
+    if: "${{ inputs.command_dir == 'ops/commands/amal-6' || inputs.command_dir == 'ops/commands/thawr' || inputs.command_dir == 'ops/commands/arbaeen' || inputs.command_dir == 'ops/commands/rida' || inputs.command_dir == 'ops/commands/ismant' || inputs.command_dir == 'ops/commands/raqaqa' || inputs.command_dir == 'ops/commands/jamal' || inputs.command_dir == 'ops/commands/kharita' || inputs.command_dir == 'ops/commands/hisan' || inputs.command_dir == 'ops/commands/saa' || inputs.command_dir == 'ops/commands/waraq' || inputs.command_dir == 'ops/commands/nahl' || (github.event_name == 'push' && (startsWith(github.event.head_commit.message, 'إنتاج: إطلاق ') || startsWith(github.event.head_commit.message, 'production: launch amal-6') || startsWith(github.event.head_commit.message, 'production: launch thawr') || startsWith(github.event.head_commit.message, 'production: launch arbaeen') || startsWith(github.event.head_commit.message, 'production: launch rida') || startsWith(github.event.head_commit.message, 'production: launch ismant') || startsWith(github.event.head_commit.message, 'production: launch raqaqa') || startsWith(github.event.head_commit.message, 'production: launch jamal') || startsWith(github.event.head_commit.message, 'production: launch kharita') || startsWith(github.event.head_commit.message, 'production: launch hisan') || startsWith(github.event.head_commit.message, 'production: launch saa') || startsWith(github.event.head_commit.message, 'production: launch waraq') || startsWith(github.event.head_commit.message, 'production: launch nahl'))) }}"
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
@@ -471,6 +471,7 @@ jobs:
           name: film-final
           path: |
             proj/film.mp4
+            proj/film.mp4.logo.json
             proj/reels
             proj/thumb-a.jpg
             proj/thumb-b.jpg
@@ -634,6 +635,7 @@ jobs:
           name: film
           path: |
             proj/film.mp4
+            proj/film.mp4.logo.json
             proj/reels
             proj/thumb-a.jpg
             proj/thumb-b.jpg
@@ -661,6 +663,7 @@ jobs:
           name: film
           path: |
             proj/film.mp4
+            proj/film.mp4.logo.json
             proj/reels
             proj/thumb-a.jpg
             proj/thumb-b.jpg
@@ -710,6 +713,7 @@ jobs:
           name: film-final
           path: |
             proj/film.mp4
+            proj/film.mp4.logo.json
             proj/reels
             proj/thumb-a.jpg
             proj/thumb-b.jpg

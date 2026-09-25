@@ -213,6 +213,9 @@ print("ميزانيةُ الاستماع المجمّع: %d نداءً (أربع
 for problem in audit_duration(mins, J("meta.json")):
     bad.append(problem + ": %.1f دقيقة / %d حرف بلا تشكيل" % (mins, n))
 
+import public_prose_check
+bad.extend(public_prose_check.audit(P))
+
 print()
 if bad:
     print("⛔ %d مانع:" % len(bad))

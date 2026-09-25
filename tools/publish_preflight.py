@@ -7,6 +7,7 @@ import io
 import json
 import os
 import sys
+from logo_receipt import verify
 
 
 def fail(message):
@@ -52,6 +53,14 @@ def main(project, expected_slug):
     empty = [name for name in required if os.path.getsize(os.path.join(project, name)) == 0]
     if empty:
         fail("ملفات نشر فارغة: " + ", ".join(empty))
+
+    for name, layout in [("film.mp4", "film"), ("reels/r1.mp4", "reel"), ("reels/r2.mp4", "reel")]:
+        try:
+            valid = verify(os.path.join(project, name), layout)
+        except (OSError, ValueError, TypeError):
+            valid = False
+        if not valid:
+            fail("لا إثبات شعار صالحاً للفيديو الحالي: " + name)
 
     print("✅ publish-preflight: command-match · publicNow · playlist · film+r1+r2 · رابط الفيلم")
 

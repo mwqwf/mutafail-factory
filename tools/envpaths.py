@@ -50,8 +50,8 @@ def logo(required=True):
     والريلزُ بلا هويّة ولا يعلم أحد. ⇒ الغيابُ صار **سقوطاً صريحاً** لا صمتاً،
     و`required=False` لا تُستعمل إلا في فحصٍ يريد معرفةَ الوجود لا الرسم.
     """
-    for c in (os.path.join(os.path.expanduser("~"), "Desktop", "claude-media", "muw", "logo.png"),
-              os.path.join(_REPO, "assets", "logo.png")):
+    # نسخة الفرع المعتمدة وحدها؛ شعار قديم على جهاز العامل لا يعلو عليها.
+    for c in (os.path.join(_REPO, "assets", "logo.png"),):
         if os.path.exists(c):
             return c
     if required:

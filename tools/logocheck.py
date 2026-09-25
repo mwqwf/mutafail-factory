@@ -11,6 +11,10 @@
 لا يكفي ارتفاعُ التباين في الركن، لأن المشهد نفسه قد يرفعه ويعطي نجاحاً زائفاً.
 """
 import io, os, re, subprocess as sp, sys
+import json
+from pathlib import Path
+from logo_receipt import digest
+from logo_identity import expected_frame
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -48,6 +52,8 @@ else:
     print("✅ تركيبُ الشعار مطلوبٌ في أداة الفيلم")
 
 # ④ فحصُ إطارٍ حقيقيٍّ إن مُرِّر مخرج
+if len(sys.argv) > 1 and not os.path.isfile(sys.argv[1]):
+    bad.append("⛔ المخرج المطلوب غير موجود؛ لا يصح إعلان اجتياز فحص الإطار")
 if len(sys.argv) > 1 and os.path.exists(sys.argv[1]):
     f = sys.argv[1]
     baseline = sys.argv[2] if len(sys.argv) > 2 else ""
@@ -105,8 +111,21 @@ if len(sys.argv) > 2 and os.path.exists(sys.argv[1]) and os.path.exists(sys.argv
         bad.append("⛔ لم يتغيّر موضعُ الشعار عن خطِّ الأساس بما يثبت ظهوره")
     else:
         print("✅ الشعارُ ظاهرٌ فعلياً في المخرج مقارنةً بخطِّ الأساس")
+    if path and im.size == base.size:
+        expected = expected_frame(base, path, layout)
+        identity_error = mad(im, expected, box)
+        print("خطأ مطابقة هوية الشعار الحالي: %.2f" % identity_error)
+        if identity_error > max(8.0, control_delta * 2.5) or identity_error >= logo_delta * .45:
+            bad.append("⛔ العلامة الظاهرة لا تطابق شعار القناة الحالي؛ يُعاد التصيير قبل النشر")
+        else:
+            print("✅ هوية الشعار الحالي مطابقة داخل الإطار المصيّر")
     os.remove(png); os.remove(base_png)
 
 if bad:
     print("\n".join(bad)); sys.exit(1)
+if len(sys.argv) > 2:
+    receipt = {"video_sha256": digest(sys.argv[1]), "logo_sha256": digest(path),
+               "layout": layout, "frame_seconds": 3,
+               "identity_error": identity_error, "passed": True}
+    Path(sys.argv[1] + ".logo.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
 print("✅ حارسُ الشعار: لا ملاحظة")

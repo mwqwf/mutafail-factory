@@ -107,15 +107,8 @@ LOGO = envpaths.logo(required=True)
 
 # علامةٌ مائيّةٌ دائرية: أعلى اليمين، ثُمنُ الشفافية، مئةٌ وعشرون بكسلاً
 _lg = os.path.join(WORK, "logo_round.png")
-_im = Image.open(LOGO).convert("RGBA").resize((120, 120), Image.LANCZOS)
-_m = Image.new("L", (480, 480), 0)
-ImageDraw.Draw(_m).ellipse([4, 4, 476, 476], fill=255)
-_m = _m.filter(ImageFilter.GaussianBlur(3)).resize((120, 120), Image.LANCZOS)
-_out = Image.new("RGBA", (120, 120), (0, 0, 0, 0))
-_out.paste(_im, (0, 0), _m)
-_a = _out.split()[3].point(lambda v: int(v * 0.72))     # لا يُزاحم الصورة
-_out.putalpha(_a)
-_out.save(_lg)
+from logo_identity import badge
+badge(LOGO, 'film').save(_lg)
 
 sp.run([FF, "-v", "error", "-y", "-i", silent, "-i", mixed, "-i", _lg,
         "-filter_complex", "[0:v][2:v]overlay=W-w-46:46:format=auto[v]",

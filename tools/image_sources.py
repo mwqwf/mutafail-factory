@@ -17,8 +17,8 @@ def _image_policy(root):
         raise RuntimeError('missing or invalid meta.json; image policy cannot be selected safely')
     if not isinstance(slug, str) or not slug:
         raise RuntimeError('missing project slug; image policy fails closed')
-    match = re.fullmatch(r'amal-(\d+)', slug)
-    return slug, bool(match and int(match.group(1)) >= 3)
+    # الاستثناء التاريخي للحلقتين المنشورتين فقط؛ كل اسم جديد يخضع للحارس.
+    return slug, slug not in {'amal-1', 'amal-2'}
 
 
 def _documented_fallback(root, command):
@@ -70,7 +70,7 @@ def import_primary(project):
     manifest = root / 'image_sources.json'
     if not manifest.exists():
         if strict and not exception:
-            raise RuntimeError('amal-3+ requires approved OpenAI images or a documented sealed exception')
+            raise RuntimeError('يلزم صور OpenAI معتمدة أو دليل تعذر نهائي مختوم لكل فيلم جديد')
         if strict:
             images = json.loads((root / 'images.json').read_text(encoding='utf-8'))
             report = {'primary': [], 'fallback': [
@@ -129,7 +129,7 @@ def import_primary(project):
             report['fallback'].append({'id': ident, 'reason': type(exc).__name__})
     (root / 'image_source_report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
     if strict and report['fallback'] and not exception:
-        raise RuntimeError('amal-3+ has missing or rejected OpenAI images; original fallback is locked')
+        raise RuntimeError('صور OpenAI ناقصة أو مرفوضة؛ المسار البديل مقفل')
     if strict and report['fallback']:
         report['mode'] = 'openai-first-documented-original-fallback'
         (root / 'image_source_report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
