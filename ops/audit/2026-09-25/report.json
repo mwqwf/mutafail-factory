@@ -1,0 +1,53 @@
+{
+  "run_id": "36156760894",
+  "head": "b12285d0384400a4be2e8e0c0b510bc891ee2f1d",
+  "films": {
+    "waraq": {
+      "payload_sha256": "166d7b0d949ccde27287198639eb4a1dee21af97add0f499b373e3bb4f1c8f60",
+      "precheck_exit": 0,
+      "blocks": 271,
+      "images_required": 58,
+      "audio_present": 0,
+      "images_present": 0,
+      "openai_manifest_present": false,
+      "film_rendered": false,
+      "listen_report_present": false,
+      "files": [
+        "audit-precheck.log",
+        "blocks.json",
+        "images.json",
+        "meta.json",
+        "publish.json",
+        "reels.json",
+        "script.md",
+        "sections.json",
+        "shots.json"
+      ]
+    },
+    "nahl": {
+      "payload_sha256": "c6603ffdbee2a654d4456068c30307fef122c665587446eb40705ef329d63ad5",
+      "precheck_exit": 0,
+      "blocks": 244,
+      "images_required": 54,
+      "audio_present": 0,
+      "images_present": 0,
+      "openai_manifest_present": false,
+      "film_rendered": false,
+      "listen_report_present": false,
+      "files": [
+        "audit-precheck.log",
+        "blocks.json",
+        "images.json",
+        "meta.json",
+        "publish.json",
+        "reels.json",
+        "script.md",
+        "sections.json",
+        "shots.json"
+      ]
+    }
+  },
+  "generation_calls": 0,
+  "artifact_uploads": 0,
+  "logo_sha256": "fd3506abc3472dd8cade8b67641ba7b149aedf058300b1e145aab6d6fc408909"
+}
