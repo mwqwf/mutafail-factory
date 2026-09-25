@@ -820,7 +820,7 @@ jobs:
                   cp -a "/tmp/state_keep/$f" "$f"
                 fi
               done < /tmp/state_keep/.list
-              git add -A ops/state ops/ready
+              git add -- ops/state ops/ready
               if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
               git commit -qm "✅ نُشرت: ${{ needs.prepare.outputs.slug }}" && git push -q origin HEAD:master && exit 0
             fi
