@@ -36,6 +36,9 @@ def main():
             root = Path(temp) / slug
             subprocess.run(['bash', 'tools/unseal.sh', str(sealed), str(root)], check=True,
                            stdout=subprocess.DEVNULL)
+            for checkpoint in sorted(sealed.glob('incremental-*')):
+                subprocess.run(['bash', 'tools/unseal.sh', str(checkpoint), str(root)],
+                               check=True, stdout=subprocess.DEVNULL)
             # المخرجات التفصيلية خاصة، ولا تُطبع نصوص السيناريو في السجل العام.
             check = subprocess.run([sys.executable, 'tools/precheck.py', str(root)],
                                    capture_output=True)

@@ -82,6 +82,11 @@ jobs:
           if [ -f "$DIR/payload.enc" ] && [ -f "$DIR/key.enc" ]; then
             echo "المحرّك: القديم — فضُّ الحمولة من مجلّد الأمر نفسِه"
             bash tools/unseal.sh "$DIR" "$PWD/proj"
+            for checkpoint in "$DIR"/incremental-*; do
+              [ -d "$checkpoint" ] || continue
+              echo "دمج نقطة الاستئناف: $checkpoint"
+              bash tools/unseal.sh "$checkpoint" "$PWD/proj"
+            done
             ls -la proj
             exit 0
           fi
