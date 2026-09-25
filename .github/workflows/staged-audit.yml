@@ -1,0 +1,37 @@
+name: تدقيق فيلمَي الغد وتحديث الشعار
+on:
+  push:
+    branches: [claude/film-today-bull-c51x48]
+    paths: [ops/audit/2026-09-25/request.json]
+permissions:
+  contents: write
+concurrency:
+  group: mutafail-staged-audit
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: pip install -q pillow numpy google-auth google-auth-oauthlib google-api-python-client
+      - name: جلب شعار القناة الحالي للفرع الإنتاجي
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: python tools/fetch_logo.py
+      - name: فحص المختوم ونقل نسخة مشفرة للمراجعة
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: python tools/staged_audit.py
+      - name: حفظ الأدلة والشعار دون آثار أو كاش مدفوع
+        run: |
+          git config user.name 'مصنع المتفائل'
+          git config user.email 'factory@mutafail.local'
+          git add assets/logo.png ops/audit/2026-09-25/report.json ops/audit/2026-09-25/waraq-review.enc ops/audit/2026-09-25/nahl-review.enc
+          git diff --cached --quiet && exit 0
+          git commit -m 'تدقيق حمولتي الورق والنحل وجلب شعار القناة الحالي'
+          git push origin HEAD:claude/film-today-bull-c51x48
