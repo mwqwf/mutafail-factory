@@ -14,7 +14,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 # (القلبُ المزدوج مع RAQM على لينكس كان يعكس العناوين — انظر envpaths.py).
 from envpaths import ar
 
-PROJ, RID = sys.argv[1], sys.argv[2]
+PROJ, RID = os.path.abspath(sys.argv[1]), sys.argv[2]
 FF, FP = envpaths.FF, envpaths.FP
 FB = envpaths.font(bold=True)
 LOGO = envpaths.logo()

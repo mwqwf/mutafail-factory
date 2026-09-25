@@ -48,6 +48,8 @@ else:
     print("✅ تركيبُ الشعار مطلوبٌ في أداة الفيلم")
 
 # ④ فحصُ إطارٍ حقيقيٍّ إن مُرِّر مخرج
+if len(sys.argv) > 1 and not os.path.isfile(sys.argv[1]):
+    bad.append("⛔ ملف الفيديو المطلوب فحصه غير موجود؛ لا نجاح بلا مخرج فعلي")
 if len(sys.argv) > 1 and os.path.exists(sys.argv[1]):
     f = sys.argv[1]
     baseline = sys.argv[2] if len(sys.argv) > 2 else ""

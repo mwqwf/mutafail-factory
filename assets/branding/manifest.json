@@ -1,0 +1,20 @@
+{
+  "channelId": "UCda-VgyvZwAH5_Pl1elVEnw",
+  "approvedAt": "2026-09-25",
+  "source": "image_gen",
+  "note": "اعتمد المالك الهوية وطلب توحيد الأيقونة مع الغلاف وإبراز الشعار",
+  "assets": {
+    "assets/logo.png": {
+      "sha256": "9bff87636e41d6dd8586bab885dd42adf5af4088c32b3605b15526148e57c2fe",
+      "maxBytes": 15000000
+    },
+    "assets/branding/banner.jpg": {
+      "sha256": "48e1603ba6c417816b7a03aebe2ceaaabc58983fcaa3d05ad15919dfab0a4565",
+      "maxBytes": 6000000
+    },
+    "assets/branding/watermark.png": {
+      "sha256": "b94824bc87e677f2201783c12a82da8a9b267f2fa1c0466ca36593a8dbd3bfeb",
+      "maxBytes": 1000000
+    }
+  }
+}

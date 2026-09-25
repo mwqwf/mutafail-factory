@@ -1,0 +1,24 @@
+name: المتفائل — تطبيق الهوية المعتمدة
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mutafail-channel-branding
+  cancel-in-progress: false
+jobs:
+  branding:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: تحقق من الأصول دون شبكة
+        run: node tools/channel_branding.mjs --verify-local
+      - name: طبّق الغلاف والعلامة المائية وتحقق من إعدادات القناة
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: node tools/channel_branding.mjs --apply

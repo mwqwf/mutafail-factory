@@ -6,7 +6,21 @@
    يوتيوب (channels.list)، ولا يمسّ حصّةَ التوليد البتّة.
 ⛔ ولا يعمل في بيئة الجلسة السحابيّة: شبكتُها محجوبة. فموضعُه العدّاء.
 """
-import io, json, os, sys, urllib.request
+import io, json, os, sys, urllib.request, hashlib
+
+# بعد اعتماد هوية مستقلة للمصنع لا تستبدلها بصورة الحساب القديمة أو بكاش يوتيوب.
+_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_manifest = os.path.join(_root, "assets", "branding", "manifest.json")
+if os.path.exists(_manifest):
+    with open(_manifest, encoding="utf-8") as _fh:
+        _brand = json.load(_fh)
+    _approved = os.path.join(_root, "assets", "logo.png")
+    with open(_approved, "rb") as _fh:
+        _sha = hashlib.sha256(_fh.read()).hexdigest()
+    if _sha != _brand["assets"]["assets/logo.png"]["sha256"]:
+        raise SystemExit("⛔ بصمة الشعار لا تطابق الهوية المعتمدة؛ أصلح الأصل ولا تستبدله تلقائياً")
+    print("✅ الهوية المعتمدة محفوظة؛ لا جلب لصورة الحساب فوق شعار المصنع")
+    raise SystemExit(0)
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
