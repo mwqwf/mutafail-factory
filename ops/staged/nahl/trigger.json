@@ -1,0 +1,13 @@
+{
+ "slug": "nahl",
+ "engine": "legacy-sealed-command",
+ "payload_sha256": "ce4bec1afa1200deceaf027fd278566b824dddb04c0f2ee4b2e9c36afd0f1cc2",
+ "requested_at": "2026-09-25T07:40:13Z",
+ "reason": "س٧·١ «كائنات غيّرت التاريخ» الحلقة ٤: النحل. أمر المالك الدائم 2026-09-24: فيلمان يوميّاً، واحدٌ من كلّ سلسلةٍ مفتوحة.",
+ "style_guard": "humanlint.py — اجتاز المقاييس الإحدى عشرة بلا تحكيم",
+ "quran_guard": "quranverify.py — خمسة اقتباسات مطابقةٌ للمصحف المحلّيّ حرفيّاً",
+ "thumb_guard": "thumbcheck.py — اجتاز",
+ "playlist": "PLJSofb55AafA صراحةً في publish.json",
+ "estimated_minutes": 32.9,
+ "artifact_retention_days": 1
+}

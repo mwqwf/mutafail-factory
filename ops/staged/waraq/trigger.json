@@ -1,0 +1,13 @@
+{
+ "slug": "waraq",
+ "engine": "legacy-sealed-command",
+ "payload_sha256": "400d0d58e486885bfde9d8609781a6b66da67c9aea093d31f5ede54e1a477726",
+ "requested_at": "2026-09-25T07:40:13Z",
+ "reason": "س٣·١ «كيف قام هذا؟ · تاريخ الأشياء» الحلقة ٥: الورق. أمر المالك الدائم 2026-09-24: فيلمان يوميّاً، واحدٌ من كلّ سلسلةٍ مفتوحة.",
+ "style_guard": "humanlint.py — اجتاز المقاييس الإحدى عشرة بلا تحكيم",
+ "quran_guard": "quranverify.py — اقتباسان مطابقةٌ للمصحف المحلّيّ حرفيّاً",
+ "thumb_guard": "thumbcheck.py — اجتاز",
+ "playlist": "PLHtqlIIaW2Uw صراحةً في publish.json",
+ "estimated_minutes": 32.6,
+ "artifact_retention_days": 1
+}
