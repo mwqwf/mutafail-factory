@@ -144,7 +144,7 @@ jobs:
             if git fetch -q origin master && git reset -q --hard origin/master; then
               cp -a /tmp/state_keep/state/. ops/state/
               cp -a /tmp/state_keep/finish/. ops/finish/
-              git add -A ops/state ops/finish
+              git add -- ops/state ops/finish
               if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
               git commit -qm "↻ أُتمّ نشرُ ${{ steps.cmd.outputs.command }}" && git push -q origin HEAD:master && exit 0
             fi
