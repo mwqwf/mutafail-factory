@@ -1,8 +1,6 @@
 name: مصنع المتفائل — مسبار نموذج الفحص
 
 on:
-  schedule:
-    - cron: "8 6 17 9 *"
   workflow_dispatch:
   push:
     branches: [master]
