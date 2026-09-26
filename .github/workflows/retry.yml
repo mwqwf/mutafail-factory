@@ -40,10 +40,10 @@ jobs:
           while IFS=$'\t' read -r job_id job_name; do
             [ -n "$job_id" ] || continue
             case "$job_name" in
-              listen\ \(*\))
-                log="$RUNNER_TEMP/listen-$job_id.log"
+              listen\ \(*\)|tts\ \(*\))
+                log="$RUNNER_TEMP/quota-$job_id.log"
                 if gh api "repos/$GITHUB_REPOSITORY/actions/jobs/$job_id/logs" > "$log" 2>/dev/null \
-                  && grep -q '× nokeys' "$log"; then
+                  && { grep -q '× nokeys' "$log" || grep -Eq '✗ .*: nokeys' "$log"; }; then
                   hold=true
                 fi
                 ;;
@@ -54,7 +54,7 @@ jobs:
             --paginate --jq '.jobs[] | select(.conclusion == "failure") | [.id, .name] | @tsv')
           echo "hold=$hold" >> "$GITHUB_OUTPUT"
           if [ "$hold" = true ]; then
-            echo "⏸️ فحص الاستماع استنفد مفاتيحه المؤهلة بعد PerDay؛ حُفظت نتائجه ولا إعادة قبل تجدد الحصة."
+            echo "⏸️ التوليد أو فحص الاستماع استنفد مفاتيحه المؤهلة بعد PerDay؛ حُفظت النتائج ولا إعادة قبل تجدد الحصة."
           fi
 
       - name: أعِد الأشواطَ الساقطةَ وحدَها
