@@ -265,7 +265,7 @@ jobs:
         continue-on-error: true
         with: { pattern: audio-*, path: proj/audio, private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}' }
       - name: توليد حصّة السهم
-        if: needs.prepare.outputs.audio_source_run == ''
+        if: needs.prepare.outputs.listen_source_run == ''
         env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: |
