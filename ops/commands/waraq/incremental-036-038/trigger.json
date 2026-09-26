@@ -1,0 +1,7 @@
+{
+  "slug": "waraq",
+  "range": "b36-b38",
+  "payload_sha256": "b4e1b5d59f127976968f6d9c67ec172afaacbed31cd7ddb4b02d9dd31a888fc4",
+  "openai_images_approved": 3,
+  "provider": "openai-chatgpt-imagegen"
+}
