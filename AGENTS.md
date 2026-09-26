@@ -43,6 +43,8 @@ All default-branch workflow jobs have a reversible `if: ${{ false }}` stop. This
 
 # تعليمات جلسات المصنع
 
+- ⭐⭐ **أمر المالك 2026-09-26: `ops/WEEKLY_CONTRACT_2026-09-26.md` هو الحاكم** ويغلب العقد اليومي وخطة كوديكس وسياسة وسائط OpenAI وطابور `skill/PLAN.md` القديم. Claude ممنوع من توليد أيّ صورة (حتى المصغّرات)؛ الصور من كوديكس بأمرٍ يكتبه له المالك.
+
 - التواصل والتوثيق بالعربية. اقرأ `skill/SKILL.md` و`skill/PLAN.md` ثم مراجع المرحلة كاملة قبل تنفيذها.
 - الحالة الفعلية في `ops/state/plan_state.json`؛ لا تستخدم `skill/PLAN_STATE.json` لتقرير الحلقة التالية.
 - اقرأ `ops/CODEX_PRODUCTION_PLAN.md` لتعديلات 2026-09-16، و`ops/ENGINE.md` و`ops/CAPABILITIES.md` للتشغيل السحابي.
