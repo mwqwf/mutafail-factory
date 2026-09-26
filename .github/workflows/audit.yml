@@ -107,7 +107,7 @@ jobs:
         run: |
           git config user.name  "مشرِّحُ الأشواط"
           git config user.email "audit@mutafail.local"
-          git add -A ops/state/postmortem
+          git add -- ops/state/postmortem
           git commit -qm "🔍 تشريحُ الشوط ${{ github.event.workflow_run.id }} (${{ github.event.workflow_run.conclusion }})" || exit 0
           for i in 1 2 3 4; do
             git pull --rebase -q origin master && git push -q origin HEAD:master && exit 0
