@@ -112,13 +112,15 @@ function wavHeader(dataLen, rate = 24000, ch = 1, bits = 16) {
 
 async function genWith(model, blk) {
   const outFile = path.join(OUT, blk.id + '.wav');
-  const deadline = Date.now() + 4 * 60 * 1000;
+  // ⭐ 3.8 بطيء والنتّ ضعيف ⇒ مهلة أطول (SKILL §٢: 600 ث للطلب)
+  const deadline = Date.now() + 15 * 60 * 1000;
   while (Date.now() < deadline) {
     const key = nextKey(model);
     if (!key) return 'nokeys';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
     const body = {
-      contents: [{ parts: [{ text: blk.text }] }],
+      // توجيه الأداء (style) يسبق النصّ بصيغة «Say …: نص» الموثّقة؛ والفاحص السمعي يمسك أيّ نطقٍ له
+      contents: [{ parts: [{ text: (blk.style ? blk.style + ': ' : '') + blk.text }] }],
       generationConfig: {
         responseModalities: ['AUDIO'],
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: blk.voice || 'Charon' } } },
@@ -126,7 +128,7 @@ async function genWith(model, blk) {
     };
     try {
       const ctl = new AbortController();
-      const t = setTimeout(() => ctl.abort(), 90000);
+      const t = setTimeout(() => ctl.abort(), 600000);
       const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal });
       clearTimeout(t);
       state.calls++;
