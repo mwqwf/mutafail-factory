@@ -120,7 +120,7 @@ jobs:
             mkdir -p ops/publish-exceptions ops/resume
             cp /tmp/publish_keep/exception/amal-2.json ops/publish-exceptions/
             cp /tmp/publish_keep/resume/amal-2.json ops/resume/
-            git add -A ops/state ops/publish-exceptions/amal-2.json ops/resume/amal-2.json
+            git add -- ops/state ops/publish-exceptions/amal-2.json ops/resume/amal-2.json
             git diff --cached --quiet && exit 0
             git commit -qm "✅ نُشر amal-2 باستثناء استماع مصرّح" && git push -q origin HEAD:master && exit 0
           done
