@@ -106,6 +106,8 @@ jobs:
       - name: ① الصوت (gemini-3.8-flash-tts) + الفحوص الآلية — حتى ثلاث جولات
         if: env.STAGE != 'animate'
         run: |
+          # regen.txt في الحمولة = كتلٌ تغيّر نصُّها بعد التوليد (تحكيم الإصغاء) ⇒ يُحذف صوتُها ليُعاد
+          [ -f proj/regen.txt ] && for id in $(cat proj/regen.txt); do rm -f "proj/audio/$id.wav"; done; true
           for i in 1 2 3; do
             node tools/gen25.js proj 4 --keys /tmp/keys.json --model gemini-3.8-flash-tts
             python tools/audio_checks.py proj && break
@@ -116,6 +118,8 @@ jobs:
         if: env.STAGE != 'animate'
         run: |
           node tools/listen.js proj 4 --keys /tmp/keys.json --batch 1 || true
+          # حصّة gemini-3.5-flash اليومية للإصغاء تنفد سريعاً (درس ١٤) ⇒ ما بقي يُصغى إليه بنموذجٍ ثانٍ؛ والأداة تستأنف فلا تعيد المفحوص
+          node tools/listen.js proj 4 --keys /tmp/keys.json --batch 1 --model gemini-2.5-flash || true
           python - <<'PY'
           import json
           r=json.load(open('proj/listen_results.json',encoding='utf-8'))
