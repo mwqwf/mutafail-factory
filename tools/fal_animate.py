@@ -132,6 +132,10 @@ def avatar(s):
 def run(s):
     sid = s['id']; out = P('clips', '%s.mp4' % sid)
     if s.get('avatar'): return avatar(s)           # الراوي: نموذجُ الأفاتار يغني عن Kling ومطابقة الشفاه
+    redo = s.get('redo')                           # إعادةُ تحريكِ مقطعٍ مرفوضٍ بعد الفحص، مرّةً لكل وسم
+    mark = P('clips', '%s.redo_%s' % (sid, redo)) if redo else None
+    if mark and os.path.exists(out) and not os.path.exists(mark):
+        os.remove(out); print(sid, '♻ يُعاد تحريكه (%s)' % redo, flush=True)
     if os.path.exists(out): return
     if s.get('lipsync'):                           # الراوي: تحريكٌ خام ثم مطابقةُ الشفاه لصوت كتلته
         out = P('clips', '%s_raw.mp4' % sid)
@@ -176,6 +180,7 @@ def run(s):
         with open(tmp, 'wb') as f:
             for c in v.iter_content(1 << 16): f.write(c)
     os.replace(tmp, out)
+    if mark: open(mark, 'w').close()
     ledger.append({'shot': sid, 'audio': q.get('audio', False), 'cost_usd': q['cost_usd'],
                    'at': datetime.datetime.now().isoformat(timespec='seconds')})
     save(LEDGER, ledger); pend.pop(sid, None); save(PEND, pend)
