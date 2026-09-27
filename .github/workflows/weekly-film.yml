@@ -51,7 +51,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p sealed && cd sealed
-          gh release download "$SLUG-src" -R "$GITHUB_REPOSITORY" --clobber
+          # المصدر: إصدار مسوّدة <slug>-src، وإلا فرعٌ مختوم sealed/<slug> (الجلسة السحابية بلا gh — tools/stage_branch.sh)
+          if ! gh release download "$SLUG-src" -R "$GITHUB_REPOSITORY" --clobber 2>/dev/null; then
+            git -C .. fetch -q --depth 1 origin "sealed/$SLUG"
+            git -C .. archive FETCH_HEAD | tar x
+          fi
           sed -i 's/ \*/  /' SHA256SUMS && sha256sum -c SHA256SUMS && cat part_* > payload.enc && rm part_*
           cd .. && bash tools/unseal.sh sealed "$PWD/proj" && rm -rf sealed
           # إن وُجد ناتجُ شوطٍ سابق (صوتٌ مجتاز) يُستأنف منه
