@@ -360,6 +360,7 @@ def main():
             print("↻ الفيلم مرفوعٌ على القناة سلفاً بعنوانه:", seen, flush=True)
             film_id = seen
             save_state({"film": {"id": film_id}})
+    resumed = bool(film_id)
     if not film_id:
         film_id = upload(svc, P("film.mp4"), meta["film"],
                          publish_at=when, public_now=public_now)
@@ -370,9 +371,17 @@ def main():
     thumb = P("thumb-a.jpg")
     if not os.path.exists(thumb):
         raise SystemExit("⛔ لا مصغّرة — لا يُنشر فيلمٌ بلا مصغّرة")
-    svc.thumbnails().set(videoId=film_id, media_body=MediaFileUpload(thumb)).execute()
-    quota.spend("thumbnail", film_id)
-    print("✅ المصغّرة", flush=True)
+    try:
+        svc.thumbnails().set(videoId=film_id, media_body=MediaFileUpload(thumb)).execute()
+        quota.spend("thumbnail", film_id)
+        print("✅ المصغّرة", flush=True)
+    except HttpError as e:
+        # ⛔ درس اليرموك 2026-09-27: اختبارُ «الاختبار والمقارنة» الجاري يمنع ضبط المصغّرة (403)،
+        #    وحدُّ «مصغّرات كثيرة مؤخراً» (429) — فلا يُسقط الاستئنافُ رفعَ الريلزات.
+        if resumed:
+            print("⚠ تعذّرت المصغّرة (الفيلم منشورٌ سلفاً) — يُكمَل:", str(e)[:160], flush=True)
+        else:
+            raise
 
     # ─── القائمة: لازمة، وتُتحقَّق من الخادم ───
     # ⛔⛔ أمرُ المالك 2026-09-14: «لم يُضف الفيلم للقائمة وهذا لا تسامح معه».

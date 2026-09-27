@@ -1,6 +1,6 @@
 name: مصنع المتفائل — نشرُ حمولةٍ مختومةٍ من إصدار
 
-run-name: 📤 نشرُ ${{ inputs.release_tag }}
+run-name: 📤 نشرُ ${{ inputs.release_tag || github.event.head_commit.message }}
 
 # ⭐ لماذا (2026-09-27 · اليرموك): الفيلم صُنع على جهاز المالك لا في شوط film.yml،
 #    ورفعُ 500م.ب عبر كروم مستحيل (حدّ file_upload عشرة م.ب)، وسرُّ يوتيوب لا يكون إلا هنا.
@@ -14,6 +14,9 @@ on:
         description: "وسمُ الإصدار المسوّدة الذي يحمل الأجزاء (part_*) وkey.enc وSHA256SUMS"
         required: true
         type: string
+  # ⭐ زنادٌ للجلسة السحابية (لا تملك workflow_dispatch): دفعُ ops/publish/<slug>.json = {"release_tag":"<slug>-payload"}
+  push:
+    paths: ["ops/publish/**"]
 
 permissions:
   contents: write
@@ -28,6 +31,18 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - name: وسمُ الإصدار
+        env:
+          IN_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          T="$IN_TAG"
+          if [ -z "$T" ]; then
+            F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/publish/.*\.json$' | head -1)
+            T=$(python3 -c "import json,sys,re;t=json.load(open(sys.argv[1],encoding='utf-8'))['release_tag'];assert re.fullmatch(r'[a-z0-9-]+',t);print(t)" "$F")
+          fi
+          echo "TAG=$T" >> "$GITHUB_ENV"
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
@@ -35,7 +50,6 @@ jobs:
       - name: جلبُ الأجزاء والتحقّق من بصماتها
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
           mkdir -p sealed && cd sealed
@@ -81,7 +95,7 @@ jobs:
               for f in ops/thumbs_pending/*.jpg; do [ -e "$f" ] || continue; grep -qx "$(basename "$f")" /tmp/thumbs_keep/left.txt || git rm -q "$f"; done
               git add -A ops/state
               if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
-              git commit -qm "📤 نُشرت حمولة ${{ inputs.release_tag }}" && git push -q origin HEAD:master && exit 0
+              git commit -qm "📤 نُشرت حمولة ${{ env.TAG }}" && git push -q origin HEAD:master && exit 0
             fi
             sleep $(( i * 3 ))
           done

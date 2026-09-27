@@ -37,7 +37,16 @@
       "Bash(git push:*)",
       "Bash(gh workflow run:*)",
       "Bash(gh run:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash",
+      "WebFetch",
+      "WebSearch",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "Agent"
     ],
     "deny": [
       "PowerShell(Remove-Item:*secure-keys*)",
