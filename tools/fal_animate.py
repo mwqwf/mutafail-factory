@@ -73,8 +73,9 @@ def avatar(s):
         q = pend[key]; print(sid, '↻ استئناف طلب الراوي', flush=True)
     else:
         mp3 = P('clips', '%s_voice.mp3' % sid)
+        # الجملُ القصيرة (مثل «ما جاء بكم؟») تُمدّ بصمتٍ إلى 3 ث على الأقل كي يقبلها النموذج؛ والمونتاج يقصّ اللقطة على طول كتلتها
         sp.run(['ffmpeg', '-v', 'error', '-y', '-i', P('audio', s['lipsync'] + '.wav'),
-                '-filter:a', 'atempo=1.05', '-ar', '44100', '-b:a', '128k', mp3], check=True)
+                '-filter:a', 'atempo=1.05,apad=whole_dur=3', '-ar', '44100', '-b:a', '128k', mp3], check=True)
         o = sp.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', mp3],
                    capture_output=True, text=True)
         secs = float(o.stdout.strip()); cost = round((int(secs) + 1) * AV_PRICE, 2)
