@@ -1,0 +1,137 @@
+name: مصنع المتفائل — الفيلم الأسبوعي (سحابيّ كلّه)
+
+run-name: 🎬 ${{ inputs.slug }} · ${{ inputs.stage }}
+
+# ⭐ دليلُه: ops/FILM_PLAYBOOK_2026-09-27.md — بعد «اليرموك».
+# المدخل: إصدار مسوّدة <slug>-src فيه حمولةٌ مختومة (tools/stage_media.sh): الصور + النصوص + publish.json.
+# المخرج: إصدار مسوّدة <slug>-out (معاينة 480p + لوحات إطارات + تقارير الصوت والإصغاء + الفيلم والشورتات)
+#         وإصدار <slug>-payload مختوم جاهز لـ sealed-publish.yml بعد مراجعة الجلسة.
+# المستودع عامّ والعدّاء قياسي ⇒ مجاني. والإصدارات المسوّدة لا يراها إلا صاحب المستودع.
+# ⛔ الصوت: gemini-3.8-flash-tts وحده، بلا توجيه أداء (درسا اليرموك). ⛔ fal لا يتجاوز budget_usd.
+on:
+  workflow_dispatch:
+    inputs:
+      slug: { description: "اسم الحلقة (مثل qadisiyya)", required: true, type: string }
+      stage:
+        description: "all = كل شيء · audio = الصوت والفحص فقط · animate = التحريك والمونتاج (بعد صوتٍ سليم)"
+        required: true
+        default: all
+        type: choice
+        options: [all, audio, animate]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-film-${{ inputs.slug }}
+  cancel-in-progress: false
+
+jobs:
+  film:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      SLUG: ${{ inputs.slug }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: الأدوات
+        run: |
+          sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg fonts-hosny-amiri >/dev/null
+          pip install -q pillow numpy requests arabic-reshaper python-bidi google-auth google-api-python-client
+          pip install -q torch --index-url https://download.pytorch.org/whl/cpu && pip install -q transformers
+
+      - name: جلبُ المصدر المختوم وفكّه
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p sealed && cd sealed
+          gh release download "$SLUG-src" -R "$GITHUB_REPOSITORY" --clobber
+          sed -i 's/ \*/  /' SHA256SUMS && sha256sum -c SHA256SUMS && cat part_* > payload.enc && rm part_*
+          cd .. && bash tools/unseal.sh sealed "$PWD/proj" && rm -rf sealed
+          # إن وُجد ناتجُ شوطٍ سابق (صوتٌ مجتاز) يُستأنف منه
+          if gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release download "$SLUG-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp --clobber 2>/dev/null && tar xzf /tmp/state.tgz -C proj || true
+          fi
+          ls proj
+
+      - name: المفاتيح
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+
+      - name: ① الصوت (gemini-3.8-flash-tts) + الفحوص الآلية — حتى ثلاث جولات
+        if: inputs.stage != 'animate'
+        run: |
+          for i in 1 2 3; do
+            node tools/gen25.js proj 4 --keys /tmp/keys.json --model gemini-3.8-flash-tts
+            python tools/audio_checks.py proj && break
+          done
+          python tools/audio_checks.py proj
+
+      - name: ② الإصغاء المشكول (كتلة كتلة) — تقريرٌ للتحكيم
+        if: inputs.stage != 'animate'
+        run: |
+          node tools/listen.js proj 4 --keys /tmp/keys.json --batch 1 || true
+          python - <<'PY'
+          import json
+          r=json.load(open('proj/listen_results.json',encoding='utf-8'))
+          flags={k:v for k,v in r.items() if isinstance(v,dict) and v.get('ok') is False}
+          todo=[k for k,v in r.items() if not isinstance(v,dict) or v.get('ok') is None]
+          open('proj/listen_report.json','w',encoding='utf-8').write(json.dumps({'flags':flags,'unchecked':todo},ensure_ascii=False,indent=1))
+          print('رايات:',len(flags),'| لم يُفحص:',len(todo))
+          PY
+
+      - name: ③ التحريك (Kling عبر fal بسقف الميزانية) + بوّابة صوته + العمق
+        if: inputs.stage != 'audio'
+        env:
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          python tools/fal_animate.py proj
+          python tools/sfx_gate.py proj || true
+          mkdir -p proj/img && cp proj/images/*.jpg proj/img/ 2>/dev/null || true
+          python tools/kb3d.py depth proj
+
+      - name: ④ المونتاج الهجين والمؤثّرات والشورتات
+        if: inputs.stage != 'audio'
+        run: |
+          python tools/mont_hybrid.py proj 0.30
+          for r in $(python -c "import json;print(' '.join(x['id'] for x in json.load(open('proj/reels.json',encoding='utf-8'))))"); do
+            python tools/mkreel3d.py proj "$r"
+          done
+
+      - name: ⑤ مخرجات المراجعة (إصدار مسوّدة خاص)
+        if: always()
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          tar czf out/state.tgz -C proj $(cd proj && ls -d audio listen_results.json audio_checks.json fal_ledger.json fal_pending.json clips 2>/dev/null)
+          cp proj/listen_report.json proj/audio_checks.json out/ 2>/dev/null || true
+          if [ -f proj/film.mp4 ]; then
+            ffmpeg -v error -y -i proj/film.mp4 -vf scale=-2:480 -c:v libx264 -crf 30 -preset veryfast -c:a aac -b:a 64k out/preview480.mp4
+            ffmpeg -v error -y -i proj/film.mp4 -vf "fps=1/20,scale=320:-1,tile=6x5" -frames:v 3 out/sheet_%d.jpg
+            cp proj/reels/*.mp4 out/ 2>/dev/null || true
+          fi
+          gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$SLUG-out" -R "$GITHUB_REPOSITORY" --draft --title "مخرجات $SLUG (مراجعة)" --notes "خاص — مسوّدة."
+          gh release upload "$SLUG-out" out/* -R "$GITHUB_REPOSITORY" --clobber
+
+      - name: ⑥ حمولة النشر المختومة (لـ sealed-publish.yml بعد المراجعة)
+        if: inputs.stage != 'audio' && hashFiles('proj/film.mp4') != ''
+        run: |
+          set -euo pipefail
+          mkdir -p pub/reels && cp proj/film.mp4 proj/publish.json pub/ && cp proj/reels/*.mp4 pub/reels/
+          cp proj/الفصول.txt pub/ 2>/dev/null || true
+          T=$(python -c "import json;print(json.load(open('proj/publish.json',encoding='utf-8')).get('thumb_main','thumbs/'+'$SLUG'+'-B.png'))")
+          python -c "from PIL import Image;Image.open('proj/$T').convert('RGB').save('pub/thumb-a.jpg',quality=92)"
+          bash tools/seal.sh pub sealed && cd sealed && split -b 90m -d payload.enc part_ && rm payload.enc && sha256sum part_* key.enc > SHA256SUMS
+          gh release view "$SLUG-payload" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$SLUG-payload" -R "$GITHUB_REPOSITORY" --draft --title "حمولة نشر $SLUG" --notes "مختومة."
+          gh release upload "$SLUG-payload" key.enc SHA256SUMS part_* -R "$GITHUB_REPOSITORY" --clobber
+          echo "✅ جاهز للنشر: gh workflow run sealed-publish.yml -f release_tag=$SLUG-payload"
