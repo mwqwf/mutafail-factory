@@ -16,6 +16,7 @@ P = lambda *a: os.path.join(PROJ, *a)
 WORK = P('work'); SEG = os.path.join(WORK, 'seg'); os.makedirs(SEG, exist_ok=True)
 blocks = [b for b in json.load(open(P('blocks.json'), encoding='utf-8')) if not b.get('reel_only')]
 shots = json.load(open(P('shots.json'), encoding='utf-8'))
+STILL = {s['id'] for s in shots if s.get('still')}
 ENC = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '19', '-pix_fmt', 'yuv420p', '-r', '25', '-an']
 
 
@@ -26,6 +27,7 @@ def dur(f):
 
 def clip(sid):
     # مقطعُ Kling؛ وإن فشلت مطابقةُ شفاه الراوي فالخامُ المتحرّك خيرٌ من صورةٍ ثابتة
+    if sid in STILL: return None                   # مقطعٌ رُفض بعد الفحص (وجهُ صحابيّ مثلاً): تبقى الصورة المعتمدة
     return (find(sid + '_av', ['clips'], ['mp4']) or find(sid, ['clips'], ['mp4'])
             or find(sid + '_raw', ['clips'], ['mp4']))
 
