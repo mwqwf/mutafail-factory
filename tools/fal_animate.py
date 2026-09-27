@@ -59,6 +59,19 @@ def data_uri(p):
     return 'data:image/jpeg;base64,' + base64.b64encode(buf.getvalue()).decode()
 
 
+def upload(path):
+    """يرفع ملفاً إلى تخزين fal ويعيد رابطه. درس 2026-09-27: fal رفضت الصوت والفيديو بصيغة data: URI
+    (file_download_error وVideo URL is invalid)، وقبلتها للصور فقط."""
+    import subprocess as sp
+    os.environ['FAL_KEY'] = KEY                    # المفتاح المنظَّف من BOM، لا نسخة البيئة الخام
+    try:
+        import fal_client
+    except ImportError:
+        sp.run([sys.executable, '-m', 'pip', 'install', '-q', 'fal-client'], check=True)
+        import fal_client
+    return fal_client.upload_file(path)
+
+
 AV_MODEL = 'fal-ai/bytedance/omnihuman/v1.5'     # صورة + صوت ⇒ راوٍ يتكلّم بشفتيه ورأسه ويديه (0.16$/ث، ≤30 ث بدقة 1080)
 AV_PRICE = 0.16
 
@@ -83,9 +96,9 @@ def avatar(s):
         if spent() + cost > BUDGET + 1e-9:
             print(sid, '⏸ الميزانية لا تكفي الراوي (%.2f$)' % cost, flush=True); return
         p = img_path(sid)
-        buf = io.BytesIO(); im = Image.open(p).convert('RGB'); im.thumbnail((1920, 1080)); im.save(buf, 'JPEG', quality=90)
-        body = {'image_url': 'data:image/jpeg;base64,' + base64.b64encode(buf.getvalue()).decode(),
-                'audio_url': 'data:audio/mpeg;base64,' + base64.b64encode(open(mp3, 'rb').read()).decode(),
+        jpg = P('clips', '%s_img.jpg' % sid)
+        im = Image.open(p).convert('RGB'); im.thumbnail((1920, 1080)); im.save(jpg, 'JPEG', quality=90)
+        body = {'image_url': upload(jpg), 'audio_url': upload(mp3),
                 'resolution': '1080p',
                 'prompt': s.get('avatar_prompt') or s.get('move', '')}
         r = requests.post('https://queue.fal.run/' + AV_MODEL, headers=H, json=body, timeout=600)
@@ -193,8 +206,7 @@ def lipsync(s, raw, retry=True):
         vid = P('clips', '%s_ls_in.mp4' % sid)
         sp.run(['ffmpeg', '-v', 'error', '-y', '-i', raw, '-t', '9.5', '-vf', 'scale=-2:720,fps=25', '-an',
                 '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '22', '-pix_fmt', 'yuv420p', vid], check=True)
-        body = {'video_url': 'data:video/mp4;base64,' + base64.b64encode(open(vid, 'rb').read()).decode(),
-                'audio_url': 'data:audio/mpeg;base64,' + base64.b64encode(open(mp3, 'rb').read()).decode()}
+        body = {'video_url': upload(vid), 'audio_url': upload(mp3)}
         r = requests.post('https://queue.fal.run/' + LS_MODEL, headers=H, json=body, timeout=600)
         if r.status_code != 200: print(sid, '⛔ رُفضت مطابقة الشفاه', r.status_code, r.text[:200], flush=True); return
         q = r.json(); q['cost_usd'] = LS_COST
