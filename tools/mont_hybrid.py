@@ -26,7 +26,8 @@ def dur(f):
 
 def clip(sid):
     # مقطعُ Kling؛ وإن فشلت مطابقةُ شفاه الراوي فالخامُ المتحرّك خيرٌ من صورةٍ ثابتة
-    return find(sid, ['clips'], ['mp4']) or find(sid + '_raw', ['clips'], ['mp4'])
+    return (find(sid + '_av', ['clips'], ['mp4']) or find(sid, ['clips'], ['mp4'])
+            or find(sid + '_raw', ['clips'], ['mp4']))
 
 
 def find(sid, dirs, exts):
@@ -82,7 +83,10 @@ for n, s in enumerate(shots):
     if not (os.path.exists(out) and abs(dur(out) - span) < 0.08):
         if kl:
             kd = dur(kl)
-            if span <= kd * 1.4:
+            if s.get('lipsync') and kd >= span - 1.5:
+                sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'scale=1920:1080,fps=25,tpad=stop_mode=clone:stop_duration=%.3f' % max(0.0, span - kd + 0.1),
+                        '-t', '%.3f' % span] + ENC + [out], check=True)
+            elif span <= kd * 1.4:
                 sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=%.4f*PTS,scale=1920:1080,fps=25' % max(1.0, span / kd),
                         '-t', '%.3f' % span] + ENC + [out], check=True)
             else:

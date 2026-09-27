@@ -59,8 +59,65 @@ def data_uri(p):
     return 'data:image/jpeg;base64,' + base64.b64encode(buf.getvalue()).decode()
 
 
+AV_MODEL = 'fal-ai/bytedance/omnihuman/v1.5'     # صورة + صوت ⇒ راوٍ يتكلّم بشفتيه ورأسه ويديه (0.16$/ث، ≤30 ث بدقة 1080)
+AV_PRICE = 0.16
+
+
+def avatar(s):
+    """الراوي كصانع محتوى حقيقي (أمر المالك 2026-09-27): OmniHuman يولّد الشفاه والرأس والإيماءات من الصورة وصوت الكتلة.
+    الصوت يُسرَّع 1.05 كما في mont_hybrid فيبقى التزامن. الناتج clips/<id>_av.mp4 ويُقدَّم على غيره في المونتاج."""
+    import subprocess as sp
+    sid = s['id']; key = sid + '_av'; out = P('clips', '%s_av.mp4' % sid)
+    if os.path.exists(out): return
+    if key in pend:
+        q = pend[key]; print(sid, '↻ استئناف طلب الراوي', flush=True)
+    else:
+        mp3 = P('clips', '%s_voice.mp3' % sid)
+        sp.run(['ffmpeg', '-v', 'error', '-y', '-i', P('audio', s['lipsync'] + '.wav'),
+                '-filter:a', 'atempo=1.05', '-ar', '44100', '-b:a', '128k', mp3], check=True)
+        o = sp.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', mp3],
+                   capture_output=True, text=True)
+        secs = float(o.stdout.strip()); cost = round((int(secs) + 1) * AV_PRICE, 2)
+        if secs > 30: print(sid, '⛔ صوت الراوي أطول من 30 ث', flush=True); return
+        if spent() + cost > BUDGET + 1e-9:
+            print(sid, '⏸ الميزانية لا تكفي الراوي (%.2f$)' % cost, flush=True); return
+        p = img_path(sid)
+        buf = io.BytesIO(); im = Image.open(p).convert('RGB'); im.thumbnail((1920, 1080)); im.save(buf, 'JPEG', quality=90)
+        body = {'image_url': 'data:image/jpeg;base64,' + base64.b64encode(buf.getvalue()).decode(),
+                'audio_url': 'data:audio/mpeg;base64,' + base64.b64encode(open(mp3, 'rb').read()).decode(),
+                'resolution': '1080p',
+                'prompt': s.get('avatar_prompt') or s.get('move', '')}
+        r = requests.post('https://queue.fal.run/' + AV_MODEL, headers=H, json=body, timeout=600)
+        if r.status_code != 200: print(sid, '⛔ رُفض طلب الراوي', r.status_code, r.text[:300], flush=True); return
+        q = r.json(); q['cost_usd'] = cost
+        pend[key] = q; save(PEND, pend)
+    t0 = time.time()
+    while True:
+        time.sleep(15)
+        try: st = requests.get(q['status_url'], headers=H, timeout=120).json()
+        except Exception: continue
+        if st.get('status') == 'COMPLETED': break
+        if st.get('status') not in ('IN_QUEUE', 'IN_PROGRESS'):
+            print(sid, '⛔ فشل الراوي', json.dumps(st, ensure_ascii=False)[:300], flush=True); pend.pop(key, None); save(PEND, pend); return
+        if time.time() - t0 > 2400: print(sid, '⏳ الراوي معلّق للاستئناف', flush=True); return
+    res = requests.get(q['response_url'], headers=H, timeout=300).json()
+    if not isinstance(res, dict) or 'video' not in res:
+        print(sid, '⛔ ردّ الراوي بلا فيديو:', json.dumps(res, ensure_ascii=False)[:400], flush=True)
+        pend.pop(key, None); save(PEND, pend); return
+    with requests.get(res['video']['url'], stream=True, timeout=900) as v:
+        v.raise_for_status()
+        with open(out + '.part', 'wb') as f:
+            for c in v.iter_content(1 << 16): f.write(c)
+    os.replace(out + '.part', out)
+    ledger.append({'shot': key, 'audio': False, 'cost_usd': q['cost_usd'],
+                   'at': datetime.datetime.now().isoformat(timespec='seconds')})
+    save(LEDGER, ledger); pend.pop(key, None); save(PEND, pend)
+    print(sid, '✅ الراوي (OmniHuman) %.2f$ | المجموع %.2f$ من %.2f$' % (q['cost_usd'], spent(), BUDGET), flush=True)
+
+
 def run(s):
     sid = s['id']; out = P('clips', '%s.mp4' % sid)
+    if s.get('avatar'): return avatar(s)           # الراوي: نموذجُ الأفاتار يغني عن Kling ومطابقة الشفاه
     if os.path.exists(out): return
     if s.get('lipsync'):                           # الراوي: تحريكٌ خام ثم مطابقةُ الشفاه لصوت كتلته
         out = P('clips', '%s_raw.mp4' % sid)
@@ -173,7 +230,7 @@ def lipsync(s, raw, retry=True):
 try:
     # الأولوية: ذات الصوت (البطولية) ثم الحيّة الصامتة، بترتيب الفيلم
     live = [s for s in shots if s.get('kind') == 'حيّة']
-    for s in sorted(live, key=lambda s: (not s.get('lipsync'), not s.get('audio'), s['id'])):
+    for s in sorted(live, key=lambda s: (not s.get('avatar'), not s.get('lipsync'), not s.get('audio'), s['id'])):
         try: run(s)
         except Exception as e: print(s['id'], '⛔ خطأ', type(e).__name__, flush=True)  # لا نصّ الاستثناء: قد يحوي المفتاح
 finally:
