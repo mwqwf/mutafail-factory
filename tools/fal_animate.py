@@ -24,6 +24,8 @@ if not KEY:
         KEY = winreg.QueryValueEx(winreg.OpenKey(winreg.HKEY_CURRENT_USER, 'Environment'), 'FAL_KEY')[0]
     except Exception:
         sys.exit('⛔ لا FAL_KEY')
+# ⛔ درس القادسية: سرٌّ مُلصَقٌ بعلامة BOM أسقط الطلب وطبع المفتاح كاملاً في سجلٍّ عامّ ⇒ يُنظَّف، ولا يُطبع نصّ استثناءٍ قد يحويه
+KEY = KEY.strip().lstrip('\ufeff').strip()
 H = {'Authorization': 'Key ' + KEY}
 P = lambda *a: os.path.join(PROJ, *a)
 LOCK = P('.fal.lock')
@@ -110,7 +112,7 @@ try:
     live = [s for s in shots if s.get('kind') == 'حيّة']
     for s in sorted(live, key=lambda s: (not s.get('audio'), s['id'])):
         try: run(s)
-        except Exception as e: print(s['id'], '⛔ خطأ', repr(e)[:200], flush=True)
+        except Exception as e: print(s['id'], '⛔ خطأ', type(e).__name__, flush=True)  # لا نصّ الاستثناء: قد يحوي المفتاح
 finally:
     os.remove(LOCK)
 print('انتهى التحريك: %d مقطعاً · %.2f$' % (len(ledger), spent()))
