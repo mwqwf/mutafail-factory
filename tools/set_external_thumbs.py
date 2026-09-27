@@ -6,6 +6,7 @@ import sys
 import urllib.request
 
 from googleapiclient.http import MediaFileUpload
+from googleapiclient.errors import HttpError
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import quota
@@ -18,6 +19,7 @@ def main(folder):
     files = sorted(glob.glob(os.path.join(folder, "*.png")))
     if len(files) != 10:
         raise SystemExit("⛔ المتوقع عشر صور PNG، وُجد: %d" % len(files))
+    failed = []
     for path in files:
         name = os.path.basename(path)
         vid = name.rsplit("-", 1)[-1][:-4]
@@ -36,10 +38,15 @@ def main(folder):
         ok, used, left = quota.can("thumbnail")
         if not ok:
             raise SystemExit("⛔ الحصة لا تحتمل المصغرة؛ المتبقي %d" % left)
-        result = svc.thumbnails().set(
-            videoId=vid,
-            media_body=MediaFileUpload(path, mimetype="image/png"),
-        ).execute()
+        try:
+            result = svc.thumbnails().set(
+                videoId=vid,
+                media_body=MediaFileUpload(path, mimetype="image/png"),
+            ).execute()
+        except HttpError as exc:
+            failed.append(vid)
+            print("⛔ رفض يوتيوب المصغرة:", vid, str(exc)[:240], flush=True)
+            continue
         uploaded = result.get("items", [])
         if not uploaded or not any(
             isinstance(value, dict) and value.get("url")
@@ -51,6 +58,8 @@ def main(folder):
         if not current or current[0].get("id") != vid or not current[0]["snippet"].get("thumbnails"):
             raise SystemExit("⛔ لم تظهر بيانات الفيديو بعد رفع المصغرة: " + vid)
         print("✅ رُفعت وتحققت المصغرة:", vid, flush=True)
+    if failed:
+        raise SystemExit("⛔ لم تُقبل المصغرات لهذه المعرّفات: " + ", ".join(failed))
 
 
 if __name__ == "__main__":
