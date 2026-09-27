@@ -17,7 +17,7 @@ on:
         required: true
         default: all
         type: choice
-        options: [all, audio, animate]
+        options: [all, audio, animate, clips]
   # ⭐ الزناد الجذري (2026-09-27): الجلسة السحابية لا تملك تشغيل workflow_dispatch،
   #    لكنها تملك الدفع. فدفعُ ملفٍّ ops/run/<slug>.json = {"slug":"…","stage":"audio|animate|all"}
   #    على أيّ فرعٍ يُطلق هذا الشوط بنفسه، بلا يد المالك.
@@ -55,7 +55,7 @@ jobs:
           import json,sys,re
           d=json.load(open(sys.argv[1],encoding='utf-8'))
           slug=d['slug']; stage=d.get('stage','all')
-          assert re.fullmatch(r'[a-z0-9-]+',slug) and stage in ('all','audio','animate')
+          assert re.fullmatch(r'[a-z0-9-]+',slug) and stage in ('all','audio','animate','clips')
           print('slug='+slug); print('stage='+stage)
           PY
 
@@ -146,7 +146,8 @@ jobs:
           python tools/kb3d.py depth proj
 
       - name: ④ المونتاج الهجين والمؤثّرات والشورتات
-        if: env.STAGE != 'audio'
+        # clips = تحريكٌ فقط ثم حفظُ المقاطع لفحصها قبل المونتاج (أمر المالك 2026-09-27)
+        if: env.STAGE != 'audio' && env.STAGE != 'clips'
         run: |
           python tools/mont_hybrid.py proj 0.30
           # فصول يوتيوب من مدد الصوت (publish_youtube يرفض {CHAPTERS} بلا الفصول.txt)
