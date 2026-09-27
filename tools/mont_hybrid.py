@@ -24,6 +24,11 @@ def dur(f):
     return float(o.stdout.strip())
 
 
+def clip(sid):
+    # مقطعُ Kling؛ وإن فشلت مطابقةُ شفاه الراوي فالخامُ المتحرّك خيرٌ من صورةٍ ثابتة
+    return find(sid, ['clips'], ['mp4']) or find(sid + '_raw', ['clips'], ['mp4'])
+
+
 def find(sid, dirs, exts):
     for d in dirs:
         for e in exts:
@@ -53,7 +58,7 @@ def _pre(job):
 jobs = []
 os.makedirs(P('anim'), exist_ok=True)
 for n, s in enumerate(shots):
-    if find(s['id'], ['clips'], ['mp4']):
+    if clip(s['id']):
         continue
     span = sum(durs[b] + GAP for b in s['blocks']) / 1.05
     an = find(s['id'], ['anim'], ['mp4'])
@@ -72,7 +77,7 @@ t = 0.0
 for n, s in enumerate(shots):
     span = sum(durs[b] + GAP for b in s['blocks']) / 1.05
     out = os.path.join(SEG, 's%03d.mp4' % n)
-    kl = find(s['id'], ['clips'], ['mp4']); img = find(s['id'], ['images', 'img'], ['jpg', 'png'])
+    kl = clip(s['id']); img = find(s['id'], ['images', 'img'], ['jpg', 'png'])
     an = find(s['id'], ['anim'], ['mp4'])
     if not (os.path.exists(out) and abs(dur(out) - span) < 0.08):
         if kl:

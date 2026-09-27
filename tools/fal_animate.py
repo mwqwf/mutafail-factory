@@ -117,12 +117,13 @@ LS_MODEL = 'fal-ai/kling-video/lipsync/audio-to-video'
 LS_COST = 0.30                                     # تقديرٌ محافظ (الصفحة لا تذكر السعر)
 
 
-def lipsync(s, raw):
+def lipsync(s, raw, retry=True):
     """يطابق شفاه الراوي لصوت كتلته. الصوت يُسرَّع 1.05 كما في mont_hybrid فيبقى التزامن."""
     import subprocess as sp
     sid = s['id']; key = sid + '_ls'; out = P('clips', '%s.mp4' % sid)
     if os.path.exists(out): return
-    if key in pend:
+    resumed = key in pend
+    if resumed:
         q = pend[key]
     else:
         if spent() + LS_COST > BUDGET + 1e-9:
@@ -130,7 +131,11 @@ def lipsync(s, raw):
         mp3 = P('clips', '%s_voice.mp3' % sid)
         sp.run(['ffmpeg', '-v', 'error', '-y', '-i', P('audio', s['lipsync'] + '.wav'),
                 '-filter:a', 'atempo=1.05', '-ar', '44100', '-b:a', '128k', mp3], check=True)
-        body = {'video_url': 'data:video/mp4;base64,' + base64.b64encode(open(raw, 'rb').read()).decode(),
+        # درس 2026-09-27: الخامُ 10 ث بدقة 1080 رُفض أربع مرّات؛ نقصّه إلى 9.5 ث (الحدّ 2–10) ونخفّفه إلى 720 ليصغر الحمل
+        vid = P('clips', '%s_ls_in.mp4' % sid)
+        sp.run(['ffmpeg', '-v', 'error', '-y', '-i', raw, '-t', '9.5', '-vf', 'scale=-2:720,fps=25', '-an',
+                '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '22', '-pix_fmt', 'yuv420p', vid], check=True)
+        body = {'video_url': 'data:video/mp4;base64,' + base64.b64encode(open(vid, 'rb').read()).decode(),
                 'audio_url': 'data:audio/mpeg;base64,' + base64.b64encode(open(mp3, 'rb').read()).decode()}
         r = requests.post('https://queue.fal.run/' + LS_MODEL, headers=H, json=body, timeout=600)
         if r.status_code != 200: print(sid, '⛔ رُفضت مطابقة الشفاه', r.status_code, r.text[:200], flush=True); return
@@ -142,9 +147,18 @@ def lipsync(s, raw):
         try: st = requests.get(q['status_url'], headers=H, timeout=120).json()
         except Exception: continue
         if st.get('status') == 'COMPLETED': break
-        if st.get('status') not in ('IN_QUEUE', 'IN_PROGRESS'): print(sid, '⛔ فشلت مطابقة الشفاه', st, flush=True); return
+        if st.get('status') not in ('IN_QUEUE', 'IN_PROGRESS'):
+            print(sid, '⛔ فشلت مطابقة الشفاه', st, flush=True); pend.pop(key, None); save(PEND, pend)
+            if resumed and retry: return lipsync(s, raw, False)
+            return
         if time.time() - t0 > 1800: print(sid, '⏳ مطابقة الشفاه معلّقة للاستئناف', flush=True); return
     res = requests.get(q['response_url'], headers=H, timeout=300).json()
+    if not isinstance(res, dict) or 'video' not in res:
+        # ردُّ خطأٍ من fal (لا يحوي المفتاح): نطبعه ونُسقط الطلب ليُعاد في الشوط التالي؛ والمونتاج يستعمل الخام
+        print(sid, '⛔ ردّ مطابقة الشفاه بلا فيديو:', json.dumps(res, ensure_ascii=False)[:400], flush=True)
+        pend.pop(key, None); save(PEND, pend)
+        if resumed and retry: return lipsync(s, raw, False)   # طلبٌ قديمٌ فاشل: نعيد الإرسال مرّةً بالمدخل المصحَّح
+        return
     with requests.get(res['video']['url'], stream=True, timeout=900) as v:
         v.raise_for_status()
         with open(out + '.part', 'wb') as f:
