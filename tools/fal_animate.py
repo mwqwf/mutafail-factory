@@ -62,8 +62,12 @@ def data_uri(p):
 def run(s):
     sid = s['id']; out = P('clips', '%s.mp4' % sid)
     if os.path.exists(out): return
+    if s.get('lipsync'):                           # الراوي: تحريكٌ خام ثم مطابقةُ الشفاه لصوت كتلته
+        out = P('clips', '%s_raw.mp4' % sid)
+        if os.path.exists(out): return lipsync(s, out)
     audio = bool(s.get('audio'))
-    cost = round(DUR * PRICE[audio], 2)
+    dur = int(s.get('duration', DUR))
+    cost = round(dur * PRICE[audio], 2)
     if sid in pend:
         q = pend[sid]; print(sid, '↻ استئناف طلبٍ مدفوع', flush=True)
     else:
@@ -74,7 +78,7 @@ def run(s):
         prompt = ('Cinematic documentary shot, realistic motion and physics. ' + s['move'] +
                   '. Keep the composition, people and faces exactly as in the image; nobody new enters the frame. No text.' +
                   (' Natural ambient sound effects only (' + s.get('sfx', 'battle') + '), absolutely no music, no singing, no drums.' if audio else ''))
-        body = {'prompt': prompt, 'start_image_url': data_uri(p), 'duration': str(DUR),
+        body = {'prompt': prompt, 'start_image_url': data_uri(p), 'duration': str(dur),
                 'negative_prompt': NEG, 'generate_audio': audio, 'cfg_scale': 0.5}
         r = None
         for t in range(4):
@@ -105,12 +109,57 @@ def run(s):
                    'at': datetime.datetime.now().isoformat(timespec='seconds')})
     save(LEDGER, ledger); pend.pop(sid, None); save(PEND, pend)
     print(sid, '✅', '%.2f$' % q['cost_usd'], '| المجموع %.2f$ من %.2f$' % (spent(), BUDGET), flush=True)
+    if s.get('lipsync'):
+        lipsync(s, out)
+
+
+LS_MODEL = 'fal-ai/kling-video/lipsync/audio-to-video'
+LS_COST = 0.30                                     # تقديرٌ محافظ (الصفحة لا تذكر السعر)
+
+
+def lipsync(s, raw):
+    """يطابق شفاه الراوي لصوت كتلته. الصوت يُسرَّع 1.05 كما في mont_hybrid فيبقى التزامن."""
+    import subprocess as sp
+    sid = s['id']; key = sid + '_ls'; out = P('clips', '%s.mp4' % sid)
+    if os.path.exists(out): return
+    if key in pend:
+        q = pend[key]
+    else:
+        if spent() + LS_COST > BUDGET + 1e-9:
+            print(sid, '⏸ الميزانية لا تكفي مطابقة الشفاه', flush=True); return
+        mp3 = P('clips', '%s_voice.mp3' % sid)
+        sp.run(['ffmpeg', '-v', 'error', '-y', '-i', P('audio', s['lipsync'] + '.wav'),
+                '-filter:a', 'atempo=1.05', '-ar', '44100', '-b:a', '128k', mp3], check=True)
+        body = {'video_url': 'data:video/mp4;base64,' + base64.b64encode(open(raw, 'rb').read()).decode(),
+                'audio_url': 'data:audio/mpeg;base64,' + base64.b64encode(open(mp3, 'rb').read()).decode()}
+        r = requests.post('https://queue.fal.run/' + LS_MODEL, headers=H, json=body, timeout=600)
+        if r.status_code != 200: print(sid, '⛔ رُفضت مطابقة الشفاه', r.status_code, r.text[:200], flush=True); return
+        q = r.json(); q['cost_usd'] = LS_COST
+        pend[key] = q; save(PEND, pend)
+    t0 = time.time()
+    while True:
+        time.sleep(15)
+        try: st = requests.get(q['status_url'], headers=H, timeout=120).json()
+        except Exception: continue
+        if st.get('status') == 'COMPLETED': break
+        if st.get('status') not in ('IN_QUEUE', 'IN_PROGRESS'): print(sid, '⛔ فشلت مطابقة الشفاه', st, flush=True); return
+        if time.time() - t0 > 1800: print(sid, '⏳ مطابقة الشفاه معلّقة للاستئناف', flush=True); return
+    res = requests.get(q['response_url'], headers=H, timeout=300).json()
+    with requests.get(res['video']['url'], stream=True, timeout=900) as v:
+        v.raise_for_status()
+        with open(out + '.part', 'wb') as f:
+            for c in v.iter_content(1 << 16): f.write(c)
+    os.replace(out + '.part', out)
+    ledger.append({'shot': key, 'audio': False, 'cost_usd': q['cost_usd'],
+                   'at': datetime.datetime.now().isoformat(timespec='seconds')})
+    save(LEDGER, ledger); pend.pop(key, None); save(PEND, pend)
+    print(sid, '✅ مطابقة الشفاه | المجموع %.2f$ من %.2f$' % (spent(), BUDGET), flush=True)
 
 
 try:
     # الأولوية: ذات الصوت (البطولية) ثم الحيّة الصامتة، بترتيب الفيلم
     live = [s for s in shots if s.get('kind') == 'حيّة']
-    for s in sorted(live, key=lambda s: (not s.get('audio'), s['id'])):
+    for s in sorted(live, key=lambda s: (not s.get('lipsync'), not s.get('audio'), s['id'])):
         try: run(s)
         except Exception as e: print(s['id'], '⛔ خطأ', type(e).__name__, flush=True)  # لا نصّ الاستثناء: قد يحوي المفتاح
 finally:
