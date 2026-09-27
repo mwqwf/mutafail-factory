@@ -5,6 +5,7 @@
 import glob, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import quota
+if len(sys.argv) < 2: sys.argv.append("proj")  # publish_youtube يقرأ sys.argv[1] عند الاستيراد
 from publish_youtube import yt
 from googleapiclient.http import MediaFileUpload
 

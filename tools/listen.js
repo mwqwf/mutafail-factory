@@ -79,7 +79,8 @@ const PROMPT = `أنت مدقّقٌ لغويّ عربيّ دقيق. ستتلقى
 
 async function checkGroup(group) {
   const ids = group.map(x => x.block.id);
-  const deadline = Date.now() + 3 * 60 * 1000;
+  // النتّ الضعيف يبطئ رفع الصوت ⇒ مهلة أطول (مقيس 2026-09-26: 171/175 مهلة منتهية بـ3 د)
+  const deadline = Date.now() + 15 * 60 * 1000;
   while (Date.now() < deadline) {
     const key = nextKey();
     if (!key) return Object.fromEntries(ids.map(id => [id, {ok: null, why: 'nokeys'}]));
@@ -97,7 +98,7 @@ async function checkGroup(group) {
     };
     try {
       const ctl = new AbortController();
-      const t = setTimeout(() => ctl.abort(), 120000);
+      const t = setTimeout(() => ctl.abort(), 600000);
       const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal });
       clearTimeout(t);
       if (r.status === 429) {
