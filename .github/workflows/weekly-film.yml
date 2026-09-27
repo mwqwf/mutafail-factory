@@ -1,6 +1,6 @@
 name: مصنع المتفائل — الفيلم الأسبوعي (سحابيّ كلّه)
 
-run-name: 🎬 ${{ inputs.slug }} · ${{ inputs.stage }}
+run-name: 🎬 ${{ inputs.slug || github.event.head_commit.message }} · ${{ inputs.stage }}
 
 # ⭐ دليلُه: ops/FILM_PLAYBOOK_2026-09-27.md — بعد «اليرموك».
 # المدخل: إصدار مسوّدة <slug>-src فيه حمولةٌ مختومة (tools/stage_media.sh): الصور + النصوص + publish.json.
@@ -18,20 +18,54 @@ on:
         default: all
         type: choice
         options: [all, audio, animate]
+  # ⭐ الزناد الجذري (2026-09-27): الجلسة السحابية لا تملك تشغيل workflow_dispatch،
+  #    لكنها تملك الدفع. فدفعُ ملفٍّ ops/run/<slug>.json = {"slug":"…","stage":"audio|animate|all"}
+  #    على أيّ فرعٍ يُطلق هذا الشوط بنفسه، بلا يد المالك.
+  push:
+    paths: ["ops/run/**"]
 
 permissions:
   contents: write
 
 concurrency:
-  group: weekly-film-${{ inputs.slug }}
+  group: weekly-film-${{ inputs.slug || github.ref }}
   cancel-in-progress: false
 
 jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      slug: ${{ steps.r.outputs.slug }}
+      stage: ${{ steps.r.outputs.stage }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - id: r
+        env:
+          IN_SLUG: ${{ inputs.slug }}
+          IN_STAGE: ${{ inputs.stage }}
+        run: |
+          set -euo pipefail
+          if [ -n "$IN_SLUG" ]; then
+            echo "slug=$IN_SLUG" >> "$GITHUB_OUTPUT"; echo "stage=${IN_STAGE:-all}" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/run/.*\.json$' | head -1)
+          [ -n "$F" ] || { echo "⛔ لا ملفَّ أمرٍ في ops/run"; exit 1; }
+          python3 - "$F" >> "$GITHUB_OUTPUT" <<'PY'
+          import json,sys,re
+          d=json.load(open(sys.argv[1],encoding='utf-8'))
+          slug=d['slug']; stage=d.get('stage','all')
+          assert re.fullmatch(r'[a-z0-9-]+',slug) and stage in ('all','audio','animate')
+          print('slug='+slug); print('stage='+stage)
+          PY
+
   film:
+    needs: resolve
     runs-on: ubuntu-latest
     timeout-minutes: 350
     env:
-      SLUG: ${{ inputs.slug }}
+      SLUG: ${{ needs.resolve.outputs.slug }}
+      STAGE: ${{ needs.resolve.outputs.stage }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -66,7 +100,7 @@ jobs:
         run: printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
 
       - name: ① الصوت (gemini-3.8-flash-tts) + الفحوص الآلية — حتى ثلاث جولات
-        if: inputs.stage != 'animate'
+        if: env.STAGE != 'animate'
         run: |
           for i in 1 2 3; do
             node tools/gen25.js proj 4 --keys /tmp/keys.json --model gemini-3.8-flash-tts
@@ -75,7 +109,7 @@ jobs:
           python tools/audio_checks.py proj
 
       - name: ② الإصغاء المشكول (كتلة كتلة) — تقريرٌ للتحكيم
-        if: inputs.stage != 'animate'
+        if: env.STAGE != 'animate'
         run: |
           node tools/listen.js proj 4 --keys /tmp/keys.json --batch 1 || true
           python - <<'PY'
@@ -88,7 +122,7 @@ jobs:
           PY
 
       - name: ③ التحريك (Kling عبر fal بسقف الميزانية) + بوّابة صوته + العمق
-        if: inputs.stage != 'audio'
+        if: env.STAGE != 'audio'
         env:
           FAL_KEY: ${{ secrets.FAL_KEY }}
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
@@ -99,7 +133,7 @@ jobs:
           python tools/kb3d.py depth proj
 
       - name: ④ المونتاج الهجين والمؤثّرات والشورتات
-        if: inputs.stage != 'audio'
+        if: env.STAGE != 'audio'
         run: |
           python tools/mont_hybrid.py proj 0.30
           for r in $(python -c "import json;print(' '.join(x['id'] for x in json.load(open('proj/reels.json',encoding='utf-8'))))"); do
@@ -123,7 +157,7 @@ jobs:
           gh release upload "$SLUG-out" out/* -R "$GITHUB_REPOSITORY" --clobber
 
       - name: ⑥ حمولة النشر المختومة (لـ sealed-publish.yml بعد المراجعة)
-        if: inputs.stage != 'audio' && hashFiles('proj/film.mp4') != ''
+        if: env.STAGE != 'audio' && hashFiles('proj/film.mp4') != ''
         run: |
           set -euo pipefail
           mkdir -p pub/reels && cp proj/film.mp4 proj/publish.json pub/ && cp proj/reels/*.mp4 pub/reels/
