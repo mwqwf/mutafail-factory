@@ -59,16 +59,26 @@ jobs:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
         run: python tools/publish_youtube.py proj
 
+      - name: مصغّراتُ أفلامٍ منشورة (ops/thumbs_pending/<videoId>.jpg)
+        if: always()
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: |
+          ls ops/thumbs_pending/*.jpg >/dev/null 2>&1 || { echo "لا مصغّرات معلّقة"; exit 0; }
+          python tools/set_thumbs.py
+
       - name: تسجيلُ الحالة
         if: always()
         run: |
           git config user.name  "مصنع المتفائل"
           git config user.email "factory@mutafail.local"
-          [ -n "$(git status --porcelain ops/state)" ] || { echo "لا جديد"; exit 0; }
-          rm -rf /tmp/state_keep && mkdir -p /tmp/state_keep && cp -a ops/state/. /tmp/state_keep/
+          [ -n "$(git status --porcelain ops/state ops/thumbs_pending)" ] || { echo "لا جديد"; exit 0; }
+          rm -rf /tmp/state_keep /tmp/thumbs_keep && mkdir -p /tmp/state_keep /tmp/thumbs_keep && cp -a ops/state/. /tmp/state_keep/
+          ls ops/thumbs_pending/ > /tmp/thumbs_keep/left.txt 2>/dev/null || true
           for i in 1 2 3 4; do
             if git fetch -q origin master && git reset -q --hard origin/master; then
               cp -a /tmp/state_keep/. ops/state/
+              for f in ops/thumbs_pending/*.jpg; do [ -e "$f" ] || continue; grep -qx "$(basename "$f")" /tmp/thumbs_keep/left.txt || git rm -q "$f"; done
               git add -A ops/state
               if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
               git commit -qm "📤 نُشرت حمولة ${{ inputs.release_tag }}" && git push -q origin HEAD:master && exit 0
