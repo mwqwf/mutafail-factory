@@ -96,12 +96,16 @@ jobs:
           python tools/fal_animate.py proj
           python tools/sfx_gate.py proj || true
           mkdir -p proj/img && cp proj/images/*.jpg proj/img/ 2>/dev/null || true
+          # صورتا الشورتين العموديتان (كوديكس) تدخلان img/ باسم v_<id> ليُحسب عمقهما ويستعملهما reels.json
+          for f in proj/shorts/*.jpg; do [ -f "$f" ] && cp "$f" "proj/img/v_$(basename "$f")"; done; true
           python tools/kb3d.py depth proj
 
       - name: ④ المونتاج الهجين والمؤثّرات والشورتات
         if: inputs.stage != 'audio'
         run: |
           python tools/mont_hybrid.py proj 0.30
+          # فصول يوتيوب من مدد الصوت (publish_youtube يرفض {CHAPTERS} بلا الفصول.txt)
+          [ -f proj/sections.json ] && python tools/chapters.py proj proj/sections.json 0.30
           for r in $(python -c "import json;print(' '.join(x['id'] for x in json.load(open('proj/reels.json',encoding='utf-8'))))"); do
             python tools/mkreel3d.py proj "$r"
           done
