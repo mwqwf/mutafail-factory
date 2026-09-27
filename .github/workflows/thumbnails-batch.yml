@@ -1,0 +1,54 @@
+name: رفع دفعة مصغرات القناة
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: وسم الإصدار المسوّدة الذي يحمل الحمولة المشفّرة
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mutafail-thumbnail-batch
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
+      - name: جلب وفك الحمولة المشفّرة
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          mkdir -p sealed payload
+          cd sealed
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY"
+          sed -i 's/ \*/  /' SHA256SUMS
+          sha256sum -c SHA256SUMS
+          cd ..
+          bash tools/unseal.sh sealed payload
+      - name: التحقق من سر القناة ورفع المصغرات
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: |
+          test -n "$YT_OAUTH_JSON"
+          python tools/set_external_thumbs.py payload
+      - name: حفظ نسخ المصغرات السابقة لاسترجاعها
+        if: always() && hashFiles('thumbnail-backup/*.jpg') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: youtube-thumbnails-backup-${{ github.run_id }}
+          path: thumbnail-backup/*.jpg
+          retention-days: 7
