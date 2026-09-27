@@ -149,7 +149,10 @@ async function genWith(model, blk) {
       const p = j?.candidates?.[0]?.content?.parts?.find(x => x.inlineData);
       if (!p) { await new Promise(z => setTimeout(z, 1500)); continue; }
       const pcm = Buffer.from(p.inlineData.data, 'base64');
-      fs.writeFileSync(outFile, Buffer.concat([wavHeader(pcm.length), pcm]));
+      // ⛔⛔ gemini-3.8 يُرجع WAV كاملاً بترويسته؛ فإضافةُ ترويسةٍ فوقه تُسمَع طقطقةً في أوّل كل كتلة
+      //    (وقع في «اليرموك» 2026-09-27: 175 كتلة). ⇒ إن كان المُرجَع RIFF يُحفظ كما هو.
+      const isWav = pcm.length > 12 && pcm.toString('ascii', 0, 4) === 'RIFF';
+      fs.writeFileSync(outFile, isWav ? pcm : Buffer.concat([wavHeader(pcm.length), pcm]));
       state.done[blk.id] = true; state.model_of[blk.id] = model; save();
       return 'ok';
     } catch (e) { await new Promise(z => setTimeout(z, 2000)); }
