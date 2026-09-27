@@ -45,6 +45,27 @@ sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', os.path.joi
         '-filter:a', 'atempo=1.05,adeclick,dynaudnorm', '-ar', '48000', voice], check=True)
 VD = dur(voice); print('① الصوت %.2f د' % (VD / 60), flush=True)
 
+# ①ب تصييرُ مشاهد kb3d مسبقاً بالتوازي على كلّ الأنوية (درس القادسية: تسلسلياً أخذ ساعاتٍ على عدّاء GitHub)
+def _pre(job):
+    kb3d.render(*job)
+    return job[1]
+
+jobs = []
+os.makedirs(P('anim'), exist_ok=True)
+for n, s in enumerate(shots):
+    if find(s['id'], ['clips'], ['mp4']):
+        continue
+    span = sum(durs[b] + GAP for b in s['blocks']) / 1.05
+    an = find(s['id'], ['anim'], ['mp4'])
+    if an and dur(an) >= span - 0.5:
+        continue
+    jobs.append((find(s['id'], ['images', 'img'], ['jpg', 'png']), P('anim', '%s.mp4' % s['id']), span + 0.3, n))
+if jobs:
+    from concurrent.futures import ProcessPoolExecutor
+    with ProcessPoolExecutor(os.cpu_count() or 2) as ex:
+        for i, f in enumerate(ex.map(_pre, jobs)):
+            print('  kb3d [%d/%d] %s' % (i + 1, len(jobs), os.path.basename(f)), flush=True)
+
 # ② اللقطات + جدول المؤثّرات
 segs, fx = [], []   # fx: (بداية، مدة، ملف، مستوى)
 t = 0.0
