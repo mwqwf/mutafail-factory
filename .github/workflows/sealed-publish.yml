@@ -54,7 +54,7 @@ jobs:
               assert re.fullmatch(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ', at); print('PUBLISH_AT=' + at)
           off = d.get('reel_offsets', '')
           if off:
-              assert re.fullmatch(r'\d+(,\d+)*', off); print('REEL_OFFSETS=' + off)
+              assert off == 'now' or re.fullmatch(r'\d+(,\d+)*', off); print('REEL_OFFSETS=' + off)
           PY
           fi
       - uses: actions/setup-python@v5

@@ -120,12 +120,16 @@ def recent_uploads(svc, limit=50):
 
 
 def reschedule(svc, vid, at):
-    """يعدّل موعدَ فيديو مرفوعٍ ما دام خاصّاً (تصحيحُ موعدٍ بعد رفعه، بلا نسخةٍ ثانية)."""
-    if not at:
-        return
+    """يعدّل موعدَ فيديو مرفوعٍ ما دام خاصّاً (تصحيحُ موعدٍ بعد رفعه، بلا نسخةٍ ثانية)؛
+    وبلا موعدٍ (at=None) يجعله عامّاً الآن."""
     st = svc.videos().list(part="status", id=vid).execute()["items"][0]["status"]
     if st.get("privacyStatus") == "public":
         print("↻", vid, "عامٌّ سلفاً — لا يُعاد جدولته", flush=True); return
+    if not at:
+        svc.videos().update(part="status", body={"id": vid, "status": {
+            "privacyStatus": "public",
+            "selfDeclaredMadeForKids": False, "containsSyntheticMedia": True}}).execute()
+        print("🌐 صار عامّاً الآن", vid, flush=True); return
     if st.get("publishAt", "").replace(".000", "") == at:
         return
     svc.videos().update(part="status", body={"id": vid, "status": {
@@ -135,8 +139,9 @@ def reschedule(svc, vid, at):
 
 
 def reel_at(film_at, i):
-    """موعدُ الريلز رقم i: بعد موعد الفيلم بـREEL_OFFSETS دقيقةً (افتراضاً 30 ثم 150)، أو فوراً إن لم يُجدول الفيلم."""
-    if not film_at:
+    """موعدُ الريلز رقم i: بعد موعد الفيلم بـREEL_OFFSETS دقيقةً (افتراضاً 30 ثم 150)، أو فوراً إن لم يُجدول الفيلم
+    أو كان REEL_OFFSETS = "now" (أمر المالك 2026-09-28: «الشورتات لا تجدولهما، يكفي جدولة الفيلم»)."""
+    if not film_at or os.environ.get("REEL_OFFSETS", "").strip() == "now":
         return None
     import datetime as dt
     offs = [int(x) for x in os.environ.get("REEL_OFFSETS", "30,150").split(",") if x.strip()]
