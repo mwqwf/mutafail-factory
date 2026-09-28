@@ -120,7 +120,12 @@ jobs:
           python tools/trim_lead.py proj
           # ست جولات: النقرات المعزولة عشوائية في بعض الأصوات (Schedar)، فتنجح غالباً بالإعادة (الزلاقة 2026-09-28)
           for i in 1 2 3 4 5 6; do
-            node tools/gen25.js proj 12 --keys /tmp/keys.json --model gemini-3.8-flash-tts
+            node tools/gen25.js proj 12 --keys /tmp/keys.json --model gemini-3.8-flash-tts || true
+            python tools/audio_checks.py proj && break
+          done
+          # نفدت حصّة 3.8 اليومية (فتح القسطنطينية 2026-09-28: 12 كتلة «nokeys») ⇒ ما بقي بنموذجٍ ذي حصّةٍ منفصلة، بالصوت نفسه
+          python tools/audio_checks.py proj || for m in gemini-2.5-flash-preview-tts gemini-2.5-pro-preview-tts; do
+            node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$m" || true
             python tools/audio_checks.py proj && break
           done
           python tools/audio_checks.py proj
