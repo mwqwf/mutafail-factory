@@ -92,6 +92,11 @@ jobs:
           fi
           sed -i 's/ \*/  /' SHA256SUMS && sha256sum -c SHA256SUMS && cat part_* > payload.enc && rm part_*
           cd .. && bash tools/unseal.sh sealed "$PWD/proj" && rm -rf sealed
+          # مقاطعُ الافتتاحية المعتمدة (<slug>-intro-out) تدخل الفيلم كاملاً بلا دفعٍ ثانٍ لـfal
+          if gh release view "$SLUG-intro-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release download "$SLUG-intro-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp/intro --clobber 2>/dev/null && \
+              mkdir -p proj/clips && tar xzf /tmp/intro/state.tgz -C /tmp/intro clips && cp -n /tmp/intro/clips/*.mp4 proj/clips/ || true
+          fi
           # إن وُجد ناتجُ شوطٍ سابق (صوتٌ مجتاز) يُستأنف منه
           if gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release download "$SLUG-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp --clobber 2>/dev/null && tar xzf /tmp/state.tgz -C proj || true
@@ -167,6 +172,8 @@ jobs:
             ffmpeg -v error -y -i proj/film.mp4 -vf scale=-2:480 -c:v libx264 -crf 30 -preset veryfast -c:a aac -b:a 64k out/preview480.mp4
             ffmpeg -v error -y -i proj/film.mp4 -vf "fps=1/20,scale=320:-1,tile=6x5" -frames:v 3 out/sheet_%d.jpg
             cp proj/reels/*.mp4 out/ 2>/dev/null || true
+            # الافتتاحية القصيرة تُرفع كاملة الجودة ليحكم المالك على حركة الراوي (الزلاقة 2026-09-28)
+            [ "$(stat -c%s proj/film.mp4)" -lt 150000000 ] && cp proj/film.mp4 out/film_full.mp4 || true
           fi
           gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
             gh release create "$SLUG-out" -R "$GITHUB_REPOSITORY" --draft --title "مخرجات $SLUG (مراجعة)" --notes "خاص — مسوّدة."
