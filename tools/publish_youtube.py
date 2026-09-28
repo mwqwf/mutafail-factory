@@ -119,6 +119,36 @@ def recent_uploads(svc, limit=50):
         return {}
 
 
+def reschedule(svc, vid, at):
+    """يعدّل موعدَ فيديو مرفوعٍ ما دام خاصّاً (تصحيحُ موعدٍ بعد رفعه، بلا نسخةٍ ثانية)؛
+    وبلا موعدٍ (at=None) يجعله عامّاً الآن."""
+    st = svc.videos().list(part="status", id=vid).execute()["items"][0]["status"]
+    if st.get("privacyStatus") == "public":
+        print("↻", vid, "عامٌّ سلفاً — لا يُعاد جدولته", flush=True); return
+    if not at:
+        svc.videos().update(part="status", body={"id": vid, "status": {
+            "privacyStatus": "public",
+            "selfDeclaredMadeForKids": False, "containsSyntheticMedia": True}}).execute()
+        print("🌐 صار عامّاً الآن", vid, flush=True); return
+    if st.get("publishAt", "").replace(".000", "") == at:
+        return
+    svc.videos().update(part="status", body={"id": vid, "status": {
+        "privacyStatus": "private", "publishAt": at,
+        "selfDeclaredMadeForKids": False, "containsSyntheticMedia": True}}).execute()
+    print("🕒 أُعيدت جدولة", vid, "إلى", at, flush=True)
+
+
+def reel_at(film_at, i):
+    """موعدُ الريلز رقم i: بعد موعد الفيلم بـREEL_OFFSETS دقيقةً (افتراضاً 30 ثم 150)، أو فوراً إن لم يُجدول الفيلم
+    أو كان REEL_OFFSETS = "now" (أمر المالك 2026-09-28: «الشورتات لا تجدولهما، يكفي جدولة الفيلم»)."""
+    if not film_at or os.environ.get("REEL_OFFSETS", "").strip() == "now":
+        return None
+    import datetime as dt
+    offs = [int(x) for x in os.environ.get("REEL_OFFSETS", "30,150").split(",") if x.strip()]
+    base = dt.datetime.fromisoformat(film_at.replace("Z", "+00:00"))
+    return (base + dt.timedelta(minutes=offs[min(i, len(offs) - 1)])).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 STATE_FILE = os.path.join(STATE, "last_publish.json")
 
 
@@ -348,8 +378,14 @@ def main():
     #      ولا فجوة. وهو أيضاً أمرُ المالك المتكرّر في 2026-09-14: «اجعلها عامّة».
     when = meta.get("publishAt")   # ISO-8601 UTC
     public_now = bool(meta.get("publicNow"))
-    if public_now:
-        when = None
+    # ⭐ موعدٌ يحدّده المالك عند النشر (ops/publish/<slug>.json ← PUBLISH_AT) يغلب ما في الحمولة المختومة،
+    #    والريلزان يُجدولان بعده بدقائق REEL_OFFSETS فلا يحيلان إلى فيلمٍ لم يُعرض بعد.
+    env_at = os.environ.get("PUBLISH_AT", "").strip()
+    if env_at == "now":                            # أمر المالك 2026-09-28: «اجعلهم منشورين من الآن»
+        when, public_now = None, True
+    elif env_at:
+        when, public_now = env_at, False
+    public_now = public_now and not when
     film_id = os.environ.get("FILM_VIDEO_ID", "").strip()
     if film_id:
         print("↻ استئناف: الفيلم مرفوعٌ سلفاً", film_id, flush=True)
@@ -366,6 +402,8 @@ def main():
                          publish_at=when, public_now=public_now)
         save_state({"film": {"id": film_id}})      # ⛔ يُسجَّل فورَ الرفع لا بعد كلّ شيء
     verify(svc, film_id)
+    if resumed and env_at:
+        reschedule(svc, film_id, when)
 
     # ─── المصغّرة: لازمة، ولا تُتخطّى ───
     thumb = P("thumb-a.jpg")
@@ -408,11 +446,13 @@ def main():
     for r in meta.get("reels", []):
         if r["file"] in done:                      # ↻ استئناف: لا يُرفع مرّتين
             print("↻ الريلز مرفوعٌ سلفاً", r["file"], flush=True)
+            if env_at: reschedule(svc, done[r["file"]]["id"], reel_at(when, len(reels)))
             reels.append(done[r["file"]]); continue
         t = r["title"].strip()[:100]
         if t in onchannel:                         # ↻ رُفع في محاولةٍ سابقةٍ سقطت
             print("↻ عنوانٌ مرفوعٌ على القناة سلفاً — لا نسخةَ ثانية:",
                   onchannel[t], flush=True)
+            if env_at: reschedule(svc, onchannel[t], reel_at(when, len(reels)))
             reels.append({"id": onchannel[t], "title": r["title"], "file": r["file"]})
             save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
             continue
@@ -424,7 +464,8 @@ def main():
             continue
         rm = dict(r)
         rm["description"] = r["description"].replace("{FILM_URL}", link)
-        rid = upload(svc, P("reels", r["file"]), rm, public_now=True)
+        rat = reel_at(when, len(reels))
+        rid = upload(svc, P("reels", r["file"]), rm, publish_at=rat, public_now=not rat)
         # ⛔ يُسجَّل **قبل** التحقّق: سقوطُ التحقّق بعد رفعٍ واقعٍ كان يُنتج نسخةً ثانية.
         reels.append({"id": rid, "title": r["title"], "file": r["file"]})
         save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
