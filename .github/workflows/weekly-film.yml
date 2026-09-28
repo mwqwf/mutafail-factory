@@ -109,7 +109,7 @@ jobs:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
 
-      - name: ① الصوت (gemini-3.8-flash-tts) + الفحوص الآلية — حتى ثلاث جولات
+      - name: ① الصوت (gemini-3.8-flash-tts) + الفحوص الآلية — حتى ست جولات
         if: env.STAGE != 'animate'
         run: |
           # regen.txt في الحمولة = كتلٌ تغيّر نصُّها بعد التوليد (تحكيم الإصغاء) ⇒ يُحذف صوتُها ليُعاد
@@ -118,7 +118,8 @@ jobs:
           # audio_fix/ في الحمولة: صوتٌ مصحَّح يغلب ما في حالة الشوط السابق (مثلاً صوتٌ أُعيد توليده خطأً وله مقطع راوٍ مدفوع)
           [ -d proj/audio_fix ] && cp proj/audio_fix/*.wav proj/audio/ || true
           python tools/trim_lead.py proj
-          for i in 1 2 3; do
+          # ست جولات: النقرات المعزولة عشوائية في بعض الأصوات (Schedar)، فتنجح غالباً بالإعادة (الزلاقة 2026-09-28)
+          for i in 1 2 3 4 5 6; do
             node tools/gen25.js proj 4 --keys /tmp/keys.json --model gemini-3.8-flash-tts
             python tools/audio_checks.py proj && break
           done
@@ -185,12 +186,13 @@ jobs:
           # فصول يوتيوب من مدد الصوت (publish_youtube يرفض {CHAPTERS} بلا الفصول.txt)
           [ -f proj/sections.json ] && python tools/chapters.py proj proj/sections.json 0.30
           for r in $(python -c "import json;print(' '.join(x['id'] for x in json.load(open('proj/reels.json',encoding='utf-8'))))"); do
-            # ريلز الافتتاحية يُقصّ من الفيلم نفسه (from_film)، والبقية مجسَّمة من الصور
-            if python -c "import json,sys;sys.exit(0 if any(x['id']=='$r' and x.get('from_film') for x in json.load(open('proj/reels.json',encoding='utf-8'))) else 1)"; then
-              python tools/mkreel_open.py proj "$r"
-            else
-              python tools/mkreel3d.py proj "$r"
-            fi
+            # from_film: يُقصّ من الفيلم نفسه · shots: لقطات الفيلم المتحرّكة مع ترجمة · وإلا مجسَّم من الصور
+            kind=$(python -c "import json;x=[x for x in json.load(open('proj/reels.json',encoding='utf-8')) if x['id']=='$r'][0];print('open' if x.get('from_film') else 'film' if x.get('shots') else '3d')")
+            case "$kind" in
+              open) python tools/mkreel_open.py proj "$r" ;;
+              film) python tools/mkreel_film.py proj "$r" ;;
+              *)    python tools/mkreel3d.py proj "$r" ;;
+            esac
           done
 
       - name: ⑤ مخرجات المراجعة (إصدار مسوّدة خاص)
