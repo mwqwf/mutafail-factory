@@ -43,6 +43,20 @@ jobs:
             T=$(python3 -c "import json,sys,re;t=json.load(open(sys.argv[1],encoding='utf-8'))['release_tag'];assert re.fullmatch(r'[a-z0-9-]+',t);print(t)" "$F")
           fi
           echo "TAG=$T" >> "$GITHUB_ENV"
+          # موعدُ العرض (اختياريّ): {"publish_at":"2026-09-28T18:30:00Z","reel_offsets":"30,150"}
+          F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/publish/.*\.json$' | head -1 || true)
+          if [ -n "$F" ]; then
+            python3 - "$F" >> "$GITHUB_ENV" <<'PY'
+          import json, re, sys
+          d = json.load(open(sys.argv[1], encoding='utf-8'))
+          at = d.get('publish_at', '')
+          if at:
+              assert re.fullmatch(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ', at); print('PUBLISH_AT=' + at)
+          off = d.get('reel_offsets', '')
+          if off:
+              assert re.fullmatch(r'\d+(,\d+)*', off); print('REEL_OFFSETS=' + off)
+          PY
+          fi
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -q google-auth google-auth-oauthlib google-api-python-client

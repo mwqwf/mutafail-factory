@@ -119,6 +119,16 @@ def recent_uploads(svc, limit=50):
         return {}
 
 
+def reel_at(film_at, i):
+    """موعدُ الريلز رقم i: بعد موعد الفيلم بـREEL_OFFSETS دقيقةً (افتراضاً 30 ثم 150)، أو فوراً إن لم يُجدول الفيلم."""
+    if not film_at:
+        return None
+    import datetime as dt
+    offs = [int(x) for x in os.environ.get("REEL_OFFSETS", "30,150").split(",") if x.strip()]
+    base = dt.datetime.fromisoformat(film_at.replace("Z", "+00:00"))
+    return (base + dt.timedelta(minutes=offs[min(i, len(offs) - 1)])).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 STATE_FILE = os.path.join(STATE, "last_publish.json")
 
 
@@ -348,8 +358,12 @@ def main():
     #      ولا فجوة. وهو أيضاً أمرُ المالك المتكرّر في 2026-09-14: «اجعلها عامّة».
     when = meta.get("publishAt")   # ISO-8601 UTC
     public_now = bool(meta.get("publicNow"))
-    if public_now:
-        when = None
+    # ⭐ موعدٌ يحدّده المالك عند النشر (ops/publish/<slug>.json ← PUBLISH_AT) يغلب ما في الحمولة المختومة،
+    #    والريلزان يُجدولان بعده بدقائق REEL_OFFSETS فلا يحيلان إلى فيلمٍ لم يُعرض بعد.
+    env_at = os.environ.get("PUBLISH_AT", "").strip()
+    if env_at:
+        when, public_now = env_at, False
+    public_now = public_now and not when
     film_id = os.environ.get("FILM_VIDEO_ID", "").strip()
     if film_id:
         print("↻ استئناف: الفيلم مرفوعٌ سلفاً", film_id, flush=True)
@@ -424,7 +438,8 @@ def main():
             continue
         rm = dict(r)
         rm["description"] = r["description"].replace("{FILM_URL}", link)
-        rid = upload(svc, P("reels", r["file"]), rm, public_now=True)
+        rat = reel_at(when, len(reels))
+        rid = upload(svc, P("reels", r["file"]), rm, publish_at=rat, public_now=not rat)
         # ⛔ يُسجَّل **قبل** التحقّق: سقوطُ التحقّق بعد رفعٍ واقعٍ كان يُنتج نسخةً ثانية.
         reels.append({"id": rid, "title": r["title"], "file": r["file"]})
         save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
