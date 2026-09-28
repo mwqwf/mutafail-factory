@@ -115,6 +115,8 @@ jobs:
           # regen.txt في الحمولة = كتلٌ تغيّر نصُّها بعد التوليد (تحكيم الإصغاء) ⇒ يُحذف صوتُها ليُعاد
           [ -f proj/regen.txt ] && for id in $(cat proj/regen.txt); do rm -f "proj/audio/$id.wav"; done; true
           # قصُّ ما نُطق من توجيهٍ إنجليزي في أول الكتلة (lead_cut) صوتاً ومقطعَ راوٍ، قبل الفحص والإصغاء ليُتحقَّق منه
+          # audio_fix/ في الحمولة: صوتٌ مصحَّح يغلب ما في حالة الشوط السابق (مثلاً صوتٌ أُعيد توليده خطأً وله مقطع راوٍ مدفوع)
+          [ -d proj/audio_fix ] && cp proj/audio_fix/*.wav proj/audio/ || true
           python tools/trim_lead.py proj
           for i in 1 2 3; do
             node tools/gen25.js proj 4 --keys /tmp/keys.json --model gemini-3.8-flash-tts

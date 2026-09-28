@@ -21,9 +21,15 @@ blocks = json.load(open(P('blocks.json'), encoding='utf-8'))
 for b in blocks:
     if b['id'] in leak: b.pop('style', None)
 json.dump(blocks, open(P('blocks.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+shots = json.load(open(P('shots.json'), encoding='utf-8')) if os.path.exists(P('shots.json')) else []
 for k in leak:
     for f in (P('audio', k + '.wav'),):
         if os.path.exists(f): os.remove(f)
+    # مقطع الراوي المتزامن مع الصوت المعيب يُحذف أيضاً فيُعاد تحريكه على الصوت الجديد (لا شفاه على صوتٍ آخر)
+    for s in shots:
+        if s.get('lipsync') == k:
+            for f in (P('clips', s['id'] + '_av.mp4'), P('clips', s['id'] + '.mp4')):
+                if os.path.exists(f): os.remove(f)
     res.pop(k, None)
 json.dump(res, open(P('listen_results.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 print('⛔ نطقٌ لتعليماتٍ إنجليزية في:', ' '.join(leak), '— أُزيل التوجيه وسيُعاد التوليد')

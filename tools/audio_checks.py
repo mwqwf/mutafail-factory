@@ -15,6 +15,8 @@ bad = {}
 for b in blocks:
     f = os.path.join(PROJ, 'audio', b['id'] + '.wav')
     if not os.path.exists(f): bad[b['id']] = 'غائب'; continue
+    # كتلةٌ قُصّ أولها (lead_cut) مربوطةٌ بمقطع راوٍ مدفوع الثمن: إعادة توليدها تُفسد مزامنة الشفاه ⇒ لا تُحكم بالإيقاع
+    if b.get('lead_cut'): continue
     raw = open(f, 'rb').read()
     if raw[44:48] == b'RIFF':                       # إصلاحٌ فوريّ لا إعادة توليد
         open(f, 'wb').write(raw[44:])
