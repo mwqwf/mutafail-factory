@@ -272,7 +272,12 @@ try:
     live = [s for s in shots if s.get('kind') == 'حيّة']
     for s in sorted(live, key=lambda s: (not s.get('avatar'), not s.get('lipsync'), not s.get('audio'), s['id'])):
         try: run(s)
-        except Exception as e: print(s['id'], '⛔ خطأ', type(e).__name__, flush=True)  # لا نصّ الاستثناء: قد يحوي المفتاح
+        except Exception as e:   # نصّ الاستثناء بعد حجب المفتاح: «الرصيد نفد» مثلاً لا يُعرف بغيره
+            msg = str(e)
+            for part in [KEY or ''] + (KEY or '').split(':'):
+                if len(part) > 6: msg = msg.replace(part, '***')
+            msg = msg[:240]
+            print(s['id'], '⛔ خطأ', type(e).__name__, getattr(e, 'status_code', ''), msg, flush=True)
 finally:
     os.remove(LOCK)
 print('انتهى التحريك: %d مقطعاً · %.2f$' % (len(ledger), spent()))
