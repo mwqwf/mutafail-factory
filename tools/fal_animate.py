@@ -136,9 +136,13 @@ def avatar(s):
 
 def run(s):
     sid = s['id']; out = P('clips', '%s.mp4' % sid)
-    if s.get('avatar'): return avatar(s)           # الراوي: نموذجُ الأفاتار يغني عن Kling ومطابقة الشفاه
     redo = s.get('redo')                           # إعادةُ تحريكِ مقطعٍ مرفوضٍ بعد الفحص، مرّةً لكل وسم
     mark = P('clips', '%s.redo_%s' % (sid, redo)) if redo else None
+    if s.get('avatar'):                            # الراوي: نموذجُ الأفاتار يغني عن Kling ومطابقة الشفاه
+        av = P('clips', '%s_av.mp4' % sid)         # وredo يسري عليه أيضاً (الزلاقة: أُعيد صوت N09 فلم يُعَد تحريكه)
+        if mark and os.path.exists(av) and not os.path.exists(mark):
+            os.remove(av); open(mark, 'w').close(); print(sid, '♻ يُعاد تحريك الراوي (%s)' % redo, flush=True)
+        return avatar(s)
     if mark and os.path.exists(out) and not os.path.exists(mark):
         os.remove(out); print(sid, '♻ يُعاد تحريكه (%s)' % redo, flush=True)
     if os.path.exists(out): return
