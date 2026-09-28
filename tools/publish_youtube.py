@@ -381,7 +381,9 @@ def main():
     # ⭐ موعدٌ يحدّده المالك عند النشر (ops/publish/<slug>.json ← PUBLISH_AT) يغلب ما في الحمولة المختومة،
     #    والريلزان يُجدولان بعده بدقائق REEL_OFFSETS فلا يحيلان إلى فيلمٍ لم يُعرض بعد.
     env_at = os.environ.get("PUBLISH_AT", "").strip()
-    if env_at:
+    if env_at == "now":                            # أمر المالك 2026-09-28: «اجعلهم منشورين من الآن»
+        when, public_now = None, True
+    elif env_at:
         when, public_now = env_at, False
     public_now = public_now and not when
     film_id = os.environ.get("FILM_VIDEO_ID", "").strip()
