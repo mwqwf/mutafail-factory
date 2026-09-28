@@ -158,7 +158,12 @@ jobs:
           # فصول يوتيوب من مدد الصوت (publish_youtube يرفض {CHAPTERS} بلا الفصول.txt)
           [ -f proj/sections.json ] && python tools/chapters.py proj proj/sections.json 0.30
           for r in $(python -c "import json;print(' '.join(x['id'] for x in json.load(open('proj/reels.json',encoding='utf-8'))))"); do
-            python tools/mkreel3d.py proj "$r"
+            # ريلز الافتتاحية يُقصّ من الفيلم نفسه (from_film)، والبقية مجسَّمة من الصور
+            if python -c "import json,sys;sys.exit(0 if any(x['id']=='$r' and x.get('from_film') for x in json.load(open('proj/reels.json',encoding='utf-8'))) else 1)"; then
+              python tools/mkreel_open.py proj "$r"
+            else
+              python tools/mkreel3d.py proj "$r"
+            fi
           done
 
       - name: ⑤ مخرجات المراجعة (إصدار مسوّدة خاص)

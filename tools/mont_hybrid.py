@@ -124,6 +124,7 @@ def overlay(s, seg, span):
 # ② اللقطات + جدول المؤثّرات
 segs, fx = [], []   # fx: (بداية، مدة، ملف، مستوى)
 t = 0.0
+TL = {}             # بداية كل لقطة ومدتها في الفيلم — يقرؤها mkreel_open.py لقصّ ريلز الافتتاحية
 for n, s in enumerate(shots):
     span = span_of(s)
     out = os.path.join(SEG, 's%03d.mp4' % n)
@@ -160,9 +161,11 @@ for n, s in enumerate(shots):
     elif s.get('sfx') and s['sfx'] != 'none':
         c = sorted(glob.glob(os.path.join(SFX, s['sfx'] + '_*.ogg')))
         if c: fx.append((t, span, random.Random(n).choice(c), float(s.get('sfx_vol', 0.22))))
+    TL[s['id']] = [round(t, 3), round(span, 3)]
     t += span
     print('  [%d/%d] %s · %.1f ث · %s' % (n + 1, len(shots), s['id'], span, s.get('sfx', '-')), flush=True)
 
+json.dump(TL, open(P('timeline.json'), 'w', encoding='utf-8'))
 vlist = os.path.join(WORK, 'vlist.txt')
 open(vlist, 'w', encoding='utf-8').write(''.join("file '%s'\n" % x.replace('\\', '/') for x in segs))
 silent = os.path.join(WORK, 'video_silent.mp4')
