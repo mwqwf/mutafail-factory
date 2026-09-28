@@ -138,6 +138,28 @@ jobs:
           print('رايات:',len(flags),'| لم يُفحص:',len(todo))
           PY
 
+      - name: ②ب حارس نطق التعليمات الإنجليزية (يعيد التوليد بلا توجيه، ويمنع التحريك إن بقي)
+        # درس الزلاقة 2026-09-28: قال الراوي «Say quickly…» بصوته ثم حُرِّكت شفاهه عليه — أفسد المشهد
+        if: env.STAGE != 'animate'
+        run: |
+          for i in 1 2 3; do
+            python tools/style_leak.py proj && break
+            node tools/gen25.js proj 4 --keys /tmp/keys.json --model gemini-3.8-flash-tts
+            python tools/audio_checks.py proj || true
+            for m in "" gemini-flash-latest gemini-3.8-flash gemini-3.5-flash-lite; do
+              node tools/listen.js proj 4 --keys /tmp/keys.json --batch 1 ${m:+--model "$m"} || true
+            done
+          done
+          python tools/style_leak.py proj
+          python - <<'PY'
+          import json
+          r=json.load(open('proj/listen_results.json',encoding='utf-8'))
+          flags={k:v for k,v in r.items() if isinstance(v,dict) and v.get('ok') is False}
+          todo=[k for k,v in r.items() if not isinstance(v,dict) or v.get('ok') is None]
+          open('proj/listen_report.json','w',encoding='utf-8').write(json.dumps({'flags':flags,'unchecked':todo},ensure_ascii=False,indent=1))
+          print('رايات:',len(flags),'| لم يُفحص:',len(todo))
+          PY
+
       - name: ③ التحريك (Kling عبر fal بسقف الميزانية) + بوّابة صوته + العمق
         if: env.STAGE != 'audio'
         env:
