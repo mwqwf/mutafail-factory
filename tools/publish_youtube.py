@@ -119,6 +119,21 @@ def recent_uploads(svc, limit=50):
         return {}
 
 
+def reschedule(svc, vid, at):
+    """يعدّل موعدَ فيديو مرفوعٍ ما دام خاصّاً (تصحيحُ موعدٍ بعد رفعه، بلا نسخةٍ ثانية)."""
+    if not at:
+        return
+    st = svc.videos().list(part="status", id=vid).execute()["items"][0]["status"]
+    if st.get("privacyStatus") == "public":
+        print("↻", vid, "عامٌّ سلفاً — لا يُعاد جدولته", flush=True); return
+    if st.get("publishAt", "").replace(".000", "") == at:
+        return
+    svc.videos().update(part="status", body={"id": vid, "status": {
+        "privacyStatus": "private", "publishAt": at,
+        "selfDeclaredMadeForKids": False, "containsSyntheticMedia": True}}).execute()
+    print("🕒 أُعيدت جدولة", vid, "إلى", at, flush=True)
+
+
 def reel_at(film_at, i):
     """موعدُ الريلز رقم i: بعد موعد الفيلم بـREEL_OFFSETS دقيقةً (افتراضاً 30 ثم 150)، أو فوراً إن لم يُجدول الفيلم."""
     if not film_at:
@@ -380,6 +395,8 @@ def main():
                          publish_at=when, public_now=public_now)
         save_state({"film": {"id": film_id}})      # ⛔ يُسجَّل فورَ الرفع لا بعد كلّ شيء
     verify(svc, film_id)
+    if resumed and env_at:
+        reschedule(svc, film_id, when)
 
     # ─── المصغّرة: لازمة، ولا تُتخطّى ───
     thumb = P("thumb-a.jpg")
@@ -422,11 +439,13 @@ def main():
     for r in meta.get("reels", []):
         if r["file"] in done:                      # ↻ استئناف: لا يُرفع مرّتين
             print("↻ الريلز مرفوعٌ سلفاً", r["file"], flush=True)
+            if env_at: reschedule(svc, done[r["file"]]["id"], reel_at(when, len(reels)))
             reels.append(done[r["file"]]); continue
         t = r["title"].strip()[:100]
         if t in onchannel:                         # ↻ رُفع في محاولةٍ سابقةٍ سقطت
             print("↻ عنوانٌ مرفوعٌ على القناة سلفاً — لا نسخةَ ثانية:",
                   onchannel[t], flush=True)
+            if env_at: reschedule(svc, onchannel[t], reel_at(when, len(reels)))
             reels.append({"id": onchannel[t], "title": r["title"], "file": r["file"]})
             save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
             continue
