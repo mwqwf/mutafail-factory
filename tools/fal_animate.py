@@ -156,37 +156,39 @@ def run(s):
     if sid in pend:
         q = pend[sid]; print(sid, '↻ استئناف طلبٍ مدفوع', flush=True)
     else:
-        if spent() + cost > BUDGET + 1e-9:
-            print(sid, '⏸ الميزانية (%.2f$ من %.2f$) — تُحرَّك بـkb3d' % (spent(), BUDGET), flush=True); return
-        p = img_path(sid)
-        if not p: print(sid, '⛔ الصورة غائبة', flush=True); return
-        prompt = ('Cinematic documentary shot, realistic motion and physics. ' + s['move'] +
-                  '. Keep the composition, people and faces exactly as in the image; nobody new enters the frame. No text.' +
-                  (' Natural ambient sound effects only (' + s.get('sfx', 'battle') + '), absolutely no music, no singing, no drums.' if audio else ''))
-        if flf:      # التحوّل: Kling v3 يرسم ما بين الصورتين، فيبقى الوجه ثابتاً في الطرفين
-            model = MODEL_FLF
-            body = {'prompt': s['move'] + '. The man keeps exactly the same face and identity from the first frame to the last. No text.',
-                    'start_image_url': data_uri(p), 'end_image_url': data_uri(flf), 'duration': str(dur),
-                    'generate_audio': False, 'cfg_scale': 0.65,
-                    'negative_prompt': NEG + ', face change, identity change, morphing face, different person, distorted face, extra fingers'}
-        elif audio:
-            model = MODEL
-            body = {'prompt': prompt, 'start_image_url': data_uri(p), 'duration': str(dur),
-                    'negative_prompt': NEG, 'generate_audio': True}
-        else:
-            model = MODEL_SILENT
-            body = {'prompt': prompt, 'image_url': data_uri(p), 'duration': str(dur),
-                    'negative_prompt': NEG, 'cfg_scale': float(s.get('cfg', 0.65))}
-        r = None
-        for t in range(4):
-            try:
-                r = requests.post('https://queue.fal.run/' + model, headers=H, json=body, timeout=600); break
-            except requests.exceptions.ConnectionError:
-                print(sid, 'إعادة الإرسال', t + 1, flush=True); time.sleep(20)
-        if r is None: return
-        if r.status_code != 200: print(sid, '⛔ رُفض', r.status_code, r.text[:200], flush=True); return
-        q = r.json(); q['cost_usd'] = cost; q['audio'] = audio
-        pend[sid] = q; save(PEND, pend)            # ⛔ يُحفظ فوراً: الطلب مدفوع
+        # فحصُ السقف والإرسالُ وحفظُ الطلب ذرّيٌّ بين الخيوط: لا يتجاوز مجموعُ الطلبات المتوازية الميزانية
+        with SUBMIT:
+            if spent() + cost > BUDGET + 1e-9:
+                print(sid, '⏸ الميزانية (%.2f$ من %.2f$) — تُحرَّك بـkb3d' % (spent(), BUDGET), flush=True); return
+            p = img_path(sid)
+            if not p: print(sid, '⛔ الصورة غائبة', flush=True); return
+            prompt = ('Cinematic documentary shot, realistic motion and physics. ' + s['move'] +
+                      '. Keep the composition, people and faces exactly as in the image; nobody new enters the frame. No text.' +
+                      (' Natural ambient sound effects only (' + s.get('sfx', 'battle') + '), absolutely no music, no singing, no drums.' if audio else ''))
+            if flf:      # التحوّل: Kling v3 يرسم ما بين الصورتين، فيبقى الوجه ثابتاً في الطرفين
+                model = MODEL_FLF
+                body = {'prompt': s['move'] + '. The man keeps exactly the same face and identity from the first frame to the last. No text.',
+                        'start_image_url': data_uri(p), 'end_image_url': data_uri(flf), 'duration': str(dur),
+                        'generate_audio': False, 'cfg_scale': 0.65,
+                        'negative_prompt': NEG + ', face change, identity change, morphing face, different person, distorted face, extra fingers'}
+            elif audio:
+                model = MODEL
+                body = {'prompt': prompt, 'start_image_url': data_uri(p), 'duration': str(dur),
+                        'negative_prompt': NEG, 'generate_audio': True}
+            else:
+                model = MODEL_SILENT
+                body = {'prompt': prompt, 'image_url': data_uri(p), 'duration': str(dur),
+                        'negative_prompt': NEG, 'cfg_scale': float(s.get('cfg', 0.65))}
+            r = None
+            for t in range(4):
+                try:
+                    r = requests.post('https://queue.fal.run/' + model, headers=H, json=body, timeout=600); break
+                except requests.exceptions.ConnectionError:
+                    print(sid, 'إعادة الإرسال', t + 1, flush=True); time.sleep(20)
+            if r is None: return
+            if r.status_code != 200: print(sid, '⛔ رُفض', r.status_code, r.text[:200], flush=True); return
+            q = r.json(); q['cost_usd'] = cost; q['audio'] = audio
+            pend[sid] = q; save(PEND, pend)            # ⛔ يُحفظ فوراً: الطلب مدفوع
     t0 = time.time()
     while True:
         time.sleep(15)
@@ -203,9 +205,10 @@ def run(s):
             for c in v.iter_content(1 << 16): f.write(c)
     os.replace(tmp, out)
     if mark: open(mark, 'w').close()
-    ledger.append({'shot': sid, 'audio': q.get('audio', False), 'cost_usd': q['cost_usd'],
+    with SUBMIT:
+        ledger.append({'shot': sid, 'audio': q.get('audio', False), 'cost_usd': q['cost_usd'],
                    'at': datetime.datetime.now().isoformat(timespec='seconds')})
-    save(LEDGER, ledger); pend.pop(sid, None); save(PEND, pend)
+        save(LEDGER, ledger); pend.pop(sid, None); save(PEND, pend)
     print(sid, '✅', '%.2f$' % q['cost_usd'], '| المجموع %.2f$ من %.2f$' % (spent(), BUDGET), flush=True)
     if s.get('lipsync'):
         lipsync(s, out)
@@ -267,10 +270,12 @@ def lipsync(s, raw, retry=True):
     print(sid, '✅ مطابقة الشفاه | المجموع %.2f$ من %.2f$' % (spent(), BUDGET), flush=True)
 
 
+import threading
+SUBMIT = threading.Lock()
 try:
     # الأولوية: ذات الصوت (البطولية) ثم الحيّة الصامتة، بترتيب الفيلم
     live = [s for s in shots if s.get('kind') == 'حيّة']
-    for s in sorted(live, key=lambda s: (not s.get('avatar'), not s.get('lipsync'), not s.get('audio'), s['id'])):
+    def safe(s):
         try: run(s)
         except Exception as e:   # نصّ الاستثناء بعد حجب المفتاح: «الرصيد نفد» مثلاً لا يُعرف بغيره
             msg = str(e)
@@ -278,6 +283,12 @@ try:
                 if len(part) > 6: msg = msg.replace(part, '***')
             msg = msg[:240]
             print(s['id'], '⛔ خطأ', type(e).__name__, getattr(e, 'status_code', ''), msg, flush=True)
+    order = sorted(live, key=lambda s: (not s.get('avatar'), not s.get('lipsync'), not s.get('audio'), s['id']))
+    # الراوي ومطابقة الشفاه بالتتابع؛ ولقطات Kling الأخرى متوازية (أمر المالك 2026-09-28: «ضاعف السرعة»)
+    for s in [x for x in order if x.get('avatar') or x.get('lipsync')]: safe(s)
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(int(os.environ.get('FAL_PAR', '6'))) as ex:
+        list(ex.map(safe, [x for x in order if not (x.get('avatar') or x.get('lipsync'))]))
 finally:
     os.remove(LOCK)
 print('انتهى التحريك: %d مقطعاً · %.2f$' % (len(ledger), spent()))
