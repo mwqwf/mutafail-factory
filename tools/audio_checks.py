@@ -29,10 +29,19 @@ for b in blocks:
     elif chars and not 0.09 <= d / chars <= 0.19 + 1.2 / chars: bad[b['id']] = 'إيقاع %.3f ث/حرف' % (d / chars)
     dd = np.abs(np.diff(a)); idx = np.where(dd > 8000)[0]
     iso = [i for i in idx if i > 240 and np.abs(a[i - 240:i - 24]).max() < 2000]
+    if len(iso) > 1 and not os.path.exists(f + '.dc'):
+        # إزالة النقرات بالمرشّح قبل الحكم بالحذف: نقرات Schedar في جملة d_016 بقيت بعد ست إعادات (الزلاقة 2026-09-28)
+        import subprocess as sp
+        sp.run(['ffmpeg', '-v', 'error', '-y', '-i', f, '-af', 'adeclick=w=55:o=75,adeclip', f + '.tmp.wav'], check=True)
+        os.replace(f + '.tmp.wav', f); open(f + '.dc', 'w').close()
+        w = wave.open(f); a = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(int)
+        dd = np.abs(np.diff(a)); idx = np.where(dd > 8000)[0]
+        iso = [i for i in idx if i > 240 and np.abs(a[i - 240:i - 24]).max() < 2000]
     if len(iso) > 1: bad.setdefault(b['id'], 'نقرات معزولة %d' % len(iso))
 json.dump(bad, io.open(os.path.join(PROJ, 'audio_checks.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 print('فحوص الصوت: %d كتلة · معيب %d %s' % (len(blocks), len(bad), bad))
 for k in bad:                                       # تُحذف لتُولَّد من جديد في الشوط التالي
     p = os.path.join(PROJ, 'audio', k + '.wav')
     if os.path.exists(p): os.remove(p)
+    if os.path.exists(p + '.dc'): os.remove(p + '.dc')
 sys.exit(1 if bad else 0)
