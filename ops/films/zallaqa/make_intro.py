@@ -4,7 +4,7 @@ import json, os, shutil
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'intro')
 os.makedirs(OUT, exist_ok=True)
-STYLE = 'Read aloud in a lively, energetic, slightly brisk pace'   # السرعة من النموذج نفسه لا بتسريعٍ ظاهر (يُختبر هنا أولاً)
+STYLE = 'Say quickly, in an excited and energetic YouTube presenter voice'   # السرعة من النموذج نفسه لا بتسريعٍ ظاهر (يُختبر هنا أولاً)
 SAME = ' Same face, same clothes and same background throughout; natural five-finger hands; no one else appears.'
 
 # (المعرّف، النص المشكول، الكاميرا والانفعال والأفعال)
@@ -29,7 +29,7 @@ N = [
   'A static medium-full shot. He is amazed and delighted. First he looks down at his own robe and touches the fabric of his sleeve with surprise; then he touches his turban and laughs softly; finally he turns toward the camera and sweeps his arm wide to present the army camp behind him.'),
  ('n_10', 'وَقَبْلَ أَنْ تَبْدَأَ الْمَعْرَكَةُ: اشْتَرِكُوا فِي الْقَنَاةِ، وَفَعِّلُوا الْجَرَسَ، حَتَّى لَا تَفُوتَكُمْ حَلْقَةٌ مِنْ هَذِهِ السِّلْسِلَةْ!',
   'A static medium-wide shot of him seated on the standing camel, which stays calm and only breathes and shifts its head a little. He talks to the camera warmly and energetically. First he points his right index finger down toward the lower right corner of the frame and glances at it; then he makes a quick pressing gesture in the air with his finger as if pressing a button; then he points again slightly higher and wiggles his fingers like ringing a small bell; finally he gives a friendly thumbs-up to the viewer.'),
- ('n_11', 'وَالْآنَ… نَتْرُكُكُمْ مَعَ الْقِصَّةِ، وَنَتَمَنَّى لَكُمْ مُشَاهَدَةً شَيِّقَةْ!',
+ ('n_11', 'وَالْآنَ، نَتْرُكُكُمْ مَعَ الْقِصَّةِ، وَنَتَمَنَّى لَكُمْ مُشَاهَدَةً شَيِّقَةْ!',
   'A static medium shot of him seated on the camel. He smiles broadly, warm and friendly. First he raises his right hand high and waves goodbye; then he places his hand on his chest and nods respectfully; finally he pulls the reins gently and the camel begins to turn toward the army.'),
 ]
 blocks = [{'id': b, 'voice': 'Charon', 'text': t, 'style': STYLE} for b, t, _ in N]
