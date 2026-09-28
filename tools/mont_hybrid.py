@@ -16,12 +16,20 @@ P = lambda *a: os.path.join(PROJ, *a)
 WORK = P('work'); SEG = os.path.join(WORK, 'seg'); os.makedirs(SEG, exist_ok=True)
 blocks = [b for b in json.load(open(P('blocks.json'), encoding='utf-8')) if not b.get('reel_only')]
 shots = json.load(open(P('shots.json'), encoding='utf-8'))
+STILL = {s['id'] for s in shots if s.get('still')}
 ENC = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '19', '-pix_fmt', 'yuv420p', '-r', '25', '-an']
 
 
 def dur(f):
     o = sp.run([FP, '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', f], capture_output=True, text=True)
     return float(o.stdout.strip())
+
+
+def clip(sid):
+    # مقطعُ Kling؛ وإن فشلت مطابقةُ شفاه الراوي فالخامُ المتحرّك خيرٌ من صورةٍ ثابتة
+    if sid in STILL: return None                   # مقطعٌ رُفض بعد الفحص (وجهُ صحابيّ مثلاً): تبقى الصورة المعتمدة
+    return (find(sid + '_av', ['clips'], ['mp4']) or find(sid, ['clips'], ['mp4'])
+            or find(sid + '_raw', ['clips'], ['mp4']))
 
 
 def find(sid, dirs, exts):
@@ -45,18 +53,42 @@ sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', os.path.joi
         '-filter:a', 'atempo=1.05,adeclick,dynaudnorm', '-ar', '48000', voice], check=True)
 VD = dur(voice); print('① الصوت %.2f د' % (VD / 60), flush=True)
 
+# ①ب تصييرُ مشاهد kb3d مسبقاً بالتوازي على كلّ الأنوية (درس القادسية: تسلسلياً أخذ ساعاتٍ على عدّاء GitHub)
+def _pre(job):
+    kb3d.render(*job)
+    return job[1]
+
+jobs = []
+os.makedirs(P('anim'), exist_ok=True)
+for n, s in enumerate(shots):
+    if clip(s['id']):
+        continue
+    span = sum(durs[b] + GAP for b in s['blocks']) / 1.05
+    an = find(s['id'], ['anim'], ['mp4'])
+    if an and dur(an) >= span - 0.5:
+        continue
+    jobs.append((find(s['id'], ['images', 'img'], ['jpg', 'png']), P('anim', '%s.mp4' % s['id']), span + 0.3, n))
+if jobs:
+    from concurrent.futures import ProcessPoolExecutor
+    with ProcessPoolExecutor(os.cpu_count() or 2) as ex:
+        for i, f in enumerate(ex.map(_pre, jobs)):
+            print('  kb3d [%d/%d] %s' % (i + 1, len(jobs), os.path.basename(f)), flush=True)
+
 # ② اللقطات + جدول المؤثّرات
 segs, fx = [], []   # fx: (بداية، مدة، ملف، مستوى)
 t = 0.0
 for n, s in enumerate(shots):
     span = sum(durs[b] + GAP for b in s['blocks']) / 1.05
     out = os.path.join(SEG, 's%03d.mp4' % n)
-    kl = find(s['id'], ['clips'], ['mp4']); img = find(s['id'], ['images', 'img'], ['jpg', 'png'])
+    kl = clip(s['id']); img = find(s['id'], ['images', 'img'], ['jpg', 'png'])
     an = find(s['id'], ['anim'], ['mp4'])
     if not (os.path.exists(out) and abs(dur(out) - span) < 0.08):
         if kl:
             kd = dur(kl)
-            if span <= kd * 1.4:
+            if s.get('lipsync') and kd >= span - 1.5:
+                sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'scale=1920:1080,fps=25,tpad=stop_mode=clone:stop_duration=%.3f' % max(0.0, span - kd + 0.1),
+                        '-t', '%.3f' % span] + ENC + [out], check=True)
+            elif span <= kd * 1.4:
                 sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=%.4f*PTS,scale=1920:1080,fps=25' % max(1.0, span / kd),
                         '-t', '%.3f' % span] + ENC + [out], check=True)
             else:

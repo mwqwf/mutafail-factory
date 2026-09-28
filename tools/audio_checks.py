@@ -23,7 +23,8 @@ for b in blocks:
     if np.abs(a[:240]).max() > 1500: bad[b['id']] = 'ضجيج في البداية'
     elif b.get('role') == 'P':
         if not 3 <= d <= 10: bad[b['id']] = 'بيت شعر %.1f ث (توجيه منطوق؟)' % d
-    elif chars and not 0.09 <= d / chars <= 0.19: bad[b['id']] = 'إيقاع %.3f ث/حرف' % (d / chars)
+    # الجملُ القصيرة (حوار الشخصيات 2026-09-27: «فقال ربعي:»، «ببايه!») يغلب فيها صمتُ الطرفين، فيُسمح بنحو 1.2 ث زائدة
+    elif chars and not 0.09 <= d / chars <= 0.19 + 1.2 / chars: bad[b['id']] = 'إيقاع %.3f ث/حرف' % (d / chars)
     dd = np.abs(np.diff(a)); idx = np.where(dd > 8000)[0]
     iso = [i for i in idx if i > 240 and np.abs(a[i - 240:i - 24]).max() < 2000]
     if len(iso) > 1: bad.setdefault(b['id'], 'نقرات معزولة %d' % len(iso))
