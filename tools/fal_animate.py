@@ -10,13 +10,18 @@ import requests
 from PIL import Image
 
 PROJ = os.path.abspath(sys.argv[1])
-MODEL = 'fal-ai/kling-video/v2.6/pro/image-to-video'
+MODEL = 'fal-ai/kling-video/v2.6/pro/image-to-video'          # بصوت Kling (مؤثّرات)
+MODEL_SILENT = 'fal-ai/kling-video/v2.5-turbo/pro/image-to-video'  # بلا صوت: السعر نفسه ويقبل cfg_scale (درس خيل القادسية)
+MODEL_FLF = 'fal-ai/kling-video/v3/pro/image-to-video'       # إطار بداية + نهاية (تحوّل الراوي في الزلاقة)
 PRICE = {False: 0.07, True: 0.14}   # دولار للثانية: بلا صوت / بصوت (صفحة النموذج 2026-09-26)
+PRICE_FLF = 0.112                   # v3 pro بلا صوت (صفحة النموذج 2026-09-28)
 DUR = 5
 NEG = ('women, woman, girl, female, feminine figure, text, letters, words, numbers, captions, watermark, logo, '
        'musical instruments, drums, horns, musicians, music, singing, song, melody, visible faces of warriors, '
        'crosses, emblems or symbols on banners and shields, heraldry, blood, gore, corpses, cartoon, anime, painting, '
-       'blur, distortion, morphing, extra limbs, new people appearing')
+       'blur, distortion, morphing, extra limbs, new people appearing, '
+       'human face on horse, human face on camel, anthropomorphic animal, humanoid animal face, merged rider and horse, '
+       'extra legs, extra heads, deformed animals, tight clothing, clothes clinging to the body')
 KEY = os.environ.get('FAL_KEY')
 if not KEY:
     try:
@@ -142,7 +147,8 @@ def run(s):
         if os.path.exists(out): return lipsync(s, out)
     audio = bool(s.get('audio'))
     dur = int(s.get('duration', DUR))
-    cost = round(dur * PRICE[audio], 2)
+    flf = img_path(s['end_image']) if s.get('end_image') else None
+    cost = round(dur * (PRICE_FLF if flf else PRICE[audio]), 2)
     if sid in pend:
         q = pend[sid]; print(sid, '↻ استئناف طلبٍ مدفوع', flush=True)
     else:
@@ -153,12 +159,24 @@ def run(s):
         prompt = ('Cinematic documentary shot, realistic motion and physics. ' + s['move'] +
                   '. Keep the composition, people and faces exactly as in the image; nobody new enters the frame. No text.' +
                   (' Natural ambient sound effects only (' + s.get('sfx', 'battle') + '), absolutely no music, no singing, no drums.' if audio else ''))
-        body = {'prompt': prompt, 'start_image_url': data_uri(p), 'duration': str(dur),
-                'negative_prompt': NEG, 'generate_audio': audio, 'cfg_scale': 0.5}
+        if flf:      # التحوّل: Kling v3 يرسم ما بين الصورتين، فيبقى الوجه ثابتاً في الطرفين
+            model = MODEL_FLF
+            body = {'prompt': s['move'] + '. The man keeps exactly the same face and identity from the first frame to the last. No text.',
+                    'start_image_url': data_uri(p), 'end_image_url': data_uri(flf), 'duration': str(dur),
+                    'generate_audio': False, 'cfg_scale': 0.65,
+                    'negative_prompt': NEG + ', face change, identity change, morphing face, different person, distorted face, extra fingers'}
+        elif audio:
+            model = MODEL
+            body = {'prompt': prompt, 'start_image_url': data_uri(p), 'duration': str(dur),
+                    'negative_prompt': NEG, 'generate_audio': True}
+        else:
+            model = MODEL_SILENT
+            body = {'prompt': prompt, 'image_url': data_uri(p), 'duration': str(dur),
+                    'negative_prompt': NEG, 'cfg_scale': float(s.get('cfg', 0.65))}
         r = None
         for t in range(4):
             try:
-                r = requests.post('https://queue.fal.run/' + MODEL, headers=H, json=body, timeout=600); break
+                r = requests.post('https://queue.fal.run/' + model, headers=H, json=body, timeout=600); break
             except requests.exceptions.ConnectionError:
                 print(sid, 'إعادة الإرسال', t + 1, flush=True); time.sleep(20)
         if r is None: return
