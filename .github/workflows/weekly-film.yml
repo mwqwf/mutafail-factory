@@ -95,7 +95,7 @@ jobs:
           # مقاطعُ الافتتاحية المعتمدة (<slug>-intro-out) تدخل الفيلم كاملاً بلا دفعٍ ثانٍ لـfal
           if gh release view "$SLUG-intro-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release download "$SLUG-intro-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp/intro --clobber 2>/dev/null && \
-              mkdir -p proj/clips proj/audio && tar xzf /tmp/intro/state.tgz -C /tmp/intro clips audio && cp -n /tmp/intro/clips/*.mp4 proj/clips/ && cp -n /tmp/intro/audio/n_*.wav proj/audio/ || true
+              mkdir -p proj/clips proj/audio && tar xzf /tmp/intro/state.tgz -C /tmp/intro clips audio && cp -n /tmp/intro/clips/*.mp4 /tmp/intro/clips/*.cut /tmp/intro/clips/*.redo_* proj/clips/ 2>/dev/null || true; cp -n /tmp/intro/audio/n_*.wav /tmp/intro/audio/n_*.cut proj/audio/ 2>/dev/null || true
             # صوتُ الراوي نفسه الذي طابقت عليه الشفاه — لا يُولَّد من جديد وإلا اختلّت المزامنة
           fi
           # إن وُجد ناتجُ شوطٍ سابق (صوتٌ مجتاز) يُستأنف منه
