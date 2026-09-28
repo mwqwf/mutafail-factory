@@ -34,7 +34,13 @@ def band(d, y, text, size, fill, bg=None):
 
 # العنوان فوق الإطار الأفقي طوال الريلز
 top = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-band(ImageDraw.Draw(top), 250, R['title'], 70, (247, 199, 74, 255))
+dt = ImageDraw.Draw(top); ft_ = envpaths.arfont(70, path=FB); ls_, cur = [], ''
+for w_ in R['title'].split():    # العنوان الطويل يُلفّ سطرين (خرج سطرٌ واحد عن عرض الشاشة في ريلز الزلاقة)
+    c_ = (cur + ' ' + w_).strip()
+    if dt.textlength(ar(c_), font=ft_) > W - 120 and cur: ls_.append(cur); cur = w_
+    else: cur = c_
+for i_, ln_ in enumerate(ls_ + [cur]):
+    band(dt, 230 + i_ * 100, ln_, 70, (247, 199, 74, 255))
 topp = os.path.join(WORK, 'top.png'); top.save(topp)
 # بطاقة القطع: إطارٌ مجمَّد معتم ونداء المتابعة
 end = Image.new('RGBA', (W, H), (0, 0, 0, 150))
