@@ -16,12 +16,20 @@ P = lambda *a: os.path.join(PROJ, *a)
 WORK = P('work'); SEG = os.path.join(WORK, 'seg'); os.makedirs(SEG, exist_ok=True)
 blocks = [b for b in json.load(open(P('blocks.json'), encoding='utf-8')) if not b.get('reel_only')]
 shots = json.load(open(P('shots.json'), encoding='utf-8'))
+STILL = {s['id'] for s in shots if s.get('still')}
 ENC = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '19', '-pix_fmt', 'yuv420p', '-r', '25', '-an']
 
 
 def dur(f):
     o = sp.run([FP, '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', f], capture_output=True, text=True)
     return float(o.stdout.strip())
+
+
+def clip(sid):
+    # مقطعُ Kling؛ وإن فشلت مطابقةُ شفاه الراوي فالخامُ المتحرّك خيرٌ من صورةٍ ثابتة
+    if sid in STILL: return None                   # مقطعٌ رُفض بعد الفحص (وجهُ صحابيّ مثلاً): تبقى الصورة المعتمدة
+    return (find(sid + '_av', ['clips'], ['mp4']) or find(sid, ['clips'], ['mp4'])
+            or find(sid + '_raw', ['clips'], ['mp4']))
 
 
 def find(sid, dirs, exts):
@@ -36,27 +44,158 @@ def find(sid, dirs, exts):
 sil = os.path.join(WORK, 'sil.wav')
 sp.run([FF, '-v', 'error', '-y', '-f', 'lavfi', '-i', 'anullsrc=r=24000:cl=mono', '-t', str(GAP), sil], check=True)
 durs = {}
+# لقطةٌ بلا كلام (تحوّل الراوي في الزلاقة): "hold": ثوانٍ و"blocks": [] ⇒ صمتٌ في مسار الصوت بطولها
+HOLD = {}
+for s in shots:
+    if s.get('hold') and not s['blocks']:
+        h = os.path.join(WORK, 'hold_%s.wav' % s['id'])
+        sp.run([FF, '-v', 'error', '-y', '-f', 'lavfi', '-i', 'anullsrc=r=24000:cl=mono', '-t', '%.3f' % (float(s['hold']) * 1.05), h], check=True)
+        HOLD[s['id']] = h
+order, seen = [], set()
+for s in shots:
+    if s['id'] in HOLD: order.append(HOLD[s['id']])
+    for bid in s['blocks']:
+        if bid not in seen: seen.add(bid); order.append(bid)
+order += [b['id'] for b in blocks if b['id'] not in seen]   # كتلةٌ بلا لقطة تبقى في الصوت كما كانت
 with open(os.path.join(WORK, 'alist.txt'), 'w', encoding='utf-8') as fh:
-    for b in blocks:
-        a = P('audio', b['id'] + '.wav'); durs[b['id']] = dur(a)
+    for x in order:
+        if x in HOLD.values():
+            fh.write("file '%s'\n" % x.replace('\\', '/')); continue
+        a = P('audio', x + '.wav'); durs[x] = dur(a)
         fh.write("file '%s'\nfile '%s'\n" % (a.replace('\\', '/'), sil.replace('\\', '/')))
+span_of = lambda s: float(s['hold']) if s['id'] in HOLD else sum(durs[b] + GAP for b in s['blocks']) / 1.05
 voice = os.path.join(WORK, 'voice.wav')
 sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'alist.txt'),
         '-filter:a', 'atempo=1.05,adeclick,dynaudnorm', '-ar', '48000', voice], check=True)
 VD = dur(voice); print('① الصوت %.2f د' % (VD / 60), flush=True)
 
+# ①ب تصييرُ مشاهد kb3d مسبقاً بالتوازي على كلّ الأنوية (درس القادسية: تسلسلياً أخذ ساعاتٍ على عدّاء GitHub)
+def _pre(job):
+    kb3d.render(*job)
+    return job[1]
+
+jobs = []
+os.makedirs(P('anim'), exist_ok=True)
+for n, s in enumerate(shots):
+    if clip(s['id']):
+        continue
+    span = span_of(s)
+    an = find(s['id'], ['anim'], ['mp4'])
+    if an and dur(an) >= span - 0.5:
+        continue
+    jobs.append((find(s['id'], ['images', 'img'], ['jpg', 'png']), P('anim', '%s.mp4' % s['id']), span + 0.3, n))
+if jobs:
+    from concurrent.futures import ProcessPoolExecutor
+    with ProcessPoolExecutor(os.cpu_count() or 2) as ex:
+        for i, f in enumerate(ex.map(_pre, jobs)):
+            print('  kb3d [%d/%d] %s' % (i + 1, len(jobs), os.path.basename(f)), flush=True)
+
+STRIP = lambda x: ''.join(ch for ch in x if not ('\u064b' <= ch <= '\u0652' or ch == '\u0670'))
+
+
+def word_time(s, o):
+    """زمنُ كلمةٍ داخل اللقطة تقديراً بموضعها من نصّ كتلتها (نسبة الحروف ≈ نسبة الزمن)."""
+    txt = {b['id']: b['text'] for b in blocks}
+    t0 = 0.0
+    for bid in s['blocks']:
+        plain = STRIP(txt[bid]); k = plain.find(STRIP(o['word']))
+        if k >= 0:
+            return (t0 + durs[bid] * k / max(1, len(plain))) / 1.05 + float(o.get('lead', -0.15))
+        t0 += durs[bid] + GAP
+    return float(o.get('at', 0))
+
+
+def overlay(s, seg, span):
+    """يركّب صور ui/ الشفافة على المقطع: تظهر بتلاشٍ سريع عند كلمتها وتبقى حتى نهاية اللقطة؛ و"shake" يهزّها ثانيةً."""
+    res = seg[:-4] + '_ov.mp4'
+    if os.path.exists(res) and abs(dur(res) - span) < 0.08: return res
+    cmd = [FF, '-v', 'error', '-y', '-i', seg]; flt = []; last = '[0:v]'
+    for i, o in enumerate(s['overlays']):
+        png = P(o['png'])
+        cmd += ['-loop', '1', '-t', '%.3f' % span, '-i', png]
+        T = max(0.0, word_time(s, o)); x, y = int(o['x']), int(o['y'])
+        flt.append('[%d:v]scale=%d:-1,format=rgba,fade=t=in:st=%.2f:d=0.25:alpha=1[o%d]' % (i + 1, int(o['w']), T, i))
+        xe = ("'%d+if(between(t,%.2f,%.2f),14*sin(45*(t-%.2f)),0)'" % (x, T, T + 1.2, T)) if o.get('shake') else str(x)
+        flt.append("%s[o%d]overlay=x=%s:y=%d:enable='gte(t,%.2f)'[v%d]" % (last, i, xe, y, T, i)); last = '[v%d]' % i
+    sp.run(cmd + ['-filter_complex', ';'.join(flt), '-map', last, '-t', '%.3f' % span] + ENC + [res], check=True)
+    return res
+
+
+def captions(s, seg, span):
+    """"title": {"text","sub","word"|"at"} ⇒ اسمٌ كبير بخطٍّ عربيّ يظهر بتلاشٍ عند كلمته.
+    "counter": {"from":2026,"to":1260,"start":0.4,"secs":4.5,"suffix":"م","then":"٦٥٨ هـ"} ⇒ عدّادُ سنين تنازليّ متسارعٌ ثم متباطئ.
+    نصٌّ مركَّبٌ على المقطع فقط — لا يُرسم به محتوى صورة."""
+    res = seg[:-4] + '_cap.mp4'
+    if os.path.exists(res) and abs(dur(res) - span) < 0.08: return res
+    fb = envpaths.font(bold=True)
+    cmd = [FF, '-v', 'error', '-y', '-i', seg]; flt = []; last = '[0:v]'; k = 0
+
+    def card(lines, name):
+        W, H = 1920, 1080
+        im = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+        y = H * 0.36
+        for txt, size, col in lines:
+            f = envpaths.arfont(size, path=fb); t = envpaths.ar(txt); tw = d.textlength(t, font=f)
+            for r in (10, 7, 4):
+                sh = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+                ImageDraw.Draw(sh).text(((W - tw) / 2, y), t, font=f, fill=(0, 0, 0, 90))
+                im = Image.alpha_composite(im, sh.filter(ImageFilter.GaussianBlur(r)))
+            d = ImageDraw.Draw(im); d.text(((W - tw) / 2, y), t, font=f, fill=col)
+            y += size * 1.35
+        p = os.path.join(WORK, name); im.save(p); return p
+
+    ti = s.get('title')
+    if ti:
+        T = max(0.0, word_time(s, ti)) if ti.get('word') else float(ti.get('at', 0.3))
+        rows = [(ti['text'], int(ti.get('size', 190)), (244, 214, 140, 255))]
+        if ti.get('sub'): rows.append((ti['sub'], 70, (255, 255, 255, 235)))
+        cmd += ['-loop', '1', '-t', '%.3f' % span, '-i', card(rows, 'title_%s.png' % s['id'])]; k += 1
+        flt.append('[%d:v]format=rgba,fade=t=in:st=%.2f:d=0.6:alpha=1[t%d]' % (k, T, k))
+        flt.append("%s[t%d]overlay=0:0:enable='gte(t,%.2f)'[v%d]" % (last, k, T, k)); last = '[v%d]' % k
+    c = s.get('counter')
+    if c:
+        # إطاراتٌ بـPIL (drawtext لا يصل الحروف العربية وقد لا يوجد): أرقامٌ عربيةٌ مشرقية بمنحنى تباطؤ 1-(1-x)^3
+        a, b = int(c['from']), int(c['to']); st = float(c.get('start', 0.4)); L = float(c.get('secs', 4.5))
+        fdir = os.path.join(WORK, 'cnt_%s' % s['id']); os.makedirs(fdir, exist_ok=True)
+        f = envpaths.arfont(150, path=fb); fs = envpaths.arfont(80, path=fb)
+        IND = str.maketrans('0123456789', '٠١٢٣٤٥٦٧٨٩')
+        n = int(round((span - st) * 25)) + 1
+        for i in range(n):
+            x = min(1.0, (i / 25.0) / L); yr = int(round(a - (a - b) * (1 - (1 - x) ** 3)))
+            im = Image.new('RGBA', (1920, 340), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+            t1 = envpaths.ar(str(yr).translate(IND) + ' ' + c.get('suffix', 'م'))
+            rows = [(t1, f, (244, 214, 140, 255), 20)]
+            if c.get('then') and x >= 1.0: rows.append((envpaths.ar(c['then']), fs, (255, 255, 255, 240), 205))
+            for t, ff, col, y in rows:
+                tw = d.textlength(t, font=ff)
+                for dx, dy in ((-4, 0), (4, 0), (0, -4), (0, 4), (3, 3)):
+                    d.text(((1920 - tw) / 2 + dx, y + dy), t, font=ff, fill=(0, 0, 0, 170))
+                d.text(((1920 - tw) / 2, y), t, font=ff, fill=col)
+            im.save(os.path.join(fdir, '%04d.png' % i))
+        k += 1
+        cmd += ['-framerate', '25', '-i', os.path.join(fdir, '%04d.png')]
+        flt.append('[%d:v]format=rgba,setpts=PTS+%.3f/TB,fade=t=in:st=%.2f:d=0.3:alpha=1[c%d]' % (k, st, st, k))
+        flt.append("%s[c%d]overlay=0:H*0.34:eof_action=repeat:enable='gte(t,%.2f)'[w%d]" % (last, k, st, k)); last = '[w%d]' % k
+    sp.run(cmd + ['-filter_complex', ';'.join(flt), '-map', last, '-t', '%.3f' % span] + ENC + [res], check=True)
+    return res
+
+
 # ② اللقطات + جدول المؤثّرات
 segs, fx = [], []   # fx: (بداية، مدة، ملف، مستوى)
 t = 0.0
+TL = {}             # بداية كل لقطة ومدتها في الفيلم — يقرؤها mkreel_open.py لقصّ ريلز الافتتاحية
 for n, s in enumerate(shots):
-    span = sum(durs[b] + GAP for b in s['blocks']) / 1.05
+    span = span_of(s)
     out = os.path.join(SEG, 's%03d.mp4' % n)
-    kl = find(s['id'], ['clips'], ['mp4']); img = find(s['id'], ['images', 'img'], ['jpg', 'png'])
+    kl = clip(s['id']); img = find(s['id'], ['images', 'img'], ['jpg', 'png'])
     an = find(s['id'], ['anim'], ['mp4'])
     if not (os.path.exists(out) and abs(dur(out) - span) < 0.08):
         if kl:
             kd = dur(kl)
-            if span <= kd * 1.4:
+            if s.get('lipsync') and kd >= span - 1.5:
+                sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'scale=1920:1080,fps=25,tpad=stop_mode=clone:stop_duration=%.3f' % max(0.0, span - kd + 0.1),
+                        '-t', '%.3f' % span] + ENC + [out], check=True)
+            elif span <= kd * 1.4:
                 sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=%.4f*PTS,scale=1920:1080,fps=25' % max(1.0, span / kd),
                         '-t', '%.3f' % span] + ENC + [out], check=True)
             else:
@@ -72,16 +211,22 @@ for n, s in enumerate(shots):
             pad = max(0.0, span - dur(an) + 0.1)
             sp.run([FF, '-v', 'error', '-y', '-i', an, '-vf', 'tpad=stop_mode=clone:stop_duration=%.3f,fps=25' % pad,
                     '-t', '%.3f' % span] + ENC + [out], check=True)
+    if s.get('overlays'):                          # زرّ الاشتراك والجرس لحظةَ نطق كلمتهما (الزلاقة)
+        out = overlay(s, out, span)
+    if s.get('title') or s.get('counter'):         # بطاقةُ الاسم لحظةَ كشفه وعدّادُ السنين في العودة إلى الماضي (عين جالوت)
+        out = captions(s, out, span)
     segs.append(out)
     # صوتُ Kling الطبيعي (إن اجتاز الفحص) وإلا مؤثّرُ المكتبة
     if kl and os.path.exists(kl[:-4] + '.ok'):
         fx.append((t, min(span, dur(kl)), kl, 0.35))
     elif s.get('sfx') and s['sfx'] != 'none':
         c = sorted(glob.glob(os.path.join(SFX, s['sfx'] + '_*.ogg')))
-        if c: fx.append((t, span, random.Random(n).choice(c), 0.22))
+        if c: fx.append((t, span, random.Random(n).choice(c), float(s.get('sfx_vol', 0.22))))
+    TL[s['id']] = [round(t, 3), round(span, 3)]
     t += span
     print('  [%d/%d] %s · %.1f ث · %s' % (n + 1, len(shots), s['id'], span, s.get('sfx', '-')), flush=True)
 
+json.dump(TL, open(P('timeline.json'), 'w', encoding='utf-8'))
 vlist = os.path.join(WORK, 'vlist.txt')
 open(vlist, 'w', encoding='utf-8').write(''.join("file '%s'\n" % x.replace('\\', '/') for x in segs))
 silent = os.path.join(WORK, 'video_silent.mp4')
