@@ -75,6 +75,13 @@ jobs:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
         run: python tools/publish_youtube.py proj
 
+      - name: تصحيحُ عناوين منشورة ("retitle" في ops/publish/<slug>.json)
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: |
+          F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/publish/.*\.json$' | head -1 || true)
+          if [ -n "$F" ]; then python tools/retitle.py "$F"; else echo "لا عناوين للتصحيح"; fi
+
       - name: مصغّراتُ أفلامٍ منشورة (ops/thumbs_pending/<videoId>.jpg)
         if: always()
         env:

@@ -33,7 +33,7 @@ def describe(svc, vid):
     """ما يكشفه يوتيوب عن الفيديو ليُعرف سببُ الرفض (1 وحدة)."""
     try:
         it = svc.videos().list(part='snippet,contentDetails,status', id=vid).execute().get('items', [])
-        quota.spend('videos_list', vid)
+        quota.spend('read', vid)
     except Exception as e:
         return {'خطأ_الوصف': str(e)[:200]}
     if not it:
