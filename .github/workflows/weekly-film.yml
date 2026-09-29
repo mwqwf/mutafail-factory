@@ -136,8 +136,17 @@ jobs:
           REEL_SOFT=1 python tools/audio_checks.py proj
 
       - name: ② الإصغاء المشكول (كتلة كتلة) — تقريرٌ للتحكيم
-        if: env.STAGE != 'animate'
+        # ⛔ لا إصغاءَ في شوطٍ «[موازٍ]»: شوطان يصغيان معاً يستنفدان الحصّة مرّتين (عين جالوت 2026-09-29) — يُصغي الشوطُ الرئيسيّ وحده
+        if: env.STAGE != 'animate' && !contains(github.event.head_commit.message, '[موازٍ]')
         run: |
+          # ⭐ أحدثُ نتائج الإصغاء قبل البدء (أمر المالك 2026-09-29): ما حفظه شوطٌ انتهى بعد بدء هذا الشوط،
+          #    وما سُمع من مقاطع الراوي في شوط الافتتاحية — فلا يُعاد فحصُ ما فُحص (البصمةُ تُسقط ما تغيّر صوتُه)
+          for tag in "$SLUG-out" "$SLUG-intro-out"; do
+            rm -rf "/tmp/lr_$tag" && mkdir -p "/tmp/lr_$tag"
+            gh release download "$tag" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D "/tmp/lr_$tag" --clobber 2>/dev/null && \
+              tar xzf "/tmp/lr_$tag/state.tgz" -C "/tmp/lr_$tag" listen_results.json 2>/dev/null || true
+          done
+          python tools/listen_merge.py proj "/tmp/lr_$SLUG-out/listen_results.json" "/tmp/lr_$SLUG-intro-out/listen_results.json"
           node tools/listen.js proj 12 --keys /tmp/keys.json --batch 1 || true
           # حصّة gemini-3.5-flash اليومية للإصغاء تنفد سريعاً (درس ١٤) ⇒ ما بقي يُصغى إليه بنموذجٍ ثانٍ؛ والأداة تستأنف فلا تعيد المفحوص
           # gemini-2.5-flash أُحيل إلى التقاعد (404 مقيس 2026-09-27) ⇒ سلسلةُ مرشّحين؛ الاسمُ غير الموجود يسقط فوراً بلا كلفة
@@ -155,7 +164,7 @@ jobs:
 
       - name: ②ب حارس نطق التعليمات الإنجليزية (يعيد التوليد بلا توجيه، ويمنع التحريك إن بقي)
         # درس الزلاقة 2026-09-28: قال الراوي «Say quickly…» بصوته ثم حُرِّكت شفاهه عليه — أفسد المشهد
-        if: env.STAGE != 'animate'
+        if: env.STAGE != 'animate' && !contains(github.event.head_commit.message, '[موازٍ]')
         run: |
           for i in 1 2 3; do
             python tools/style_leak.py proj && break
