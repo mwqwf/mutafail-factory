@@ -44,4 +44,8 @@ for k in bad:                                       # تُحذف لتُولَّ�
     p = os.path.join(PROJ, 'audio', k + '.wav')
     if os.path.exists(p): os.remove(p)
     if os.path.exists(p + '.dc'): os.remove(p + '.dc')
+# REEL_SOFT=1: كتلُ الريلزات (r_) الناقصة لا توقف الفيلم (عين جالوت 2026-09-29: كتلة ريلزٍ واحدة
+# نفدت حصّتها فأسقطت شوطاً ولّد 192 كتلة ولم يبلغ التحريك). ما عداها يبقى مانعاً.
+if bad and os.environ.get('REEL_SOFT') and all(k.startswith('r_') for k in bad):
+    print('⚠ كتلُ ريلز ناقصة لا توقف الفيلم:', sorted(bad)); sys.exit(0)
 sys.exit(1 if bad else 0)

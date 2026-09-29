@@ -133,7 +133,7 @@ jobs:
             node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$m" || true
             python tools/audio_checks.py proj && break
           done
-          python tools/audio_checks.py proj
+          REEL_SOFT=1 python tools/audio_checks.py proj
 
       - name: ② الإصغاء المشكول (كتلة كتلة) — تقريرٌ للتحكيم
         if: env.STAGE != 'animate'
@@ -201,10 +201,11 @@ jobs:
           for r in $(python -c "import json;print(' '.join(x['id'] for x in json.load(open('proj/reels.json',encoding='utf-8'))))"); do
             # from_film: يُقصّ من الفيلم نفسه · shots: لقطات الفيلم المتحرّكة مع ترجمة · وإلا مجسَّم من الصور
             kind=$(python -c "import json;x=[x for x in json.load(open('proj/reels.json',encoding='utf-8')) if x['id']=='$r'][0];print('open' if x.get('from_film') else 'film' if x.get('shots') else '3d')")
+            # تعثّرُ ريلزٍ واحد (صوتُ كتلته ناقص مثلاً) لا يُسقط الفيلم ولا بقية الريلزات
             case "$kind" in
-              open) python tools/mkreel_open.py proj "$r" ;;
-              film) python tools/mkreel_film.py proj "$r" ;;
-              *)    python tools/mkreel3d.py proj "$r" ;;
+              open) python tools/mkreel_open.py proj "$r" || echo "⛔ تعذّر الريلز $r" ;;
+              film) python tools/mkreel_film.py proj "$r" || echo "⛔ تعذّر الريلز $r" ;;
+              *)    python tools/mkreel3d.py proj "$r" || echo "⛔ تعذّر الريلز $r" ;;
             esac
           done
 
