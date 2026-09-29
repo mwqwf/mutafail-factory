@@ -18,7 +18,8 @@ W, H, TAIL = 1080, 1920, 3.5
 R = {r['id']: r for r in json.load(open(os.path.join(PROJ, 'reels.json'), encoding='utf-8'))}[RID]
 TL = json.load(open(os.path.join(PROJ, 'timeline.json'), encoding='utf-8'))
 CUT = TL[R['from_film']][0] + float(R.get('cut_into', 3.0))
-assert CUT < 170, 'الريلز أطول من حدّ الشورتس: %.1f ث' % CUT
+# الشورت حتى 3 دقائق: الافتتاحية كاملةً ريلزاً (أمر المالك 2026-09-29) — تُقصّ عند 176 ث إن طالت بدل إسقاط الشوط
+if CUT > 176: print('⚠ الافتتاحية %.1f ث أطول من حدّ الشورت ⇒ تُقصّ عند 176 ث' % CUT); CUT = 176.0
 WORK = os.path.join(PROJ, 'reelwork', RID); os.makedirs(WORK, exist_ok=True)
 OUTD = os.path.join(PROJ, 'reels'); os.makedirs(OUTD, exist_ok=True)
 
@@ -45,8 +46,8 @@ topp = os.path.join(WORK, 'top.png'); top.save(topp)
 # بطاقة القطع: إطارٌ مجمَّد معتم ونداء المتابعة
 end = Image.new('RGBA', (W, H), (0, 0, 0, 150))
 d = ImageDraw.Draw(end)
-band(d, 760, 'ماذا سيحدث بعد ذلك؟', 76, (255, 255, 255, 255))
-band(d, 900, 'تابع الفيديو كاملاً في القناة', 62, (255, 255, 255, 255), bg=(200, 32, 34, 245))
+band(d, 760, R.get('end_q', 'ماذا سيحدث بعد ذلك؟'), 76, (255, 255, 255, 255))
+band(d, 900, R.get('end_cta', 'تابع الفيديو كاملاً في القناة'), 62, (255, 255, 255, 255), bg=(200, 32, 34, 245))
 endp = os.path.join(WORK, 'end.png'); end.save(endp)
 
 film = os.path.join(PROJ, 'film.mp4')
