@@ -193,8 +193,19 @@ for n, s in enumerate(shots):
         if kl:
             kd = dur(kl)
             if s.get('lipsync') and kd >= span - 1.5:
-                sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'scale=1920:1080,fps=25,tpad=stop_mode=clone:stop_duration=%.3f' % max(0.0, span - kd + 0.1),
-                        '-t', '%.3f' % span] + ENC + [out], check=True)
+                # ⛔ درس عين جالوت (حكم المالك 2026-09-29): مدُّ الإطار الأخير (tpad clone) جمّد الراوي ويده قبل القطع — «طريقة بدائية».
+                #    ⇒ النقص يُملأ بإبطاء آخر ثانيةٍ من المقطع نفسه (الكلام انتهى فيها)، فتبقى الحركة حيّةً حتى القطع.
+                short = span - kd
+                if short > 0.04:
+                    tail = min(1.0, kd)
+                    k = (tail + short + 0.05) / tail
+                    sp.run([FF, '-v', 'error', '-y', '-i', kl, '-filter_complex',
+                            '[0:v]scale=1920:1080,fps=25,split[a][b];[a]trim=0:%.3f,setpts=PTS-STARTPTS[h];'
+                            '[b]trim=%.3f,setpts=%.4f*(PTS-STARTPTS),fps=25[t];[h][t]concat=n=2:v=1[v]' % (kd - tail, kd - tail, k),
+                            '-map', '[v]', '-t', '%.3f' % span] + ENC + [out], check=True)
+                else:
+                    sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'scale=1920:1080,fps=25',
+                            '-t', '%.3f' % span] + ENC + [out], check=True)
             elif span <= kd * 1.4:
                 sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=%.4f*PTS,scale=1920:1080,fps=25' % max(1.0, span / kd),
                         '-t', '%.3f' % span] + ENC + [out], check=True)
