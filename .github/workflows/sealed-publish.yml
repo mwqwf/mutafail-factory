@@ -70,6 +70,12 @@ jobs:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
         run: '[ -n "$YT_OAUTH_JSON" ] || { echo "⛔⛔ سرُّ YT_OAUTH_JSON غيرُ مضبوط"; exit 1; }'
 
+      # ⛔ درس عين جالوت 2026-09-29: الحالةُ الحقّة على master (يكتبها «تسجيلُ الحالة»)، لا على الفرع.
+      #    قرأ الشوطُ حالةَ الفرع القديمة فلم يعرف ريلزاً نُشر ثم حذفه المالك، فأعاد رفعه.
+      #    ⇒ ما سجّلته الحالة منشوراً لا يُرفع ثانيةً ولو غاب عن القناة.
+      - name: حالةُ النشر من master
+        run: git fetch -q origin master && git checkout origin/master -- ops/state/ && cat ops/state/last_publish.json 2>/dev/null | head -40 || true
+
       - name: النشر (الفيلم ثم المصغّرة ثم القائمة ثم الريلزان)
         env:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
