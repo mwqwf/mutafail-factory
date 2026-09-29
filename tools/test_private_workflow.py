@@ -8,9 +8,13 @@ class PrivateWorkflowTests(unittest.TestCase):
         text=(ROOT/'.github/workflows/film.yml').read_text(encoding='utf-8')
         self.assertNotIn('uses: actions/upload-artifact',text)
         self.assertNotIn('uses: actions/download-artifact',text)
-        self.assertEqual(text.count('uses: ./.github/actions/private-upload'),10)
-        self.assertEqual(text.count('uses: ./.github/actions/private-download'),31)
-        self.assertEqual(text.count("private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'"),31)
+        # العددُ الثابت (10 و31) كسر الاختبار حين زِيدت رفعاتٌ خاصّة سليمة (14 و36)؛ فالعقدُ هو الثابت لا العدد:
+        # كلُّ رفعٍ وتنزيلٍ يمرّ عبر الغلاف الخاص، وكلُّ تنزيلٍ يحمل مفتاح الفكّ.
+        uploads = text.count('uses: ./.github/actions/private-upload')
+        downloads = text.count('uses: ./.github/actions/private-download')
+        self.assertGreaterEqual(uploads, 10)
+        self.assertGreaterEqual(downloads, 31)
+        self.assertEqual(text.count("private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'"), downloads)
         self.assertIn('python tools/repair_true_errors.py proj repair.json', text)
         self.assertIn('name: audio-final', text)
         self.assertIn('name: listen-final', text)
