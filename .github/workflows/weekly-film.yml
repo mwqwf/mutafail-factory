@@ -17,7 +17,7 @@ on:
         required: true
         default: all
         type: choice
-        options: [all, audio, animate]
+        options: [all, audio, animate, clips]
   # ⭐ الزناد الجذري (2026-09-27): الجلسة السحابية لا تملك تشغيل workflow_dispatch،
   #    لكنها تملك الدفع. فدفعُ ملفٍّ ops/run/<slug>.json = {"slug":"…","stage":"audio|animate|all"}
   #    على أيّ فرعٍ يُطلق هذا الشوط بنفسه، بلا يد المالك.
@@ -55,7 +55,7 @@ jobs:
           import json,sys,re
           d=json.load(open(sys.argv[1],encoding='utf-8'))
           slug=d['slug']; stage=d.get('stage','all')
-          assert re.fullmatch(r'[a-z0-9-]+',slug) and stage in ('all','audio','animate')
+          assert re.fullmatch(r'[a-z0-9-]+',slug) and stage in ('all','audio','animate','clips')
           print('slug='+slug); print('stage='+stage)
           PY
 
@@ -85,9 +85,22 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p sealed && cd sealed
-          gh release download "$SLUG-src" -R "$GITHUB_REPOSITORY" --clobber
+          # المصدر: إصدار مسوّدة <slug>-src، وإلا فرعٌ مختوم sealed/<slug> (الجلسة السحابية بلا gh — tools/stage_branch.sh)
+          # أو مجلدٌ مختوم ops/sealed/<slug> في الفرع نفسه (جلسةٌ لا تدفع إلا إلى فرعها — عين جالوت 2026-09-29)
+          if [ -f "../ops/sealed/$SLUG/SHA256SUMS" ]; then
+            cp ../ops/sealed/$SLUG/* .
+          elif ! gh release download "$SLUG-src" -R "$GITHUB_REPOSITORY" --clobber 2>/dev/null; then
+            git -C .. fetch -q --depth 1 origin "sealed/$SLUG"
+            git -C .. archive FETCH_HEAD | tar x
+          fi
           sed -i 's/ \*/  /' SHA256SUMS && sha256sum -c SHA256SUMS && cat part_* > payload.enc && rm part_*
           cd .. && bash tools/unseal.sh sealed "$PWD/proj" && rm -rf sealed
+          # مقاطعُ الافتتاحية المعتمدة (<slug>-intro-out) تدخل الفيلم كاملاً بلا دفعٍ ثانٍ لـfal
+          if gh release view "$SLUG-intro-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release download "$SLUG-intro-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp/intro --clobber 2>/dev/null && \
+              mkdir -p proj/clips proj/audio && tar xzf /tmp/intro/state.tgz -C /tmp/intro clips audio && cp -n /tmp/intro/clips/*.mp4 /tmp/intro/clips/*.cut /tmp/intro/clips/*.redo_* proj/clips/ 2>/dev/null || true; cp -n /tmp/intro/audio/n_*.wav /tmp/intro/audio/n_*.cut proj/audio/ 2>/dev/null || true
+            # صوتُ الراوي نفسه الذي طابقت عليه الشفاه — لا يُولَّد من جديد وإلا اختلّت المزامنة
+          fi
           # إن وُجد ناتجُ شوطٍ سابق (صوتٌ مجتاز) يُستأنف منه
           if gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release download "$SLUG-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp --clobber 2>/dev/null && tar xzf /tmp/state.tgz -C proj || true
@@ -99,11 +112,23 @@ jobs:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
 
-      - name: ① الصوت (gemini-3.8-flash-tts) + الفحوص الآلية — حتى ثلاث جولات
+      - name: ① الصوت (gemini-3.8-flash-tts) + الفحوص الآلية — حتى ست جولات
         if: env.STAGE != 'animate'
         run: |
-          for i in 1 2 3; do
-            node tools/gen25.js proj 4 --keys /tmp/keys.json --model gemini-3.8-flash-tts
+          # regen.txt في الحمولة = كتلٌ تغيّر نصُّها بعد التوليد (تحكيم الإصغاء) ⇒ يُحذف صوتُها ليُعاد
+          [ -f proj/regen.txt ] && for id in $(cat proj/regen.txt); do rm -f "proj/audio/$id.wav"; done; true
+          # قصُّ ما نُطق من توجيهٍ إنجليزي في أول الكتلة (lead_cut) صوتاً ومقطعَ راوٍ، قبل الفحص والإصغاء ليُتحقَّق منه
+          # audio_fix/ في الحمولة: صوتٌ مصحَّح يغلب ما في حالة الشوط السابق (مثلاً صوتٌ أُعيد توليده خطأً وله مقطع راوٍ مدفوع)
+          [ -d proj/audio_fix ] && cp proj/audio_fix/*.wav proj/audio/ || true
+          python tools/trim_lead.py proj
+          # ست جولات: النقرات المعزولة عشوائية في بعض الأصوات (Schedar)، فتنجح غالباً بالإعادة (الزلاقة 2026-09-28)
+          for i in 1 2 3 4 5 6; do
+            node tools/gen25.js proj 12 --keys /tmp/keys.json --model gemini-3.8-flash-tts || true
+            python tools/audio_checks.py proj && break
+          done
+          # نفدت حصّة 3.8 اليومية (فتح القسطنطينية 2026-09-28: 12 كتلة «nokeys») ⇒ ما بقي بنموذجٍ ذي حصّةٍ منفصلة، بالصوت نفسه
+          python tools/audio_checks.py proj || for m in gemini-2.5-flash-preview-tts gemini-2.5-pro-preview-tts; do
+            node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$m" || true
             python tools/audio_checks.py proj && break
           done
           python tools/audio_checks.py proj
@@ -111,7 +136,37 @@ jobs:
       - name: ② الإصغاء المشكول (كتلة كتلة) — تقريرٌ للتحكيم
         if: env.STAGE != 'animate'
         run: |
-          node tools/listen.js proj 4 --keys /tmp/keys.json --batch 1 || true
+          node tools/listen.js proj 12 --keys /tmp/keys.json --batch 1 || true
+          # حصّة gemini-3.5-flash اليومية للإصغاء تنفد سريعاً (درس ١٤) ⇒ ما بقي يُصغى إليه بنموذجٍ ثانٍ؛ والأداة تستأنف فلا تعيد المفحوص
+          # gemini-2.5-flash أُحيل إلى التقاعد (404 مقيس 2026-09-27) ⇒ سلسلةُ مرشّحين؛ الاسمُ غير الموجود يسقط فوراً بلا كلفة
+          for m in gemini-flash-latest gemini-3.8-flash gemini-3.5-flash-lite gemini-flash-lite-latest gemini-3.5-pro gemini-pro-latest; do
+            node tools/listen.js proj 12 --keys /tmp/keys.json --batch 1 --model "$m" || true
+          done
+          python - <<'PY'
+          import json
+          r=json.load(open('proj/listen_results.json',encoding='utf-8'))
+          flags={k:v for k,v in r.items() if isinstance(v,dict) and v.get('ok') is False}
+          todo=[k for k,v in r.items() if not isinstance(v,dict) or v.get('ok') is None]
+          open('proj/listen_report.json','w',encoding='utf-8').write(json.dumps({'flags':flags,'unchecked':todo},ensure_ascii=False,indent=1))
+          print('رايات:',len(flags),'| لم يُفحص:',len(todo))
+          PY
+
+      - name: ②ب حارس نطق التعليمات الإنجليزية (يعيد التوليد بلا توجيه، ويمنع التحريك إن بقي)
+        # درس الزلاقة 2026-09-28: قال الراوي «Say quickly…» بصوته ثم حُرِّكت شفاهه عليه — أفسد المشهد
+        if: env.STAGE != 'animate'
+        run: |
+          for i in 1 2 3; do
+            python tools/style_leak.py proj && break
+            # حين تنفد حصّة النموذج الأساسي تُعاد الكتلة بالنماذج الاحتياطية (القسطنطينية 2026-09-28: d_003 بقي «nokeys»)
+            for tm in gemini-3.8-flash-tts gemini-2.5-flash-preview-tts gemini-2.5-pro-preview-tts; do
+              node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$tm" && break || true
+            done
+            python tools/audio_checks.py proj || true
+            for m in "" gemini-flash-latest gemini-3.8-flash gemini-3.5-flash-lite; do
+              node tools/listen.js proj 12 --keys /tmp/keys.json --batch 1 ${m:+--model "$m"} || true
+            done
+          done
+          python tools/style_leak.py proj
           python - <<'PY'
           import json
           r=json.load(open('proj/listen_results.json',encoding='utf-8'))
@@ -130,14 +185,25 @@ jobs:
           python tools/fal_animate.py proj
           python tools/sfx_gate.py proj || true
           mkdir -p proj/img && cp proj/images/*.jpg proj/img/ 2>/dev/null || true
+          # صورتا الشورتين العموديتان (كوديكس) تدخلان img/ باسم v_<id> ليُحسب عمقهما ويستعملهما reels.json
+          for f in proj/shorts/*.jpg; do [ -f "$f" ] && cp "$f" "proj/img/v_$(basename "$f")"; done; true
           python tools/kb3d.py depth proj
 
       - name: ④ المونتاج الهجين والمؤثّرات والشورتات
-        if: env.STAGE != 'audio'
+        # clips = تحريكٌ فقط ثم حفظُ المقاطع لفحصها قبل المونتاج (أمر المالك 2026-09-27)
+        if: env.STAGE != 'audio' && env.STAGE != 'clips'
         run: |
           python tools/mont_hybrid.py proj 0.30
+          # فصول يوتيوب من مدد الصوت (publish_youtube يرفض {CHAPTERS} بلا الفصول.txt)
+          [ -f proj/sections.json ] && python tools/chapters.py proj proj/sections.json 0.30
           for r in $(python -c "import json;print(' '.join(x['id'] for x in json.load(open('proj/reels.json',encoding='utf-8'))))"); do
-            python tools/mkreel3d.py proj "$r"
+            # from_film: يُقصّ من الفيلم نفسه · shots: لقطات الفيلم المتحرّكة مع ترجمة · وإلا مجسَّم من الصور
+            kind=$(python -c "import json;x=[x for x in json.load(open('proj/reels.json',encoding='utf-8')) if x['id']=='$r'][0];print('open' if x.get('from_film') else 'film' if x.get('shots') else '3d')")
+            case "$kind" in
+              open) python tools/mkreel_open.py proj "$r" ;;
+              film) python tools/mkreel_film.py proj "$r" ;;
+              *)    python tools/mkreel3d.py proj "$r" ;;
+            esac
           done
 
       - name: ⑤ مخرجات المراجعة (إصدار مسوّدة خاص)
@@ -151,6 +217,8 @@ jobs:
             ffmpeg -v error -y -i proj/film.mp4 -vf scale=-2:480 -c:v libx264 -crf 30 -preset veryfast -c:a aac -b:a 64k out/preview480.mp4
             ffmpeg -v error -y -i proj/film.mp4 -vf "fps=1/20,scale=320:-1,tile=6x5" -frames:v 3 out/sheet_%d.jpg
             cp proj/reels/*.mp4 out/ 2>/dev/null || true
+            # الافتتاحية القصيرة تُرفع كاملة الجودة ليحكم المالك على حركة الراوي (الزلاقة 2026-09-28)
+            [ "$(stat -c%s proj/film.mp4)" -lt 150000000 ] && cp proj/film.mp4 out/film_full.mp4 || true
           fi
           gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
             gh release create "$SLUG-out" -R "$GITHUB_REPOSITORY" --draft --title "مخرجات $SLUG (مراجعة)" --notes "خاص — مسوّدة."

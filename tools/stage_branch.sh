@@ -5,6 +5,7 @@
 # ⛔ لا يدخل git إلا المشفَّر (key.enc و part_*)؛ فكّه يحتاج CONTENT_PRIVATE_KEY الذي لا يملكه إلا العدّاء.
 set -euo pipefail
 SLUG="$1"; TXT="$(cd "$2" && pwd)"; MED="${3:-}"
+[ -n "${SEAL_INTO:-}" ] && SEAL_INTO="$(mkdir -p "$SEAL_INTO" && cd "$SEAL_INTO" && pwd)"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 W="$(mktemp -d)"; trap 'rm -rf "$W"' EXIT
 mkdir -p "$W/proj"
@@ -28,6 +29,11 @@ PY
 fi
 bash "$ROOT/tools/seal.sh" "$W/proj" "$W/sealed"
 cd "$W/sealed" && split -b 90m -d payload.enc part_ && rm payload.enc && sha256sum part_* key.enc > SHA256SUMS
+# SEAL_INTO=<مجلد> ⇒ يُنسخ المختوم إلى ذلك المجلد (ops/sealed/<slug> في فرع الجلسة) بدل دفع فرعٍ يتيم
+if [ -n "${SEAL_INTO:-}" ]; then
+  rm -f "$SEAL_INTO"/part_* && cp key.enc SHA256SUMS part_* "$SEAL_INTO"/
+  echo "✅ خُتم المصدر في $SEAL_INTO — ادفعه مع ops/run/$SLUG.json"; exit 0
+fi
 git init -q && git checkout -q --orphan "sealed/$SLUG" && git add -A
 git -c user.name="Claude" -c user.email="noreply@anthropic.com" commit -q -m "حمولة مختومة: $SLUG [skip ci]"
 git push -q -f "$(git -C "$ROOT" remote get-url origin)" "sealed/$SLUG:sealed/$SLUG"
