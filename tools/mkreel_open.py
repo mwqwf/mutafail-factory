@@ -19,7 +19,8 @@ R = {r['id']: r for r in json.load(open(os.path.join(PROJ, 'reels.json'), encodi
 TL = json.load(open(os.path.join(PROJ, 'timeline.json'), encoding='utf-8'))
 CUT = TL[R['from_film']][0] + float(R.get('cut_into', 3.0))
 # الشورت حتى 3 دقائق: الافتتاحية كاملةً ريلزاً (أمر المالك 2026-09-29) — تُقصّ عند 176 ث إن طالت بدل إسقاط الشوط
-if CUT > 176: print('⚠ الافتتاحية %.1f ث أطول من حدّ الشورت ⇒ تُقصّ عند 176 ث' % CUT); CUT = 176.0
+# الريلز كلّه (القطع + بطاقة الختام) ≤ 170 ث بهامشٍ تحت حدّ Shorts (180 ث)، وأداة النشر ترفض ما جاوز 175 ث
+if CUT + TAIL > 170: print('⚠ الافتتاحية %.1f ث ⇒ تُقصّ ليبقى الريلز 170 ث' % CUT); CUT = 170.0 - TAIL
 WORK = os.path.join(PROJ, 'reelwork', RID); os.makedirs(WORK, exist_ok=True)
 OUTD = os.path.join(PROJ, 'reels'); os.makedirs(OUTD, exist_ok=True)
 
@@ -63,4 +64,6 @@ flt = ('[0:v]trim=0:%.3f,setpts=PTS-STARTPTS,split[a][b];'
 sp.run([FF, '-v', 'error', '-y', '-i', film, '-loop', '1', '-i', topp, '-loop', '1', '-i', endp, '-filter_complex', flt,
         '-map', '[v]', '-map', '[au]', '-t', '%.3f' % (CUT + TAIL), '-c:v', 'libx264', '-preset', 'veryfast',
         '-crf', '21', '-c:a', 'aac', '-b:a', '192k', out], check=True)
+o_ = sp.run([envpaths.FP, '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', out], capture_output=True, text=True).stdout.strip()
+assert o_ == '%d,%d' % (W, H), '⛔ الريلز ليس عموديّاً %s' % o_
 print('✅ %s | القطع عند %.1f ث + بطاقة %.1f ث' % (out, CUT, TAIL))

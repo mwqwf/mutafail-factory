@@ -38,6 +38,20 @@ def yt():
     return build("youtube", "v3", credentials=creds, cache_discovery=False)
 
 
+def reel_shape(path):
+    """⛔ حارسُ الريلز (أمر المالك 2026-09-29: «تأكّد أنه سيظهر كريلز وليس كفيلم كما وقع سابقاً»).
+    يوتيوب يعدّ الفيديو «Shorts» إن كان عموديّاً أو مربّعاً ومدّته ≤ 3 دقائق؛ وإلا نشره فيلماً عاديّاً.
+    ⇒ لا يُرفع ريلز إلا عموديّاً (الارتفاع > العرض) ومدّته ≤ 175 ث. يعيد (سليم؟، وصف)."""
+    import subprocess as _sp
+    o = _sp.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height:format=duration',
+                 '-of', 'json', path], capture_output=True, text=True)
+    try:
+        j = json.loads(o.stdout); w, h = j['streams'][0]['width'], j['streams'][0]['height']; d = float(j['format']['duration'])
+    except Exception:
+        return False, 'تعذّرت قراءة أبعاده'
+    return (h > w and d <= 175.0), '%dx%d · %.1f ث' % (w, h, d)
+
+
 def upload(svc, path, meta, publish_at=None, public_now=False):
     status = {
         "privacyStatus": "public" if public_now else "private",
@@ -462,8 +476,14 @@ def main():
             #    الحصّةُ **يُجدوَل** لأوّل تجدّدٍ ويُنفَّذ تلقائيّاً، ولا يسقط الشوط.
             defer(slug, film_id, r["file"], used, left)
             continue
+        okshape, shape = reel_shape(P("reels", r["file"]))
+        if not okshape:                            # ⛔ لا يُنشر فيلماً عاديّاً ما أُريد ريلزاً
+            print("⛔ الريلز %s ليس عموديّاً أو أطول من 175 ث (%s) — لم يُرفع" % (r["file"], shape), flush=True)
+            continue
         rm = dict(r)
         rm["description"] = r["description"].replace("{FILM_URL}", link)
+        if "#Shorts" not in rm["description"]:
+            rm["description"] = rm["description"].rstrip() + "\n\n#Shorts"
         rat = reel_at(when, len(reels))
         rid = upload(svc, P("reels", r["file"]), rm, publish_at=rat, public_now=not rat)
         # ⛔ يُسجَّل **قبل** التحقّق: سقوطُ التحقّق بعد رفعٍ واقعٍ كان يُنتج نسخةً ثانية.
