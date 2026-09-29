@@ -15,6 +15,8 @@ from envpaths import ar
 PROJ, RID = os.path.abspath(sys.argv[1]), sys.argv[2]
 FF, FB = envpaths.FF, envpaths.font(bold=True)
 W, H, TAIL = 1080, 1920, 3.5
+# الإطار الأفقي مكبَّراً (ارتفاع 900 وقصّ الوسط ≈ 67٪ من العرض) بدل شريطٍ صغير تحيطه مساحةٌ مموّهة (عين جالوت 2026-09-29)
+FG_H = 900
 R = {r['id']: r for r in json.load(open(os.path.join(PROJ, 'reels.json'), encoding='utf-8'))}[RID]
 TL = json.load(open(os.path.join(PROJ, 'timeline.json'), encoding='utf-8'))
 CUT = TL[R['from_film']][0] + float(R.get('cut_into', 3.0))
@@ -57,10 +59,10 @@ out = os.path.join(OUTD, RID + '.mp4')
 # ثم يُجمَّد آخر إطار TAIL ثانية تحت البطاقة، والصوت يخفت عند القطع
 flt = ('[0:v]trim=0:%.3f,setpts=PTS-STARTPTS,split[a][b];'
        '[a]scale=-2:%d,crop=%d:%d,boxblur=30:3,eq=brightness=-0.12[bg];'
-       '[b]scale=%d:-2[fg];[bg][fg]overlay=0:(H-h)/2[v0];[v0][1:v]overlay=0:0:shortest=1,tpad=stop_mode=clone:stop_duration=%.2f[v1];'
+       '[b]scale=-2:%d,crop=%d:%d[fg];[bg][fg]overlay=0:(H-h)/2[v0];[v0][1:v]overlay=0:0:shortest=1,tpad=stop_mode=clone:stop_duration=%.2f[v1];'
        '[2:v]format=rgba,fade=t=in:st=%.3f:d=0.3:alpha=1[e];[v1][e]overlay=0:0,fps=30,setsar=1,format=yuv420p[v];'
        '[0:a]atrim=0:%.3f,asetpts=PTS-STARTPTS,afade=t=out:st=%.3f:d=0.6,apad=pad_dur=%.2f[au]'
-       % (CUT, H, W, H, W, TAIL, CUT, CUT, CUT - 0.6, TAIL))
+       % (CUT, H, W, H, FG_H, W, FG_H, TAIL, CUT, CUT, CUT - 0.6, TAIL))
 sp.run([FF, '-v', 'error', '-y', '-i', film, '-loop', '1', '-i', topp, '-loop', '1', '-i', endp, '-filter_complex', flt,
         '-map', '[v]', '-map', '[au]', '-t', '%.3f' % (CUT + TAIL), '-c:v', 'libx264', '-preset', 'veryfast',
         '-crf', '21', '-c:a', 'aac', '-b:a', '192k', out], check=True)

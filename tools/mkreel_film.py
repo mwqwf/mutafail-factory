@@ -78,9 +78,13 @@ def centered(d, y, text, f, fill, stroke=5, band=None):
 
 # ③ الطبقات الثابتة: العنوان أعلى والشعار أسفل، والخطّاف، وبطاقة الختام
 top = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(top)
-ft = envpaths.arfont(64, path=FB); y = 120
-for i, ln in enumerate(lines(d, R['title'], ft, W - 100)[:2]):
-    centered(d, y, ln, ft, GOLD if i else WHITE); y += 84
+# العنوان كاملاً بلا بتر (بُتر في عين جالوت عند سطرين): يصغر الخطّ حتى يسعه ثلاثة أسطر
+for sz in (62, 56, 50, 46):
+    ft = envpaths.arfont(sz, path=FB); tl = lines(d, R['title'], ft, W - 90)
+    if len(tl) <= 3: break
+y = 110
+for i, ln in enumerate(tl):
+    centered(d, y, ln, ft, GOLD if i else WHITE); y += int(sz * 1.3)
 lg = Image.open(envpaths.logo()).convert('RGBA').resize((110, 110))
 m = Image.new('L', (110, 110), 0); ImageDraw.Draw(m).ellipse([2, 2, 108, 108], fill=255); top.paste(lg, ((W - 110) // 2, H - 150), m)
 top.save(os.path.join(WORK, 'top.png'))
@@ -92,9 +96,9 @@ for ln in hl:
 hook.save(os.path.join(WORK, 'hook.png'))
 
 end = Image.new('RGBA', (W, H), (0, 0, 0, 150)); d = ImageDraw.Draw(end)
-fq = envpaths.arfont(80, path=FB); y = 700
-for ln in lines(d, R.get('end_q') or 'ماذا حدث بعد ذلك؟', fq, W - 140)[:2]:
-    centered(d, y, ln, fq, GOLD); y += 110
+fq = envpaths.arfont(74, path=FB); y = 660
+for ln in lines(d, R.get('end_q') or 'ماذا حدث بعد ذلك؟', fq, W - 120)[:3]:
+    centered(d, y, ln, fq, GOLD); y += 102
 centered(d, y + 60, 'الجواب في الفيلم الكامل', envpaths.arfont(66, path=FB), WHITE, 4, band=(200, 32, 34, 245))
 centered(d, y + 240, 'اشترك وفعّل الجرس', envpaths.arfont(54, path=FB), WHITE, 4)
 end.save(os.path.join(WORK, 'end.png'))
