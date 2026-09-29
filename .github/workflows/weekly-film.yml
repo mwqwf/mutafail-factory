@@ -28,7 +28,9 @@ permissions:
   contents: write
 
 concurrency:
-  group: weekly-film-${{ inputs.slug || github.ref }}
+  # «[موازٍ]» في رسالة الإيداع ⇒ مجموعةٌ منفصلة تعمل بجوار الشوط الجاري (صوتُ الفيلم أثناء تحريك الافتتاحية — عين جالوت 2026-09-29)
+  # ⛔ للصوت وحده: التحريك في مجموعتين متوازيتين قد يدفع لـfal مرّتين على اللقطة نفسها
+  group: weekly-film-${{ inputs.slug || github.ref }}${{ contains(github.event.head_commit.message, '[موازٍ]') && '-par' || '' }}
   cancel-in-progress: false
 
 jobs:
