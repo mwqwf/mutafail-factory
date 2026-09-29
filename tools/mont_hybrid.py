@@ -207,7 +207,9 @@ for n, s in enumerate(shots):
                     sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'scale=1920:1080,fps=25',
                             '-t', '%.3f' % span] + ENC + [out], check=True)
             elif span <= kd * 1.4:
-                sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=%.4f*PTS,scale=1920:1080,fps=25' % max(1.0, span / kd),
+                # لقطة التحوّل (FLF) تُضغط إن طالت فلا يُقصّ آخرها — نهايتها هي صورة اللقطة التالية (ظهور الراوي في حطّين)
+                k = span / kd if s.get('end_image') else max(1.0, span / kd)
+                sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=%.4f*PTS,scale=1920:1080,fps=25' % k,
                         '-t', '%.3f' % span] + ENC + [out], check=True)
             else:
                 a, b2 = out[:-4] + '_a.mp4', out[:-4] + '_b.mp4'

@@ -161,6 +161,18 @@ def run(s):
             if spent() + cost > BUDGET + 1e-9:
                 print(sid, '⏸ الميزانية (%.2f$ من %.2f$) — تُحرَّك بـkb3d' % (spent(), BUDGET), flush=True); return
             p = img_path(sid)
+            # ⭐ «start_from»: يبدأ المقطع من آخر إطارٍ حقيقيٍّ لمقطع الراوي السابق لا من صورةٍ ثابتة
+            #    (حكم المالك على عين جالوت: الانتقال بتجميد الراوي طريقةٌ بدائية). الراوي يُحرَّك قبل غيره فمقطعه موجود.
+            if s.get('start_from'):
+                src = P('clips', '%s_av.mp4' % s['start_from'])
+                if not os.path.exists(src): src = P('clips', '%s.mp4' % s['start_from'])
+                if os.path.exists(src):
+                    import subprocess as sp
+                    last = P('clips', '%s_start.jpg' % sid)
+                    sp.run(['ffmpeg', '-v', 'error', '-y', '-sseof', '-0.12', '-i', src, '-frames:v', '1', '-q:v', '2', last], check=True)
+                    p = last
+                else:
+                    print(sid, '⚠ لا مقطع لـ%s — يبدأ من صورته' % s['start_from'], flush=True)
             if not p: print(sid, '⛔ الصورة غائبة', flush=True); return
             prompt = ('Cinematic documentary shot, realistic motion and physics. ' + s['move'] +
                       '. Keep the composition, people and faces exactly as in the image; nobody new enters the frame. No text.' +
