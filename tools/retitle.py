@@ -24,7 +24,13 @@ for vid, title in cfg.items():
     body['snippet']['title'] = title[:100]
     svc.videos().update(part='snippet', body=body).execute()
     quota.spend('video_update', vid)
-    got = svc.videos().list(part='snippet', id=vid).execute()['items'][0]['snippet']['title']
-    if got != title[:100]:
+    # قراءةُ يوتيوب لا تتّسق فورَ الكتابة (درس الموحّدين 09-14) ⇒ تُعاد بمهلةٍ متدرّجة
+    import time
+    for wait in (0, 3, 5, 8, 13, 21, 34):
+        time.sleep(wait)
+        got = svc.videos().list(part='snippet', id=vid).execute()['items'][0]['snippet']['title']
+        if got == title[:100]:
+            break
+    else:
         raise SystemExit('⛔ لم يثبت العنوان الجديد على %s: %s' % (vid, got))
     print('✅ صُحّح العنوان', vid, '←', got)
