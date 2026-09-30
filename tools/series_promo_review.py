@@ -14,11 +14,15 @@ try:
     values=parsed if isinstance(parsed,list) else parsed.get("keys",list(parsed.values()))
 except Exception: values=re.split(r'[\r\n,"\s]+',raw)
 keys=list(dict.fromkeys(v.strip() for v in values if isinstance(v,str) and v.strip().startswith(("AIza","AQ."))))
-sp.run(["python","tools/repair_promo_v3.py","proj","old/r1.mp4","repaired"],check=True)
+pathlib.Path("repaired").mkdir(exist_ok=True)
+sp.run(["gh","release","download","series-promo-v3-out","-D","repaired"],check=True)
+sp.run(["ffmpeg","-v","error","-y","-i","repaired/r1.mp4","-vn","-ar","24000","-ac","1","repaired/verified_full.wav"],check=True)
 sp.run(["ffmpeg","-v","error","-y","-i","repaired/r1.mp4","-vf","scale=-2:720","-c:v","libx264","-crf","24","-preset","veryfast","-c:a","aac","-b:a","96k",str(R/"series-promo-review.mp4")],check=True)
 shutil.copy("repaired/repair_report.json",R/"repair_report.json")
-parts=[{"text":"راجع هذا الريلز العربي كاملاً سمعياً، وخاصة الانتقال من الجمل الأولى إلى الجمل الأخيرة. لا تكتف بوجود الكلمات. فرغ آخر جملتين، وحدد أخطاء النحو أو النطق المسموعة فعلاً، وهل يوجد تلحين أو غناء غير طبيعي، وهل تتغير هوية الصوت أو سرعته أو مستوى جهارته فجأة عند الخاتمة. لا تختلق عيباً ولا تتسامح معه. أعد JSON بالحقول ending_transcript, grammar_errors (قائمة), pronunciation_errors (قائمة), unnatural_melody (منطقي), voice_identity_change (منطقي), abrupt_speed_or_level_change (منطقي), cut_off (منطقي), explanation. إليك النص المقصود للمقارنة: "+ " ".join(b["text"] for b in json.loads(pathlib.Path("proj/blocks.json").read_text()))},
-{"inlineData":{"mimeType":"audio/wav","data":base64.b64encode(pathlib.Path("repaired/verified_full.wav").read_bytes()).decode()}}]
+sp.run(["ffmpeg","-v","error","-y","-ss","5.885714","-i","repaired/r1.mp4","-t","4.019048","-vn","-ar","24000","-ac","1","review/word_context.wav"],check=True)
+parts=[{"text":"تحكيم سمعي محدد: الفحص الأول لصوت هذا المشروع أجاز مقطع «وَادٍ ابْتَلَعَ جَيْشَ الرُّومِ… فِي الْيَرْمُوكْ»، لكن فحص لاحق ادعى سقوط التنوين في «وادٍ». استمع للمصدر ثم المقطع المصيّر. هل يوجد وقف بعد «واد» يجعل سقوط التنوين جائزاً، أم وصل صحيح بنون التنوين قبل همزة الوصل، أم سقوط حقيقي؟ لا تعتمد تقرير أي فاحص. اكتب ما سمعت من الأصوات، وهل الراية صحيحة أو خاطئة أو غير محسومة ولماذا. أعد JSON: source_heard, render_heard, pause_after_wadi, tanween_audible, verdict (confirmed_error / false_positive / uncertain), rationale."},
+{"text":"المصدر"},{"inlineData":{"mimeType":"audio/wav","data":base64.b64encode(pathlib.Path("proj/audio/p_02.wav").read_bytes()).decode()}},
+{"text":"المقطع النهائي"},{"inlineData":{"mimeType":"audio/wav","data":base64.b64encode(pathlib.Path("review/word_context.wav").read_bytes()).decode()}}]
 answer={"error":"لم يكتمل الفحص"}
 for model in ["gemini-3.5-flash","gemini-flash-latest"]:
     for key in keys[:3]:
@@ -31,11 +35,11 @@ for model in ["gemini-3.5-flash","gemini-flash-latest"]:
             answer.setdefault("failures",[]).append({"model":model,"type":type(err).__name__,"code":getattr(err,"code",None)})
             continue
     if "response" in answer: break
-(R/"ending_asr.json").write_text(json.dumps(answer,ensure_ascii=False,indent=2))
+(R/"adjudication.json").write_text(json.dumps(answer,ensure_ascii=False,indent=2))
 
 
 sp.run(["gh","release","view","series-promo-v3-out"],stdout=sp.DEVNULL,stderr=sp.DEVNULL).returncode==0 or sp.run(["gh","release","create","series-promo-v3-out","--draft","--title","ريلز السلسلة — نسخة المراجعة الثالثة"],check=True)
-sp.run(["gh","release","upload","series-promo-v3-out","repaired/r1.mp4","repaired/repair_report.json","review/ending_asr.json","--clobber"],check=True)
+sp.run(["gh","release","upload","series-promo-v3-out","repaired/r1.mp4","repaired/repair_report.json","review/adjudication.json","--clobber"],check=True)
 with tarfile.open("review.tgz","w:gz") as t: t.add(R,arcname="review")
 config=json.loads(pathlib.Path("ops/review/series-promo.json").read_text())
 pub=load_pem_public_key(config["public_key"].encode())
