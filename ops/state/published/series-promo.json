@@ -19,8 +19,8 @@
     "owner_report": "حذف المالك الريلز لأن النهاية انقطعت عند طلب الاشتراك ولم تُشر للسلسلة. أمر بإكماله وإعادة نشر النسخة المصححة في 2026-09-30."
   },
   "release_tag": "series-promo-v2-out",
-  "publish_run": "36760514826",
-  "status": "uploaded_private_processing",
+  "publish_run": "36760769679",
+  "status": "resuming_existing_upload",
   "replaces_deleted_video_id": "RLFp0DMlEHU",
   "repair_report": {
     "source_sha256": "a68b4a441ac1f6ade404b030a64d133f73a6fb1e8814128e31000db3e99fb6fc",
@@ -35,5 +35,5 @@
   "do_not_reupload": true,
   "video_id": "FgHUxjE1Joc",
   "url": "https://youtube.com/shorts/FgHUxjE1Joc",
-  "updated_at": "2026-09-30T18:43:03.076710+00:00"
+  "updated_at": "2026-09-30T18:45:13.264010+00:00"
 }
