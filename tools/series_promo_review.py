@@ -34,9 +34,17 @@ report["payload_sha256"]=hashlib.sha256(actual.read_bytes()).hexdigest()
 (R/"durations.json").write_text(json.dumps(report,ensure_ascii=False,indent=2))
 sp.run(["ffmpeg","-v","error","-y","-sseof","-18","-i",str(actual),"-vn","-ar","24000","-ac","1",str(R/"actual_tail.wav")],check=True)
 shutil.copy("published-payload/publish.json",R/"actual_publish.json")
-keys=re.findall(r'(?:AIza|AQ\\.)[A-Za-z0-9_-]+',os.environ.get("GEMINI_KEYS_JSON",""))
+raw=os.environ.get("GEMINI_KEYS_JSON","")
+try:
+    parsed=json.loads(raw)
+    values=parsed if isinstance(parsed,list) else parsed.get("keys",list(parsed.values()))
+except Exception: values=re.split(r'[\r\n,"\s]+',raw)
+keys=list(dict.fromkeys(v.strip() for v in values if isinstance(v,str) and v.strip().startswith(("AIza","AQ."))))
+sp.run(["python","tools/repair_promo_end.py","proj","old/r1.mp4","repaired"],check=True)
+sp.run(["ffmpeg","-v","error","-y","-i","repaired/r1.mp4","-vf","scale=-2:640","-c:v","libx264","-crf","30","-preset","veryfast","-c:a","aac","-b:a","96k",str(R/"repaired.mp4")],check=True)
+shutil.copy("repaired/repair_report.json",R/"repair_report.json")
 parts=[{"text":"استمع إلى المقطعين كل منهما منفصل. فرغ جميع الكلمات المسموعة حرفياً دون إضافة كلمات متوقعة. هل تنتهي جملة كل مقطع مكتملة أم تقطع؟ هل سمعت الاشتراك ومشاهدة السلسلة وروابطها في الوصف فعلاً؟ أعد JSON فيه لكل id: transcript, cut_off, subscription_heard, series_heard, description_heard. لا تستنتج كلمات غير مسموعة."}]
-for ident,file in [("published_tail",R/"actual_tail.wav"),("source_last",R/"p_09.wav")]:
+for ident,file in [("repaired_tail",pathlib.Path("repaired/verified_tail.wav")),("source_last",R/"p_09.wav")]:
     parts += [{"text":"id="+ident},{"inlineData":{"mimeType":"audio/wav","data":base64.b64encode(file.read_bytes()).decode()}}]
 answer={"error":"لم يكتمل الفحص"}
 for model in ["gemini-3.5-flash","gemini-flash-latest"]:
@@ -46,10 +54,14 @@ for model in ["gemini-3.5-flash","gemini-flash-latest"]:
         try:
             with urllib.request.urlopen(req,timeout=120) as res: ans=json.load(res)
             answer={"model":model,"response":ans};break
-        except Exception: continue
+        except Exception as err:
+            answer.setdefault("failures",[]).append({"model":model,"type":type(err).__name__,"code":getattr(err,"code",None)})
+            continue
     if "response" in answer: break
 (R/"ending_asr.json").write_text(json.dumps(answer,ensure_ascii=False,indent=2))
 
+sp.run(["gh","release","view","series-promo-v2-out"],stdout=sp.DEVNULL,stderr=sp.DEVNULL).returncode==0 or sp.run(["gh","release","create","series-promo-v2-out","--draft","--title","إصلاح خاتمة الريلز — للمراجعة"],check=True)
+sp.run(["gh","release","upload","series-promo-v2-out","repaired/r1.mp4","repaired/repair_report.json","review/ending_asr.json","--clobber"],check=True)
 with tarfile.open("review.tgz","w:gz") as t: t.add(R,arcname="review")
 config=json.loads(pathlib.Path("ops/review/series-promo.json").read_text())
 pub=load_pem_public_key(config["public_key"].encode())
