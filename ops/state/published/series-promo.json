@@ -20,7 +20,7 @@
   },
   "release_tag": "series-promo-v2-out",
   "publish_run": "36760769679",
-  "status": "resuming_existing_upload",
+  "status": "published",
   "replaces_deleted_video_id": "RLFp0DMlEHU",
   "repair_report": {
     "source_sha256": "a68b4a441ac1f6ade404b030a64d133f73a6fb1e8814128e31000db3e99fb6fc",
@@ -35,5 +35,39 @@
   "do_not_reupload": true,
   "video_id": "FgHUxjE1Joc",
   "url": "https://youtube.com/shorts/FgHUxjE1Joc",
-  "updated_at": "2026-09-30T18:45:13.264010+00:00"
+  "updated_at": "2026-09-30T18:45:15.059244+00:00",
+  "published_at": "2026-09-30T18:45:15.059234+00:00",
+  "youtube_verified": {
+    "kind": "youtube#video",
+    "etag": "YJi1SBhVYoPB2dcQydwtRbxMfSw",
+    "id": "FgHUxjE1Joc",
+    "contentDetails": {
+      "duration": "PT59S",
+      "dimension": "2d",
+      "definition": "hd",
+      "caption": "false",
+      "licensedContent": false,
+      "contentRating": {},
+      "projection": "rectangular",
+      "hasCustomThumbnail": false
+    },
+    "status": {
+      "uploadStatus": "processed",
+      "privacyStatus": "public",
+      "license": "youtube",
+      "embeddable": false,
+      "publicStatsViewable": false,
+      "madeForKids": false,
+      "selfDeclaredMadeForKids": false
+    },
+    "processingDetails": {
+      "processingStatus": "succeeded",
+      "fileDetailsAvailability": "available",
+      "processingIssuesAvailability": "available",
+      "tagSuggestionsAvailability": "inProgress",
+      "editorSuggestionsAvailability": "inProgress",
+      "thumbnailsAvailability": "available"
+    }
+  },
+  "note": "نُشرت النسخة المكتملة بإذن المالك بعد حذفه النسخة القديمة. لا تعِد رفعها. الخاتمة أُعيد تركيبها من الصوت الكامل ثم بطاقة 6 ثوان باسم السلسلة."
 }
