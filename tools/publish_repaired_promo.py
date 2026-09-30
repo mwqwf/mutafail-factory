@@ -20,7 +20,7 @@ yt=build('youtube','v3',credentials=creds,cache_discovery=False)
 channel=yt.channels().list(part='contentDetails',mine=True).execute()['items'][0]
 assert channel['id']=='UCda-VgyvZwAH5_Pl1elVEnw'
 old=json.loads(STATE.read_text())
-record={'slug':'series-promo','title':meta['title'],'previous_publication':old,'release_tag':'series-promo-v2-out','publish_run':os.environ.get('GITHUB_RUN_ID'),'status':'repair_verified','replaces_deleted_video_id':'RLFp0DMlEHU','repair_report':report,'do_not_reupload':True}
+record={'slug':'series-promo','title':meta['title'],'previous_publication':old.get('previous_publication',old),'release_tag':'series-promo-v2-out','publish_run':os.environ.get('GITHUB_RUN_ID'),'status':'repair_verified','replaces_deleted_video_id':'RLFp0DMlEHU','repair_report':report,'do_not_reupload':True}
 def persist():
     record['updated_at']=datetime.datetime.now(datetime.timezone.utc).isoformat()
     STATE.write_text(json.dumps(record,ensure_ascii=False,indent=2))
@@ -34,7 +34,7 @@ def persist():
 uploads=yt.playlistItems().list(part='snippet',playlistId=channel['contentDetails']['relatedPlaylists']['uploads'],maxResults=50).execute()['items']
 candidates=[x['snippet']['resourceId']['videoId'] for x in uploads if x['snippet']['title'].strip()==meta['title'].strip() and x['snippet']['resourceId']['videoId']!='RLFp0DMlEHU']
 assert len(candidates)<=1,'عناوين مكررة تحتاج مراجعة، لن يرفع شيئاً'
-vid=candidates[0] if candidates else None
+vid=old.get('video_id') if old.get('repair_report',{}).get('video_sha256')==digest else (candidates[0] if candidates else None)
 if not vid:
     # وثائق videos.insert الحالية: 100 عملية رفع في حصة منفصلة يومياً.
     # https://developers.google.com/youtube/v3/docs/videos/insert
@@ -65,7 +65,13 @@ assert abs(seconds-report['actual_duration'])<1.1
 assert not st.get('madeForKids',False) and not st.get('selfDeclaredMadeForKids',False)
 if st['privacyStatus']!='public':
     yt.videos().update(part='status',body={'id':vid,'status':{'privacyStatus':'public','selfDeclaredMadeForKids':False,'containsSyntheticMedia':True}}).execute()
-final=yt.videos().list(part='status,contentDetails,processingDetails',id=vid).execute()['items'][0]
-assert final['status']['privacyStatus']=='public' and final['status']['uploadStatus']=='processed'
+for _ in range(30):
+    final=yt.videos().list(part='status,contentDetails,processingDetails',id=vid).execute()['items'][0]
+    if final['status']['privacyStatus']=='public' and final['status']['uploadStatus']=='processed': break
+    time.sleep(5)
+else:
+    record.update(status='awaiting_public_confirmation',youtube_verified=final);persist()
+    raise RuntimeError('لم تتأكد الإتاحة بعد؛ تم حفظ الحالة والمعرف دون إعادة رفع')
+
 record.update(status='published',published_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),youtube_verified=final,note='نُشرت النسخة المكتملة بإذن المالك بعد حذفه النسخة القديمة. لا تعِد رفعها. الخاتمة أُعيد تركيبها من الصوت الكامل ثم بطاقة 6 ثوان باسم السلسلة.')
 persist();print(json.dumps({'video_id':vid,'url':record['url'],'status':'published','duration':seconds},ensure_ascii=False))
