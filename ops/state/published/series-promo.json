@@ -20,7 +20,7 @@
   },
   "release_tag": "series-promo-v2-out",
   "publish_run": "36760769679",
-  "status": "published",
+  "status": "deleted_by_owner_second_repair_in_progress",
   "replaces_deleted_video_id": "RLFp0DMlEHU",
   "repair_report": {
     "source_sha256": "a68b4a441ac1f6ade404b030a64d133f73a6fb1e8814128e31000db3e99fb6fc",
@@ -28,7 +28,7 @@
     "cut": 45.06666666666666,
     "voice_duration": 6.44,
     "new_spoken_segment": 7.555555555555556,
-    "ending_card": 6.0,
+    "ending_card": 6,
     "expected_duration": 58.62222222222222,
     "actual_duration": 58.633333
   },
@@ -69,5 +69,6 @@
       "thumbnailsAvailability": "available"
     }
   },
-  "note": "نُشرت النسخة المكتملة بإذن المالك بعد حذفه النسخة القديمة. لا تعِد رفعها. الخاتمة أُعيد تركيبها من الصوت الكامل ثم بطاقة 6 ثوان باسم السلسلة."
+  "note": "نُشرت النسخة المكتملة بإذن المالك بعد حذفه النسخة القديمة. لا تعِد رفعها. الخاتمة أُعيد تركيبها من الصوت الكامل ثم بطاقة 6 ثوان باسم السلسلة.",
+  "owner_report_v3": "حذف المالك النسخة FgHUxjE1Joc بسبب اختلاف صوت وإيقاع الخاتمة واللحن. سيُعرض التصحيح التالي عليه قبل إعادة النشر."
 }
