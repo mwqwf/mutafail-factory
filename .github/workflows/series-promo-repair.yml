@@ -23,6 +23,7 @@ jobs:
       - name: استعادة المصادر والمعاينة دون توليد
         env:
           CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: |
           set -euo pipefail
           mkdir -p sealed old review
