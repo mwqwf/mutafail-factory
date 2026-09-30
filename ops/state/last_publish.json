@@ -13,8 +13,9 @@
     }
   ],
   "قيد_واجهة_غير_متاح_API": "حقل «فيديو مشابه» للشورت لا تتيحه YouTube Data API؛ وُضع رابط الفيلم في وصف كل ريلز، ولا يُنسب ربطٌ لم يقع.",
-  "status": "published",
+  "status": "deleted_by_owner_v3_awaiting_review",
   "replaces_deleted_video_id": "RLFp0DMlEHU",
   "do_not_reupload": true,
-  "verified_duration": "PT59S"
+  "verified_duration": "PT59S",
+  "note": "المعرّف FgHUxjE1Joc محذوف بإبلاغ المالك؛ المعاينة الجديدة في series-promo-v3-out تنتظر موافقته. لا تعِد النشر."
 }
