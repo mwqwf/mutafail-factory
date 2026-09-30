@@ -6,7 +6,7 @@ permissions:
   contents: write
 concurrency:
   group: series-promo-repair
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   review:
     runs-on: ubuntu-latest
@@ -17,9 +17,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.11"}
-      - run: |
-          command -v ffmpeg || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
-          pip install -q cryptography
+      - timeout-minutes: 3
+        run: |
+          command -v ffmpeg || { timeout 75 sudo apt-get update -qq && timeout 75 sudo apt-get install -y -qq ffmpeg; }
+          python -c 'import cryptography' || timeout 45 pip install -q --retries 1 --timeout 15 cryptography
       - name: استعادة المصادر والمعاينة دون توليد
         env:
           CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
