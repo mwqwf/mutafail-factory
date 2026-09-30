@@ -209,9 +209,10 @@ jobs:
           [ -f proj/sections.json ] && python tools/chapters.py proj proj/sections.json 0.30
           for r in $(python -c "import json;print(' '.join(x['id'] for x in json.load(open('proj/reels.json',encoding='utf-8'))))"); do
             # from_film: يُقصّ من الفيلم نفسه · shots: لقطات الفيلم المتحرّكة مع ترجمة · وإلا مجسَّم من الصور
-            kind=$(python -c "import json;x=[x for x in json.load(open('proj/reels.json',encoding='utf-8')) if x['id']=='$r'][0];print('open' if x.get('from_film') else 'film' if x.get('shots') else '3d')")
+            kind=$(python -c "import json;x=[x for x in json.load(open('proj/reels.json',encoding='utf-8')) if x['id']=='$r'][0];print('promo' if x.get('promo') else 'open' if x.get('from_film') else 'film' if x.get('shots') else '3d')")
             # تعثّرُ ريلزٍ واحد (صوتُ كتلته ناقص مثلاً) لا يُسقط الفيلم ولا بقية الريلزات
             case "$kind" in
+              promo) python tools/mkreel_promo.py proj "$r" 0.30 || echo "⛔ تعذّر الريلز $r" ;;
               open) python tools/mkreel_open.py proj "$r" || echo "⛔ تعذّر الريلز $r" ;;
               film) python tools/mkreel_film.py proj "$r" || echo "⛔ تعذّر الريلز $r" ;;
               *)    python tools/mkreel3d.py proj "$r" || echo "⛔ تعذّر الريلز $r" ;;
