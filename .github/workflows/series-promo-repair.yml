@@ -20,7 +20,7 @@ jobs:
       - timeout-minutes: 3
         run: |
           command -v ffmpeg || { timeout 75 sudo apt-get update -qq && timeout 75 sudo apt-get install -y -qq ffmpeg; }
-          python -c 'import cryptography' || timeout 45 pip install -q --retries 1 --timeout 15 cryptography
+          python -c 'import cryptography; import PIL' || timeout 45 pip install -q --retries 1 --timeout 15 cryptography Pillow
       - name: استعادة المصادر والمعاينة دون توليد
         env:
           CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
