@@ -155,10 +155,22 @@ def reschedule(svc, vid, at):
 def reel_at(film_at, i):
     """موعدُ الريلز رقم i: بعد موعد الفيلم بـREEL_OFFSETS دقيقةً (افتراضاً 30 ثم 150)، أو فوراً إن لم يُجدول الفيلم
     أو كان REEL_OFFSETS = "now" (أمر المالك 2026-09-28: «الشورتات لا تجدولهما، يكفي جدولة الفيلم»)."""
-    if not film_at or os.environ.get("REEL_OFFSETS", "").strip() == "now":
-        return None
     import datetime as dt
-    offs = [int(x) for x in os.environ.get("REEL_OFFSETS", "30,150").split(",") if x.strip()]
+    env = os.environ.get("REEL_OFFSETS", "").strip()
+    if env == "now":
+        return None
+    if not film_at:
+        # ⭐ أمر المالك 2026-09-30 (حطّين): الفيلم عامٌّ فوراً، ثم الريلزات على مواعيد من لحظة النشر
+        #    («0,30,60»: الأوّل فوراً، ثم بعد نصف ساعة، ثم بعد نصف ساعة أخرى) — يُجدولها يوتيوب نفسه فلا تنتظر أحداً.
+        if not env:
+            return None
+        offs = [int(x) for x in env.split(",") if x.strip()]
+        off = offs[min(i, len(offs) - 1)]
+        if off <= 0:
+            return None
+        base = dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=1)
+        return (base + dt.timedelta(minutes=off)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    offs = [int(x) for x in (env or "30,150").split(",") if x.strip()]
     base = dt.datetime.fromisoformat(film_at.replace("Z", "+00:00"))
     return (base + dt.timedelta(minutes=offs[min(i, len(offs) - 1)])).strftime("%Y-%m-%dT%H:%M:%SZ")
 
