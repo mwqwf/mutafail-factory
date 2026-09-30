@@ -1,0 +1,36 @@
+name: نشر ريلز السلسلة المصحح بعد المراجعة
+on:
+  push:
+    paths: ["ops/review/publish-repaired.json"]
+permissions:
+  contents: write
+concurrency:
+  group: mutafail-sealed-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: timeout 90 pip install -q --retries 1 --timeout 15 google-auth google-api-python-client
+      - name: جلب النسخة المراجعة والحالة الحالية
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p repaired sealed
+          gh release download series-promo-v2-out -R "$GITHUB_REPOSITORY" -D repaired
+          cp ops/sealed/series-promo/* sealed/
+          (cd sealed && sed -i 's/ \*/  /' SHA256SUMS && sha256sum -c SHA256SUMS && cat part_* > payload.enc)
+          bash tools/unseal.sh sealed "$PWD/proj"
+          git fetch -q origin master
+          git checkout origin/master -- ops/state/
+      - name: رفع خاص ثم تحقق من المعالجة وإتاحة وتسجيل فوري
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: python tools/publish_repaired_promo.py
