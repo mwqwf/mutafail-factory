@@ -1,16 +1,20 @@
 {
- "slug": "series-promo",
- "film": {
-  "id": null,
-  "title": "ستّ معارك غيّرت مجرى التاريخ… فأيّ معركةٍ نرويها بعدها؟",
-  "publishAt": null
- },
- "reels": [
-  {
-   "id": "RLFp0DMlEHU",
-   "title": "ستّ معارك غيّرت مجرى التاريخ… فأيّ معركةٍ نرويها بعدها؟",
-   "file": "r1.mp4"
-  }
- ],
- "قيد_واجهة_غير_متاح_API": "حقل «فيديو مشابه» للشورت لا تتيحه YouTube Data API؛ وُضع رابط الفيلم في وصف كل ريلز، ولا يُنسب ربطٌ لم يقع."
+  "slug": "series-promo",
+  "film": {
+    "id": null,
+    "title": "ستّ معارك غيّرت مجرى التاريخ… فأيّ معركةٍ نرويها بعدها؟",
+    "publishAt": null
+  },
+  "reels": [
+    {
+      "id": "FgHUxjE1Joc",
+      "title": "ستّ معارك غيّرت مجرى التاريخ… فأيّ معركةٍ نرويها بعدها؟",
+      "file": "r1.mp4"
+    }
+  ],
+  "قيد_واجهة_غير_متاح_API": "حقل «فيديو مشابه» للشورت لا تتيحه YouTube Data API؛ وُضع رابط الفيلم في وصف كل ريلز، ولا يُنسب ربطٌ لم يقع.",
+  "status": "published",
+  "replaces_deleted_video_id": "RLFp0DMlEHU",
+  "do_not_reupload": true,
+  "verified_duration": "PT59S"
 }
