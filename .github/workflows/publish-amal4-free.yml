@@ -1,0 +1,180 @@
+name: مصنع المتفائل — نشر amal-4 المجاني مرة واحدة
+
+# 🗃️ نُقل من resume-listen.yml في 2026-10-01: نشرٌ لمرّةٍ واحدة لـamal-4 (اكتمل 2026-09-18، وحارسُه يجعله خاملاً).
+#    وأُخرج منه زنادُ ops/resume-wake.txt كي لا يُلغي — بمجموعة التزامن نفسها — شوطَ الاستئناف العامّ.
+on:
+  push:
+    paths:
+      - 'ops/resume-free-amal4.txt'
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: mutafail-film
+  cancel-in-progress: true
+
+jobs:
+  publish-amal4-free:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+
+      - id: guard
+        name: تحقق من المجانية ومنع التكرار
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ "${{ github.event.repository.private }}" = "false" ] || { echo "المستودع ليس عاماً"; exit 1; }
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, pathlib
+          p=pathlib.Path('ops/state/last_publish.json')
+          d=json.loads(p.read_text(encoding='utf-8')) if p.exists() else {}
+          print("active=" + ("false" if d.get("slug") == "amal-4" else "true"))
+          PY
+
+      - uses: actions/setup-python@v5
+        if: steps.guard.outputs.active == 'true'
+        with: { python-version: "3.11" }
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.active == 'true'
+        with: { node-version: "22" }
+
+      - uses: ./.github/actions/private-download
+        if: steps.guard.outputs.active == 'true'
+        with:
+          name: proj
+          path: proj
+          run-id: 35307817868
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+
+      - uses: ./.github/actions/private-download
+        if: steps.guard.outputs.active == 'true'
+        with:
+          pattern: audio-*
+          path: proj/audio
+          run-id: 35307817868
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+
+      - name: طبّق نص d_156 قبل استعادة الصوت المصحح
+        if: steps.guard.outputs.active == 'true'
+        run: python tools/apply_audio_text_fixes.py proj ops/audio-fixes/amal-4.json text_fixes.json
+
+      - uses: ./.github/actions/private-download
+        if: steps.guard.outputs.active == 'true'
+        with:
+          name: audio-final
+          path: proj/audio
+          run-id: 35327242621
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+
+      - uses: ./.github/actions/private-download
+        if: steps.guard.outputs.active == 'true'
+        with:
+          name: listen-final
+          path: proj
+          run-id: 35327242621
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+
+      - name: بوابة الاستماع على البصمة المصححة
+        if: steps.guard.outputs.active == 'true'
+        run: python tools/listen_gate.py proj
+
+      - uses: ./.github/actions/private-download
+        if: steps.guard.outputs.active == 'true'
+        with:
+          name: img
+          path: proj/img
+          run-id: 35307817868
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+
+      - uses: ./.github/actions/private-download
+        if: steps.guard.outputs.active == 'true'
+        with:
+          name: depth
+          path: proj/img
+          run-id: 35307817868
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+
+      - uses: ./.github/actions/private-download
+        if: steps.guard.outputs.active == 'true'
+        with:
+          pattern: seg-*
+          path: proj/work/seg
+          run-id: 35307817868
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'
+
+      - name: أعد اللقطة المتأثرة واجمع الفيلم والريلزين
+        if: steps.guard.outputs.active == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          pip install -q pillow numpy arabic-reshaper python-bidi google-auth google-auth-oauthlib google-api-python-client
+          sudo apt-get -qq update
+          sudo apt-get -qq install -y ffmpeg fonts-hosny-amiri fonts-noto-core
+          python tools/turbo.py "$PWD/proj" 0 1
+          python tools/bidicheck.py
+          python tools/logocheck.py
+          python tools/mont3d.py "$PWD/proj"
+          python tools/logocheck.py "$PWD/proj/film.mp4" "$PWD/proj/work/video_silent.mp4" film
+          python tools/mkreel3d.py "$PWD/proj" r1
+          python tools/logocheck.py "$PWD/proj/reels/r1.mp4" "$PWD/proj/reelwork/r1/v.mp4" reel "$PWD/proj/reelwork/r1/ov_no_logo.png"
+          python tools/mkreel3d.py "$PWD/proj" r2
+          python tools/logocheck.py "$PWD/proj/reels/r2.mp4" "$PWD/proj/reelwork/r2/v.mp4" reel "$PWD/proj/reelwork/r2/ov_no_logo.png"
+          python tools/mkthumbs.py "$PWD/proj"
+          python tools/chapters.py "$PWD/proj" "$PWD/proj/sections.json"
+
+      - name: انشر وتحقق من خادم يوتيوب
+        if: steps.guard.outputs.active == 'true'
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ -n "$YT_OAUTH_JSON" ] || { echo "لا سر نشر"; exit 1; }
+          python tools/publish_preflight.py proj amal-4
+          python tools/publish_youtube.py proj
+
+      - name: احفظ حالة النشر ومنع التكرار
+        if: steps.guard.outputs.active == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp proj/last_publish.json ops/state/last_publish.json
+          python3 - <<'PY'
+          import json, time
+          f='ops/resume/amal-4.json'
+          d=json.load(open(f,encoding='utf-8'))
+          d['تمّ']=time.strftime('%FT%TZ',time.gmtime())
+          open(f,'w',encoding='utf-8').write(json.dumps(d,ensure_ascii=False,indent=1)+'\n')
+          PY
+          git config user.name "مصنع المتفائل"
+          git config user.email "factory@mutafail.local"
+          git add ops/state/last_publish.json ops/resume/amal-4.json
+          git commit -m "publish: verify amal-4 [skip ci]"
+          git pull --rebase origin master
+          git push origin HEAD:master
+
+      - name: احذف الآثار الكبيرة القديمة بعد تحقق النشر
+        if: steps.guard.outputs.active == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for run in 35307817868 35327242621; do
+            gh api "repos/${{ github.repository }}/actions/runs/$run/artifacts" --paginate --jq '.artifacts[].id' |
+            while read -r id; do
+              [ -n "$id" ] && gh api --method DELETE "repos/${{ github.repository }}/actions/artifacts/$id"
+            done
+          done
