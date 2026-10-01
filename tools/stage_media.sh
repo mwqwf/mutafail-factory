@@ -3,7 +3,8 @@
 # الاستعمال: bash tools/stage_media.sh <slug> <مجلد_النصوص>
 #   <مجلد_النصوص> فيه: script.md blocks.json shots.json publish.json الفصول.txt(اختياري) reels.json
 # يسحب صور mwqwf/<slug>-media (images/ thumbs/ shorts/)، ويجمعها مع النصوص، ويختمها (seal.sh)،
-# ويقسمها أجزاءً ويرفعها إلى إصدار مسوّدة <slug>-src — ثم: gh workflow run weekly-film.yml -f slug=<slug>
+# ويقسمها أجزاءً ويرفعها إلى إصدار مسوّدة <slug>-src — ثم يُطلق الشوطُ بدفع ops/run/<slug>.json
+# (الجلسة السحابية تُرَدّ بـ403 على workflow_dispatch وتملك الدفع — زنادُ weekly-film منذ 2026-09-27).
 set -euo pipefail
 SLUG="$1"; TXT="$(cd "$2" && pwd)"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -36,4 +37,8 @@ gh release view "$TAG" -R mwqwf/mutafail-factory >/dev/null 2>&1 || \
 for f in key.enc SHA256SUMS part_*; do
   for i in 1 2 3 4 5 6 7 8; do gh release upload "$TAG" "$f" -R mwqwf/mutafail-factory --clobber && break || sleep 30; done
 done
-echo "✅ رُفع المصدر المختوم إلى $TAG — شغّل: gh workflow run weekly-film.yml -R mwqwf/mutafail-factory -f slug=$SLUG"
+echo "✅ رُفع المصدر المختوم إلى $TAG"
+echo "   الإطلاق من الجلسة بالدفع (لا workflow_dispatch — 403):"
+echo "   mkdir -p ops/run && printf '{\"slug\":\"%s\",\"stage\":\"audio\"}\\n' $SLUG > ops/run/$SLUG.json"
+echo "   git add -- ops/run/$SLUG.json && git commit -m \"run: $SLUG audio\" -- ops/run/$SLUG.json && git push"
+echo "   (stage: audio أوّلاً ثمّ animate بعد صوتٍ سليم؛ أو all. والمالكُ يملك أيضاً زرّ Run workflow.)"
