@@ -19,8 +19,8 @@
     "owner_report": "حذف المالك الريلز لأن النهاية انقطعت عند طلب الاشتراك ولم تُشر للسلسلة. أمر بإكماله وإعادة نشر النسخة المصححة في 2026-09-30."
   },
   "release_tag": "series-promo-v3-out",
-  "publish_run": "36802896274",
-  "status": "published",
+  "publish_run": "36857372778",
+  "status": "resuming_existing_upload",
   "replaces_deleted_video_id": "RLFp0DMlEHU",
   "repair_report": {
     "video_sha256": "afa2aac149d7297a1d440129adbffc417b55ce5130b844e897dfe9c7e191a037",
@@ -34,39 +34,5 @@
   "do_not_reupload": true,
   "video_id": "-7yvRgokcE4",
   "url": "https://youtube.com/shorts/-7yvRgokcE4",
-  "updated_at": "2026-10-01T01:50:31.056886+00:00",
-  "published_at": "2026-10-01T01:50:31.056869+00:00",
-  "youtube_verified": {
-    "kind": "youtube#video",
-    "etag": "dUzc8I1fGOnh_R86NuIbbqGywxI",
-    "id": "-7yvRgokcE4",
-    "contentDetails": {
-      "duration": "PT58S",
-      "dimension": "2d",
-      "definition": "hd",
-      "caption": "false",
-      "licensedContent": false,
-      "contentRating": {},
-      "projection": "rectangular",
-      "hasCustomThumbnail": false
-    },
-    "status": {
-      "uploadStatus": "processed",
-      "privacyStatus": "public",
-      "license": "youtube",
-      "embeddable": false,
-      "publicStatsViewable": false,
-      "madeForKids": false,
-      "selfDeclaredMadeForKids": false
-    },
-    "processingDetails": {
-      "processingStatus": "succeeded",
-      "fileDetailsAvailability": "available",
-      "processingIssuesAvailability": "available",
-      "tagSuggestionsAvailability": "inProgress",
-      "editorSuggestionsAvailability": "inProgress",
-      "thumbnailsAvailability": "available"
-    }
-  },
-  "note": "نُشرت النسخة المكتملة بإذن المالك بعد حذفه النسخة القديمة. لا تعِد رفعها. الخاتمة أُعيد تركيبها من الصوت الكامل ثم بطاقة 6 ثوان باسم السلسلة."
+  "updated_at": "2026-10-01T11:46:13.814430+00:00"
 }
