@@ -102,7 +102,14 @@ jobs:
             gh release download "$SLUG-intro-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp/intro --clobber 2>/dev/null && \
               mkdir -p proj/clips proj/audio && tar xzf /tmp/intro/state.tgz -C /tmp/intro clips audio && cp -n /tmp/intro/clips/*.mp4 /tmp/intro/clips/*.cut /tmp/intro/clips/*.redo_* proj/clips/ 2>/dev/null || true; cp -n /tmp/intro/audio/n_*.wav /tmp/intro/audio/n_*.cut proj/audio/ 2>/dev/null || true
             # صوتُ الراوي نفسه الذي طابقت عليه الشفاه — لا يُولَّد من جديد وإلا اختلّت المزامنة
+            tar xzf /tmp/intro/state.tgz -C /tmp/intro fal_ledger.json 2>/dev/null && cp /tmp/intro/fal_ledger.json proj/fal_ledger_intro.json || true
           fi
+          # ⭐ السقف المشترك (budget_total_usd): الافتتاحية تقرأ ما أنفقه فيلمُها أيضاً، فلا يتجاوز مجموعُهما السقف بحال
+          case "$SLUG" in *-intro)
+            if gh release download "${SLUG%-intro}-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp/film --clobber 2>/dev/null; then
+              tar xzf /tmp/film/state.tgz -C /tmp/film fal_ledger.json 2>/dev/null && cp /tmp/film/fal_ledger.json proj/fal_ledger_film.json || true
+            fi;;
+          esac
           # إن وُجد ناتجُ شوطٍ سابق (صوتٌ مجتاز) يُستأنف منه
           if gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release download "$SLUG-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp --clobber 2>/dev/null && tar xzf /tmp/state.tgz -C proj || true
