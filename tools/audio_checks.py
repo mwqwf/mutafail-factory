@@ -15,6 +15,8 @@ bad = {}
 for b in blocks:
     f = os.path.join(PROJ, 'audio', b['id'] + '.wav')
     if not os.path.exists(f): bad[b['id']] = 'غائب'; continue
+    # كتلةٌ قُصّ أولها (lead_cut) مربوطةٌ بمقطع راوٍ مدفوع الثمن: إعادة توليدها تُفسد مزامنة الشفاه ⇒ لا تُحكم بالإيقاع
+    if b.get('lead_cut'): continue
     raw = open(f, 'rb').read()
     if raw[44:48] == b'RIFF':                       # إصلاحٌ فوريّ لا إعادة توليد
         open(f, 'wb').write(raw[44:])
@@ -23,13 +25,27 @@ for b in blocks:
     if np.abs(a[:240]).max() > 1500: bad[b['id']] = 'ضجيج في البداية'
     elif b.get('role') == 'P':
         if not 3 <= d <= 10: bad[b['id']] = 'بيت شعر %.1f ث (توجيه منطوق؟)' % d
-    elif chars and not 0.09 <= d / chars <= 0.19: bad[b['id']] = 'إيقاع %.3f ث/حرف' % (d / chars)
+    # الجملُ القصيرة (حوار الشخصيات 2026-09-27: «فقال ربعي:»، «ببايه!») يغلب فيها صمتُ الطرفين، فيُسمح بنحو 1.2 ث زائدة
+    elif chars and not 0.09 <= d / chars <= 0.19 + 1.2 / chars: bad[b['id']] = 'إيقاع %.3f ث/حرف' % (d / chars)
     dd = np.abs(np.diff(a)); idx = np.where(dd > 8000)[0]
     iso = [i for i in idx if i > 240 and np.abs(a[i - 240:i - 24]).max() < 2000]
+    if len(iso) > 1 and not os.path.exists(f + '.dc'):
+        # إزالة النقرات بالمرشّح قبل الحكم بالحذف: نقرات Schedar في جملة d_016 بقيت بعد ست إعادات (الزلاقة 2026-09-28)
+        import subprocess as sp
+        sp.run(['ffmpeg', '-v', 'error', '-y', '-i', f, '-af', 'adeclick=w=55:o=75,adeclip', f + '.tmp.wav'], check=True)
+        os.replace(f + '.tmp.wav', f); open(f + '.dc', 'w').close()
+        w = wave.open(f); a = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(int)
+        dd = np.abs(np.diff(a)); idx = np.where(dd > 8000)[0]
+        iso = [i for i in idx if i > 240 and np.abs(a[i - 240:i - 24]).max() < 2000]
     if len(iso) > 1: bad.setdefault(b['id'], 'نقرات معزولة %d' % len(iso))
 json.dump(bad, io.open(os.path.join(PROJ, 'audio_checks.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 print('فحوص الصوت: %d كتلة · معيب %d %s' % (len(blocks), len(bad), bad))
 for k in bad:                                       # تُحذف لتُولَّد من جديد في الشوط التالي
     p = os.path.join(PROJ, 'audio', k + '.wav')
     if os.path.exists(p): os.remove(p)
+    if os.path.exists(p + '.dc'): os.remove(p + '.dc')
+# REEL_SOFT=1: كتلُ الريلزات (r_) الناقصة لا توقف الفيلم (عين جالوت 2026-09-29: كتلة ريلزٍ واحدة
+# نفدت حصّتها فأسقطت شوطاً ولّد 192 كتلة ولم يبلغ التحريك). ما عداها يبقى مانعاً.
+if bad and os.environ.get('REEL_SOFT') and all(k.startswith('r_') for k in bad):
+    print('⚠ كتلُ ريلز ناقصة لا توقف الفيلم:', sorted(bad)); sys.exit(0)
 sys.exit(1 if bad else 0)

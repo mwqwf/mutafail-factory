@@ -1,0 +1,43 @@
+name: فحص وإصلاح نهاية ريلز السلسلة
+on:
+  push:
+    paths: ["ops/review/series-promo.json"]
+permissions:
+  contents: write
+concurrency:
+  group: series-promo-repair
+  cancel-in-progress: true
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - timeout-minutes: 3
+        run: |
+          command -v ffmpeg || { timeout 75 sudo apt-get update -qq && timeout 75 sudo apt-get install -y -qq ffmpeg; }
+          python -c 'import cryptography; import PIL' || timeout 45 pip install -q --retries 1 --timeout 15 cryptography Pillow
+      - name: استعادة المصادر والمعاينة دون توليد
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          mkdir -p sealed old review
+          cp ops/sealed/series-promo/* sealed/
+          (cd sealed && sed -i 's/ \*/  /' SHA256SUMS && sha256sum -c SHA256SUMS && cat part_* > payload.enc)
+          bash tools/unseal.sh sealed "$PWD/proj"
+          gh release download series-promo-out -R "$GITHUB_REPOSITORY" -p state.tgz -p r1.mp4 -p film_full.mp4 -D old
+          tar xzf old/state.tgz -C proj
+          python tools/series_promo_review.py
+      - name: حفظ نتيجة المراجعة المشفرة
+        run: |
+          git config user.name "مصنع المتفائل"
+          git config user.email "factory@mutafail.local"
+          git add ops/review-output/
+          git commit -m "نتيجة فحص الريلز مشفرة لجلسة الإصلاح [skip ci]"
+          git push origin HEAD
