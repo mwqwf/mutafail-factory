@@ -116,6 +116,8 @@ jobs:
           if gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release download "$SLUG-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp --clobber 2>/dev/null && tar xzf /tmp/state.tgz -C proj || true
           fi
+          # ⛔ صوتُ الراوي (n_*) من الافتتاحية يغلب ما وُلّد للفيلم بالتوازي: عليه طابقت شفاهُ OmniHuman (بدر 2026-10-01)
+          if [ -d /tmp/intro/audio ]; then cp -f /tmp/intro/audio/n_*.wav proj/audio/ 2>/dev/null || true; cp -f /tmp/intro/audio/n_*.cut proj/audio/ 2>/dev/null || true; fi
           ls proj
 
       - name: المفاتيح
