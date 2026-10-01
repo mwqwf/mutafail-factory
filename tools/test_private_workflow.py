@@ -8,9 +8,12 @@ class PrivateWorkflowTests(unittest.TestCase):
         text=(ROOT/'.github/workflows/film.yml').read_text(encoding='utf-8')
         self.assertNotIn('uses: actions/upload-artifact',text)
         self.assertNotIn('uses: actions/download-artifact',text)
-        self.assertEqual(text.count('uses: ./.github/actions/private-upload'),10)
-        self.assertEqual(text.count('uses: ./.github/actions/private-download'),31)
-        self.assertEqual(text.count("private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'"),31)
+        # العدد يتبع مراحل film.yml (14 رفعاً و36 تنزيلاً منذ 2026-09-27)؛ والثابتُ الحقيقيّ أنّ
+        # كلّ تنزيلٍ خاصٍّ يحمل مفتاحَ فكّ التشفير، فلا يُنزَّل محتوى غيرُ منشورٍ خاماً.
+        downloads=text.count('uses: ./.github/actions/private-download')
+        self.assertEqual(text.count('uses: ./.github/actions/private-upload'),14)
+        self.assertEqual(downloads,36)
+        self.assertEqual(text.count("private-key: '${{ secrets.CONTENT_PRIVATE_KEY }}'"),downloads)
         self.assertIn('python tools/repair_true_errors.py proj repair.json', text)
         self.assertIn('name: audio-final', text)
         self.assertIn('name: listen-final', text)
