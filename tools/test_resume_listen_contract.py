@@ -7,7 +7,9 @@ class ResumeListeningContract(unittest.TestCase):
     def test_resume_reuses_old_media_and_current_listen_results(self):
         text = (ROOT/'.github/workflows/resume-listen.yml').read_text(encoding='utf-8')
         self.assertIn('workflow_dispatch:', text)
-        self.assertIn('cron: "5 7 * * *"', text)
+        # ⛔ بلا جدولة بأمر المالك (إيقاف جداول الإنتاج 67f0765)؛ يوقظه الدفع إلى ops/resume-wake.txt
+        self.assertNotIn('schedule:', text)
+        self.assertIn("ops/resume-wake.txt", text)
         self.assertNotIn('paths: ["ops/resume/*.json"]', text)
         self.assertIn('active=false', text)
         self.assertIn('group: mutafail-film', text)
