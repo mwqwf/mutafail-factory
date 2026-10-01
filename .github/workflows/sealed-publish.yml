@@ -26,7 +26,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # ⭐ بوّابة (أمر المالك 2026-10-01): الدفعُ يُطلق النشر فقط إن حمل إيداعُه الأخيرُ ملفاً في ops/publish/؛
+  #    فدفعُ فرعٍ جديدٍ أو دمجٌ يحمل ملفاتٍ قديمة لا ينشر شيئاً ولا يفشل.
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      go: ${{ steps.g.outputs.go }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - id: g
+        env:
+          EV: ${{ github.event_name }}
+        run: |
+          if [ "$EV" = workflow_dispatch ] || git show --pretty= --name-only "$GITHUB_SHA" | grep -q '^ops/publish/.*\.json$'; then
+            echo go=true >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::لا ملفَّ نشرٍ في هذا الإيداع — لا نشر"; echo go=false >> "$GITHUB_OUTPUT"
+          fi
+
   publish:
+    needs: gate
+    if: needs.gate.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:

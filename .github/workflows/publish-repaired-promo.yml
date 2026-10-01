@@ -1,7 +1,8 @@
 name: نشر ريلز السلسلة المصحح بعد المراجعة
 on:
-  push:
-    paths: ["ops/review/publish-repaired.json"]
+  # ⛔ مهمّةٌ منتهية: نُشر ريلز السلسلة (-7yvRgokcE4). أُلغي زنادُ الدفع بأمر المالك 2026-10-01 بعد أن أطلقه
+  #    دفعُ فرعٍ جديدٍ حمل هذا الملف (فرع بدر). يبقى تشغيلُه يدوياً فقط إن لزم.
+  workflow_dispatch:
 permissions:
   contents: write
 concurrency:

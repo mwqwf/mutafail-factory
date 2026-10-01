@@ -52,7 +52,8 @@ jobs:
             echo "slug=$IN_SLUG" >> "$GITHUB_OUTPUT"; echo "stage=${IN_STAGE:-all}" >> "$GITHUB_OUTPUT"; exit 0
           fi
           F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/run/.*\.json$' | head -1)
-          [ -n "$F" ] || { echo "⛔ لا ملفَّ أمرٍ في ops/run"; exit 1; }
+          # ⭐ دفعٌ لم يحمل إيداعُه الأخير ملفَّ أمر (فرعٌ جديد أو دمج) ⇒ يُتخطّى بهدوء (أمر المالك 2026-10-01)
+          [ -n "$F" ] || { echo "::notice::لا ملفَّ أمرٍ في هذا الإيداع — لا تشغيل"; exit 0; }
           python3 - "$F" >> "$GITHUB_OUTPUT" <<'PY'
           import json,sys,re
           d=json.load(open(sys.argv[1],encoding='utf-8'))
@@ -63,6 +64,7 @@ jobs:
 
   film:
     needs: resolve
+    if: needs.resolve.outputs.slug != ''
     runs-on: ubuntu-latest
     timeout-minutes: 350
     env:
