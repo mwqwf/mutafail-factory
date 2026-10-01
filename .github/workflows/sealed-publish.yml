@@ -26,7 +26,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # ⭐ بوّابة (أمر المالك 2026-10-01): الدفعُ يُطلق النشر فقط إن حمل إيداعُه الأخيرُ ملفاً في ops/publish/؛
+  #    فدفعُ فرعٍ جديدٍ أو دمجٌ يحمل ملفاتٍ قديمة لا ينشر شيئاً ولا يفشل.
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      go: ${{ steps.g.outputs.go }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - id: g
+        env:
+          EV: ${{ github.event_name }}
+        run: |
+          if [ "$EV" = workflow_dispatch ] || git show --pretty= --name-only "$GITHUB_SHA" | grep -q '^ops/publish/.*\.json$'; then
+            echo go=true >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::لا ملفَّ نشرٍ في هذا الإيداع — لا نشر"; echo go=false >> "$GITHUB_OUTPUT"
+          fi
+
   publish:
+    needs: gate
+    if: needs.gate.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -43,9 +64,25 @@ jobs:
             T=$(python3 -c "import json,sys,re;t=json.load(open(sys.argv[1],encoding='utf-8'))['release_tag'];assert re.fullmatch(r'[a-z0-9-]+',t);print(t)" "$F")
           fi
           echo "TAG=$T" >> "$GITHUB_ENV"
+          # موعدُ العرض (اختياريّ): {"publish_at":"now","reel_offsets":"0,30,60"} ⇒ الفيلم فوراً والريلزات على مواعيدها
+          F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/publish/.*\.json$' | head -1 || true)
+          if [ -n "$F" ]; then
+            python3 - "$F" >> "$GITHUB_ENV" <<'PY'
+          import json, re, sys
+          d = json.load(open(sys.argv[1], encoding='utf-8'))
+          at = d.get('publish_at', '')
+          if at:
+              assert at == 'now' or re.fullmatch(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ', at); print('PUBLISH_AT=' + at)
+          off = d.get('reel_offsets', '')
+          if off:
+              assert off == 'now' or re.fullmatch(r'\d+(,\d+)*', off); print('REEL_OFFSETS=' + off)
+          PY
+          fi
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
+      # ffprobe لحارس الريلز reel_shape (عين جالوت 2026-09-29: سقط الرفع بعد الفيلم لغيابه عن العدّاء)
+      - run: command -v ffprobe || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
 
       - name: جلبُ الأجزاء والتحقّق من بصماتها
         env:
@@ -68,10 +105,23 @@ jobs:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
         run: '[ -n "$YT_OAUTH_JSON" ] || { echo "⛔⛔ سرُّ YT_OAUTH_JSON غيرُ مضبوط"; exit 1; }'
 
+      # ⛔ درس عين جالوت 2026-09-29: الحالةُ الحقّة على master (يكتبها «تسجيلُ الحالة»)، لا على الفرع.
+      #    قرأ الشوطُ حالةَ الفرع القديمة فلم يعرف ريلزاً نُشر ثم حذفه المالك، فأعاد رفعه.
+      #    ⇒ ما سجّلته الحالة منشوراً لا يُرفع ثانيةً ولو غاب عن القناة.
+      - name: حالةُ النشر من master
+        run: git fetch -q origin master && git checkout origin/master -- ops/state/ && cat ops/state/last_publish.json 2>/dev/null | head -40 || true
+
       - name: النشر (الفيلم ثم المصغّرة ثم القائمة ثم الريلزان)
         env:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
         run: python tools/publish_youtube.py proj
+
+      - name: تصحيحُ عناوين منشورة ("retitle" في ops/publish/<slug>.json)
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: |
+          F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/publish/.*\.json$' | head -1 || true)
+          if [ -n "$F" ]; then python tools/retitle.py "$F"; else echo "لا عناوين للتصحيح"; fi
 
       - name: مصغّراتُ أفلامٍ منشورة (ops/thumbs_pending/<videoId>.jpg)
         if: always()

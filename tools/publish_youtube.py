@@ -38,6 +38,20 @@ def yt():
     return build("youtube", "v3", credentials=creds, cache_discovery=False)
 
 
+def reel_shape(path):
+    """⛔ حارسُ الريلز (أمر المالك 2026-09-29: «تأكّد أنه سيظهر كريلز وليس كفيلم كما وقع سابقاً»).
+    يوتيوب يعدّ الفيديو «Shorts» إن كان عموديّاً أو مربّعاً ومدّته ≤ 3 دقائق؛ وإلا نشره فيلماً عاديّاً.
+    ⇒ لا يُرفع ريلز إلا عموديّاً (الارتفاع > العرض) ومدّته ≤ 175 ث. يعيد (سليم؟، وصف)."""
+    import subprocess as _sp
+    o = _sp.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height:format=duration',
+                 '-of', 'json', path], capture_output=True, text=True)
+    try:
+        j = json.loads(o.stdout); w, h = j['streams'][0]['width'], j['streams'][0]['height']; d = float(j['format']['duration'])
+    except Exception:
+        return False, 'تعذّرت قراءة أبعاده'
+    return (h > w and d <= 175.0), '%dx%d · %.1f ث' % (w, h, d)
+
+
 def upload(svc, path, meta, publish_at=None, public_now=False):
     status = {
         "privacyStatus": "public" if public_now else "private",
@@ -117,6 +131,48 @@ def recent_uploads(svc, limit=50):
     except Exception as e:                 # ⛔ الحارسُ لا يُسقط شوطاً إن تعذّر
         print("⚠️ تعذّرت قراءةُ رفعات القناة:", e, flush=True)
         return {}
+
+
+def reschedule(svc, vid, at):
+    """يعدّل موعدَ فيديو مرفوعٍ ما دام خاصّاً (تصحيحُ موعدٍ بعد رفعه، بلا نسخةٍ ثانية)؛
+    وبلا موعدٍ (at=None) يجعله عامّاً الآن."""
+    st = svc.videos().list(part="status", id=vid).execute()["items"][0]["status"]
+    if st.get("privacyStatus") == "public":
+        print("↻", vid, "عامٌّ سلفاً — لا يُعاد جدولته", flush=True); return
+    if not at:
+        svc.videos().update(part="status", body={"id": vid, "status": {
+            "privacyStatus": "public",
+            "selfDeclaredMadeForKids": False, "containsSyntheticMedia": True}}).execute()
+        print("🌐 صار عامّاً الآن", vid, flush=True); return
+    if st.get("publishAt", "").replace(".000", "") == at:
+        return
+    svc.videos().update(part="status", body={"id": vid, "status": {
+        "privacyStatus": "private", "publishAt": at,
+        "selfDeclaredMadeForKids": False, "containsSyntheticMedia": True}}).execute()
+    print("🕒 أُعيدت جدولة", vid, "إلى", at, flush=True)
+
+
+def reel_at(film_at, i):
+    """موعدُ الريلز رقم i: بعد موعد الفيلم بـREEL_OFFSETS دقيقةً (افتراضاً 30 ثم 150)، أو فوراً إن لم يُجدول الفيلم
+    أو كان REEL_OFFSETS = "now" (أمر المالك 2026-09-28: «الشورتات لا تجدولهما، يكفي جدولة الفيلم»)."""
+    import datetime as dt
+    env = os.environ.get("REEL_OFFSETS", "").strip()
+    if env == "now":
+        return None
+    if not film_at:
+        # ⭐ أمر المالك 2026-09-30 (حطّين): الفيلم عامٌّ فوراً، ثم الريلزات على مواعيد من لحظة النشر
+        #    («0,30,60»: الأوّل فوراً، ثم بعد نصف ساعة، ثم بعد نصف ساعة أخرى) — يُجدولها يوتيوب نفسه فلا تنتظر أحداً.
+        if not env:
+            return None
+        offs = [int(x) for x in env.split(",") if x.strip()]
+        off = offs[min(i, len(offs) - 1)]
+        if off <= 0:
+            return None
+        base = dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=1)
+        return (base + dt.timedelta(minutes=off)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    offs = [int(x) for x in (env or "30,150").split(",") if x.strip()]
+    base = dt.datetime.fromisoformat(film_at.replace("Z", "+00:00"))
+    return (base + dt.timedelta(minutes=offs[min(i, len(offs) - 1)])).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 STATE_FILE = os.path.join(STATE, "last_publish.json")
@@ -330,66 +386,78 @@ def main():
     #    لا تُعرف إلا بعد التركيب. فيُكتب في الوصف موضعٌ اسمُه {CHAPTERS} ويُملأ هنا.
     ch = P("الفصول.txt")
     chapters = io.open(ch, encoding="utf-8").read().strip() if os.path.exists(ch) else ""
-    if "{CHAPTERS}" in meta["film"]["description"]:
+    if "{CHAPTERS}" in meta.get("film", {}).get("description", ""):
         if not chapters:
             raise SystemExit("⛔ الوصفُ ينتظر الفصول ولا ملفَّ فصولٍ — لا يُرفع فيلمٌ بلا فصول")
         meta["film"]["description"] = meta["film"]["description"].replace("{CHAPTERS}", chapters)
 
     svc = yt()
+    # ⭐ ريلزٌ دعائيٌّ وحده (ريلز السلسلة 2026-09-30): لا فيلم يُرفع ولا مصغّرة ولا قائمة؛ و{FILM_URL} يُحال إلى قائمة السلسلة
+    reels_only = bool(meta.get("reels_only"))
+    when = None; film_id = None; env_at = os.environ.get("PUBLISH_AT", "").strip()
+    if not reels_only:
 
-    # ─── الفيلم ───
-    # ⭐ **استئنافٌ لا إعادة**: إن سقط شوطٌ بعد الرفع، يُمرَّر معرّفُ الفيلم
-    #    في `FILM_VIDEO_ID` فيُكمِل المصنعُ ما بقي بلا أن يرفع نسخةً ثانية.
-    # ⛔⛔ **فجوةٌ مقيسةٌ في التصميم (2026-09-15):** الريلزان يُرفعان **عامَّين فوراً**
-    #    وفي وصفِهما رابطُ الفيلم، والفيلمُ يبقى **خاصّاً** حتى موعد `publishAt`.
-    #    ⇒ فبين رفعِ الريلز وموعدِ الجدولة نافذةٌ يرى فيها المشاهدُ شورتاً عامّاً
-    #      يحيل إلى فيديو غير متاح. وهي ساعاتٌ في كلّ حلقةٍ نُشرت هكذا.
-    #    ⇒ و`publicNow` في ملفّ النشر يُغلقها: الفيلمُ عامٌّ لحظةَ رفعه، فلا جدولةَ
-    #      ولا فجوة. وهو أيضاً أمرُ المالك المتكرّر في 2026-09-14: «اجعلها عامّة».
-    when = meta.get("publishAt")   # ISO-8601 UTC
-    public_now = bool(meta.get("publicNow"))
-    if public_now:
-        when = None
-    film_id = os.environ.get("FILM_VIDEO_ID", "").strip()
-    if film_id:
-        print("↻ استئناف: الفيلم مرفوعٌ سلفاً", film_id, flush=True)
-    else:
-        ft = meta["film"]["title"].strip()[:100]
-        seen = recent_uploads(svc).get(ft)
-        if seen:                               # ↻ محاولةٌ سابقةٌ رفعته ثمّ سقطت
-            print("↻ الفيلم مرفوعٌ على القناة سلفاً بعنوانه:", seen, flush=True)
-            film_id = seen
-            save_state({"film": {"id": film_id}})
-    resumed = bool(film_id)
-    if not film_id:
-        film_id = upload(svc, P("film.mp4"), meta["film"],
-                         publish_at=when, public_now=public_now)
-        save_state({"film": {"id": film_id}})      # ⛔ يُسجَّل فورَ الرفع لا بعد كلّ شيء
-    verify(svc, film_id)
-
-    # ─── المصغّرة: لازمة، ولا تُتخطّى ───
-    thumb = P("thumb-a.jpg")
-    if not os.path.exists(thumb):
-        raise SystemExit("⛔ لا مصغّرة — لا يُنشر فيلمٌ بلا مصغّرة")
-    try:
-        svc.thumbnails().set(videoId=film_id, media_body=MediaFileUpload(thumb)).execute()
-        quota.spend("thumbnail", film_id)
-        print("✅ المصغّرة", flush=True)
-    except HttpError as e:
-        # ⛔ درس اليرموك 2026-09-27: اختبارُ «الاختبار والمقارنة» الجاري يمنع ضبط المصغّرة (403)،
-        #    وحدُّ «مصغّرات كثيرة مؤخراً» (429) — فلا يُسقط الاستئنافُ رفعَ الريلزات.
-        if resumed:
-            print("⚠ تعذّرت المصغّرة (الفيلم منشورٌ سلفاً) — يُكمَل:", str(e)[:160], flush=True)
+        # ─── الفيلم ───
+        # ⭐ **استئنافٌ لا إعادة**: إن سقط شوطٌ بعد الرفع، يُمرَّر معرّفُ الفيلم
+        #    في `FILM_VIDEO_ID` فيُكمِل المصنعُ ما بقي بلا أن يرفع نسخةً ثانية.
+        # ⛔⛔ **فجوةٌ مقيسةٌ في التصميم (2026-09-15):** الريلزان يُرفعان **عامَّين فوراً**
+        #    وفي وصفِهما رابطُ الفيلم، والفيلمُ يبقى **خاصّاً** حتى موعد `publishAt`.
+        #    ⇒ فبين رفعِ الريلز وموعدِ الجدولة نافذةٌ يرى فيها المشاهدُ شورتاً عامّاً
+        #      يحيل إلى فيديو غير متاح. وهي ساعاتٌ في كلّ حلقةٍ نُشرت هكذا.
+        #    ⇒ و`publicNow` في ملفّ النشر يُغلقها: الفيلمُ عامٌّ لحظةَ رفعه، فلا جدولةَ
+        #      ولا فجوة. وهو أيضاً أمرُ المالك المتكرّر في 2026-09-14: «اجعلها عامّة».
+        when = meta.get("publishAt")   # ISO-8601 UTC
+        public_now = bool(meta.get("publicNow"))
+        # ⭐ موعدٌ يحدّده المالك عند النشر (ops/publish/<slug>.json ← PUBLISH_AT) يغلب ما في الحمولة المختومة،
+        #    والريلزان يُجدولان بعده بدقائق REEL_OFFSETS فلا يحيلان إلى فيلمٍ لم يُعرض بعد.
+        env_at = os.environ.get("PUBLISH_AT", "").strip()
+        if env_at == "now":                            # أمر المالك 2026-09-28: «اجعلهم منشورين من الآن»
+            when, public_now = None, True
+        elif env_at:
+            when, public_now = env_at, False
+        public_now = public_now and not when
+        film_id = os.environ.get("FILM_VIDEO_ID", "").strip()
+        if film_id:
+            print("↻ استئناف: الفيلم مرفوعٌ سلفاً", film_id, flush=True)
         else:
-            raise
+            ft = meta["film"]["title"].strip()[:100]
+            seen = recent_uploads(svc).get(ft)
+            if seen:                               # ↻ محاولةٌ سابقةٌ رفعته ثمّ سقطت
+                print("↻ الفيلم مرفوعٌ على القناة سلفاً بعنوانه:", seen, flush=True)
+                film_id = seen
+                save_state({"film": {"id": film_id}})
+        resumed = bool(film_id)
+        if not film_id:
+            film_id = upload(svc, P("film.mp4"), meta["film"],
+                             publish_at=when, public_now=public_now)
+            save_state({"film": {"id": film_id}})      # ⛔ يُسجَّل فورَ الرفع لا بعد كلّ شيء
+        verify(svc, film_id)
+        if resumed and env_at:
+            reschedule(svc, film_id, when)
 
-    # ─── القائمة: لازمة، وتُتحقَّق من الخادم ───
-    # ⛔⛔ أمرُ المالك 2026-09-14: «لم يُضف الفيلم للقائمة وهذا لا تسامح معه».
-    #    فلا يُقبل هنا إعلانٌ بلا أثر: نُضيف ثمّ **نقرأ القائمة كلَّها صفحةً صفحة**.
-    add_to_playlist(svc, resolve_playlist(meta, svc), film_id)
+        # ─── المصغّرة: لازمة، ولا تُتخطّى ───
+        thumb = P("thumb-a.jpg")
+        if not os.path.exists(thumb):
+            raise SystemExit("⛔ لا مصغّرة — لا يُنشر فيلمٌ بلا مصغّرة")
+        try:
+            svc.thumbnails().set(videoId=film_id, media_body=MediaFileUpload(thumb)).execute()
+            quota.spend("thumbnail", film_id)
+            print("✅ المصغّرة", flush=True)
+        except HttpError as e:
+            # ⛔ درس اليرموك 2026-09-27: اختبارُ «الاختبار والمقارنة» الجاري يمنع ضبط المصغّرة (403)،
+            #    وحدُّ «مصغّرات كثيرة مؤخراً» (429) — فلا يُسقط الاستئنافُ رفعَ الريلزات.
+            if resumed:
+                print("⚠ تعذّرت المصغّرة (الفيلم منشورٌ سلفاً) — يُكمَل:", str(e)[:160], flush=True)
+            else:
+                raise
 
-    # ─── الريلزان: عامّان فوراً، ورابطُ الفيلم في الوصف ───
-    link = "https://youtu.be/" + film_id
+        # ─── القائمة: لازمة، وتُتحقَّق من الخادم ───
+        # ⛔⛔ أمرُ المالك 2026-09-14: «لم يُضف الفيلم للقائمة وهذا لا تسامح معه».
+        #    فلا يُقبل هنا إعلانٌ بلا أثر: نُضيف ثمّ **نقرأ القائمة كلَّها صفحةً صفحة**.
+        add_to_playlist(svc, resolve_playlist(meta, svc), film_id)
+
+        # ─── الريلزان: عامّان فوراً، ورابطُ الفيلم في الوصف ───
+    link = meta.get("link") or ("https://www.youtube.com/playlist?list=" + meta.get("playlistId", "")) if reels_only else "https://youtu.be/" + film_id
     prev = load_state()
     # ⛔⛔ درسٌ مقيسٌ 2026-09-14 (شوطا الموحّدين والخاتمة): حالةُ الاستئناف مفتاحُها
     #    اسمُ الملفّ (r1.mp4) وهو **واحدٌ في كلّ حلقة**. فقرأ المحرّكُ حالةَ حلقةٍ
@@ -408,11 +476,13 @@ def main():
     for r in meta.get("reels", []):
         if r["file"] in done:                      # ↻ استئناف: لا يُرفع مرّتين
             print("↻ الريلز مرفوعٌ سلفاً", r["file"], flush=True)
+            if env_at: reschedule(svc, done[r["file"]]["id"], reel_at(when, len(reels)))
             reels.append(done[r["file"]]); continue
         t = r["title"].strip()[:100]
         if t in onchannel:                         # ↻ رُفع في محاولةٍ سابقةٍ سقطت
             print("↻ عنوانٌ مرفوعٌ على القناة سلفاً — لا نسخةَ ثانية:",
                   onchannel[t], flush=True)
+            if env_at: reschedule(svc, onchannel[t], reel_at(when, len(reels)))
             reels.append({"id": onchannel[t], "title": r["title"], "file": r["file"]})
             save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
             continue
@@ -422,9 +492,16 @@ def main():
             #    الحصّةُ **يُجدوَل** لأوّل تجدّدٍ ويُنفَّذ تلقائيّاً، ولا يسقط الشوط.
             defer(slug, film_id, r["file"], used, left)
             continue
+        okshape, shape = reel_shape(P("reels", r["file"]))
+        if not okshape:                            # ⛔ لا يُنشر فيلماً عاديّاً ما أُريد ريلزاً
+            print("⛔ الريلز %s ليس عموديّاً أو أطول من 175 ث (%s) — لم يُرفع" % (r["file"], shape), flush=True)
+            continue
         rm = dict(r)
         rm["description"] = r["description"].replace("{FILM_URL}", link)
-        rid = upload(svc, P("reels", r["file"]), rm, public_now=True)
+        if "#Shorts" not in rm["description"]:
+            rm["description"] = rm["description"].rstrip() + "\n\n#Shorts"
+        rat = reel_at(when, len(reels))
+        rid = upload(svc, P("reels", r["file"]), rm, publish_at=rat, public_now=not rat)
         # ⛔ يُسجَّل **قبل** التحقّق: سقوطُ التحقّق بعد رفعٍ واقعٍ كان يُنتج نسخةً ثانية.
         reels.append({"id": rid, "title": r["title"], "file": r["file"]})
         save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
@@ -435,7 +512,7 @@ def main():
     pend = P("..", "pending")
     out = {
         "slug": slug,
-        "film": {"id": film_id, "title": meta["film"]["title"], "publishAt": when},
+        "film": {"id": film_id, "title": meta.get("film", {}).get("title", ""), "publishAt": when},
         "reels": reels,
         "قيد_واجهة_غير_متاح_API": "حقل «فيديو مشابه» للشورت لا تتيحه YouTube Data API؛ "
                                   "وُضع رابط الفيلم في وصف كل ريلز، ولا يُنسب ربطٌ لم يقع.",
