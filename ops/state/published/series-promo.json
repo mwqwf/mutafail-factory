@@ -18,68 +18,21 @@
     "review": "فحص سجلات التصيير وتعديل العنوان وبطاقة الختام، وفحص صوت آلي 9/9 بلا رايات. لم تجر معاينة بصرية مستقلة في هذه الجلسة.",
     "owner_report": "حذف المالك الريلز لأن النهاية انقطعت عند طلب الاشتراك ولم تُشر للسلسلة. أمر بإكماله وإعادة نشر النسخة المصححة في 2026-09-30."
   },
-  "release_tag": "series-promo-v2-out",
-  "publish_run": "36760769679",
-  "status": "deleted_by_owner_v3_awaiting_review",
+  "release_tag": "series-promo-v3-out",
+  "publish_run": "36802896274",
+  "status": "uploaded_private_processing",
   "replaces_deleted_video_id": "RLFp0DMlEHU",
   "repair_report": {
-    "source_sha256": "a68b4a441ac1f6ade404b030a64d133f73a6fb1e8814128e31000db3e99fb6fc",
-    "video_sha256": "48768e8b0aea924a4140294a3795a57801c4b736438d0b091f5ad94579be39e2",
-    "cut": 45.06666666666666,
-    "voice_duration": 6.44,
-    "new_spoken_segment": 7.555555555555556,
-    "ending_card": 6,
-    "expected_duration": 58.62222222222222,
-    "actual_duration": 58.633333
+    "video_sha256": "afa2aac149d7297a1d440129adbffc417b55ce5130b844e897dfe9c7e191a037",
+    "original_voice_retained": true,
+    "last_segment_speed_matches_prefix": true,
+    "original_duration": 51.477,
+    "ending_card": 6.0,
+    "expected_duration": 57.477,
+    "actual_duration": 57.5
   },
   "do_not_reupload": true,
-  "video_id": "FgHUxjE1Joc",
-  "url": "https://youtube.com/shorts/FgHUxjE1Joc",
-  "updated_at": "2026-09-30T18:45:15.059244+00:00",
-  "published_at": "2026-09-30T18:45:15.059234+00:00",
-  "note": "حذف المالك النسخة الثانية FgHUxjE1Joc لاختلاف إيقاع وصوت الخاتمة. أُلغي إبطاء .90 والمعالجة المنفصلة، وحُفظ المسار الأصلي المتصل بالكامل مع بطاقة السلسلة بعد انتهائه. النسخة الثالثة معروضة للمالك قبل النشر. لا تُنشر حتى يوافق عليها، ولا تُعد رفع أي نسخة قديمة.",
-  "owner_report_v3": "حذف المالك النسخة FgHUxjE1Joc بسبب اختلاف صوت وإيقاع الخاتمة واللحن. سيُعرض التصحيح التالي عليه قبل إعادة النشر.",
-  "previous_youtube_verification": {
-    "kind": "youtube#video",
-    "etag": "YJi1SBhVYoPB2dcQydwtRbxMfSw",
-    "id": "FgHUxjE1Joc",
-    "contentDetails": {
-      "duration": "PT59S",
-      "dimension": "2d",
-      "definition": "hd",
-      "caption": "false",
-      "licensedContent": false,
-      "contentRating": {},
-      "projection": "rectangular",
-      "hasCustomThumbnail": false
-    },
-    "status": {
-      "uploadStatus": "processed",
-      "privacyStatus": "public",
-      "license": "youtube",
-      "embeddable": false,
-      "publicStatsViewable": false,
-      "madeForKids": false,
-      "selfDeclaredMadeForKids": false
-    },
-    "processingDetails": {
-      "processingStatus": "succeeded",
-      "fileDetailsAvailability": "available",
-      "processingIssuesAvailability": "available",
-      "tagSuggestionsAvailability": "inProgress",
-      "editorSuggestionsAvailability": "inProgress",
-      "thumbnailsAvailability": "available"
-    }
-  },
-  "current_public_video_id": null,
-  "draft_release": "series-promo-v3-out",
-  "draft_video_sha256": "afa2aac149d7297a1d440129adbffc417b55ce5130b844e897dfe9c7e191a037",
-  "draft_duration": 57.5,
-  "review_v3": {
-    "full_audio_audit": "لا تغير هوية صوت أو سرعة أو جهارة، ولا تلحين أو قطع في الخاتمة؛ تدقيق آلي",
-    "adjudication": "راية تنوين «وادٍ ابتلع» إيجابية كاذبة: التحكيم السمعي للمصدر والمخرج سمع نون التنوين المكسورة للتخلص من التقاء الساكنين؛ لا إعادة توليد.",
-    "visual_review": "معاينة مستقلة للقطات الخاتمة ووضوح بطاقة السلسلة",
-    "build_run": 36763341857,
-    "adjudication_run": 36763778463
-  }
+  "video_id": "-7yvRgokcE4",
+  "url": "https://youtube.com/shorts/-7yvRgokcE4",
+  "updated_at": "2026-10-01T01:49:37.887616+00:00"
 }
