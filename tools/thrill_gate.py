@@ -103,6 +103,24 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
     if title and not re.search(r"[؟…:]|\.\.\.", title):
         warns.append(f"العنوان بلا سؤالٍ ولا تعليق: «{title[:50]}»")
 
+    # ٤ب. ⭐ الظهور الأوّل للراوي (أمر المالك 2026-10-01): مفاجئٌ ويختلف في كل فيلم
+    shots = load(proj, "shots.json") or []
+    av = [i for i, s in enumerate(shots) if s.get("avatar")]
+    if av:
+        first = shots[av[0]]
+        ent = [s for s in shots[:av[0]] if s.get("end_image") == first["id"] and s.get("entrance")]
+        if not ent:
+            errs.append(f"الظهور الأوّل للراوي ({first['id']}) بلا لقطة مدخلٍ مفاجئة قبله (end_image إليه + حقل entrance)")
+        else:
+            reg = Path(__file__).resolve().parents[1] / "ops/state/narrator_entrances.json"
+            used = json.loads(reg.read_text(encoding="utf-8")) if reg.exists() else {}
+            slug = ((load(proj, "publish.json") or {}).get("slug") or "").replace("-intro", "")
+            same = [k for k, v in used.items() if not k.startswith("_") and k != slug and v == ent[0]["entrance"]]
+            if same:
+                errs.append(f"مدخل الراوي مكرّر من فيلم {same[0]} — كل فيلمٍ بمدخلٍ جديد")
+            elif slug and slug not in used:
+                warns.append(f"سجّل مدخل هذا الفيلم في ops/state/narrator_entrances.json تحت «{slug}»")
+
     # ٥. المصغّرات
     if thumbs and thumbs.exists():
         tj = json.loads(thumbs.read_text(encoding="utf-8"))
