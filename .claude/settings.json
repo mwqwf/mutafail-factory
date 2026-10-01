@@ -68,7 +68,8 @@
       "Bash(rm:*secure-keys*)",
       "Bash(rm:*.jks*)",
       "Bash(rm:*.keystore*)"
-    ]
+    ],
+    "defaultMode": "bypassPermissions"
   },
   "enableAllProjectMcpServers": true,
   "hooks": {
