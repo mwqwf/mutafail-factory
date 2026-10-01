@@ -10,9 +10,15 @@ report=json.loads((P/'repair_report.json').read_text()); digest=hashlib.sha256((
 assert digest==report['video_sha256']==config['approved_sha256']
 asr=json.loads((P/'ending_asr.json').read_text())
 verdict=json.loads(asr['response']['candidates'][0]['content']['parts'][0]['text'])
-v=next(x for x in verdict if x['id']=='repaired_tail')
-assert v['cut_off'] is False and all(v[k] is True for k in ['subscription_heard','series_heard','description_heard'])
-assert 58<report['actual_duration']<61
+# النسخة الثانية: قائمة فيها repaired_tail · الثالثة: تفريغٌ واحد للخاتمة (النطق والقطع والاشتراك والسلسلة والوصف)
+if isinstance(verdict,list):
+    v=next(x for x in verdict if x['id']=='repaired_tail')
+    assert v['cut_off'] is False and all(v[k] is True for k in ['subscription_heard','series_heard','description_heard'])
+else:
+    t=verdict['ending_transcript']
+    assert verdict['cut_off'] is False and all(w in t for w in ('اشترك','السلسلة','الوصف'))
+assert abs(report['actual_duration']-report['expected_duration'])<0.2 and report['actual_duration']<=60
+TAG=config.get('release_tag','series-promo-v2-out')
 meta=json.loads(pathlib.Path('proj/publish.json').read_text())['reels'][0]
 c=json.loads(os.environ['YT_OAUTH_JSON'])
 creds=Credentials(None,refresh_token=c['refresh_token'],client_id=c['client_id'],client_secret=c['client_secret'],token_uri='https://oauth2.googleapis.com/token',scopes=['https://www.googleapis.com/auth/youtube'])
@@ -20,7 +26,7 @@ yt=build('youtube','v3',credentials=creds,cache_discovery=False)
 channel=yt.channels().list(part='contentDetails',mine=True).execute()['items'][0]
 assert channel['id']=='UCda-VgyvZwAH5_Pl1elVEnw'
 old=json.loads(STATE.read_text())
-record={'slug':'series-promo','title':meta['title'],'previous_publication':old.get('previous_publication',old),'release_tag':'series-promo-v2-out','publish_run':os.environ.get('GITHUB_RUN_ID'),'status':'repair_verified','replaces_deleted_video_id':'RLFp0DMlEHU','repair_report':report,'do_not_reupload':True}
+record={'slug':'series-promo','title':meta['title'],'previous_publication':old.get('previous_publication',old),'release_tag':TAG,'publish_run':os.environ.get('GITHUB_RUN_ID'),'status':'repair_verified','replaces_deleted_video_id':'RLFp0DMlEHU','repair_report':report,'do_not_reupload':True}
 def persist():
     record['updated_at']=datetime.datetime.now(datetime.timezone.utc).isoformat()
     STATE.write_text(json.dumps(record,ensure_ascii=False,indent=2))

@@ -24,7 +24,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p repaired sealed
-          gh release download series-promo-v2-out -R "$GITHUB_REPOSITORY" -D repaired
+          TAG=$(python -c "import json;print(json.load(open('ops/review/publish-repaired.json')).get('release_tag','series-promo-v2-out'))")
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" -D repaired -p r1.mp4 -p repair_report.json -p ending_asr.json
           cp ops/sealed/series-promo/* sealed/
           (cd sealed && sed -i 's/ \*/  /' SHA256SUMS && sha256sum -c SHA256SUMS && cat part_* > payload.enc)
           bash tools/unseal.sh sealed "$PWD/proj"
