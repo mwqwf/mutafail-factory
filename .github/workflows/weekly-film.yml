@@ -118,6 +118,8 @@ jobs:
           fi
           # ⛔ صوتُ الراوي (n_*) من الافتتاحية يغلب ما وُلّد للفيلم بالتوازي: عليه طابقت شفاهُ OmniHuman (بدر 2026-10-01)
           if [ -d /tmp/intro/audio ]; then cp -f /tmp/intro/audio/n_*.wav proj/audio/ 2>/dev/null || true; cp -f /tmp/intro/audio/n_*.cut proj/audio/ 2>/dev/null || true; fi
+          # ومقاطعُ الافتتاحية المعتمدة كذلك تغلب نسخ الفيلم القديمة (لقطةٌ أُعيدت في الافتتاحية بعد شوط الفيلم)
+          if [ -d /tmp/intro/clips ]; then cp -f /tmp/intro/clips/*.mp4 proj/clips/ 2>/dev/null || true; cp -f /tmp/intro/clips/*.cut proj/clips/ 2>/dev/null || true; fi
           ls proj
 
       - name: المفاتيح
