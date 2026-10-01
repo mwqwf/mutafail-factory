@@ -44,12 +44,13 @@ BUDGET = float(meta.get('budget_usd', 9))
 # ⭐ سقفٌ مشترك (أمر المالك 2026-10-01، بدر): budget_total_usd سقفُ الافتتاحية والفيلم معاً لا يُتجاوز بحال.
 # ما أنفقه المشروع الشقيق يُقرأ من fal_ledger_*.json (ينزّلها weekly-film.yml من إصدار الشقيق)، ويُخصم من السقف؛
 # فما وفّرته الافتتاحية يصير للفيلم تلقائياً، وما أنفقته يُقتطع منه. وbudget_usd يبقى سقفاً فرعياً للمشروع إن وُجد.
-TOTAL = meta.get('budget_total_usd')
+HARD_CAP = 45.0   # ⛔ أمر المالك 2026-10-01: لا يتجاوز فيلمٌ (افتتاحيةً وفيلماً) 45$ ولو نُسي الحقل أو كُتب أكبر منه
+TOTAL = min(float(meta.get('budget_total_usd', HARD_CAP)), HARD_CAP)
 OTHER = 0.0
 for f in sorted(os.listdir(PROJ)):
     if f.startswith('fal_ledger_') and f.endswith('.json'):
         OTHER += sum(x.get('cost_usd', 0) for x in json.load(io.open(P(f), encoding='utf-8')))
-if TOTAL is not None:
+if True:
     BUDGET = min(BUDGET if 'budget_usd' in meta else float(TOTAL), float(TOTAL) - OTHER)
     print('السقف المشترك %.2f$ · أنفق الشقيق %.2f$ ⇒ المتاح لهذا المشروع %.2f$' % (float(TOTAL), OTHER, BUDGET), flush=True)
 os.makedirs(P('clips'), exist_ok=True)
