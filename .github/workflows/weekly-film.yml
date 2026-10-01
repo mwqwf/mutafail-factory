@@ -51,7 +51,7 @@ jobs:
           if [ -n "$IN_SLUG" ]; then
             echo "slug=$IN_SLUG" >> "$GITHUB_OUTPUT"; echo "stage=${IN_STAGE:-all}" >> "$GITHUB_OUTPUT"; exit 0
           fi
-          F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/run/.*\.json$' | head -1)
+          F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/run/.*\.json$' | head -1 || true)   # ⛔ بلا «|| true» يُسقط pipefail الخطوةَ حين لا ملف
           # ⭐ دفعٌ لم يحمل إيداعُه الأخير ملفَّ أمر (فرعٌ جديد أو دمج) ⇒ يُتخطّى بهدوء (أمر المالك 2026-10-01)
           [ -n "$F" ] || { echo "::notice::لا ملفَّ أمرٍ في هذا الإيداع — لا تشغيل"; exit 0; }
           python3 - "$F" >> "$GITHUB_OUTPUT" <<'PY'
