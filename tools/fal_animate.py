@@ -89,6 +89,7 @@ def upload(path):
     return fal_client.upload_file(path)
 
 
+AV_RES = {}   # دقّةٌ بديلة لكل لقطة بعد خطأ الخدمة
 AV_MODEL = 'fal-ai/bytedance/omnihuman/v1.5'     # صورة + صوت ⇒ راوٍ يتكلّم بشفتيه ورأسه ويديه (0.16$/ث، ≤30 ث بدقة 1080)
 AV_PRICE = 0.16
 
@@ -116,7 +117,7 @@ def avatar(s):
         jpg = P('clips', '%s_img.jpg' % sid)
         im = Image.open(p).convert('RGB'); im.thumbnail((1920, 1080)); im.save(jpg, 'JPEG', quality=90)
         body = {'image_url': upload(jpg), 'audio_url': upload(mp3),
-                'resolution': '1080p',
+                'resolution': AV_RES.get(sid, '1080p'),
                 'prompt': s.get('avatar_prompt') or s.get('move', '')}
         r = requests.post('https://queue.fal.run/' + AV_MODEL, headers=H, json=body, timeout=600)
         if r.status_code != 200: print(sid, '⛔ رُفض طلب الراوي', r.status_code, r.text[:300], flush=True); return
@@ -134,7 +135,11 @@ def avatar(s):
     res = requests.get(q['response_url'], headers=H, timeout=300).json()
     if not isinstance(res, dict) or 'video' not in res:
         print(sid, '⛔ ردّ الراوي بلا فيديو:', json.dumps(res, ensure_ascii=False)[:400], flush=True)
-        pend.pop(key, None); save(PEND, pend); return
+        pend.pop(key, None); save(PEND, pend)
+        # ⭐ بدر N04: «Downstream service unavailable» أربع مرّات للقطةٍ واحدة بعينها ⇒ محاولةٌ ثانية بدقّة 720p مرّةً واحدة
+        if 'downstream' in json.dumps(res) and not s.get('_retry720'):
+            s['_retry720'] = True; AV_RES[sid] = '720p'; print(sid, '↻ محاولة بدقّة 720p', flush=True); return avatar(s)
+        return
     with requests.get(res['video']['url'], stream=True, timeout=900) as v:
         v.raise_for_status()
         with open(out + '.part', 'wb') as f:
