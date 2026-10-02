@@ -1,21 +1,26 @@
 {
-  "slug": "series-promo",
-  "film": {
-    "id": null,
-    "title": "ستّ معارك غيّرت مجرى التاريخ… فأيّ معركةٍ نرويها بعدها؟",
-    "publishAt": null
+ "slug": "badr",
+ "film": {
+  "id": "6TtZIMi_WUY",
+  "title": "بدر الكبرى: ثلاثمئة رجل خرجوا لقافلة… فوجدوا جيش قريش كلّه",
+  "publishAt": null
+ },
+ "reels": [
+  {
+   "id": "_VXs-tpIBzI",
+   "title": "313 رجلاً خرجوا لقافلة… فوجدوا جيشاً: بدر الكبرى",
+   "file": "r3.mp4"
   },
-  "reels": [
-    {
-      "id": "FgHUxjE1Joc",
-      "title": "ستّ معارك غيّرت مجرى التاريخ… فأيّ معركةٍ نرويها بعدها؟",
-      "file": "r1.mp4"
-    }
-  ],
-  "قيد_واجهة_غير_متاح_API": "حقل «فيديو مشابه» للشورت لا تتيحه YouTube Data API؛ وُضع رابط الفيلم في وصف كل ريلز، ولا يُنسب ربطٌ لم يقع.",
-  "status": "deleted_by_owner_v3_awaiting_review",
-  "replaces_deleted_video_id": "RLFp0DMlEHU",
-  "do_not_reupload": true,
-  "verified_duration": "PT59S",
-  "note": "المعرّف FgHUxjE1Joc محذوف بإبلاغ المالك؛ المعاينة الجديدة في series-promo-v3-out تنتظر موافقته. لا تعِد النشر."
+  {
+   "id": "SmTrTih0USg",
+   "title": "غلامان سألا عن أبي جهل بالاسم… ثم انطلقا كالصقرين",
+   "file": "r1.mp4"
+  },
+  {
+   "id": "sTCvkcAIwso",
+   "title": "قيل له «إنهم قاتلوك»… فكان يعقل بعيره بجانبه ليهرب",
+   "file": "r2.mp4"
+  }
+ ],
+ "قيد_واجهة_غير_متاح_API": "حقل «فيديو مشابه» للشورت لا تتيحه YouTube Data API؛ وُضع رابط الفيلم في وصف كل ريلز، ولا يُنسب ربطٌ لم يقع."
 }
