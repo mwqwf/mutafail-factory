@@ -1,95 +1,170 @@
 {
- "reason": "إعادة صوت إعلان مصحفك بأداء إعلاني أسرع بطلب المالك 2026-10-02 (gemini-3.8-flash-tts)",
+ "reason": "عيّنات صوت إعلان مصحفك بلا توجيه طويل (قُرئ التوجيه الإنجليزي في الشوط السابق)",
  "blocks": [
   {
-   "id": "v_charon_1",
+   "id": "n_charon_1",
+   "text": "تَحْفَظُ الْقُرْآنَ؟",
+   "voice": "Charon"
+  },
+  {
+   "id": "x_charon_1",
    "text": "تَحْفَظُ الْقُرْآنَ؟",
    "voice": "Charon",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_charon_2",
+   "id": "n_charon_2",
+   "text": "اقْرَأْ مِنْ حِفْظِكَ، وَمُصْحَفُكَ يَسْمَعُكَ كَلِمَةً كَلِمَةْ.",
+   "voice": "Charon"
+  },
+  {
+   "id": "x_charon_2",
    "text": "اقْرَأْ مِنْ حِفْظِكَ، وَمُصْحَفُكَ يَسْمَعُكَ كَلِمَةً كَلِمَةْ.",
    "voice": "Charon",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_charon_3",
+   "id": "n_charon_3",
+   "text": "أَخْطَأْتَ؟ يُنَبِّهُكَ فِي الْحَالْ.",
+   "voice": "Charon"
+  },
+  {
+   "id": "x_charon_3",
    "text": "أَخْطَأْتَ؟ يُنَبِّهُكَ فِي الْحَالْ.",
    "voice": "Charon",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_charon_4",
+   "id": "n_charon_4",
+   "text": "بِسِتِّ رِوَايَاتٍ: حَفْصٍ، وَوَرْشٍ، وَقَالُونَ، وَشُعْبَةَ، وَالدُّورِيِّ، وَالسُّوسِيّ.",
+   "voice": "Charon"
+  },
+  {
+   "id": "x_charon_4",
    "text": "بِسِتِّ رِوَايَاتٍ: حَفْصٍ، وَوَرْشٍ، وَقَالُونَ، وَشُعْبَةَ، وَالدُّورِيِّ، وَالسُّوسِيّ.",
    "voice": "Charon",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_charon_5",
+   "id": "n_charon_5",
+   "text": "مُصْحَفُكَ… وَالتَّسْمِيعُ فِيهِ مَجَّانِيّ.",
+   "voice": "Charon"
+  },
+  {
+   "id": "x_charon_5",
    "text": "مُصْحَفُكَ… وَالتَّسْمِيعُ فِيهِ مَجَّانِيّ.",
    "voice": "Charon",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_fenrir_1",
+   "id": "n_fenrir_1",
+   "text": "تَحْفَظُ الْقُرْآنَ؟",
+   "voice": "Fenrir"
+  },
+  {
+   "id": "x_fenrir_1",
    "text": "تَحْفَظُ الْقُرْآنَ؟",
    "voice": "Fenrir",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_fenrir_2",
+   "id": "n_fenrir_2",
+   "text": "اقْرَأْ مِنْ حِفْظِكَ، وَمُصْحَفُكَ يَسْمَعُكَ كَلِمَةً كَلِمَةْ.",
+   "voice": "Fenrir"
+  },
+  {
+   "id": "x_fenrir_2",
    "text": "اقْرَأْ مِنْ حِفْظِكَ، وَمُصْحَفُكَ يَسْمَعُكَ كَلِمَةً كَلِمَةْ.",
    "voice": "Fenrir",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_fenrir_3",
+   "id": "n_fenrir_3",
+   "text": "أَخْطَأْتَ؟ يُنَبِّهُكَ فِي الْحَالْ.",
+   "voice": "Fenrir"
+  },
+  {
+   "id": "x_fenrir_3",
    "text": "أَخْطَأْتَ؟ يُنَبِّهُكَ فِي الْحَالْ.",
    "voice": "Fenrir",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_fenrir_4",
+   "id": "n_fenrir_4",
+   "text": "بِسِتِّ رِوَايَاتٍ: حَفْصٍ، وَوَرْشٍ، وَقَالُونَ، وَشُعْبَةَ، وَالدُّورِيِّ، وَالسُّوسِيّ.",
+   "voice": "Fenrir"
+  },
+  {
+   "id": "x_fenrir_4",
    "text": "بِسِتِّ رِوَايَاتٍ: حَفْصٍ، وَوَرْشٍ، وَقَالُونَ، وَشُعْبَةَ، وَالدُّورِيِّ، وَالسُّوسِيّ.",
    "voice": "Fenrir",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_fenrir_5",
+   "id": "n_fenrir_5",
+   "text": "مُصْحَفُكَ… وَالتَّسْمِيعُ فِيهِ مَجَّانِيّ.",
+   "voice": "Fenrir"
+  },
+  {
+   "id": "x_fenrir_5",
    "text": "مُصْحَفُكَ… وَالتَّسْمِيعُ فِيهِ مَجَّانِيّ.",
    "voice": "Fenrir",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_puck_1",
+   "id": "n_puck_1",
+   "text": "تَحْفَظُ الْقُرْآنَ؟",
+   "voice": "Puck"
+  },
+  {
+   "id": "x_puck_1",
    "text": "تَحْفَظُ الْقُرْآنَ؟",
    "voice": "Puck",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_puck_2",
+   "id": "n_puck_2",
+   "text": "اقْرَأْ مِنْ حِفْظِكَ، وَمُصْحَفُكَ يَسْمَعُكَ كَلِمَةً كَلِمَةْ.",
+   "voice": "Puck"
+  },
+  {
+   "id": "x_puck_2",
    "text": "اقْرَأْ مِنْ حِفْظِكَ، وَمُصْحَفُكَ يَسْمَعُكَ كَلِمَةً كَلِمَةْ.",
    "voice": "Puck",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_puck_3",
+   "id": "n_puck_3",
+   "text": "أَخْطَأْتَ؟ يُنَبِّهُكَ فِي الْحَالْ.",
+   "voice": "Puck"
+  },
+  {
+   "id": "x_puck_3",
    "text": "أَخْطَأْتَ؟ يُنَبِّهُكَ فِي الْحَالْ.",
    "voice": "Puck",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_puck_4",
+   "id": "n_puck_4",
+   "text": "بِسِتِّ رِوَايَاتٍ: حَفْصٍ، وَوَرْشٍ، وَقَالُونَ، وَشُعْبَةَ، وَالدُّورِيِّ، وَالسُّوسِيّ.",
+   "voice": "Puck"
+  },
+  {
+   "id": "x_puck_4",
    "text": "بِسِتِّ رِوَايَاتٍ: حَفْصٍ، وَوَرْشٍ، وَقَالُونَ، وَشُعْبَةَ، وَالدُّورِيِّ، وَالسُّوسِيّ.",
    "voice": "Puck",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   },
   {
-   "id": "v_puck_5",
+   "id": "n_puck_5",
+   "text": "مُصْحَفُكَ… وَالتَّسْمِيعُ فِيهِ مَجَّانِيّ.",
+   "voice": "Puck"
+  },
+  {
+   "id": "x_puck_5",
    "text": "مُصْحَفُكَ… وَالتَّسْمِيعُ فِيهِ مَجَّانِيّ.",
    "voice": "Puck",
-   "style": "Say this as an energetic, fast-paced Arabic TV commercial voice-over, confident and warm, with crisp, eloquent classical Arabic pronunciation"
+   "style": "Say excitedly"
   }
  ]
 }
