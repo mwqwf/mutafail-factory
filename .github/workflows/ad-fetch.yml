@@ -1,0 +1,32 @@
+# 📥 ينقل أثراً مشفَّراً لإعلان «مصحفك» من شوطٍ سابق إلى فرع الجلسة (الجلسة لا تبلغ تخزين الآثار).
+# المحتوى مشفَّرٌ بمفتاح الطلب العامّ، فلا يقرؤه في git إلا صاحبُ المفتاح الخاصّ.
+name: ad-fetch
+on:
+  push:
+    branches: [claude/project-thread-3gau5i]
+    paths: ["ops/ads/mushafak/fetch-request.json"]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - id: req
+        run: |
+          python3 -c "import json;r=json.load(open('ops/ads/mushafak/fetch-request.json'));print('run='+str(r['run_id']));print('name='+r['artifact'])" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.req.outputs.name }}
+          run-id: ${{ steps.req.outputs.run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: fetched
+      - run: |
+          set -euo pipefail
+          mkdir -p ops/ads/mushafak/out
+          for f in fetched/*.enc; do head -c 40 "$f" | grep -q mutafail-private-artifact-v1 || { echo "غير مشفّر: $f"; exit 1; }; cp "$f" ops/ads/mushafak/out/; done
+          git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ops/ads/mushafak/out && git commit -m "إعلان مصحفك: أثرٌ مشفّر من الشوط ${{ steps.req.outputs.run }}" -- ops/ads/mushafak/out
+          git push origin HEAD:${{ github.ref_name }}
