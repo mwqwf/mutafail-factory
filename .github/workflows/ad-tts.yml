@@ -1,0 +1,48 @@
+# 🎙️ صوتُ ريلزَي إعلان «مصحفك» (أمر المالك 2026-10-02): gemini-3.8-flash-tts وحده بلا توجيه أداء.
+# الزناد: دفعُ ops/ads/mushafak/tts-request.json إلى فرع الجلسة. المخرجُ أثرٌ مشفَّرٌ بمفتاح الطلب العامّ
+# (ops/ads/mushafak/ad_pub.pem) فلا يقرؤه إلا صاحبُ المفتاح الخاصّ — لا وسائطَ خامٌ في المستودع العامّ.
+name: ad-tts
+on:
+  push:
+    branches: [claude/project-thread-3gau5i]
+    paths: ["ops/ads/mushafak/tts-request.json"]
+permissions:
+  contents: read
+concurrency:
+  group: ad-tts
+  cancel-in-progress: false
+jobs:
+  tts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: الكتل
+        run: |
+          set -euo pipefail
+          mkdir -p proj
+          python3 -c "import json;r=json.load(open('ops/ads/mushafak/tts-request.json'));json.dump(r['blocks'],open('proj/blocks.json','w'),ensure_ascii=False)"
+      - name: التوليد
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          set -uo pipefail
+          [ -n "$GEMINI_KEYS_JSON" ] || { echo "⛔ سرّ GEMINI_KEYS_JSON غائب"; exit 1; }
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          node tools/gen25.js proj 4 --keys /tmp/keys.json --model gemini-3.8-flash-tts; code=$?
+          rm -f /tmp/keys.json
+          ls -l proj/audio || true
+          exit $code
+      - name: التشفير
+        if: always()
+        run: |
+          set -euo pipefail
+          [ -d proj/audio ] || exit 0
+          tar czf /tmp/audio.tgz -C proj audio
+          node tools/artifact_crypto.mjs seal /tmp/audio.tgz audio.enc ops/ads/mushafak/ad_pub.pem
+          rm -f /tmp/audio.tgz
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: ad-tts-audio, path: audio.enc, retention-days: 3, if-no-files-found: warn }
