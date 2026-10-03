@@ -45,6 +45,10 @@ BUDGET = float(meta.get('budget_usd', 9))
 # ما أنفقه المشروع الشقيق يُقرأ من fal_ledger_*.json (ينزّلها weekly-film.yml من إصدار الشقيق)، ويُخصم من السقف؛
 # فما وفّرته الافتتاحية يصير للفيلم تلقائياً، وما أنفقته يُقتطع منه. وbudget_usd يبقى سقفاً فرعياً للمشروع إن وُجد.
 HARD_CAP = 45.0   # ⛔ أمر المالك 2026-10-01: لا يتجاوز فيلمٌ (افتتاحيةً وفيلماً) 45$ ولو نُسي الحقل أو كُتب أكبر منه
+# سقوفٌ أقرّها المالك لفيلمٍ بعينه (بالاسم، لا بحقلٍ في publish.json يُكتب خطأً): ملاذكرد 65$ — بطاقة القرار 2026-10-03
+#   «ما سقف كلفة التحريك لفيلم ملاذكرد؟» ⇒ 65$، لتكون المعركة متحرّكةً كلّها (ops/RETENTION_PLAYBOOK_2026-10-03.md §٩).
+OWNER_CAPS = {'manzikert': 65.0}
+HARD_CAP = OWNER_CAPS.get(str(meta.get('slug', '')).replace('-intro', ''), HARD_CAP)
 TOTAL = min(float(meta.get('budget_total_usd', HARD_CAP)), HARD_CAP)
 OTHER = 0.0
 for f in sorted(os.listdir(PROJ)):
