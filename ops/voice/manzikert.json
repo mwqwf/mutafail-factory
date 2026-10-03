@@ -1,0 +1,107 @@
+{
+ "slug": "manzikert",
+ "target_secs": 48,
+ "note": "D: أصوات السيناريو بتوجيه نظاميّ لا يُنطق · E: Charon للسرد كلّه بالتوجيه نفسه · ‑fast: مسرَّعة إلى مدّة A",
+ "variants": {
+  "D": [
+   {
+    "id": "n_01",
+    "voice": "Orus",
+    "text": "إِمْبِرَاطُورُ الرُّومِ… يُقَادُ أَسِيرًا إِلَى خَيْمَةِ سُلْطَانٍ مُسْلِمْ.",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "n_02",
+    "voice": "Orus",
+    "text": "وَقَبْلَهَا بِأَيَّامٍ، طَلَبَ مِنْهُ السُّلْطَانُ الصُّلْحَ… فَقَالَ:",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "n_03",
+    "voice": "Iapetus",
+    "text": "لَا هُدْنَةَ إِلَّا بِالرَّيّْ!",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "n_04",
+    "voice": "Orus",
+    "text": "وَالسُّلْطَانُ؟ عَقَدَ ذَيْلَ فَرَسِهِ بِيَدِهِ… وَلَبِسَ الْبَيَاضَ كَفَنًا.",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "n_05",
+    "voice": "Orus",
+    "text": "فَكَيْفَ انْقَلَبَ كُلُّ شَيْءٍ… بَيْنَ ظُهْرِ يَوْمِ جُمُعَةٍ وَغُرُوبِهِ؟",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "n_06",
+    "voice": "Charon",
+    "text": "السَّلَامُ عَلَيْكُمْ. هُنَا، شَمَالَ بُحَيْرَةِ وَانْ، قَبْلَ نَحْوِ تِسْعَةِ قُرُونٍ وَنِصْفٍ… وَقَعَتْ مَلَاذْكِرْدْ.",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "d_x1",
+    "voice": "Charon",
+    "text": "يَصِلُ الْإِمْبِرَاطُورُ إِلَى مُعَسْكَرِ السُّلْطَانِ… فَيَجِدُهُ خَالِيَا.",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "d_x2",
+    "voice": "Orus",
+    "text": "وَفِي هَذِهِ اللَّحْظَةِ بِالذَّاتِ… يَخْرُجُ الْكَمِينْ!",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   }
+  ],
+  "E": [
+   {
+    "id": "n_01",
+    "voice": "Charon",
+    "text": "إِمْبِرَاطُورُ الرُّومِ… يُقَادُ أَسِيرًا إِلَى خَيْمَةِ سُلْطَانٍ مُسْلِمْ.",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "n_02",
+    "voice": "Charon",
+    "text": "وَقَبْلَهَا بِأَيَّامٍ، طَلَبَ مِنْهُ السُّلْطَانُ الصُّلْحَ… فَقَالَ:",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "n_03",
+    "voice": "Iapetus",
+    "text": "لَا هُدْنَةَ إِلَّا بِالرَّيّْ!",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "n_04",
+    "voice": "Charon",
+    "text": "وَالسُّلْطَانُ؟ عَقَدَ ذَيْلَ فَرَسِهِ بِيَدِهِ… وَلَبِسَ الْبَيَاضَ كَفَنًا.",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "n_05",
+    "voice": "Charon",
+    "text": "فَكَيْفَ انْقَلَبَ كُلُّ شَيْءٍ… بَيْنَ ظُهْرِ يَوْمِ جُمُعَةٍ وَغُرُوبِهِ؟",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "n_06",
+    "voice": "Charon",
+    "text": "السَّلَامُ عَلَيْكُمْ. هُنَا، شَمَالَ بُحَيْرَةِ وَانْ، قَبْلَ نَحْوِ تِسْعَةِ قُرُونٍ وَنِصْفٍ… وَقَعَتْ مَلَاذْكِرْدْ.",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "d_x1",
+    "voice": "Charon",
+    "text": "يَصِلُ الْإِمْبِرَاطُورُ إِلَى مُعَسْكَرِ السُّلْطَانِ… فَيَجِدُهُ خَالِيَا.",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "d_x2",
+    "voice": "Charon",
+    "text": "وَفِي هَذِهِ اللَّحْظَةِ بِالذَّاتِ… يَخْرُجُ الْكَمِينْ!",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator.\n## THE SCENE: a dramatic battle documentary.\n### DIRECTOR'S NOTES\nStyle: deep, grave and epic, with weight and suspense.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   }
+  ]
+ }
+}

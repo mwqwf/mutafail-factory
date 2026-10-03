@@ -6,13 +6,13 @@
 `mwqwf/yarmouk-media` (‏`<المجلد>/codex_job.json`)، وكوديكس يُعطى أمراً ثابتاً لا يتغيّر:
 
     نفّذ الطابور                ← مهمّةٌ واحدة تولّد كلّ الناقص
-    نفّذ الطابور، الجزء 2 من 3  ← ثلاث مهامّ متوازية، كلٌّ يأخذ ثلث الناقص
+    نفّذ الطابور، الجزء 2 من 3  ← ثلاث مهامّ متوازية، كلٌّ يملك ثلث items الثابت ويولّد ناقصه
 
 وبروتوكولُه مكتوبٌ في `AGENTS.md` بجذر مستودع الصور، فيقرؤه كوديكس وحده. وإن أتاح كوديكس
 جدولةَ مهمّةٍ متكرّرة فهذا الأمر نفسُه يُجدوَل مرّةً واحدة، ولا يعود المالك إليه.
 
     python3 tools/codex_queue.py write  <مستودع_الصور> <المجلد> <prompts.json> [--rules ملف] [--size 1920x1080]
-    python3 tools/codex_queue.py status <مستودع_الصور> <المجلد>     # خروج 0 = اكتمل · 3 = ناقص
+    python3 tools/codex_queue.py status <مستودع_الصور> <المجلد>     # خروج 0 = اكتمل · 3 = ناقص (غائب أو تالف أو بمقاسٍ آخر)
     python3 tools/codex_queue.py shard  <مستودع_الصور> <المجلد> <k> <n>   # ما يخصّ الجزء k من n (للفحص)
 
 `prompts.json` إمّا قاموس `{"F001": "وصف…"}` (يُحفظ `images/F001.jpg`) أو قائمة
@@ -22,9 +22,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import struct
 import sys
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 JOB = "codex_job.json"
 
@@ -38,15 +39,52 @@ def load_items(prompts: Path, size: list[int]) -> list[dict]:
         if not it.get("file") or not it.get("prompt"):
             sys.exit(f"⛔ عنصرٌ بلا file أو prompt: {it}")
         items.append({"file": it["file"], "prompt": it["prompt"], "size": it.get("size", size)})
+    for it in items:   # المسارُ داخل مجلّد الفيلم وحده (تدقيق كوديكس MF-10)
+        pp = PurePosixPath(it["file"])
+        if pp.is_absolute() or ".." in pp.parts or "\\" in it["file"]:
+            sys.exit(f"⛔ مسارٌ خارج مجلّد الفيلم: {it['file']}")
     return items
+
+
+def dims(path: Path) -> tuple[int, int] | None:
+    """أبعاد JPG/PNG من ترويسته بلا مكتبة؛ None = ليس صورةً سليمة الترويسة."""
+    try:
+        b = path.read_bytes()
+    except OSError:
+        return None
+    if b[:8] == b"\x89PNG\r\n\x1a\n" and len(b) >= 24:
+        return struct.unpack(">II", b[16:24])
+    if b[:2] == b"\xff\xd8":
+        i = 2
+        while i + 9 < len(b):
+            if b[i] != 0xFF:
+                return None
+            m, ln = b[i + 1], struct.unpack(">H", b[i + 2:i + 4])[0]
+            if m in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
+                h, w = struct.unpack(">HH", b[i + 5:i + 9])
+                return w, h
+            i += 2 + ln
+    return None
+
+
+def done(base: Path, it: dict) -> bool:
+    """منجزٌ = ملفٌّ صورةٌ سليمةُ الترويسة بالمقاس المطلوب — لا مجرّد وجود اسم (تدقيق كوديكس MF-10).
+    ⛔ هذا اكتمالٌ تقنيّ لا اعتمادٌ بصريّ: الفحص بالعين يبقى على الجلسة."""
+    f = base / it["file"]
+    if not f.is_file() or f.stat().st_size == 0:
+        return False
+    d = dims(f)
+    return d is not None and list(d) == list(it.get("size") or d)
 
 
 def missing(media: Path, folder: str, job: dict) -> list[dict]:
     base = media / folder
-    return [it for it in job["items"] if not (base / it["file"]).exists()]
+    return [it for it in job["items"] if not done(base, it)]
 
 
 def shard(items: list[dict], k: int, n: int) -> list[dict]:
+    """⛔ يُقسَّم ترتيبُ `items` الثابت في المهمّة، لا قائمةُ الناقص المتغيّرة (تدقيق كوديكس MF-09):
+    جزءٌ بدأ بعد أن أنجز غيرُه صورةً كان يرى قائمةً أقصر فيأخذ نصيبَ غيره ويكرّره ويُسقط آخر."""
     if not (1 <= k <= n):
         sys.exit(f"⛔ الجزء {k} من {n} خارج المدى")
     return [it for i, it in enumerate(items) if i % n == k - 1]
@@ -86,15 +124,20 @@ def cmd_status(a) -> int:
     miss = missing(Path(a.media), a.folder, job)
     total = len(job["items"])
     print(f"{a.folder}: {total - len(miss)}/{total} · الحالة في الملف: {job.get('status')}")
+    base = Path(a.media) / a.folder
     for it in miss[:20]:
-        print("  ناقص:", it["file"])
+        f = base / it["file"]
+        why = "غائب" if not f.exists() else f"تالف أو بمقاسٍ غير {it.get('size')}: {dims(f)}"
+        print("  ناقص:", it["file"], "—", why)
     return 0 if not miss else 3
 
 
 def cmd_shard(a) -> int:
     job = read_job(Path(a.media), a.folder)
-    for it in shard(missing(Path(a.media), a.folder, job), a.k, a.n):
-        print(it["file"])
+    base = Path(a.media) / a.folder
+    for it in shard(job["items"], a.k, a.n):
+        if not done(base, it):
+            print(it["file"])
     return 0
 
 
