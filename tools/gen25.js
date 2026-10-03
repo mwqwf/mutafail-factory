@@ -120,14 +120,14 @@ async function genWith(model, blk) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
     const body = {
       // توجيه الأداء (style) يسبق النصّ بصيغة «Say …: نص» الموثّقة؛ والفاحص السمعي يمسك أيّ نطقٍ له
-      contents: [{ parts: [{ text: (blk.style ? blk.style + ': ' : '') + blk.text }] }],
+      // director: صيغة «ملاحظات المخرج ثم TRANSCRIPT» — يُقرأ ما بعد العنوان وحده (systemInstruction مرفوضٌ في 3.8: «Developer instruction is not enabled»)
+      contents: [{ parts: [{ text: blk.director ? blk.director + '\n\n#### TRANSCRIPT\n' + blk.text : (blk.style ? blk.style + ': ' : '') + blk.text }] }],
       generationConfig: {
         responseModalities: ['AUDIO'],
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: blk.voice || 'Charon' } } },
       },
     };
-    // ⭐ توجيه النظام (system): يضبط النبرة دون أن يدخل النصَّ المنطوق — طغى «style» المضمَّن نطقاً على كل جملة (حكم المالك 2026-10-03)
-    if (blk.system) body.systemInstruction = { parts: [{ text: blk.system }] };
+
     try {
       const ctl = new AbortController();
       const t = setTimeout(() => ctl.abort(), 600000);

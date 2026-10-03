@@ -46,6 +46,7 @@ jobs:
               [ -f "p_$V/audio/$id.wav" ] || { echo "::error::لم يُولَّد $V/$id"; exit 1; }
               ffmpeg -loglevel error -y -i "p_$V/audio/$id.wav" -af apad=pad_dur=0.6 -ar 24000 -ac 1 "p_$V/$id.pad.wav"
               echo "file '$id.pad.wav'" >> "p_$V/list.txt"
+              echo "$V/$id: $(ffprobe -v error -show_entries format=duration -of csv=p=0 "p_$V/audio/$id.wav") ث" | tee -a out/durations.txt
             done
             ffmpeg -loglevel error -y -f concat -safe 0 -i "p_$V/list.txt" -b:a 128k "out/$SLUG-voice-$V.mp3"
             # target_secs: نسخةٌ مسرَّعة بلا تغيير طبقة الصوت إلى مدّة المرجع (النسخة بلا توجيه)
@@ -59,4 +60,4 @@ jobs:
         if: env.SLUG != ''
         run: |
           gh release view "$SLUG-voice" >/dev/null 2>&1 || gh release create "$SLUG-voice" --draft --title "$SLUG — عيّنة الصوت" --notes "قارن بالأذن ثم اختر"
-          gh release upload "$SLUG-voice" out/*.mp3 --clobber
+          gh release upload "$SLUG-voice" out/*.mp3 out/durations.txt --clobber
