@@ -62,12 +62,32 @@
       "Bash(diff:*)",
       "Bash(sha256sum:*)",
       "Bash(curl:*)",
-      "Bash(tar:*)"
+      "Bash(tar:*)",
+      "PowerShell",
+      "MultiEdit",
+      "NotebookEdit",
+      "Task",
+      "TodoWrite",
+      "Skill",
+      "mcp__*",
+      "Bash(git rebase:*)",
+      "Bash(git push --force-with-lease:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(npx wrangler:*)",
+      "Bash(wrangler:*)",
+      "Bash(./gradlew:*)",
+      "Bash(gradle:*)",
+      "Bash(pip:*)",
+      "Bash(npx:*)"
     ],
     "deny": [
       "Bash(rm:*secure-keys*)",
       "Bash(rm:*.jks*)",
-      "Bash(rm:*.keystore*)"
+      "Bash(rm:*.keystore*)",
+      "PowerShell(Remove-Item:*secure-keys*)",
+      "PowerShell(Remove-Item:*.jks*)",
+      "PowerShell(Remove-Item:*.keystore*)"
     ],
     "defaultMode": "bypassPermissions"
   },
@@ -140,5 +160,6 @@
         ]
       }
     ]
-  }
+  },
+  "skipDangerousModePermissionPrompt": true
 }
