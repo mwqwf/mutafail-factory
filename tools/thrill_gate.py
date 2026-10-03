@@ -9,6 +9,15 @@
     تُختم بمعلّقةٍ (سؤالٌ أو «…») · نصّ المصغّرة قصيرٌ (≤ 3 كلمات للسطر) وبلا تشكيل.
   ⚠️ تنبيه: وعدٌ صريحٌ في الافتتاحية · افتتاحيات الفصول قصيرة · عنوانٌ فيه سؤالٌ أو تعليق.
 
+⭐ الإيقاع والتركيز (أمر المالك 2026-10-03: «الفيديوهات طويلة ومع ذلك لا تركّز على المعركة نفسها،
+   ولا أكشن ولا حماسة»). القياس على بدر: الالتحامُ 6٪ من الكلام، وأوّل سيفٍ بعد 44٪ منه، وكلُّ صورةٍ
+   تبقى على الشاشة نحو 22 ثانية — وكانت تجتاز البوّابة القديمة. فصارت تقيس البنيةَ لا علاماتِ الترقيم وحدها:
+  ✗ فيلم المعركة (`genre: battle` في publish.json): كلُّ فصلٍ له `phase` (setup/buildup/battle/aftermath)،
+    والمعركة ≥ 45٪ من كلام المتن، والتمهيد ≤ 15٪، وما بعد المعركة مع الخاتمة ≤ 15٪، وأوّلُ كتلة قتالٍ قبل 35٪.
+  ✗ إيقاع الصورة: متوسّط اللقطة ≤ 6 ث وأطولُها ≤ 10 ث (تقديراً من عدد الكلمات؛ مقطعُ الراوي مستثنى).
+  ✗ الافتتاحية (الفصل الأوّل) ≤ 60 ث تقديراً، وكلام الراوي فيها ≤ 45 كلمة: الخطّاف ثم القصّة.
+  ✗ لا تفضيلَ مطلقاً بلا «من» في العنوان ونصّ المصغّرات وعناوين الريلزات (أعظم/أكبر/الوحيد/لم يسبق) — تنبيهٌ في المتن.
+
 لا تقيس البوّابة الصدق — ذاك للتفنيد وسجلّ الدعاوى. والحماسة لا تُسقط التوثيق.
 
     python3 tools/thrill_gate.py <مجلد_المشروع> [--thumbs thumbs.json]   # خروج 0 = تجتاز · 1 = لا
@@ -28,6 +37,15 @@ HOOK_FIRST_MAX = 16      # كلماتُ أوّل جملة
 CHAPTER_OPEN_MAX = 22    # كلماتُ أوّل كتلة في الفصل
 CLIFF_MIN = 0.70         # نسبةُ الفصول المختومة بمعلّقة
 OPEN_LOOPS_MIN = 2       # أسئلةٌ في أوّل 12 كتلة
+SEC_PER_WORD = 0.46      # تقديرُ زمن الكلمة المشكولة بصوت القناة (≈ 130 كلمة/د) — قبل وجود الصوت
+SHOT_MEAN_MAX = 6.0      # متوسّط بقاء اللقطة على الشاشة (ث)
+SHOT_MAX = 10.0          # أطولُ لقطة (ث)
+INTRO_MAX = 60.0         # الفصل الأوّل كلّه (ث): بدر كانت نحو 80 ث، عشرون منها خطّاف والباقي مراسم
+INTRO_NARRATOR_MAX = 45  # كلماتُ الراوي الظاهر في الافتتاحية
+BATTLE_MIN, SETUP_MAX, AFTER_MAX, FIRST_CLASH_MAX = 0.45, 0.15, 0.15, 0.35
+PHASES = ("setup", "buildup", "battle", "aftermath")
+SUPERLATIVE = re.compile(r"(?<!من )(?<!الله )\b(أعظم|أكبر|الوحيد|لم يسبق)")   # «الله أكبر» تكبيرٌ لا تفضيل
+SUBSCRIBE = re.compile(r"(اشتركوا|اشترك|الجرس)")
 
 
 def plain(t: str) -> str:
@@ -41,6 +59,97 @@ def words(t: str) -> int:
 def is_cliff(t: str) -> bool:
     t = plain(t)
     return "؟" in t or t.endswith("…") or t.endswith("...")
+
+
+def absolute(t: str) -> list[str]:
+    """تفضيلٌ مطلقٌ غيرُ مقيّد: «أعظم معركة» لا «من أعظم المعارك»."""
+    return [m.group(1) for m in SUPERLATIVE.finditer(plain(t))]
+
+
+def pacing(proj: Path, blocks: list[dict], film: list[dict], sections: list[dict], pub: dict) -> tuple[list[str], list[str]]:
+    """الإيقاع والتركيز على المعركة — تقديرٌ من النصّ قبل الصوت."""
+    errs, warns = [], []
+    by_id = {b["id"]: b for b in blocks}
+    order = [b["id"] for b in film]
+    sec = lambda ids: sum(words(by_id[i]["text"]) for i in ids if i in by_id) * SEC_PER_WORD
+
+    # ١. إيقاع الصورة: كلُّ لقطةٍ تُقاس بكلام كتلها (أو مدّتها الثابتة)
+    shots = load(proj, "shots.json") or []
+    spans = []
+    for s in shots:
+        if s.get("avatar") or s.get("lipsync"):
+            continue
+        ids = [i for i in s.get("blocks", []) if i in by_id and not by_id[i].get("reel_only")]
+        span = sec(ids) if ids else float(s.get("hold") or 0)
+        if span:
+            spans.append((span, s["id"]))
+    if spans:
+        mean = sum(x for x, _ in spans) / len(spans)
+        if mean > SHOT_MEAN_MAX:
+            errs.append(f"اللقطة تبقى {mean:.1f} ث في المتوسّط (> {SHOT_MEAN_MAX:.0f}): صورةٌ ثابتةٌ طويلة تقتل الأكشن — "
+                        f"لقطةٌ لكلّ جملة، ويجوز أن تتشارك لقطتان صورةً واحدة بحركتين (حقل file)")
+        long_ = sorted(((x, i) for x, i in spans if x > SHOT_MAX), reverse=True)
+        if long_:
+            errs.append(f"{len(long_)} لقطة أطول من {SHOT_MAX:.0f} ث، أطولُها " +
+                        ", ".join(f"{i} ({x:.0f} ث)" for x, i in long_[:5]))
+
+    # ٢. الافتتاحية: الفصل الأوّل كلّه، وكلام الراوي الظاهر فيه
+    starts = sorted(order.index(x["id"]) for x in sections if x.get("id") in order)
+    if len(starts) > 1:
+        intro = order[starts[0]:starts[1]]
+        cut = next((k for k, t in enumerate(shots) if order[starts[1]] in t.get("blocks", [])), 0)
+        holds = sum(float(t.get("hold") or 0) for t in shots[:cut] if not t.get("blocks"))
+        total = sec(intro) + holds
+        if total > INTRO_MAX:
+            errs.append(f"الافتتاحية نحو {total:.0f} ث (> {INTRO_MAX:.0f}): ما بعد الخطّاف من مراسمٍ يُسرَّب منه المشاهد")
+        av = {i for s in shots if s.get("avatar") or s.get("lipsync") for i in s.get("blocks", [])}
+        nw = sum(words(by_id[i]["text"]) for i in intro if i in av)
+        if nw > INTRO_NARRATOR_MAX:
+            errs.append(f"كلام الراوي في الافتتاحية {nw} كلمة (> {INTRO_NARRATOR_MAX}): ظهورٌ خاطف ثم القصّة")
+        if any(SUBSCRIBE.search(plain(by_id[i]["text"])) for i in intro if i in by_id):
+            warns.append("نداء الاشتراك في الافتتاحية: يُقترح نقله بعد أوّل وفاءٍ بوعد (قرار المالك)")
+
+    # ٣. فيلم المعركة: التركيز على المعركة نفسها
+    battle_film = pub.get("genre") == "battle" or any(x.get("phase") for x in sections)
+    if battle_film and len(starts) > 1:
+        body = order[starts[1]:]
+        sec_of = {}
+        bounds = starts[1:] + [len(order)]
+        for x in sections:
+            if x.get("id") in order and order.index(x["id"]) >= starts[1]:
+                a = order.index(x["id"])
+                b = min(k for k in bounds if k > a)
+                sec_of[x["id"]] = (x.get("phase"), order[a:b])
+        missing = [k for k, (ph, _) in sec_of.items() if ph not in PHASES]
+        if missing:
+            errs.append(f"{len(missing)} فصلاً بلا phase صالح ({'/'.join(PHASES)}): {', '.join(missing[:5])}")
+        else:
+            tot = sum(words(by_id[i]["text"]) for i in body) or 1
+            share = {p: sum(words(by_id[i]["text"]) for ph, ids in sec_of.values() if ph == p for i in ids) / tot for p in PHASES}
+            if share["battle"] < BATTLE_MIN:
+                errs.append(f"المعركة {share['battle']:.0%} من المتن (≥ {BATTLE_MIN:.0%}): الفيلم يدور حولها لا فيها")
+            if share["setup"] > SETUP_MAX:
+                errs.append(f"التمهيد {share['setup']:.0%} من المتن (≤ {SETUP_MAX:.0%}): السياق يُروى داخل المعركة لا قبلها")
+            if share["aftermath"] > AFTER_MAX:
+                errs.append(f"ما بعد المعركة والخاتمة {share['aftermath']:.0%} (≤ {AFTER_MAX:.0%})")
+            first = next((n for n, i in enumerate(body) for ph, ids in sec_of.values() if ph == "battle" and i in ids), None)
+            pos = sum(words(by_id[i]["text"]) for i in body[:first]) / tot if first is not None else 1
+            if pos > FIRST_CLASH_MAX:
+                errs.append(f"أوّل كتلة قتالٍ بعد {pos:.0%} من المتن (≤ {FIRST_CLASH_MAX:.0%})")
+    elif pub.get("genre") == "battle":
+        errs.append("فيلم معركة بلا فصول (sections.json)")
+
+    # ٤. الصدق: لا تفضيلَ مطلق في الواجهة
+    title = (pub.get("film") or {}).get("title") or pub.get("title") or ""
+    faces = [("العنوان", title)] + [(f"الريلز {r.get('id')}", r.get("title", "")) for r in (load(proj, "reels.json") or [])]
+    for where, t in faces:
+        bad = absolute(t)
+        if bad:
+            errs.append(f"{where}: تفضيلٌ مطلق «{bad[0]}» بلا «من» — «من أعظم…» أو مصدرٌ صريح")
+    flagged = [b["id"] for b in film if absolute(b["text"])]
+    if flagged:
+        warns.append(f"تفضيلٌ مطلق في {len(flagged)} كتلة ({', '.join(flagged[:5])}): يُسند أو يُقيَّد")
+    return errs, warns
 
 
 def load(p: Path, name: str):
@@ -99,7 +208,7 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
 
     # ٤. العنوان
     pub = load(proj, "publish.json") or {}
-    title = plain(pub.get("title", ""))
+    title = plain((pub.get("film") or {}).get("title") or pub.get("title", ""))
     if title and not re.search(r"[؟…:]|\.\.\.", title):
         warns.append(f"العنوان بلا سؤالٍ ولا تعليق: «{title[:50]}»")
 
@@ -130,7 +239,14 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
                 errs.append(f"{t.get('file')}: نصّ المصغّرة مشكول (التشكيل ينزاح في الرسم)")
             if any(len(x.split()) > 3 for x in lines) or sum(len(x.split()) for x in lines) > 6:
                 errs.append(f"{t.get('file')}: نصّ المصغّرة طويل {lines} (≤ 3 كلمات للسطر و≤ 6 للكلّ)")
-    return errs, warns
+            if any(absolute(x) for x in lines):
+                errs.append(f"{t.get('file')}: تفضيلٌ مطلق في نصّ المصغّرة {lines} — المحروق لا يُصحَّح بعد النشر")
+            tw = set(plain(title).split())
+            if lines and tw and sum(w in tw for x in lines for w in x.split()) >= max(2, len(" ".join(lines).split()) - 1):
+                warns.append(f"{t.get('file')}: نصّ المصغّرة يكرّر العنوان — المصغّرة تكمله ولا تعيده")
+
+    e2, w2 = pacing(proj, blocks, film, sections, pub)
+    return errs + e2, warns + w2
 
 
 def main() -> int:

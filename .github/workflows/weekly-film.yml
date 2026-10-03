@@ -137,11 +137,9 @@ jobs:
             node tools/gen25.js proj 12 --keys /tmp/keys.json --model gemini-3.8-flash-tts || true
             python tools/audio_checks.py proj && break
           done
-          # نفدت حصّة 3.8 اليومية (فتح القسطنطينية 2026-09-28: 12 كتلة «nokeys») ⇒ ما بقي بنموذجٍ ذي حصّةٍ منفصلة، بالصوت نفسه
-          python tools/audio_checks.py proj || for m in gemini-2.5-flash-preview-tts gemini-2.5-pro-preview-tts; do
-            node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$m" || true
-            python tools/audio_checks.py proj && break
-          done
+          # ⛔ لا رجوع إلى نماذج 2.5 حين تنفد حصّة 3.8 (الدليل §٦ «لا رجوع للنماذج القديمة» — تدقيق كوديكس MF-02):
+          #    كانت تُخلط في الفيلم الواحد كتلٌ من نموذجين. ما نقص يبقى ناقصاً، والحالة تُحفظ (⑤ always)،
+          #    والشوطُ التالي بعد تجدّد الحصّة (07:05Z) يكمل من حيث وقف.
           REEL_SOFT=1 python tools/audio_checks.py proj
 
       - name: ② الإصغاء المشكول (كتلة كتلة) — تقريرٌ للتحكيم
@@ -178,9 +176,7 @@ jobs:
           for i in 1 2 3; do
             python tools/style_leak.py proj && break
             # حين تنفد حصّة النموذج الأساسي تُعاد الكتلة بالنماذج الاحتياطية (القسطنطينية 2026-09-28: d_003 بقي «nokeys»)
-            for tm in gemini-3.8-flash-tts gemini-2.5-flash-preview-tts gemini-2.5-pro-preview-tts; do
-              node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$tm" && break || true
-            done
+            node tools/gen25.js proj 12 --keys /tmp/keys.json --model gemini-3.8-flash-tts || true   # النموذج المعتمد وحده (MF-02)
             python tools/audio_checks.py proj || true
             for m in "" gemini-flash-latest gemini-3.8-flash gemini-3.5-flash-lite; do
               node tools/listen.js proj 12 --keys /tmp/keys.json --batch 1 ${m:+--model "$m"} || true

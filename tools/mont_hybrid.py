@@ -6,6 +6,7 @@
 import json, os, sys, glob, random, subprocess as sp
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import envpaths, kb3d
+from sfx_verdict import ok as sfx_ok   # صوت Kling يدخل بحكمٍ مطابقٍ لبصمة المقطع الحاليّ (MF-07)
 from envpaths import FF, FP
 from PIL import Image, ImageDraw, ImageFilter
 
@@ -182,6 +183,9 @@ def captions(s, seg, span):
 
 # ② اللقطات + جدول المؤثّرات
 segs, fx = [], []   # fx: (بداية، مدة، ملف، مستوى)
+# ⭐ أمر المالك 2026-10-03 («لا أكشن»): كان المقطعُ الحيّ يُبطَّأ ×1.4 ليملأ كلاماً أطول، فتصير الخيلُ والسيوف حركةً بطيئةً
+#    مائعة. ⇒ لا إبطاء فوق ×1.15، وما زاد يكمله kb3d — والعلاجُ الحقّ لقطاتٌ أقصر (thrill_gate: ≤ 6 ث متوسّطاً).
+SLOW_MAX = 1.15
 t = 0.0
 TL = {}             # بداية كل لقطة ومدتها في الفيلم — يقرؤها mkreel_open.py لقصّ ريلز الافتتاحية
 for n, s in enumerate(shots):
@@ -206,15 +210,15 @@ for n, s in enumerate(shots):
                 else:
                     sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'scale=1920:1080,fps=25',
                             '-t', '%.3f' % span] + ENC + [out], check=True)
-            elif span <= kd * 1.4:
+            elif span <= kd * SLOW_MAX:
                 # لقطة التحوّل (FLF) تُضغط إن طالت فلا يُقصّ آخرها — نهايتها هي صورة اللقطة التالية (ظهور الراوي في حطّين)
                 k = span / kd if s.get('end_image') else max(1.0, span / kd)
                 sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=%.4f*PTS,scale=1920:1080,fps=25' % k,
                         '-t', '%.3f' % span] + ENC + [out], check=True)
             else:
                 a, b2 = out[:-4] + '_a.mp4', out[:-4] + '_b.mp4'
-                sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=1.4*PTS,scale=1920:1080,fps=25', '-t', '%.3f' % (kd * 1.4)] + ENC + [a], check=True)
-                kb3d.render(img, b2, span - kd * 1.4, n)
+                sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=%.2f*PTS,scale=1920:1080,fps=25' % SLOW_MAX, '-t', '%.3f' % (kd * SLOW_MAX)] + ENC + [a], check=True)
+                kb3d.render(img, b2, span - kd * SLOW_MAX, n)
                 lst = out[:-4] + '.txt'
                 open(lst, 'w', encoding='utf-8').write("file '%s'\nfile '%s'\n" % (a.replace('\\', '/'), b2.replace('\\', '/')))
                 sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', lst, '-vf', 'fps=25'] + ENC + [out], check=True)
@@ -230,7 +234,7 @@ for n, s in enumerate(shots):
         out = captions(s, out, span)
     segs.append(out)
     # صوتُ Kling الطبيعي (إن اجتاز الفحص) وإلا مؤثّرُ المكتبة
-    if kl and os.path.exists(kl[:-4] + '.ok'):
+    if kl and sfx_ok(kl):
         fx.append((t, min(span, dur(kl)), kl, 0.35))
     elif s.get('sfx') and s['sfx'] != 'none':
         c = sorted(glob.glob(os.path.join(SFX, s['sfx'] + '_*.ogg')))

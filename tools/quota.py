@@ -19,9 +19,13 @@ COST = {"upload": 1600, "thumbnail": 50, "playlist_insert": 50,
         "video_update": 50, "read": 1}
 
 
-def _today():
-    # ⛔ يومُ حصّة يوتيوب يبدأ عند تجدّدها لا عند منتصف ليل غرينتش
-    return time.strftime("%Y-%m-%d", time.gmtime(time.time() - 7 * 3600))
+def _today(now=None):
+    # ⛔ يومُ حصّة يوتيوب يبدأ عند تجدّدها: منتصف ليل المحيط الهادئ بتوقيته الصيفيّ والشتويّ
+    #    (كانت إزاحةً ثابتة −7 س فيفتح الدفترُ يوماً جديداً شتاءً قبل التجدّد بساعة — تدقيق كوديكس MF-14)
+    from datetime import datetime, timezone
+    from zoneinfo import ZoneInfo
+    t = datetime.fromtimestamp(time.time() if now is None else now, timezone.utc)
+    return t.astimezone(ZoneInfo("America/Los_Angeles")).strftime("%Y-%m-%d")
 
 
 def load():
