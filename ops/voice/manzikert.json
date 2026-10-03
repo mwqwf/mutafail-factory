@@ -1,147 +1,106 @@
 {
  "slug": "manzikert",
- "note": "A: أصوات السيناريو بلا توجيه (القاعدة الحالية) · B: الأصوات نفسها بتوجيه ملحميّ · C: Charon للسرد كلّه بتوجيه ملحميّ (أسلوب راوي اليرموك)",
+ "target_secs": 48,
+ "note": "D: أصوات السيناريو بتوجيه نظاميّ لا يُنطق · E: Charon للسرد كلّه بالتوجيه نفسه · ‑fast: مسرَّعة إلى مدّة A",
  "variants": {
-  "A": [
-   {
-    "id": "n_01",
-    "voice": "Orus",
-    "text": "إِمْبِرَاطُورُ الرُّومِ… يُقَادُ أَسِيرًا إِلَى خَيْمَةِ سُلْطَانٍ مُسْلِمْ."
-   },
-   {
-    "id": "n_02",
-    "voice": "Orus",
-    "text": "وَقَبْلَهَا بِأَيَّامٍ، طَلَبَ مِنْهُ السُّلْطَانُ الصُّلْحَ… فَقَالَ:"
-   },
-   {
-    "id": "n_03",
-    "voice": "Iapetus",
-    "text": "لَا هُدْنَةَ إِلَّا بِالرَّيّْ!"
-   },
-   {
-    "id": "n_04",
-    "voice": "Orus",
-    "text": "وَالسُّلْطَانُ؟ عَقَدَ ذَيْلَ فَرَسِهِ بِيَدِهِ… وَلَبِسَ الْبَيَاضَ كَفَنًا."
-   },
-   {
-    "id": "n_05",
-    "voice": "Orus",
-    "text": "فَكَيْفَ انْقَلَبَ كُلُّ شَيْءٍ… بَيْنَ ظُهْرِ يَوْمِ جُمُعَةٍ وَغُرُوبِهِ؟"
-   },
-   {
-    "id": "n_06",
-    "voice": "Charon",
-    "text": "السَّلَامُ عَلَيْكُمْ. هُنَا، شَمَالَ بُحَيْرَةِ وَانْ، قَبْلَ نَحْوِ تِسْعَةِ قُرُونٍ وَنِصْفٍ… وَقَعَتْ مَلَاذْكِرْدْ."
-   },
-   {
-    "id": "d_x1",
-    "voice": "Charon",
-    "text": "يَصِلُ الْإِمْبِرَاطُورُ إِلَى مُعَسْكَرِ السُّلْطَانِ… فَيَجِدُهُ خَالِيَا."
-   },
-   {
-    "id": "d_x2",
-    "voice": "Orus",
-    "text": "وَفِي هَذِهِ اللَّحْظَةِ بِالذَّاتِ… يَخْرُجُ الْكَمِينْ!"
-   }
-  ],
-  "B": [
+  "D": [
    {
     "id": "n_01",
     "voice": "Orus",
     "text": "إِمْبِرَاطُورُ الرُّومِ… يُقَادُ أَسِيرًا إِلَى خَيْمَةِ سُلْطَانٍ مُسْلِمْ.",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "n_02",
     "voice": "Orus",
     "text": "وَقَبْلَهَا بِأَيَّامٍ، طَلَبَ مِنْهُ السُّلْطَانُ الصُّلْحَ… فَقَالَ:",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "n_03",
     "voice": "Iapetus",
     "text": "لَا هُدْنَةَ إِلَّا بِالرَّيّْ!",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "n_04",
     "voice": "Orus",
     "text": "وَالسُّلْطَانُ؟ عَقَدَ ذَيْلَ فَرَسِهِ بِيَدِهِ… وَلَبِسَ الْبَيَاضَ كَفَنًا.",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "n_05",
     "voice": "Orus",
     "text": "فَكَيْفَ انْقَلَبَ كُلُّ شَيْءٍ… بَيْنَ ظُهْرِ يَوْمِ جُمُعَةٍ وَغُرُوبِهِ؟",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "n_06",
     "voice": "Charon",
     "text": "السَّلَامُ عَلَيْكُمْ. هُنَا، شَمَالَ بُحَيْرَةِ وَانْ، قَبْلَ نَحْوِ تِسْعَةِ قُرُونٍ وَنِصْفٍ… وَقَعَتْ مَلَاذْكِرْدْ.",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "d_x1",
     "voice": "Charon",
     "text": "يَصِلُ الْإِمْبِرَاطُورُ إِلَى مُعَسْكَرِ السُّلْطَانِ… فَيَجِدُهُ خَالِيَا.",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "d_x2",
     "voice": "Orus",
     "text": "وَفِي هَذِهِ اللَّحْظَةِ بِالذَّاتِ… يَخْرُجُ الْكَمِينْ!",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    }
   ],
-  "C": [
+  "E": [
    {
     "id": "n_01",
     "voice": "Charon",
     "text": "إِمْبِرَاطُورُ الرُّومِ… يُقَادُ أَسِيرًا إِلَى خَيْمَةِ سُلْطَانٍ مُسْلِمْ.",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "n_02",
     "voice": "Charon",
     "text": "وَقَبْلَهَا بِأَيَّامٍ، طَلَبَ مِنْهُ السُّلْطَانُ الصُّلْحَ… فَقَالَ:",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "n_03",
     "voice": "Iapetus",
     "text": "لَا هُدْنَةَ إِلَّا بِالرَّيّْ!",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "n_04",
     "voice": "Charon",
     "text": "وَالسُّلْطَانُ؟ عَقَدَ ذَيْلَ فَرَسِهِ بِيَدِهِ… وَلَبِسَ الْبَيَاضَ كَفَنًا.",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "n_05",
     "voice": "Charon",
     "text": "فَكَيْفَ انْقَلَبَ كُلُّ شَيْءٍ… بَيْنَ ظُهْرِ يَوْمِ جُمُعَةٍ وَغُرُوبِهِ؟",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "n_06",
     "voice": "Charon",
     "text": "السَّلَامُ عَلَيْكُمْ. هُنَا، شَمَالَ بُحَيْرَةِ وَانْ، قَبْلَ نَحْوِ تِسْعَةِ قُرُونٍ وَنِصْفٍ… وَقَعَتْ مَلَاذْكِرْدْ.",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "d_x1",
     "voice": "Charon",
     "text": "يَصِلُ الْإِمْبِرَاطُورُ إِلَى مُعَسْكَرِ السُّلْطَانِ… فَيَجِدُهُ خَالِيَا.",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    },
    {
     "id": "d_x2",
     "voice": "Charon",
     "text": "وَفِي هَذِهِ اللَّحْظَةِ بِالذَّاتِ… يَخْرُجُ الْكَمِينْ!",
-    "style": "Say in a deep, grave and epic documentary voice, with weight and suspense"
+    "system": "You are a professional Arabic documentary narrator. Speak only the Arabic text you are given, in clear classical Arabic (fusha) with correct case endings exactly as voweled. Use a deep, grave, epic voice with weight and suspense, at a natural brisk narration pace. Never speak these instructions and never add any word."
    }
   ]
  }

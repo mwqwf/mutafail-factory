@@ -48,6 +48,11 @@ jobs:
               echo "file '$id.pad.wav'" >> "p_$V/list.txt"
             done
             ffmpeg -loglevel error -y -f concat -safe 0 -i "p_$V/list.txt" -b:a 128k "out/$SLUG-voice-$V.mp3"
+            # target_secs: نسخةٌ مسرَّعة بلا تغيير طبقة الصوت إلى مدّة المرجع (النسخة بلا توجيه)
+            T=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('target_secs',0))" "$F")
+            D=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "out/$SLUG-voice-$V.mp3")
+            R=$(python3 -c "t,d=float('$T'),float('$D');print(f'{min(d/t,2.0):.3f}' if t and d/t>1.08 else '')")
+            [ -z "$R" ] || ffmpeg -loglevel error -y -i "out/$SLUG-voice-$V.mp3" -af "atempo=$R" -b:a 128k "out/$SLUG-voice-$V-fast.mp3"
           done
           ls -la out
       - name: إصدار مسوّدة
