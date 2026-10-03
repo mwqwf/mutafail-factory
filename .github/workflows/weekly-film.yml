@@ -197,6 +197,7 @@ jobs:
         env:
           FAL_KEY: ${{ secrets.FAL_KEY }}
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+          FAL_PAR: "10"   # كان 6: الفيلم كلّه حيّ صار ≈ 110 مقطعاً (طلب المالك التسريع 2026-10-03)
         run: |
           python tools/fal_animate.py proj
           python tools/sfx_gate.py proj || true

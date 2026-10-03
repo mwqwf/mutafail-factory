@@ -33,6 +33,12 @@ def clip(sid):
             or find(sid + '_raw', ['clips'], ['mp4']))
 
 
+def image_of(s):
+    # الصورة باسم file إن اختلف عن معرّف اللقطة (لقطتان تتشاركان صورة — ملاذكرد 2026-10-03: 35 لقطة سقطت هنا)
+    return (find(s['id'], ['images', 'img'], ['jpg', 'png'])
+            or find(s.get('file', '').rsplit('.', 1)[0], ['images', 'img'], ['jpg', 'png']))
+
+
 def find(sid, dirs, exts):
     for d in dirs:
         for e in exts:
@@ -84,7 +90,7 @@ for n, s in enumerate(shots):
     an = find(s['id'], ['anim'], ['mp4'])
     if an and dur(an) >= span - 0.5:
         continue
-    jobs.append((find(s['id'], ['images', 'img'], ['jpg', 'png']), P('anim', '%s.mp4' % s['id']), span + 0.3, n))
+    jobs.append((image_of(s), P('anim', '%s.mp4' % s['id']), span + 0.3, n))
 if jobs:
     from concurrent.futures import ProcessPoolExecutor
     with ProcessPoolExecutor(os.cpu_count() or 2) as ex:
@@ -191,7 +197,7 @@ TL = {}             # بداية كل لقطة ومدتها في الفيلم �
 for n, s in enumerate(shots):
     span = span_of(s)
     out = os.path.join(SEG, 's%03d.mp4' % n)
-    kl = clip(s['id']); img = find(s['id'], ['images', 'img'], ['jpg', 'png'])
+    kl = clip(s['id']); img = image_of(s)
     an = find(s['id'], ['anim'], ['mp4'])
     if not (os.path.exists(out) and abs(dur(out) - span) < 0.08):
         if kl:

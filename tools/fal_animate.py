@@ -65,8 +65,13 @@ spent = lambda: sum(x['cost_usd'] for x in ledger) + sum(v.get('cost_usd', 0) fo
 save = lambda f, d: io.open(f, 'w', encoding='utf-8').write(json.dumps(d, ensure_ascii=False, indent=1))
 
 
+FILE = {s['id']: s['file'] for s in shots if s.get('file')}   # لقطتان قد تتشاركان صورةً بحركتين (الدليل §٣) ⇒ الصورة باسم file لا بمعرّف اللقطة
+
+
 def img_path(sid):
-    # images/<id>.jpg أو images/<بادئة>_<id>.jpg (كما يسمّيها كوديكس في shots.json)
+    # images/<file> أوّلاً، ثم images/<id>.jpg أو images/<بادئة>_<id>.jpg (كما يسمّيها كوديكس في shots.json)
+    for d in ('images', 'img'):
+        if FILE.get(sid) and os.path.exists(P(d, FILE[sid])): return P(d, FILE[sid])
     for d in ('images', 'img'):
         for ext in ('jpg', 'png'):
             p = P(d, '%s.%s' % (sid, ext))
