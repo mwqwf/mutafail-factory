@@ -1,0 +1,57 @@
+name: عيّنة الصوت — مقارنة بالأذن قبل توليد صوت الفيلم
+
+run-name: 🎙️ ${{ github.event.head_commit.message }}
+
+# ⭐ ذاكرة المالك (2026-10-03): صوت راوي اليرموك أحسن في بعض المواضع، والفرق المرجّح توجيه الأداء.
+# الجلسة تدفع ops/voice/<slug>.json = {"slug": "...", "variants": {"A": [كتل], "B": [...]}}، وكلّ كتلة {id, voice, text, style?}.
+# المخرج: إصدار مسوّدة <slug>-voice فيه ملفّ mp3 لكلّ نسخة. Gemini مجّاني بحصّته، والعدّاء القياسيّ مجّاني (المستودع عامّ).
+on:
+  push:
+    paths: ["ops/voice/**"]
+
+permissions:
+  contents: write
+
+jobs:
+  sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: الأدوات
+        run: sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg >/dev/null
+      - name: المفاتيح
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+      - name: التوليد والتجميع
+        run: |
+          set -euo pipefail
+          F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/voice/.*\.json$' | head -1 || true)
+          [ -n "$F" ] || { echo "::notice::لا ملفّ عيّنة في هذا الإيداع"; exit 0; }
+          SLUG=$(python3 -c "import json,sys,re;s=json.load(open(sys.argv[1]))['slug'];assert re.fullmatch(r'[a-z0-9-]+',s);print(s)" "$F")
+          echo "SLUG=$SLUG" >> "$GITHUB_ENV"
+          mkdir -p out
+          for V in $(python3 -c "import json,sys;print(' '.join(json.load(open(sys.argv[1]))['variants']))" "$F"); do
+            mkdir -p "p_$V"
+            python3 -c "import json,sys;d=json.load(open(sys.argv[1]));json.dump(d['variants'][sys.argv[2]],open(sys.argv[3],'w'),ensure_ascii=False)" "$F" "$V" "p_$V/blocks.json"
+            for i in 1 2 3; do node tools/gen25.js "p_$V" 4 --keys /tmp/keys.json --model gemini-3.8-flash-tts || true; done
+            : > "p_$V/list.txt"
+            for id in $(python3 -c "import json,sys;print(' '.join(b['id'] for b in json.load(open(sys.argv[1]))))" "p_$V/blocks.json"); do
+              [ -f "p_$V/audio/$id.wav" ] || { echo "::error::لم يُولَّد $V/$id"; exit 1; }
+              ffmpeg -loglevel error -y -i "p_$V/audio/$id.wav" -af apad=pad_dur=0.6 -ar 24000 -ac 1 "p_$V/$id.pad.wav"
+              echo "file '$id.pad.wav'" >> "p_$V/list.txt"
+            done
+            ffmpeg -loglevel error -y -f concat -safe 0 -i "p_$V/list.txt" -b:a 128k "out/$SLUG-voice-$V.mp3"
+          done
+          ls -la out
+      - name: إصدار مسوّدة
+        if: env.SLUG != ''
+        run: |
+          gh release view "$SLUG-voice" >/dev/null 2>&1 || gh release create "$SLUG-voice" --draft --title "$SLUG — عيّنة الصوت" --notes "قارن بالأذن ثم اختر"
+          gh release upload "$SLUG-voice" out/*.mp3 --clobber
