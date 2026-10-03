@@ -34,6 +34,7 @@ from pathlib import Path
 HARAKAT = re.compile(r"[ً-ْٰـ]")
 GREETING = re.compile(r"^(السلام عليكم|مرحبا|أهلا|اهلا|أهلاً)")
 PROMISE = re.compile(r"(سنحكي|سنروي|سنكشف|نكشف|ستعرف|ستكتشف|سنعرف|سترى|سترون|نروي لكم|نحكي لكم)")
+SMIRK = ("smirk", "half-smile", "half smile", "knowing", "sly", "wink", "playful", "mischiev")   # درس ملاذكرد: تعابير تُقرأ استهزاءً
 HOOK_FIRST_MAX = 16      # كلماتُ أوّل جملة
 CHAPTER_OPEN_MAX = 22    # كلماتُ أوّل كتلة في الفصل
 CLIFF_MIN = 0.70         # نسبةُ الفصول المختومة بمعلّقة
@@ -235,6 +236,13 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
             errs.append(f"الريلز {r.get('id')} لا يُختم بسؤالٍ معلّق يقود إلى الفيلم")
         if rb and words(rb[0]) > HOOK_FIRST_MAX:
             errs.append(f"الريلز {r.get('id')} يفتح بـ{words(rb[0])} كلمة (> {HOOK_FIRST_MAX}): الصدمة في أوّل ثانيتين")
+
+    # ٣ب. ⛔ تعابير الراوي (درس ملاذكرد 2026-10-03): نصف الابتسامة الماكرة تُقرأ استهزاءً لا تشويقاً
+    for s in load(proj, "shots.json") or []:
+        ap = (s.get("avatar_prompt") or "").lower()
+        bad = [w for w in SMIRK if w in ap]
+        if bad:
+            errs.append(f"لقطة الراوي {s.get('id')} تطلب {', '.join(bad)} — التعبير يطابق معنى الجملة (ops/LESSONS_MANZIKERT_2026-10-03.md §١)")
 
     # ٤. العنوان
     pub = load(proj, "publish.json") or {}
