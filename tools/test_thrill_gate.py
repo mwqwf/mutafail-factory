@@ -95,5 +95,25 @@ class ThrillGateTests(unittest.TestCase):
         self.assertFalse(any("تفضيلٌ مطلق" in w for w in warns))
 
 
+    def test_source_citation_in_narration_fails(self):
+        blocks = GOOD[:4] + [B("d5", "رَوَاهُ الْإِمَامُ أَحْمَدُ وَحَسَّنَهُ الْهَيْثَمِيُّ.")] + GOOD[5:] + RB
+        errs, _ = g.check(proj(blocks, SECS, REELS), None)
+        self.assertTrue(any("ذكرُ مصدرٍ" in e and "d5" in e for e in errs))
+
+    def test_animation_cost_must_fit_budget(self):
+        long_ = [B(f"L{i}", " ".join(["كَلِمَةٌ"] * 15) + "؟") for i in range(60)]
+        blocks = GOOD + long_ + RB
+        shots = [{"id": f"S{i}", "kind": "حيّة", "blocks": [f"L{i}"]} for i in range(60)]
+        d = proj(blocks, SECS, REELS, shots=shots)
+        pub = json.loads((d / "publish.json").read_text(encoding="utf-8")); pub["budget_total_usd"] = 15
+        (d / "publish.json").write_text(json.dumps(pub, ensure_ascii=False), encoding="utf-8")
+        errs, _ = g.check(d, None)
+        self.assertTrue(any("قصّر الفيلم" in e for e in errs))   # 60 × 6.9 ث × 0.07$ ≈ 29$ > 13.5$
+        pub["budget_total_usd"] = 65
+        (d / "publish.json").write_text(json.dumps(pub, ensure_ascii=False), encoding="utf-8")
+        errs, _ = g.check(d, None)
+        self.assertFalse(any("قصّر الفيلم" in e for e in errs))
+
+
 if __name__ == "__main__":
     unittest.main()

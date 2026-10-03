@@ -16,6 +16,7 @@
     والمعركة ≥ 45٪ من كلام المتن، والتمهيد ≤ 15٪، وما بعد المعركة مع الخاتمة ≤ 15٪، وأوّلُ كتلة قتالٍ قبل 35٪.
   ✗ إيقاع الصورة: متوسّط اللقطة ≤ 6 ث وأطولُها ≤ 10 ث (تقديراً من عدد الكلمات؛ مقطعُ الراوي مستثنى).
   ✗ الافتتاحية (الفصل الأوّل) ≤ 60 ث تقديراً، وكلام الراوي فيها ≤ 45 كلمة: الخطّاف ثم القصّة.
+  ✗ لا ذكرَ للمصادر في الفيلم (المصادر في الوصف) · كلفةُ التحريك المخطّط ≤ 90٪ من budget_total_usd.
   ✗ لا تفضيلَ مطلقاً بلا «من» في العنوان ونصّ المصغّرات وعناوين الريلزات (أعظم/أكبر/الوحيد/لم يسبق) — تنبيهٌ في المتن.
 
 لا تقيس البوّابة الصدق — ذاك للتفنيد وسجلّ الدعاوى. والحماسة لا تُسقط التوثيق.
@@ -46,6 +47,11 @@ BATTLE_MIN, SETUP_MAX, AFTER_MAX, FIRST_CLASH_MAX = 0.45, 0.15, 0.15, 0.35
 PHASES = ("setup", "buildup", "battle", "aftermath")
 SUPERLATIVE = re.compile(r"(?<!من )(?<!الله )\b(أعظم|أكبر|الوحيد|لم يسبق)")   # «الله أكبر» تكبيرٌ لا تفضيل
 SUBSCRIBE = re.compile(r"(اشتركوا|اشترك|الجرس)")
+# ⭐ أمر المالك 2026-10-03: «لا داعي لذكر المصادر في الفيلم… يكفي الإشارة بأنّ المصادر في الوصف، لأنّ هذا يطيل جداً ويشتّت الانتباه»
+CITATION = re.compile(r"(رواه|رَوَاهُ|أخرجه|حسّنه|حسنه|صحّحه|صححه|بإسناد|في صحيحه|في مسنده|في سننه|في تاريخه|في كتابه|الطبعة|"
+                      r"المصادر الأولى|مصادرها|البخاري|مسلم في|ابن هشام|الواقدي|ابن الأثير|ابن كثير|الطبري|الهيثمي)")
+PRICE_LIVE, PRICE_AUDIO, PRICE_AVATAR = 0.07, 0.14, 0.16   # $/ث (tools/fal_animate.py)
+BUDGET_SHARE = 0.90      # المخطّط ≤ 90٪ من السقف (هامشُ إعادات)، والفيلم كلّه حيّ إلا ما وُسم kb3d صراحةً
 
 
 def plain(t: str) -> str:
@@ -146,6 +152,30 @@ def pacing(proj: Path, blocks: list[dict], film: list[dict], sections: list[dict
         bad = absolute(t)
         if bad:
             errs.append(f"{where}: تفضيلٌ مطلق «{bad[0]}» بلا «من» — «من أعظم…» أو مصدرٌ صريح")
+    cited = [b["id"] for b in film if CITATION.search(plain(b["text"]))]
+    if cited:
+        errs.append(f"ذكرُ مصدرٍ في {len(cited)} كتلة ({', '.join(cited[:6])}): المصادر في الوصف وحده (أمر المالك 2026-10-03)")
+
+    # ٥. الميزانية تكفي تحريك الفيلم (أمر المالك 2026-10-03: «المدّة لو قلّلت لتضمن أنّ الميزانية تكفيها 100٪ أو أغلبها»)
+    cap = pub.get("budget_total_usd")
+    if cap and shots:
+        est, still = 0.0, 0.0
+        for s in shots:
+            ids = [i for i in s.get("blocks", []) if i in by_id and not by_id[i].get("reel_only")]
+            span = sec(ids) if ids else float(s.get("hold") or 0)
+            if s.get("avatar") or s.get("lipsync"):
+                est += span * PRICE_AVATAR
+            elif s.get("kind") == "حيّة":
+                est += span * (PRICE_AUDIO if s.get("audio") else PRICE_LIVE)
+            else:
+                still += span
+        total = est + still * PRICE_LIVE
+        if est > cap * BUDGET_SHARE:
+            cut = (est - cap * BUDGET_SHARE) / PRICE_LIVE
+            errs.append(f"التحريك المخطّط ≈ {est:.0f}$ يتجاوز {BUDGET_SHARE:.0%} من السقف {cap}$: قصّر الفيلم نحو {cut:.0f} ث")
+        elif still and total > cap * BUDGET_SHARE:
+            warns.append(f"{still:.0f} ث بلا تحريك حيّ؛ تحريكها كلّها ≈ {total:.0f}$ (> {BUDGET_SHARE:.0%} من {cap}$) — قصّرها أو اقبلها kb3d")
+
     flagged = [b["id"] for b in film if absolute(b["text"])]
     if flagged:
         warns.append(f"تفضيلٌ مطلق في {len(flagged)} كتلة ({', '.join(flagged[:5])}): يُسند أو يُقيَّد")
