@@ -4,3 +4,4 @@ proj/
 __pycache__/
 *.pyc
 payload/
+.claude/handoff.md
