@@ -101,20 +101,26 @@ jobs:
           cd .. && bash tools/unseal.sh sealed "$PWD/proj" && rm -rf sealed
           # مقاطعُ الافتتاحية المعتمدة (<slug>-intro-out) تدخل الفيلم كاملاً بلا دفعٍ ثانٍ لـfal
           if gh release view "$SLUG-intro-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release download "$SLUG-intro-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp/intro --clobber 2>/dev/null && \
+            bash tools/state_fetch.sh "$SLUG-intro-out" /tmp/intro && \
               mkdir -p proj/clips proj/audio && tar xzf /tmp/intro/state.tgz -C /tmp/intro clips audio && cp -n /tmp/intro/clips/*.mp4 /tmp/intro/clips/*.cut /tmp/intro/clips/*.redo_* proj/clips/ 2>/dev/null || true; cp -n /tmp/intro/audio/n_*.wav /tmp/intro/audio/n_*.cut proj/audio/ 2>/dev/null || true
             # صوتُ الراوي نفسه الذي طابقت عليه الشفاه — لا يُولَّد من جديد وإلا اختلّت المزامنة
             tar xzf /tmp/intro/state.tgz -C /tmp/intro fal_ledger.json 2>/dev/null && cp /tmp/intro/fal_ledger.json proj/fal_ledger_intro.json || true
           fi
           # ⭐ السقف المشترك (budget_total_usd): الافتتاحية تقرأ ما أنفقه فيلمُها أيضاً، فلا يتجاوز مجموعُهما السقف بحال
           case "$SLUG" in *-intro)
-            if gh release download "${SLUG%-intro}-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp/film --clobber 2>/dev/null; then
+            if bash tools/state_fetch.sh "${SLUG%-intro}-out" /tmp/film; then
               tar xzf /tmp/film/state.tgz -C /tmp/film fal_ledger.json 2>/dev/null && cp /tmp/film/fal_ledger.json proj/fal_ledger_film.json || true
             fi;;
           esac
           # إن وُجد ناتجُ شوطٍ سابق (صوتٌ مجتاز) يُستأنف منه
           if gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release download "$SLUG-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp --clobber 2>/dev/null && tar xzf /tmp/state.tgz -C proj || true
+            bash tools/state_fetch.sh "$SLUG-out" /tmp && tar xzf /tmp/state.tgz -C proj && rm -f /tmp/state.tgz || true
+          fi
+          # حالةٌ مختومة في فرع sealed/<slug>-state حين لا حالةَ في الإصدار (ملاذكرد 2026-10-03: ضاعت حالة الإصدار فاستُعيدت من الجلسة)
+          if [ ! -d proj/clips ] && git fetch -q --depth 1 origin "sealed/$SLUG-state" 2>/dev/null; then
+            rm -rf /tmp/sst && mkdir -p /tmp/sst && git archive FETCH_HEAD | tar x -C /tmp/sst
+            ( cd /tmp/sst && sed -i 's/ \*/  /' SHA256SUMS && sha256sum -c --quiet SHA256SUMS && cat part_* > payload.enc && rm part_* )
+            bash tools/unseal.sh /tmp/sst "$PWD/proj" && rm -rf /tmp/sst && echo "↻ استُعيدت الحالة من sealed/$SLUG-state"
           fi
           ls proj
 
@@ -150,7 +156,7 @@ jobs:
           #    وما سُمع من مقاطع الراوي في شوط الافتتاحية — فلا يُعاد فحصُ ما فُحص (البصمةُ تُسقط ما تغيّر صوتُه)
           for tag in "$SLUG-out" "$SLUG-intro-out"; do
             rm -rf "/tmp/lr_$tag" && mkdir -p "/tmp/lr_$tag"
-            gh release download "$tag" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D "/tmp/lr_$tag" --clobber 2>/dev/null && \
+            bash tools/state_fetch.sh "$tag" "/tmp/lr_$tag" && \
               tar xzf "/tmp/lr_$tag/state.tgz" -C "/tmp/lr_$tag" listen_results.json 2>/dev/null || true
           done
           python tools/listen_merge.py proj "/tmp/lr_$SLUG-out/listen_results.json" "/tmp/lr_$SLUG-intro-out/listen_results.json"
@@ -230,7 +236,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p out
-          tar czf out/state.tgz -C proj $(cd proj && ls -d audio listen_results.json audio_checks.json fal_ledger.json fal_pending.json clips 2>/dev/null)
+          # ⛔ حدّ الأصل في GitHub 2 غ.ب ⇒ أجزاءٌ من 1.9 غ.ب (tools/state_fetch.sh يجمعها)
+          tar czf - -C proj $(cd proj && ls -d audio listen_results.json audio_checks.json fal_ledger.json fal_pending.json clips 2>/dev/null) | split -b 1900m -d - out/state.tgz.part_
           cp proj/listen_report.json proj/audio_checks.json out/ 2>/dev/null || true
           if [ -f proj/film.mp4 ]; then
             ffmpeg -v error -y -i proj/film.mp4 -vf scale=-2:480 -c:v libx264 -crf 30 -preset veryfast -c:a aac -b:a 64k out/preview480.mp4
@@ -242,6 +249,10 @@ jobs:
           gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
             gh release create "$SLUG-out" -R "$GITHUB_REPOSITORY" --draft --title "مخرجات $SLUG (مراجعة)" --notes "خاص — مسوّدة."
           gh release upload "$SLUG-out" out/* -R "$GITHUB_REPOSITORY" --clobber
+          # بعد نجاح الرفع فقط: يُحذف ملفّ الحالة القديم الواحد وما زاد من أجزاءٍ قديمة
+          for a in $(gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -E '^state\.tgz(\.part_[0-9]+)?$'); do
+            [ -f "out/$a" ] || gh release delete-asset "$SLUG-out" "$a" -R "$GITHUB_REPOSITORY" -y
+          done
 
       - name: ⑥ حمولة النشر المختومة (لـ sealed-publish.yml بعد المراجعة)
         if: env.STAGE != 'audio' && hashFiles('proj/film.mp4') != ''
