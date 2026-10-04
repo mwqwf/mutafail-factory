@@ -9,8 +9,8 @@
 وهنا تُقصّ وتُحجَّم وتُحرَّك فقط. البطاقة الغائبة يُتخطّى عنصرها ولا يُرسم بديلٌ عنها.
 يُستدعى من tools/mont_hybrid.py لكلّ لقطةٍ فيها حقلٌ مما يلي:
 
-  kt     كتابةٌ تُكشف سطراً سطراً **لحظةَ نطقه** من اليمين: lower · center · quote · letter (على رقٍّ من كوديكس)
-         · poem (شطران متقابلان) · list (بنودٌ تنزلق بنداً بنداً)
+  kt     كتابةٌ تظهر **كلمةً كلمة لحظةَ نطقها** (الإصدار الثاني): lower · center · quote · letter (تُخطّ بالحبر على رقٍّ
+         من كوديكس) · poem (شطران متقابلان) · list (بنودٌ تنزلق بنداً بنداً)
   slam   ضربةٌ مكتوبة بتكبيرٍ وارتجاجٍ وومضة عند كلمتها
   cards  صورُ كوديكس مصغّرةً في إطارٍ تطير واحدةً بعد أخرى، وتحت كلٍّ بطاقةُ اسمها
   labels تسمياتٌ على مواضعها من الصورة (خريطة التشكيل)
@@ -32,7 +32,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cards  # noqa: E402
 import envpaths  # noqa: E402
-from PIL import Image, ImageChops, ImageDraw  # noqa: E402
+from PIL import Image, ImageChops  # noqa: E402
 
 W, H, FPS = 1920, 1080, 25
 TEMPO = 1.05                      # mont_hybrid يسرّع مسار الصوت كلّه 1.05
@@ -159,6 +159,16 @@ def find_word(wt: list, word: str | None, default: float) -> float:
 
 
 # ══════════ مشهدٌ من عناصر متحرّكة ══════════
+# ⭐ الإصدار الثاني (حكم المالك 2026-10-04 على عيّنة الأرك: «الكتابة المتحرّكة أو أثناء الإلقاء لازالت بعيدةً جداً عمّا أطمح إليه…
+#    أيّ مبتدئٍ عاديّ باستخدام كاب كات أو بوربوينت يصنع شيئاً أفضل بأضعاف»):
+#    • كلُّ كلمةٍ عنصرٌ وحدها — قصاصةٌ من بطاقة كوديكس نفسها في موضعها (word_spans) — تدخل لحظةَ نطقها بحركةٍ مرنةٍ تتجاوز
+#      ثم تستقرّ، وتنتفخ قليلاً ما دامت تُنطق، والكلمة المبرَزة (hl) أكبر دخولاً وتمرّ عليها لمعةُ ضوء.
+#    • الرسالة تُخطّ بالحبر كلمةً كلمة، وشطرا البيت يصعدان كلمةً كلمة، والمجموعة كلّها تقترب ببطءٍ ما دامت على الشاشة، ثم تخرج
+#      قبل الانتقال (لا تُقطع مع الصورة).
+#    • الضربة بأثرٍ خلفها وتوهّجٍ ولمعة، والاسم ينزلق بتجاوزٍ ويخرج، والختم يُختم بدورانٍ، والصور المصغّرة تُرمى ثم تستقرّ مائلة.
+#    • التصيير 25 إطاراً/ث كاملةً على إطارات المقطع نفسه (cv2: تحويلٌ تآلفيّ بمواضع كسرية فلا رعشة، ومزجٌ بألفا مضروبة مسبقاً)
+#      بدل صورٍ لا تُكتب إلا عند التغيّر — فالحركة المستمرّة ممكنةٌ والارتجاجُ يهزّ الكتابة مع الصورة.
+#    ⛔ لا يُرسم حرف: كلُّ ما يظهر قصٌّ وتحجيمٌ وتحريكٌ لبطاقات كوديكس، ومؤثّراتٌ عليها (توهّجٌ من ألفاها، لمعة، تعتيم).
 def ease_out(p): return 1 - (1 - p) ** 3
 
 
@@ -167,88 +177,251 @@ def ease_back(p, s=1.9):
     return p * p * ((s + 1) * p + s) + 1
 
 
+def _cl(p):
+    return 0.0 if p < 0 else (1.0 if p > 1 else p)
+
+
+def _smooth(p):
+    p = _cl(p)
+    return p * p * (3 - 2 * p)
+
+
+SWEEP_D = 0.65                     # مدّة لمعة الضوء على البطاقة
+
+
 class El:
-    """عنصرٌ يظهر عند t0 بحركة دخول anim مدّتها d، ويختفي اختيارياً عند t1."""
-    def __init__(self, img, x, y, t0=0.0, anim='fade', d=0.2, t1=None, z=1):
+    """عنصرٌ يدخل عند t0 بحركة anim مدّتها d، ويخرج اختيارياً عند t1 بحركة ex مدّتها od.
+    grow/piv/g0: تقريبٌ بطيءٌ مستمرّ للمجموعة حول محورها منذ g0 · act=(بداية، نهاية) نطق الكلمة: انتفاخٌ بقدر actk أثناءه ·
+    sweep: زمن لمعة الضوء · glow: قوّة توهّجٍ من ألفا البطاقة نفسها خلفها · rot: زاوية الاستقرار · amp: سعة الدخول.
+    kind: img (بطاقة) · dim (تعتيمٌ للإطار كلّه بقدر lvl) · band (تدرّجٌ معتمٌ أسفل الإطار من y)."""
+    def __init__(self, img, x, y, t0=0.0, anim='fade', d=0.2, t1=None, z=1, ex='fade', od=0.3, grow=0.0, piv=None, g0=None,
+                 act=None, actk=0.06, sweep=None, glow=0.0, rot=0.0, amp=1.0, kind='img', lvl=1.0):
         self.img, self.x, self.y, self.t0, self.anim, self.d, self.t1, self.z = img, x, y, t0, anim, d, t1, z
+        self.ex, self.od, self.grow, self.piv, self.g0 = ex, od, grow, piv, g0
+        self.act, self.actk, self.sweep, self.glow, self.rot, self.amp = act, actk, sweep, glow, rot, amp
+        self.kind, self.lvl = kind, lvl
+        self._arr = self._glw = None
 
     def frame_times(self):
+        """لحظات التغيّر (للمعاينة الثابتة)."""
         ts = [self.t0]
         if self.anim != 'none' and self.d > 0:
             ts += [self.t0 + k / FPS for k in range(1, int(math.ceil(self.d * FPS)) + 1)]
         if self.t1 is not None:
-            ts += [self.t1 + k / FPS for k in range(0, int(0.3 * FPS) + 1)]
+            ts += [self.t1 + k / FPS for k in range(0, int(self.od * FPS) + 1)]
         return ts
 
+    def arr(self):
+        """البطاقة مصفوفةً RGBA بألفا مضروبةٍ مسبقاً (uint8) — فلا تظهر حوافّ داكنة عند التحجيم بمواضع كسرية."""
+        if self._arr is None:
+            import numpy as np
+            a = np.asarray(self.img.convert('RGBA')).astype(np.float32)
+            a[..., :3] *= a[..., 3:4] / 255.0
+            self._arr = a.round().astype(np.uint8)
+        return self._arr
 
-def _alpha(im, a):
-    if a >= 0.999:
-        return im
-    im = im.copy()
-    im.putalpha(ImageChops.multiply(im.getchannel('A'), Image.new('L', im.size, int(255 * max(0.0, a)))))
-    return im
+    def glw(self):
+        if self._glw is None:
+            import cv2
+            import numpy as np
+            a = self.arr()
+            pad = 40
+            big = np.zeros((a.shape[0] + 2 * pad, a.shape[1] + 2 * pad, 4), np.uint8)
+            big[pad:-pad, pad:-pad] = a
+            g = cv2.GaussianBlur(big, (0, 0), 16).astype(np.float32) * 1.6
+            self._glw = (np.clip(g, 0, 255).astype(np.uint8), pad)
+        return self._glw
+
+    def st(self, t):
+        """الحالة عند t: (ألفا، إزاحة س، إزاحة ص، تحجيم، دوران، كشف، تقريب المجموعة) أو None قبل الدخول."""
+        if t + 1e-6 < self.t0:
+            return None
+        p = 1.0 if self.anim == 'none' or self.d <= 0 else _cl((t - self.t0) / self.d)
+        a, ox, oy, k, r, rev, m = 1.0, 0.0, 0.0, 1.0, self.rot, 1.0, self.amp
+        an = self.anim
+        if an == 'fade':
+            a = ease_out(p)
+        elif an == 'rise':
+            a = ease_out(p); oy = 34 * m * (1 - ease_out(p))
+        elif an == 'pop':                       # تكبيرٌ من الصغر بتجاوزٍ ثم استقرار
+            a = _cl(p * 3); k = 1 - 0.45 * m + 0.45 * m * ease_back(p, 2.6); oy = 16 * (1 - ease_out(p))
+        elif an == 'drop':                      # تصغيرٌ من الكبر إلى موضعها بارتدادٍ خفيف
+            a = _cl(p * 2.6); k = 1 + 0.62 * m * (1 - ease_back(p, 1.7))
+        elif an == 'zoom':
+            a = _cl(p * 3); k = 1 + 0.35 * m * (1 - ease_out(p))
+        elif an == 'settle':                    # خلفيةٌ تستقرّ (الرقّ)
+            a = ease_out(p); k = 1 + 0.06 * (1 - ease_out(p))
+        elif an == 'slam':
+            a = _cl(p * 3); k = max(0.6, 2.3 - 1.3 * ease_back(p))
+        elif an == 'slide':                     # من اليمين (اتجاه القراءة) بتجاوزٍ قليل
+            a = _cl(p * 2); ox = 420 * (1 - ease_back(p, 1.3))
+        elif an == 'slidel':
+            a = _cl(p * 2); ox = -420 * (1 - ease_back(p, 1.3))
+        elif an == 'wipe':                      # تُخطّ من اليمين بحافّةٍ ناعمة
+            rev = ease_out(p); ox = 14 * (1 - ease_out(p))
+        elif an == 'ink':                       # حبرٌ يجري على الكلمة بطول نطقها
+            rev = _smooth(p) * 0.85 + p * 0.15
+        elif an == 'stamp':                     # ختمٌ يهبط دائراً ثم يستقرّ
+            a = _cl(p * 4); k = 1.9 - 0.9 * ease_back(p, 2.2); r += -9 * (1 - ease_out(p))
+        elif an == 'toss':                      # صورةٌ تُرمى من أسفل يمين ثم تستقرّ مائلة
+            a = _cl(p * 3); ox = 150 * (1 - ease_out(p)); oy = 240 * (1 - ease_back(p, 1.2)); r += 11 * (1 - ease_out(p))
+        if self.t1 is not None and t >= self.t1:
+            q = _cl((t - self.t1) / max(0.04, self.od)); e = q * q
+            if self.ex == 'up':
+                oy -= 46 * e; a *= 1 - q
+            elif self.ex == 'shrink':
+                k *= 1 - 0.14 * e; a *= 1 - q
+            elif self.ex == 'slide':
+                ox += 560 * e; a *= 1 - e
+            else:
+                a *= 1 - q
+        if self.act:                            # الكلمة ما دامت تُنطق
+            ws, we = self.act
+            k *= 1 + self.actk * _cl((t - ws) / 0.08) * (1 - _cl((t - we) / 0.2))
+        g = 1.0
+        if self.grow:
+            g = 1 + self.grow * max(0.0, t - (self.t0 if self.g0 is None else self.g0))
+        return a, ox, oy, k, r, rev, g
 
 
-def _paste(canvas, im, x, y):
-    x, y = int(round(x)), int(round(y))
-    l, t = max(0, x), max(0, y)
-    r, b = min(W, x + im.width), min(H, y + im.height)
-    if r <= l or b <= t:
+def _reveal(arr, rev):
+    """كشفٌ من اليمين إلى اليسار بحافّةٍ ناعمة (على ألفا مضروبةٍ مسبقاً تُضرب القنوات كلّها)."""
+    import numpy as np
+    w = arr.shape[1]
+    e = max(18.0, 0.10 * w)
+    u = np.arange(w, dtype=np.float32)
+    m = np.clip((u - (w + e) * (1 - rev) + e) / e, 0, 1)
+    return (arr * m[None, :, None]).astype(np.uint8)
+
+
+def _sweep(arr, qq):
+    """لمعة ضوءٍ مائلة تعبر البطاقة من اليمين إلى اليسار (تُضاء الحروف وحدها)."""
+    import numpy as np
+    h, w = arr.shape[:2]
+    bw = max(40.0, 0.16 * w)
+    pos = (1 - qq) * (w + 2 * bw) - bw
+    u = np.arange(w, dtype=np.float32)[None, :]
+    v = np.arange(h, dtype=np.float32)[:, None]
+    band = np.clip(1 - np.abs(u - pos + 0.45 * (v - h / 2)) / bw, 0, 1) ** 2 * 0.65
+    out = arr.astype(np.float32)
+    out[..., :3] += (out[..., 3:4] - out[..., :3]) * band[..., None]
+    return out.astype(np.uint8)
+
+
+def _place(e, t, mul=1.0):
+    """المصفوفة الجاهزة ومصفوفة التحويل والألفا للعنصر عند t، أو None."""
+    import numpy as np
+    s = e.st(t)
+    if s is None:
+        return None
+    a, ox, oy, k, r, rev, g = s
+    a *= mul
+    if a <= 0.003 or rev <= 0.002:
+        return None
+    arr = e.arr()
+    if rev < 0.998:
+        arr = _reveal(arr, rev)
+    if e.sweep is not None and e.sweep <= t <= e.sweep + SWEEP_D:
+        arr = _sweep(arr, (t - e.sweep) / SWEEP_D)
+    h, w = arr.shape[:2]
+    cx, cy = e.x + w / 2 + ox, e.y + h / 2 + oy
+    if g != 1.0 and e.piv is not None:
+        cx, cy = e.piv[0] + (cx - e.piv[0]) * g, e.piv[1] + (cy - e.piv[1]) * g
+        k *= g
+    th = math.radians(r)
+    c, sn = math.cos(th) * k, math.sin(th) * k
+    M = np.float32([[c, -sn, cx - c * w / 2 + sn * h / 2], [sn, c, cy - sn * w / 2 - c * h / 2]])
+    return arr, M, a, (cx, cy, k, th)
+
+
+def _blit(dst, arr, M, a, dsta=None):
+    """يحوّل arr بـM ويمزجه فوق dst (uint8 RGB، أو float32 مضروبٌ مسبقاً مع dsta لألفا اللوحة)."""
+    import cv2
+    import numpy as np
+    H_, W_ = dst.shape[:2]
+    h, w = arr.shape[:2]
+    pts = M @ np.float32([[0, 0, 1], [w, 0, 1], [0, h, 1], [w, h, 1]]).T
+    x0, y0 = max(0, int(math.floor(pts[0].min())) - 1), max(0, int(math.floor(pts[1].min())) - 1)
+    x1, y1 = min(W_, int(math.ceil(pts[0].max())) + 2), min(H_, int(math.ceil(pts[1].max())) + 2)
+    if x1 <= x0 or y1 <= y0:
         return
-    canvas.alpha_composite(im.crop((l - x, t - y, r - x, b - y)), dest=(l, t))
+    M2 = M.copy(); M2[0, 2] -= x0; M2[1, 2] -= y0
+    wp = cv2.warpAffine(arr, M2, (x1 - x0, y1 - y0), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0))
+    al = wp[..., 3:4].astype(np.float32) * (a / 255.0)
+    src = wp[..., :3].astype(np.float32) * a
+    if dsta is None:
+        roi = dst[y0:y1, x0:x1].astype(np.float32)
+        dst[y0:y1, x0:x1] = np.clip(src + roi * (1 - al), 0, 255).astype(np.uint8)
+    else:
+        dst[y0:y1, x0:x1] = src + dst[y0:y1, x0:x1] * (1 - al)
+        dsta[y0:y1, x0:x1] = al[..., 0] + dsta[y0:y1, x0:x1] * (1 - al[..., 0])
+
+
+def _layer_alpha(e, t):
+    """ألفا طبقة التعتيم/التدرّج عند t (دخولٌ بتلاشٍ وخروجٌ مع المجموعة)."""
+    if t + 1e-6 < e.t0:
+        return 0.0
+    a = ease_out(_cl((t - e.t0) / e.d)) if e.d > 0 else 1.0
+    if e.t1 is not None and t >= e.t1:
+        a *= 1 - _cl((t - e.t1) / max(0.04, e.od))
+    return a * e.lvl
+
+
+def draw(dst, els: list, t: float, dsta=None) -> None:
+    """يرسم عناصر المشهد عند t فوق dst — إطار المقطع (uint8 RGB) أو لوحةٌ شفّافة (float32 مع dsta)."""
+    import cv2
+    import numpy as np
+    for e in sorted(els, key=lambda e: e.z):
+        if e.kind == 'dim':
+            a = _layer_alpha(e, t)
+            if a > 0.003:
+                if dsta is None:
+                    dst[:] = cv2.convertScaleAbs(dst, alpha=1 - a)
+                else:
+                    dst *= 1 - a; dsta[:] = a + dsta * (1 - a)
+            continue
+        if e.kind == 'band':
+            a = _layer_alpha(e, t)
+            if a > 0.003:
+                g = np.asarray(e.img, np.float32)[:, None] * a          # img هنا تدرّج الألفا عمودياً
+                if dsta is None:
+                    dst[e.y:] = (dst[e.y:].astype(np.float32) * (1 - g[..., None])).astype(np.uint8)
+                else:
+                    dst[e.y:] *= (1 - g[..., None]); dsta[e.y:] = g + dsta[e.y:] * (1 - g)
+            continue
+        if e.anim == 'slam' and 0 <= t - e.t0 < e.d:           # أثرٌ خلف الضربة في اندفاعها
+            for dt, mul in ((0.08, 0.2), (0.04, 0.38)):
+                pl = _place(e, t - dt, mul)
+                if pl:
+                    _blit(dst, pl[0], pl[1], pl[2], dsta)
+        pl = _place(e, t)
+        if not pl:
+            continue
+        arr, M, a, (cx, cy, k, th) = pl
+        if e.glow > 0:                                           # توهّجٌ من البطاقة نفسها خلفها
+            gl, pad = e.glw()
+            gh, gw = gl.shape[:2]
+            c, sn = math.cos(th) * k, math.sin(th) * k
+            Mg = np.float32([[c, -sn, cx - c * gw / 2 + sn * gh / 2], [sn, c, cy - sn * gw / 2 - c * gh / 2]])
+            _blit(dst, gl, Mg, a * e.glow, dsta)
+        _blit(dst, arr, M, a, dsta)
 
 
 def compose(els: list, t: float) -> Image.Image:
-    cv = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-    for e in sorted(els, key=lambda e: e.z):
-        if t + 1e-6 < e.t0:
-            continue
-        p = 1.0 if e.anim == 'none' or e.d <= 0 else min(1.0, (t - e.t0) / e.d)
-        a, im, x, y = 1.0, e.img, e.x, e.y
-        if e.t1 is not None and t >= e.t1:
-            a = max(0.0, 1 - (t - e.t1) / 0.3)
-        if e.anim == 'fade':
-            a *= ease_out(p)
-        elif e.anim == 'rise':
-            a *= ease_out(p); y += 26 * (1 - ease_out(p))
-        elif e.anim in ('zoom', 'slam'):
-            k = (1 + 0.35 * (1 - ease_out(p))) if e.anim == 'zoom' else max(0.6, 2.3 - 1.3 * ease_back(p))
-            a *= min(1.0, p * 3)
-            if abs(k - 1) > 0.01:
-                nw, nh = max(1, int(im.width * k)), max(1, int(im.height * k))
-                im = im.resize((nw, nh), Image.BILINEAR)
-                x, y = x - (nw - e.img.width) / 2, y - (nh - e.img.height) / 2
-        elif e.anim == 'slide':                 # من اليمين (اتجاه القراءة العربية)
-            a *= min(1.0, p * 2); x += (1 - ease_out(p)) * 380
-        elif e.anim == 'wipe':                  # كتابةٌ تُخطّ من اليمين إلى اليسار
-            cut = int(im.width * (1 - ease_out(p) if p < 1 else 0))
-            if cut > 0:
-                im = im.copy(); ImageDraw.Draw(im).rectangle([0, 0, cut, im.height], fill=(0, 0, 0, 0))
-        if a > 0.003:
-            _paste(cv, _alpha(im, a), x, y)
-    return cv
-
-
-def render_track(els: list, span: float, work: str, name: str) -> str | None:
-    """يكتب حالات المشهد صوراً متتابعة بمددها (concat) — لا تُكتب إلا لحظات التغيّر."""
-    if not els:
-        return None
-    ts = sorted({round(min(max(0.0, t), span - 0.02), 3) for e in els for t in e.frame_times()} | {0.0})
-    d = os.path.join(work, 'kin_' + name); os.makedirs(d, exist_ok=True)
-    lst = os.path.join(d, 'list.txt')
-    with open(lst, 'w', encoding='utf-8') as fh:
-        for i, t in enumerate(ts):
-            f = os.path.join(d, '%04d.png' % i)
-            compose(els, t).save(f, compress_level=1)
-            nxt = ts[i + 1] if i + 1 < len(ts) else span
-            fh.write("file '%s'\nduration %.3f\n" % (f.replace('\\', '/'), max(0.04, nxt - t)))
-        fh.write("file '%s'\n" % f.replace('\\', '/'))
-    return lst
+    """المشهد عند t صورةً شفّافة RGBA (للمعاينة الثابتة والاختبارات) — بالرسم نفسه الذي يُصيَّر به الفيلم."""
+    import numpy as np
+    dst = np.zeros((H, W, 3), np.float32)
+    dsta = np.zeros((H, W), np.float32)
+    draw(dst, els, t, dsta)
+    rgb = np.where(dsta[..., None] > 1e-4, dst / np.maximum(dsta[..., None], 1e-4), 0)
+    out = np.dstack([np.clip(rgb, 0, 255), np.clip(dsta * 255, 0, 255)]).astype(np.uint8)
+    return Image.fromarray(out, 'RGBA')
 
 
 # ══════════ بطاقات كوديكس ══════════
 _CARDS: dict = {}
 _MISSING: set = set()
+_SPANS: dict = {}
 
 
 def keyout(im: Image.Image) -> Image.Image:
@@ -292,17 +465,119 @@ def fit(im: Image.Image, maxw: float, maxh: float, up: float = 1.8) -> Image.Ima
     return im.resize((max(1, int(im.width * k)), max(1, int(im.height * k))), Image.LANCZOS)
 
 
+# ══════════ تقسيم البطاقة إلى كلمات ══════════
+def _runs(v):
+    import numpy as np
+    d = np.diff(np.concatenate([[0], v.astype(np.int8), [0]]))
+    return list(zip(np.where(d == 1)[0].tolist(), np.where(d == -1)[0].tolist()))
+
+
+def _fill(arr):
+    """قناع حشوة الحروف: الأفتح حين تحيط بها حافّةٌ داكنة (ليفصل الفراغُ بين الكلمات وإن وصلتها الحافّة والظلّ)،
+    وإلا فالمعتم كلّه (حبرٌ بلا حافّة، وقد تُلوَّن فيه كلمةٌ مبرَزة بلونٍ أفتح)."""
+    import numpy as np
+    a = arr[..., 3].astype(np.float32) / 255.0
+    op = a > 0.85
+    if op.sum() < 50:
+        return a > 0.5
+    lum = 0.3 * arr[..., 0] + 0.59 * arr[..., 1] + 0.11 * arr[..., 2]
+    p10, p80 = np.percentile(lum[op], [10, 80])
+    if p80 - p10 > 70:
+        bright = op & (lum > (p10 + p80) / 2)
+        if bright.sum() > 0.35 * op.sum():
+            return bright
+    return op
+
+
+def word_spans(im: Image.Image, words: list) -> list | None:
+    """حدود كلمات البطاقة أفقياً [(س0، س1)] بترتيب نطقها (الأولى يميناً)، تقسّم عرضها كلّه بلا فجوة؛ None إن تعذّر.
+    القطع n-1 فراغاً عمودياً في الحشوة يُختار بالبرمجة الديناميكية: عرضُ الفراغ، وقربُه من موضعه المتوقّع بعدد الحروف،
+    ولا كلمة أضيق من ثلث ما يُتوقّع لها."""
+    try:
+        import numpy as np
+    except ImportError:                              # بلا numpy (عدّاء الاختبارات الخفيف): السطر كلّه يُخطّ من اليمين
+        return None
+    n = len(words)
+    if n < 2:
+        return None
+    arr = np.asarray(im.convert('RGBA'))
+    fm = _fill(arr)
+    rows = fm.any(axis=1)
+    if not rows.any():
+        return None
+    # السطر الأطول ارتفاعاً (البطاقة السطرية سطرٌ واحد؛ وما تحته من سطرٍ صغير لا يُقسَم)
+    rr = _runs(rows)
+    mg = max(4, int(0.04 * fm.shape[0]))
+    merged = [list(rr[0])]
+    for a0, b0 in rr[1:]:
+        if a0 - merged[-1][1] < mg:
+            merged[-1][1] = b0
+        else:
+            merged.append([a0, b0])
+    y0, y1 = max(merged, key=lambda x: x[1] - x[0])
+    col = fm[y0:y1].any(axis=0)
+    xs = np.where(col)[0]
+    x0, x1 = int(xs[0]), int(xs[-1]) + 1
+    gaps = [(a0 + x0, b0 + x0) for a0, b0 in _runs(~col[x0:x1]) if b0 - a0 >= 2]
+    if len(gaps) < n - 1:
+        return None
+    wts = [len(bare(w)) + 0.6 for w in words]
+    tot = sum(wts)
+    exp, acc = [], 0.0
+    for w in wts[:-1]:
+        acc += w
+        exp.append(x1 - (x1 - x0) * acc / tot)                 # من اليمين
+    G = sorted(gaps, key=lambda g: -g[0])
+    gw = [b - a for a, b in G]; gc = [(a + b) / 2 for a, b in G]
+    span = float(x1 - x0); wmax = float(max(gw))
+    minw = [max(6.0, (x1 - x0) * w / tot / 3) for w in wts]
+    INF = 1e18
+    K = n - 1
+    cost = [[INF] * len(G) for _ in range(K)]
+    prev = [[-1] * len(G) for _ in range(K)]
+    c = lambda k, j: -gw[j] / wmax + 2.2 * abs(gc[j] - exp[k]) / span
+    for j in range(len(G)):
+        if x1 - gc[j] >= minw[0]:
+            cost[0][j] = c(0, j)
+    for k in range(1, K):
+        for j in range(len(G)):
+            for i in range(j):
+                if cost[k - 1][i] < INF and gc[i] - gc[j] >= minw[k] and cost[k - 1][i] + c(k, j) < cost[k][j]:
+                    cost[k][j] = cost[k - 1][i] + c(k, j); prev[k][j] = i
+    best = [j for j in range(len(G)) if cost[K - 1][j] < INF and gc[j] - x0 >= minw[-1]]
+    if not best:
+        return None
+    j = min(best, key=lambda j: cost[K - 1][j])
+    sel = [j]
+    for k in range(K - 1, 0, -1):
+        j = prev[k][j]; sel.append(j)
+    cuts = [int(round(gc[j])) for j in reversed(sel)]           # من اليمين إلى اليسار
+    edges = [im.width] + cuts + [0]
+    return [(edges[i + 1], edges[i]) for i in range(n)]
+
+
+def spans_of(proj: str, key: str, words: list, width: int) -> list | None:
+    """حدود الكلمات لبطاقةٍ محجَّمةٍ إلى العرض width (التقسيم على البطاقة الأصلية بدقّتها ثم يُحجَّم)."""
+    ck = (key, tuple(words))
+    if ck not in _SPANS:
+        im = card(proj, key)
+        _SPANS[ck] = (word_spans(im, words), im.width) if im is not None else (None, 1)
+    sp_, w0 = _SPANS[ck]
+    if not sp_:
+        return None
+    k = width / w0
+    return [(int(round(a * k)), int(round(b * k))) for a, b in sp_]
+
+
+# ══════════ عناصر العرض ══════════
 def dim_el(alpha: float, t0: float = 0.0, d: float = 0.3, z: int = 0):
-    return El(Image.new('RGBA', (W, H), (0, 0, 0, int(255 * alpha))), 0, 0, t0, 'fade', d, z=z)
+    return El(None, 0, 0, t0, 'fade', d, z=z, kind='dim', lvl=alpha)
 
 
 def band_el(y0: int, t0=0.0):
-    """تدرّجٌ معتمٌ أسفل الإطار لقراءة الكتابة."""
-    g = Image.new('L', (1, H - y0))
-    for i in range(H - y0):
-        g.putpixel((0, i), int(205 * (i / (H - y0)) ** 0.8))
-    im = Image.new('RGBA', (W, H - y0), (0, 0, 0, 255)); im.putalpha(g.resize((W, H - y0)))
-    return El(im, 0, y0, t0, 'fade', 0.3, z=0)
+    """تدرّجٌ معتمٌ أسفل الإطار لقراءة الكتابة (img هنا ألفا التدرّج عمودياً)."""
+    g = [0.80 * (i / (H - y0)) ** 0.8 for i in range(H - y0)]
+    return El(g, 0, int(y0), t0, 'fade', 0.3, z=0, kind='band')
 
 
 def spread(n: int, t0: float, t1: float) -> list[float]:
@@ -318,6 +593,64 @@ def line_times(specs: list, wt: list, speech0: float, speech1: float, nwords: in
         return [(wt[c['idx'][0]][1], wt[c['idx'][-1]][2]) for c in specs]
     ts = spread(len(specs), speech0, speech1)
     return [(t, (ts[i + 1] if i + 1 < len(ts) else speech1)) for i, t in enumerate(ts)]
+
+
+def word_times(c: dict, wt: list, nwords: int, t0: float, t1: float) -> list[tuple[float, float]]:
+    """زمن نطق كلّ كلمةٍ في السطر: من أزمنة الصوت إن كان السطر منطوقاً، وإلا بالتوزيع بعدد الحروف بين t0 وt1."""
+    words = c['text'].split()
+    idx = c.get('idx') or []
+    if c.get('spoken') and len(idx) == len(words) and len(wt) == nwords:
+        return [(wt[j][1], wt[j][2]) for j in idx]
+    wts = [len(bare(w)) + 0.6 for w in words]
+    tot = sum(wts) or 1.0
+    out, acc = [], t0
+    for w in wts:
+        d = (t1 - t0) * w / tot
+        out.append((acc, acc + d)); acc += d
+    return out
+
+
+def line_els(proj: str, c: dict, im: Image.Image, x: float, y: float, times: list, anim: str, d: float, z: int = 2,
+             act: float = 0.06, ink: bool = False) -> list:
+    """عناصر كلمات سطرٍ: كلُّ كلمةٍ قصاصةٌ من بطاقتها في موضعها تدخل لحظة نطقها؛ والكلمة المبرَزة أكبر دخولاً وتلمع.
+    إن تعذّر التقسيم فالسطر كلّه يُخطّ من اليمين من أوّل كلماته إلى آخرها."""
+    words = c['text'].split()
+    sp_ = spans_of(proj, c['key'], words, im.width)
+    t0, t1 = times[0][0], times[-1][1]
+    if not sp_:
+        return [El(im, x, y, t0, 'wipe', max(0.3, min(2.6, t1 - t0)), z=z)]
+    hl = {bare(h) for h in (c.get('hl') or [])}
+    els = []
+    for (a, b), (ws, we), w in zip(sp_, times, words):
+        if b - a < 2:
+            continue
+        big = bare(w) in hl
+        dd = max(0.25, min(1.1, we - ws)) if ink else d * (1.15 if big else 1.0)
+        els.append(El(im.crop((a, 0, b, im.height)), x + a, y, max(0.0, ws - 0.04), anim, dd, z=z,
+                      act=(ws, we) if act else None, actk=act, amp=1.4 if big else 1.0,
+                      sweep=(ws + 0.22) if big else None))
+    return els
+
+
+def group(els: list, grow: float, t_exit: float | None, ex: str = 'fade', od: float = 0.3) -> list:
+    """تقريبٌ بطيءٌ مشترك للمجموعة حول مركزها منذ أوّل دخول، وخروجٌ مشترك عند t_exit."""
+    imgs = [e for e in els if e.kind == 'img']
+    if imgs:
+        x0 = min(e.x for e in imgs); x1 = max(e.x + e.img.width for e in imgs)
+        y0 = min(e.y for e in imgs); y1 = max(e.y + e.img.height for e in imgs)
+        g0 = min(e.t0 for e in imgs)
+        for e in imgs:
+            e.grow, e.piv, e.g0 = grow, ((x0 + x1) / 2, (y0 + y1) / 2), g0
+    if t_exit is not None:
+        for e in els:
+            e.t1, e.ex, e.od = t_exit, (ex if e.kind == 'img' else 'fade'), od
+    return els
+
+
+def exit_at(span: float, last: float, lead: float = 0.34) -> float | None:
+    """موعد خروج الكتابة قبل الانتقال: بعد آخر كلمةٍ بنصف ثانيةٍ على الأقل، وإلا فلا خروج."""
+    t = max(last + 0.6, span - lead)
+    return t if t < span - 0.06 else None
 
 
 def kt_els(proj: str, kt: dict, specs: list, wt: list, span: float, nwords: int) -> list:
@@ -336,105 +669,121 @@ def kt_els(proj: str, kt: dict, specs: list, wt: list, span: float, nwords: int)
         lh, top = 110, (300 if len(imgs) > 2 else 380)
         ts = [0.0] * min(keep, len(imgs)) + spread(len(imgs) - keep, speech0, speech1 * 0.9)
         for i, (c, im) in enumerate(imgs):
-            els.append(El(im, W - 80 - im.width, top + i * lh, ts[i], 'none' if ts[i] == 0.0 and i < keep else 'slide', 0.3, z=2))
-        return els
+            els.append(El(im, W - 80 - im.width, top + i * lh, ts[i], 'none' if ts[i] == 0.0 and i < keep else 'slide', 0.45, z=2))
+        return group(els, 0.006, exit_at(span, ts[-1]), 'up')
     if style == 'poem':
         mid = (speech0 + speech1) / 2
-        for c, (cx, t0, t1) in zip(lines[:2], ((1440, speech0, mid), (480, mid, speech1))):
+        for c, (cx, t0, t1, an) in zip(lines[:2], ((1440, speech0, mid, 'rise'), (480, mid, speech1, 'rise'))):
             im = card(proj, c['key'])
             if im is None:
                 continue
             im = fit(im, 840, 130)
-            els.append(El(im, cx - im.width / 2, 470 - im.height / 2, t0, 'wipe', max(0.4, t1 - t0) * 0.9, z=2))
+            x, y = cx - im.width / 2, 470 - im.height / 2
+            els += line_els(proj, c, im, x, y, word_times(c, wt, nwords, t0, t1 - 0.1), an, 0.5, act=0.0)
         if els and src and card(proj, src['key']) is not None:
             im = fit(card(proj, src['key']), 900, 56)
-            els.append(El(im, W / 2 - im.width / 2, 600, speech0, 'fade', 0.4, z=2))
-        return [dim_el(0.55)] + els if els else []
+            els.append(El(im, W / 2 - im.width / 2, 600, max(speech0 + 0.8, speech1 - 0.6), 'rise', 0.5, z=2))
+        if not els:
+            return []
+        return group([dim_el(0.55)] + els, 0.010, exit_at(span, speech1 - 0.3), 'fade')
     times = line_times(lines, wt, speech0, speech1, nwords)
     pairs = [(c, card(proj, c['key']), tt) for c, tt in zip(lines, times)]
     pairs = [(c, im, tt) for c, im, tt in pairs if im is not None]
     if not pairs:
         return []
+    last = max(t0 for _, _, (t0, _) in pairs)
     if style == 'letter':
         bg = card(proj, 'letter_bg')
         n = len(pairs)
-        lh = 112
-        bw = 1480
-        bh = min(980, n * lh + 190)
+        lh = 132
+        bw = 1560
+        bh = min(980, n * lh + 200)
         top = (H - bh) / 2
         if bg is not None:
-            els += [dim_el(0.35), El(bg.resize((bw, int(bh)), Image.LANCZOS), (W - bw) / 2, top, 0.0, 'fade', 0.3, z=1)]
+            els += [dim_el(0.35), El(bg.resize((bw, int(bh)), Image.LANCZOS), (W - bw) / 2, top, 0.0, 'settle', 0.5, z=1)]
         else:
             els.append(dim_el(0.45))
         for i, (c, im, (t0, t1)) in enumerate(pairs):
-            im = fit(im, bw - 220, 92)
-            els.append(El(im, W / 2 - im.width / 2, top + 95 + i * lh, t0, 'wipe', max(0.3, min(3.0, t1 - t0)), z=2))
+            im = fit(im, bw - 200, 112)
+            els += line_els(proj, c, im, W / 2 - im.width / 2, top + 92 + i * lh, word_times(c, wt, nwords, t0, t1), 'ink', 0.5,
+                            act=0.0, ink=True)
         if src and card(proj, src['key']) is not None:
             im = fit(card(proj, src['key']), 640, 50)
-            els.append(El(im, (W - bw) / 2 + 70, top + bh - 75, 0.0, 'fade', 0.3, z=2))
-        return els
+            els.append(El(im, (W - bw) / 2 + 70, top + bh - 75, 0.3, 'fade', 0.4, z=2))
+        return group(els, 0.006, exit_at(span, last), 'fade')
     if style in ('center', 'quote'):
-        maxw, maxh, lh = (1600, 128, 152) if style == 'center' else (1500, 116, 140)
+        maxw, maxh, lh = (1680, 150, 178) if style == 'center' else (1560, 132, 158)
         n = len(pairs)
         top = H / 2 - n * lh / 2 - (30 if src else 0)
         els.append(dim_el(0.55 if style == 'center' else 0.6))
+        anim, d = ('drop', 0.34) if style == 'center' else ('rise', 0.42)
         for i, (c, im, (t0, t1)) in enumerate(pairs):
             im = fit(im, maxw, maxh)
-            els.append(El(im, W / 2 - im.width / 2, top + i * lh + (lh - im.height) / 2, t0, 'wipe', max(0.3, min(2.6, t1 - t0)), z=2))
+            els += line_els(proj, c, im, W / 2 - im.width / 2, top + i * lh + (lh - im.height) / 2, word_times(c, wt, nwords, t0, t1),
+                            anim, d)
         if src and card(proj, src['key']) is not None:
             im = fit(card(proj, src['key']), 900, 56)
-            els.append(El(im, W / 2 - im.width / 2, top + n * lh + 14, speech0, 'fade', 0.4, z=2))
-        return els
+            els.append(El(im, W / 2 - im.width / 2, top + n * lh + 14, max(speech0 + 0.6, last), 'rise', 0.45, z=2))
+        return group(els, 0.012 if style == 'center' else 0.008, exit_at(span, last), 'shrink' if style == 'center' else 'up')
     # lower
     n = len(pairs)
     lh = 100
     els.append(band_el(640))
     for i, (c, im, (t0, t1)) in enumerate(pairs):
         im = fit(im, 1640, 84)
-        els.append(El(im, W / 2 - im.width / 2, H - 70 - (n - i) * lh + (lh - im.height) / 2, t0, 'wipe', max(0.3, min(2.4, t1 - t0)), z=2))
-    return els
+        els += line_els(proj, c, im, W / 2 - im.width / 2, H - 70 - (n - i) * lh + (lh - im.height) / 2,
+                        word_times(c, wt, nwords, t0, t1), 'pop', 0.28)
+    return group(els, 0.004, exit_at(span, last, 0.24), 'fade', 0.22)
 
 
-def slam_els(proj: str, spec: dict, t: float, top: bool = False) -> list:
+def slam_els(proj: str, spec: dict, t: float, top: bool = False, span: float | None = None) -> list:
     """top: الضربة أعلى الشاشة وأصغر قليلاً حين تشاركها بطاقاتُ صورٍ في اللقطة نفسها (لا تغطّيها)."""
     im = card(proj, spec['key'])
     if im is None:
         return []
     im = fit(im, 1300, 300) if top else fit(im, 1560, 420)
     y = 40 if top else H / 2 - im.height / 2
-    return [dim_el(0.38, t, 0.15), El(im, W / 2 - im.width / 2, y, t, 'slam', 0.24, z=3)]
+    e = El(im, W / 2 - im.width / 2, y, t, 'slam', 0.26, z=3, sweep=t + 0.3, glow=0.5)
+    els = [dim_el(0.38, t, 0.15), e]
+    return group(els, 0.02, exit_at(span, t + 0.6, 0.26) if span else None, 'shrink', 0.26)
 
 
-def name_els(proj: str, spec: dict, t: float) -> list:
+def name_els(proj: str, spec: dict, t: float, span: float | None = None) -> list:
     im = card(proj, spec['key'])
     if im is None:
         return []
     im = fit(im, 860, 190)
-    return [El(im, W - 90 - im.width, H - 120 - im.height, t, 'slide', 0.35, z=2)]
+    e = El(im, W - 90 - im.width, H - 120 - im.height, t, 'slide', 0.5, z=2, sweep=t + 0.45)
+    if span and span - t > 1.8:
+        e.t1, e.ex, e.od = max(t + 1.3, span - 0.5), 'slide', 0.4
+    return [e]
 
 
-def date_els(proj: str, spec: dict) -> list:
+def date_els(proj: str, spec: dict, span: float | None = None) -> list:
     im = card(proj, spec['key'])
     if im is None:
         return []
     im = fit(im, 680, 160)
-    return [El(im, W - 46 - im.width, 200, 0.25, 'wipe', 0.9, z=2)]       # تحت شعار القناة (أعلى اليمين 46–166)
+    e = El(im, W - 46 - im.width, 200, 0.25, 'stamp', 0.42, z=2, sweep=0.8)       # تحت شعار القناة (أعلى اليمين 46–166)
+    if span:
+        e.t1 = exit_at(span, 0.9, 0.32)
+    return [e]
 
 
 def label_els(proj: str, specs: list, wt: list) -> list:
     els = []
-    for c in specs:
+    for i, c in enumerate(specs):
         im = card(proj, c['key'])
         if im is None:
             continue
         im = fit(im, 640, 78)
-        t = find_word(wt, c.get('word'), 0.0) if c.get('word') else 0.0
-        els.append(El(im, c['x'] - im.width / 2, c['y'] - im.height / 2, t, 'zoom' if c.get('word') else 'none', 0.25, z=2))
+        t = find_word(wt, c.get('word'), 0.0) if c.get('word') else 0.15 + 0.12 * i
+        els.append(El(im, c['x'] - im.width / 2, c['y'] - im.height / 2, t, 'pop', 0.32, z=2))
     return els
 
 
 def thumb_els(proj: str, items: list, specs: list, wt: list, span: float, low: bool = False) -> list:
-    """صورٌ مصغّرة من كوديكس في إطارٍ أبيض (قصٌّ وتحجيم)، وتحت كلٍّ بطاقةُ اسمها من كوديكس.
+    """صورٌ مصغّرة من كوديكس في إطارٍ أبيض (قصٌّ وتحجيم) تُرمى ثم تستقرّ مائلةً قليلاً، وتحت كلٍّ بطاقةُ اسمها من كوديكس.
     low: البطاقات أسفل الوسط لتفسح أعلى الشاشة لضربةٍ مكتوبة في اللقطة نفسها."""
     n = len(items)
     cw, ch_ = (440, 248) if n <= 3 else (380, 214)
@@ -443,6 +792,7 @@ def thumb_els(proj: str, items: list, specs: list, wt: list, span: float, low: b
     t_first = min([find_word(wt, c.get('word'), 0.3) for c in items] or [0.3])
     els = [dim_el(0.5, t_first, 0.3)]
     labs = {c['n']: c for c in specs}
+    tilt = [-2.4, 1.8, -1.3, 2.2, -1.8]
     for i, c in enumerate(items):
         src = None
         for d in ('images', 'img'):
@@ -459,13 +809,13 @@ def thumb_els(proj: str, items: list, specs: list, wt: list, span: float, low: b
             im = im.resize((int(im.width * sc) + 1, int(im.height * sc) + 1), Image.LANCZOS)
             im = im.crop(((im.width - cw) // 2, (im.height - ch_) // 2, (im.width - cw) // 2 + cw, (im.height - ch_) // 2 + ch_))
             fr = Image.new('RGBA', (cw + 12, ch_ + 12), (255, 255, 255, 255)); fr.paste(im, (6, 6))
-            els.append(El(fr, x - 6, y - 6, t, 'slide', 0.35, z=2))
+            els.append(El(fr, x - 6, y - 6, t, 'toss', 0.5, z=2, rot=tilt[i % len(tilt)]))
         lab = labs.get(i)
         im2 = card(proj, lab['key']) if lab else None
         if im2 is not None:
             im2 = fit(im2, cw, 62)
-            els.append(El(im2, x + cw / 2 - im2.width / 2, y + ch_ + 16, t + 0.12, 'rise', 0.25, z=2))
-    return els
+            els.append(El(im2, x + cw / 2 - im2.width / 2, y + ch_ + 16, t + 0.15, 'rise', 0.3, z=2))
+    return group(els, 0.008, None)
 
 
 def chapter_els(proj: str, spec: dict, span: float) -> list:
@@ -474,20 +824,32 @@ def chapter_els(proj: str, spec: dict, span: float) -> list:
         return []
     im = fit(im, 1400, 110)
     t1 = min(span - 0.35, 3.6)
-    return [El(im, W / 2 - im.width / 2, 60, 0.2, 'wipe', 0.9, t1=t1, z=2)]
+    return [El(im, W / 2 - im.width / 2, 60, 0.2, 'wipe', 0.8, t1=t1, ex='up', od=0.35, z=2, sweep=1.05, glow=0.35)]
 
 
-# ══════════ المؤثّرات على المقطع نفسه ══════════
-def base_filters(shakes: list[float], punches: list[float], span: float) -> str:
-    f = []
-    if punches:
-        z = '+'.join("if(between(in_time,%.3f,%.3f),0.11*exp(-7*(in_time-%.3f)),0)" % (t, t + 0.6, t) for t in punches)
-        f.append("zoompan=z='1+%s':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=%dx%d:fps=%d" % (z, W, H, FPS))
-    if shakes:
-        sx = '+'.join("if(between(t,%.3f,%.3f),26*sin(75*(t-%.3f))*exp(-7*(t-%.3f)),0)" % (t, t + 0.55, t, t) for t in shakes)
-        sy = '+'.join("if(between(t,%.3f,%.3f),18*cos(90*(t-%.3f))*exp(-7*(t-%.3f)),0)" % (t, t + 0.55, t, t) for t in shakes)
-        f.append("crop=w=iw-64:h=ih-64:x='32+%s':y='32+%s',scale=%d:%d" % (sx, sy, W, H))
-    return ','.join(f)
+# ══════════ الكاميرا والومضات على الإطار كلّه ══════════
+def cam(t: float, shakes: list, punches: list) -> tuple[float, float, float]:
+    """(تكبير، إزاحة س، إزاحة ص) للإطار المركَّب عند t: ارتجاجٌ عند كلمات shake والضربات، وتكبيرٌ خاطف عند كلمات punch.
+    التكبير الأساسيّ 1.035 طوال اللقطة إن كان فيها ارتجاج (فلا تظهر حوافّ ولا قفزة عند بدئه)."""
+    z = 1.035 if shakes else 1.0
+    dx = dy = 0.0
+    for tp in punches:
+        if tp <= t <= tp + 0.6:
+            z += 0.11 * math.exp(-7 * (t - tp))
+    for ts in shakes:
+        if ts <= t <= ts + 0.55:
+            u = t - ts; env = math.exp(-7 * u) * _cl(u / 0.02)
+            dx += 26 * math.sin(75 * u) * env
+            dy += 18 * math.sin(90 * u + 1.2) * env
+    return z, dx, dy
+
+
+def flash_alpha(t: float, flashes: list) -> float:
+    a = 0.0
+    for tf in flashes:
+        if tf - 0.02 <= t <= tf + 0.26:
+            a = max(a, 0.85 * (_cl((t - tf + 0.02) / 0.04) if t < tf + 0.02 else 1 - _cl((t - tf - 0.04) / 0.22)))
+    return a
 
 
 def shot_els(proj: str, s: dict, wt: list, span: float, texts: dict | None = None) -> tuple[list, list, list, list]:
@@ -503,55 +865,77 @@ def shot_els(proj: str, s: dict, wt: list, span: float, texts: dict | None = Non
     if s.get('kt'):
         els += kt_els(proj, s['kt'], by('line', 'item', 'src', 'bg'), wt, span, nwords)
     if s.get('date') and by('date'):
-        els += date_els(proj, by('date')[0])
+        els += date_els(proj, by('date')[0], span)
     if s.get('labels'):
         els += label_els(proj, by('label'), wt)
     if s.get('cards'):
         els += thumb_els(proj, s['cards'], by('clabel'), wt, span, low=both)
     if s.get('name') and by('name'):
-        els += name_els(proj, by('name')[0], find_word(wt, s['name'].get('word'), 0.3))
+        els += name_els(proj, by('name')[0], find_word(wt, s['name'].get('word'), 0.3), span)
     if s.get('slam') and by('slam'):
         sl = s['slam']
         t = float(sl['at']) if 'at' in sl else find_word(wt, sl.get('word'), 0.25)
         t = min(t, max(0.0, span - 0.5))
-        els += slam_els(proj, by('slam')[0], t, top=both); shakes.append(t); flashes.append(t)
+        els += slam_els(proj, by('slam')[0], t, top=both, span=span); shakes.append(t); flashes.append(t)
     if s.get('_chapter') and by('chapter'):
         els += chapter_els(proj, by('chapter')[0], span)
     for w in s.get('shake', []) or []:
         shakes.append(min(find_word(wt, w, 0.2), max(0.0, span - 0.4)))
     for w in s.get('punch', []) or []:
         punches.append(min(find_word(wt, w, 0.2), max(0.0, span - 0.4)))
-    return els, shakes, punches, flashes
+    return els, sorted(set(round(x, 2) for x in shakes)), sorted(set(round(x, 2) for x in punches)), \
+        sorted(set(round(x, 2) for x in flashes))
 
 
-def apply(proj: str, s: dict, seg: str, span: float, texts: dict, durs: dict, gap: float, work: str, enc: list) -> str:
-    """يركّب مؤثّرات العرض على مقطع اللقطة ويعيد مسار الناتج (يُستأنف إن وُجد بالمدّة نفسها)."""
-    res = seg[:-4] + '_kin.mp4'
-    if os.path.exists(res) and abs(_dur(res) - span) < 0.08:
+def render(seg: str, res: str, n: int, head: float, els: list, shakes: list, punches: list, flashes: list, enc: list) -> None:
+    """يقرأ إطارات المقطع ويرسم عليها المشهد إطاراً إطاراً (الزمن المحلّي t = i/FPS - head) ثم يكتبها مرمَّزة."""
+    import cv2
+    import numpy as np
+    dec = sp.Popen([envpaths.FF, '-v', 'error', '-i', seg, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (W, H), '-'],
+                   stdout=sp.PIPE, stderr=sp.DEVNULL)                 # يُقتل بعد حاجته منه
+    out = sp.Popen([envpaths.FF, '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (W, H), '-r', str(FPS),
+                    '-i', '-'] + enc + ['-frames:v', str(n), res], stdin=sp.PIPE)
+    last = np.zeros((H, W, 3), np.uint8)
+    white = np.full((H, W, 3), 255, np.uint8)
+    for i in range(n):
+        buf = dec.stdout.read(W * H * 3)
+        if len(buf) == W * H * 3:
+            last = np.frombuffer(buf, np.uint8).reshape(H, W, 3)
+        fr = last.copy()
+        t = i / FPS - head
+        draw(fr, els, t)
+        z, dx, dy = cam(t, shakes, punches)
+        if z != 1.0 or dx or dy:
+            M = np.float32([[z, 0, (1 - z) * W / 2 + dx], [0, z, (1 - z) * H / 2 + dy]])
+            fr = cv2.warpAffine(fr, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+        fa = flash_alpha(t, flashes)
+        if fa > 0.003:
+            fr = cv2.addWeighted(fr, 1 - fa, white, fa, 0.0)
+        out.stdin.write(fr.tobytes())
+    try:
+        dec.stdout.close()
+    except OSError:
+        pass
+    dec.kill(); dec.wait()
+    out.stdin.close(); out.wait()
+    if out.returncode:
+        raise RuntimeError('⛔ تعذّر ترميز %s' % res)
+
+
+def apply(proj: str, s: dict, seg: str, span: float, texts: dict, durs: dict, gap: float, work: str, enc: list,
+          head: float = 0.0, total: float | None = None) -> str:
+    """يركّب مؤثّرات العرض على مقطع اللقطة ويعيد مسار الناتج (يُستأنف إن وُجد بالمدّة نفسها).
+    head: ثواني المقبض قبل بداية اللقطة في المقطع (إطاره الأوّل عند الزمن المحلّي -head)؛ total: مدّة المقطع كلّه."""
+    total = span if total is None else total
+    res = seg[:-4] + '_k2.mp4'
+    n = int(round(total * FPS))
+    if os.path.exists(res) and abs(_dur(res) - n / FPS) < 0.06:
         return res
     wt = shot_word_times(proj, s, texts, durs, gap)
     els, shakes, punches, flashes = shot_els(proj, s, wt, span, texts)
-    name = os.path.basename(seg)[:-4]
-    lst = render_track(els, span, work, name)
-    cmd = [envpaths.FF, '-v', 'error', '-y', '-i', seg]
-    chain, last = [], '[0:v]'
-    bf = base_filters(sorted(set(round(x, 2) for x in shakes)), sorted(set(round(x, 2) for x in punches)), span)
-    if bf:
-        chain.append('%s%s[b0]' % (last, bf)); last = '[b0]'
-    k = 0
-    if lst:
-        k += 1; cmd += ['-f', 'concat', '-safe', '0', '-i', lst]
-        chain.append('[%d:v]format=rgba[ov]' % k)
-        chain.append('%s[ov]overlay=0:0:eof_action=pass:format=auto[b1]' % last); last = '[b1]'
-    for i, t in enumerate(sorted(set(round(x, 2) for x in flashes))):
-        k += 1; cmd += ['-f', 'lavfi', '-i', 'color=c=white:s=%dx%d:r=%d:d=%.3f' % (W, H, FPS, span)]
-        chain.append('[%d:v]format=rgba,colorchannelmixer=aa=0.85,fade=t=in:st=%.3f:d=0.04:alpha=1,fade=t=out:st=%.3f:d=0.22:alpha=1[w%d]'
-                     % (k, max(0.0, t - 0.02), t + 0.04, i))
-        chain.append('%s[w%d]overlay=0:0:format=auto[f%d]' % (last, i, i)); last = '[f%d]' % i
-    if not chain:
+    if not (els or shakes or punches or flashes):
         return seg
-    chain.append('%sformat=yuv420p[v]' % last)
-    sp.run(cmd + ['-filter_complex', ';'.join(chain), '-map', '[v]', '-t', '%.3f' % span] + enc + [res], check=True)
+    render(seg, res, n, head, els, shakes, punches, flashes, enc)
     return res
 
 

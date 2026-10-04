@@ -80,7 +80,7 @@ jobs:
       - name: الأدوات
         run: |
           sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg fonts-hosny-amiri >/dev/null
-          pip install -q pillow numpy requests arabic-reshaper python-bidi google-auth google-api-python-client
+          pip install -q pillow numpy opencv-python-headless requests arabic-reshaper python-bidi google-auth google-api-python-client
           pip install -q torch --index-url https://download.pytorch.org/whl/cpu && pip install -q transformers
 
       - name: جلبُ المصدر المختوم وفكّه

@@ -93,6 +93,22 @@ sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', os.path.joi
         '-filter:a', VF, '-ar', '48000', voice], check=True)
 VD = dur(voice); print('① الصوت %.2f د' % (VD / 60), flush=True)
 
+# ①أ الإطارات (الإصدار الثاني — حكم المالك 2026-10-04: «صورٌ متداخلة احترافية» بدل الظهور المفاجئ):
+#    بدايةُ كلّ لقطةٍ إطاراً بالتقريب التراكميّ (لا انجراف بين الصورة والصوت مهما كثرت اللقطات)، ولكلّ لقطةٍ مقبضان حيّان
+#    (HF إطاراً قبلها وبعدها) يتداخل فيهما الانتقال فلا تتجمّد صورة؛ والانتقالات تُخطَّط قبل التصيير.
+HF = transitions.HF; HEAD = HF / 25.0
+TP = transitions.plan(shots, _secs)
+SECS = transitions.sections_of(shots, _secs)
+FST, _acc = [], 0.0
+for _s in shots:
+    FST.append(int(round(_acc * 25))); _acc += span_of(_s)
+FST.append(int(round(_acc * 25)))
+NF = [FST[i + 1] - FST[i] for i in range(len(shots))]
+LEN = lambda n: (NF[n] + 2 * HF) / 25.0          # مدّة مقطع اللقطة بمقبضيه
+ENERGY = {'battle': 1.35, 'buildup': 1.1, None: 1.15}   # شدّة الحركة المجسّمة: المعركة أقوى، والافتتاحية حماسية
+energy = lambda n: ENERGY.get(SECS[n], 1.0)
+ANIM = lambda s: P('anim', '%s.v%d.mp4' % (s['id'], kb3d.VERSION))   # لا تُعاد مقاطع الإصدار الأوّل
+
 # ①ب تصييرُ مشاهد kb3d مسبقاً بالتوازي على كلّ الأنوية (درس القادسية: تسلسلياً أخذ ساعاتٍ على عدّاء GitHub)
 def _pre(job):
     kb3d.render(*job)
@@ -103,11 +119,10 @@ os.makedirs(P('anim'), exist_ok=True)
 for n, s in enumerate(shots):
     if clip(s['id']):
         continue
-    span = span_of(s)
-    an = find(s['id'], ['anim'], ['mp4'])
-    if an and dur(an) >= span - 0.5:
+    an = ANIM(s)
+    if os.path.exists(an) and dur(an) >= LEN(n) - 0.02:
         continue
-    jobs.append((image_of(s), P('anim', '%s.mp4' % s['id']), span + 0.3, n))
+    jobs.append((image_of(s), an, LEN(n) + 0.04, n, None, energy(n)))
 if jobs:
     from concurrent.futures import ProcessPoolExecutor
     with ProcessPoolExecutor(os.cpu_count() or 2) as ex:
@@ -129,28 +144,29 @@ def word_time(s, o):
     return float(o.get('at', 0))
 
 
-def overlay(s, seg, span):
-    """يركّب صور ui/ الشفافة على المقطع: تظهر بتلاشٍ سريع عند كلمتها وتبقى حتى نهاية اللقطة؛ و"shake" يهزّها ثانيةً."""
+def overlay(s, seg, span, L):
+    """يركّب صور ui/ الشفافة على المقطع: تظهر بتلاشٍ سريع عند كلمتها وتبقى حتى نهاية اللقطة؛ و"shake" يهزّها ثانيةً.
+    المقطع بمقبضيه (مدّته L، وبداية اللقطة فيه عند HEAD)."""
     res = seg[:-4] + '_ov.mp4'
-    if os.path.exists(res) and abs(dur(res) - span) < 0.08: return res
+    if os.path.exists(res) and abs(dur(res) - L) < 0.03: return res
     cmd = [FF, '-v', 'error', '-y', '-i', seg]; flt = []; last = '[0:v]'
     for i, o in enumerate(s['overlays']):
         png = P(o['png'])
-        cmd += ['-loop', '1', '-t', '%.3f' % span, '-i', png]
-        T = max(0.0, word_time(s, o)); x, y = int(o['x']), int(o['y'])
+        cmd += ['-loop', '1', '-t', '%.3f' % L, '-i', png]
+        T = max(0.0, word_time(s, o)) + HEAD; x, y = int(o['x']), int(o['y'])
         flt.append('[%d:v]scale=%d:-1,format=rgba,fade=t=in:st=%.2f:d=0.25:alpha=1[o%d]' % (i + 1, int(o['w']), T, i))
         xe = ("'%d+if(between(t,%.2f,%.2f),14*sin(45*(t-%.2f)),0)'" % (x, T, T + 1.2, T)) if o.get('shake') else str(x)
         flt.append("%s[o%d]overlay=x=%s:y=%d:enable='gte(t,%.2f)'[v%d]" % (last, i, xe, y, T, i)); last = '[v%d]' % i
-    sp.run(cmd + ['-filter_complex', ';'.join(flt), '-map', last, '-t', '%.3f' % span] + ENC + [res], check=True)
+    sp.run(cmd + ['-filter_complex', ';'.join(flt), '-map', last, '-frames:v', str(int(round(L * 25)))] + ENC + [res], check=True)
     return res
 
 
-def captions(s, seg, span):
+def captions(s, seg, span, L):
     """"title": {"text","sub","word"|"at"} ⇒ اسمٌ كبير بخطٍّ عربيّ يظهر بتلاشٍ عند كلمته.
     "counter": {"from":2026,"to":1260,"start":0.4,"secs":4.5,"suffix":"م","then":"٦٥٨ هـ"} ⇒ عدّادُ سنين تنازليّ متسارعٌ ثم متباطئ.
     نصٌّ مركَّبٌ على المقطع فقط — لا يُرسم به محتوى صورة."""
     res = seg[:-4] + '_cap.mp4'
-    if os.path.exists(res) and abs(dur(res) - span) < 0.08: return res
+    if os.path.exists(res) and abs(dur(res) - L) < 0.03: return res
     fb = envpaths.font(bold=True)
     cmd = [FF, '-v', 'error', '-y', '-i', seg]; flt = []; last = '[0:v]'; k = 0
 
@@ -173,11 +189,11 @@ def captions(s, seg, span):
     spec = next((c for c in cards.shot_cards(s, {}) if c['role'] == 'title'), None) if ti else None
     tim = kinetic.card(PROJ, spec['key']) if spec else None
     if ti and tim is not None:
-        T = max(0.0, word_time(s, ti)) if ti.get('word') else float(ti.get('at', 0.3))
+        T = (max(0.0, word_time(s, ti)) if ti.get('word') else float(ti.get('at', 0.3))) + HEAD
         tim = kinetic.fit(tim, 1500, 420)
         full = Image.new('RGBA', (1920, 1080), (0, 0, 0, 0)); full.alpha_composite(tim, ((1920 - tim.width) // 2, int(1080 * 0.36)))
         tp = os.path.join(WORK, 'title_%s.png' % s['id']); full.save(tp)
-        cmd += ['-loop', '1', '-t', '%.3f' % span, '-i', tp]; k += 1
+        cmd += ['-loop', '1', '-t', '%.3f' % L, '-i', tp]; k += 1
         flt.append('[%d:v]format=rgba,fade=t=in:st=%.2f:d=0.6:alpha=1[t%d]' % (k, T, k))
         flt.append("%s[t%d]overlay=0:0:enable='gte(t,%.2f)'[v%d]" % (last, k, T, k)); last = '[v%d]' % k
     c = s.get('counter')
@@ -202,69 +218,78 @@ def captions(s, seg, span):
             im.save(os.path.join(fdir, '%04d.png' % i))
         k += 1
         cmd += ['-framerate', '25', '-i', os.path.join(fdir, '%04d.png')]
-        flt.append('[%d:v]format=rgba,setpts=PTS+%.3f/TB,fade=t=in:st=%.2f:d=0.3:alpha=1[c%d]' % (k, st, st, k))
-        flt.append("%s[c%d]overlay=0:H*0.34:eof_action=repeat:enable='gte(t,%.2f)'[w%d]" % (last, k, st, k)); last = '[w%d]' % k
+        flt.append('[%d:v]format=rgba,setpts=PTS+%.3f/TB,fade=t=in:st=%.2f:d=0.3:alpha=1[c%d]' % (k, st + HEAD, st + HEAD, k))
+        flt.append("%s[c%d]overlay=0:H*0.34:eof_action=repeat:enable='gte(t,%.2f)'[w%d]" % (last, k, st + HEAD, k)); last = '[w%d]' % k
     if not flt:
         return seg                                   # بطاقةٌ غائبة ولا عدّاد: المقطع كما هو
-    sp.run(cmd + ['-filter_complex', ';'.join(flt), '-map', last, '-t', '%.3f' % span] + ENC + [res], check=True)
+    sp.run(cmd + ['-filter_complex', ';'.join(flt), '-map', last, '-frames:v', str(int(round(L * 25)))] + ENC + [res], check=True)
     return res
 
 
-# ② اللقطات + جدول المؤثّرات
+# ② اللقطات + جدول المؤثّرات — كلّ مقطعٍ بمقبضيه: NF[n] + 2×HF إطاراً، وبداية اللقطة فيه عند HEAD
 segs, fx = [], []   # fx: (بداية، مدة، ملف، مستوى)
 clean = []          # المقاطع قبل الكتابة المتحرّكة والبطاقات — تُصنع منها الريلزات العمودية فلا يُقصّ نصٌّ محروق
 # ⭐ أمر المالك 2026-10-03 («لا أكشن»): كان المقطعُ الحيّ يُبطَّأ ×1.4 ليملأ كلاماً أطول، فتصير الخيلُ والسيوف حركةً بطيئةً
 #    مائعة. ⇒ لا إبطاء فوق ×1.15، وما زاد يكمله kb3d — والعلاجُ الحقّ لقطاتٌ أقصر (thrill_gate: ≤ 6 ث متوسّطاً).
 SLOW_MAX = 1.15
-t = 0.0
 TL = {}             # بداية كل لقطة ومدتها في الفيلم — يقرؤها mkreel_open.py لقصّ ريلز الافتتاحية
+TEXTS = {b['id']: b['text'] for b in blocks}
 for n, s in enumerate(shots):
-    span = span_of(s)
+    span = NF[n] / 25.0                            # مدّة اللقطة مؤطَّرةً (تختلف عن span_of بأقلّ من نصف إطار)
+    L, NT = LEN(n), NF[n] + 2 * HF
+    t = FST[n] / 25.0
     out = os.path.join(SEG, 's%03d.mp4' % n)
     kl = clip(s['id']); img = image_of(s)
-    an = find(s['id'], ['anim'], ['mp4'])
-    if not (os.path.exists(out) and abs(dur(out) - span) < 0.08):
+    if not (os.path.exists(out) and abs(dur(out) - L) < 0.03):
         if kl:
             kd = dur(kl)
-            if s.get('lipsync') and kd >= span - 1.5:
-                # ⛔ درس عين جالوت (حكم المالك 2026-09-29): مدُّ الإطار الأخير (tpad clone) جمّد الراوي ويده قبل القطع — «طريقة بدائية».
-                #    ⇒ النقص يُملأ بإبطاء آخر ثانيةٍ من المقطع نفسه (الكلام انتهى فيها)، فتبقى الحركة حيّةً حتى القطع.
-                short = span - kd
-                if short > 0.04:
+            if s.get('lipsync') or s.get('end_image'):
+                # الشفاه والتحوّل مربوطان ببداية اللقطة ونهايتها: يُصنع الجسم بطول اللقطة ثم يُمدّ المقبضان بالإطار الطرفيّ
+                # (الانتقال عند هذين قطعٌ حادّ في plan فلا يظهر المقبض المجمَّد)
+                core = out[:-4] + '_core.mp4'
+                if s.get('end_image'):
+                    sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=%.4f*PTS,scale=1920:1080,fps=25' % (span / kd),
+                            '-t', '%.3f' % span] + ENC + [core], check=True)
+                elif kd >= span - 1.5 and span - kd > 0.04:
+                    # ⛔ درس عين جالوت (حكم المالك 2026-09-29): مدُّ الإطار الأخير جمّد الراوي ويده قبل القطع — «طريقة بدائية».
+                    #    ⇒ النقص يُملأ بإبطاء آخر ثانيةٍ من المقطع نفسه (الكلام انتهى فيها)، فتبقى الحركة حيّةً حتى القطع.
+                    short = span - kd
                     tail = min(1.0, kd)
                     k = (tail + short + 0.05) / tail
                     sp.run([FF, '-v', 'error', '-y', '-i', kl, '-filter_complex',
                             '[0:v]scale=1920:1080,fps=25,split[a][b];[a]trim=0:%.3f,setpts=PTS-STARTPTS[h];'
                             '[b]trim=%.3f,setpts=%.4f*(PTS-STARTPTS),fps=25[t];[h][t]concat=n=2:v=1[v]' % (kd - tail, kd - tail, k),
-                            '-map', '[v]', '-t', '%.3f' % span] + ENC + [out], check=True)
+                            '-map', '[v]', '-t', '%.3f' % span] + ENC + [core], check=True)
                 else:
                     sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'scale=1920:1080,fps=25',
-                            '-t', '%.3f' % span] + ENC + [out], check=True)
-            elif span <= kd * SLOW_MAX:
-                # لقطة التحوّل (FLF) تُضغط إن طالت فلا يُقصّ آخرها — نهايتها هي صورة اللقطة التالية (ظهور الراوي في حطّين)
-                k = span / kd if s.get('end_image') else max(1.0, span / kd)
-                sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=%.4f*PTS,scale=1920:1080,fps=25' % k,
-                        '-t', '%.3f' % span] + ENC + [out], check=True)
+                            '-t', '%.3f' % span] + ENC + [core], check=True)
+                sp.run([FF, '-v', 'error', '-y', '-i', core, '-vf', 'tpad=start_mode=clone:start=%d:stop_mode=clone:stop=%d' % (HF, HF + 4),
+                        '-frames:v', str(NT)] + ENC + [out], check=True)
+            elif L <= kd * SLOW_MAX:
+                # المقطع الحيّ يبدأ من أوّل المقبض: محتواه يتقدّم نصف ثانيةٍ عن الكلام بلا ضرر، والتداخل حيٌّ من الجهتين
+                sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=%.4f*PTS,scale=1920:1080,fps=25,tpad=stop_mode=clone:stop=4'
+                        % max(1.0, L / kd), '-frames:v', str(NT)] + ENC + [out], check=True)
             else:
                 a, b2 = out[:-4] + '_a.mp4', out[:-4] + '_b.mp4'
                 sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=%.2f*PTS,scale=1920:1080,fps=25' % SLOW_MAX, '-t', '%.3f' % (kd * SLOW_MAX)] + ENC + [a], check=True)
-                kb3d.render(img, b2, span - kd * SLOW_MAX, n)
+                kb3d.render(img, b2, L - kd * SLOW_MAX + 0.12, n, None, energy(n))
                 lst = out[:-4] + '.txt'
                 open(lst, 'w', encoding='utf-8').write("file '%s'\nfile '%s'\n" % (a.replace('\\', '/'), b2.replace('\\', '/')))
-                sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', lst, '-vf', 'fps=25'] + ENC + [out], check=True)
+                sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', lst, '-vf', 'fps=25,tpad=stop_mode=clone:stop=4',
+                        '-frames:v', str(NT)] + ENC + [out], check=True)
         else:
-            if not (an and dur(an) >= span - 0.5):
-                an = P('anim', '%s.mp4' % s['id']); os.makedirs(P('anim'), exist_ok=True); kb3d.render(img, an, span + 0.3, n)
-            pad = max(0.0, span - dur(an) + 0.1)
-            sp.run([FF, '-v', 'error', '-y', '-i', an, '-vf', 'tpad=stop_mode=clone:stop_duration=%.3f,fps=25' % pad,
-                    '-t', '%.3f' % span] + ENC + [out], check=True)
+            an = ANIM(s)
+            if not (os.path.exists(an) and dur(an) >= L - 0.02):
+                kb3d.render(img, an, L + 0.04, n, None, energy(n))
+            sp.run([FF, '-v', 'error', '-y', '-i', an, '-vf', 'tpad=stop_mode=clone:stop=4,fps=25',
+                    '-frames:v', str(NT)] + ENC + [out], check=True)
     clean.append(out)
     if s.get('overlays'):                          # زرّ الاشتراك والجرس لحظةَ نطق كلمتهما (الزلاقة)
-        out = overlay(s, out, span)
+        out = overlay(s, out, span, L)
     if s.get('title') or s.get('counter'):         # بطاقةُ الاسم لحظةَ كشفه وعدّادُ السنين في العودة إلى الماضي (عين جالوت)
-        out = captions(s, out, span)
-    if kinetic.has_fx(s):                          # الكتابة المتحرّكة والضربات والبطاقات (الأرك)
-        out = kinetic.apply(PROJ, s, out, span, {b['id']: b['text'] for b in blocks}, durs, GAP, WORK, ENC)
+        out = captions(s, out, span, L)
+    if kinetic.has_fx(s):                          # الكتابة المتحرّكة كلمةً كلمة والضربات والبطاقات (الأرك)
+        out = kinetic.apply(PROJ, s, out, span, TEXTS, durs, GAP, WORK, ENC, HEAD, L)
     segs.append(out)
     # صوتُ Kling الطبيعي (إن اجتاز الفحص) وإلا مؤثّرُ المكتبة
     if kl and sfx_ok(kl):
@@ -273,23 +298,16 @@ for n, s in enumerate(shots):
         c = sorted(glob.glob(os.path.join(SFX, s['sfx'] + '_*.ogg')))
         if c: fx.append((t, span, random.Random(n).choice(c), float(s.get('sfx_vol', 0.22))))
     TL[s['id']] = [round(t, 3), round(span, 3)]
-    t += span
     print('  [%d/%d] %s · %.1f ث · %s' % (n + 1, len(shots), s['id'], span, s.get('sfx', '-')), flush=True)
 
 json.dump(TL, open(P('timeline.json'), 'w', encoding='utf-8'))
-# ②ب الانتقالات بحسب الموقف (أمر المالك 2026-10-04: «تلاشي الصور وظهور الجديدة، وانقسام صورة ثم ظهور الجديدة مكانها…»)
-#    متمركزةٌ على نقاط القطع بلا تغيير عدد الإطارات، فتبقى timeline.json والصوت متزامنين؛ والنسخة النظيفة بالانتقالات نفسها
-TP = transitions.plan(shots, _secs)
+# ②ب الانتقالات المتداخلة بحسب الموقف (أمر المالك 2026-10-04: «صورٌ متداخلة احترافية» — tools/transitions.py)
+#    مُجمِّعٌ واحد يقرأ المقاطع بمقابضها ويكتب الفيلم الصامت: عدد الإطارات = مجموع إطارات اللقطات، فالصوت متزامن
 print('②ب الانتقالات: %d من %d حدّاً' % (sum(1 for x in TP if x), len(TP)), flush=True)
-segs = transitions.apply(segs, TP, WORK, ENC, 'v')
-clean = transitions.apply(clean, TP, WORK, ENC, 'c')
-vlist = os.path.join(WORK, 'vlist.txt')
-open(vlist, 'w', encoding='utf-8').write(''.join("file '%s'\n" % x.replace('\\', '/') for x in segs))
 silent = os.path.join(WORK, 'video_silent.mp4')
-clist = os.path.join(WORK, 'clist.txt')
-open(clist, 'w', encoding='utf-8').write(''.join("file '%s'\n" % x.replace('\\', '/') for x in clean))
-sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', clist, '-c', 'copy', os.path.join(WORK, 'video_clean.mp4')], check=True)
-sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', vlist, '-c', 'copy', silent], check=True)
+nv = transitions.assemble(segs, NF, TP, silent, ENC)
+nc = transitions.assemble(clean, NF, TP, os.path.join(WORK, 'video_clean.mp4'), ENC)
+assert nv == nc == sum(NF), 'عدد إطارات الفيلم لا يساوي مجموع اللقطات (%d، %d، %d)' % (nv, nc, sum(NF))
 
 # ③ المزج: الصوت + الرياح + المؤثّرات (−18dB تقريباً تحت الكلام)
 # MONT_MUTE_VOICE=1: عيّنةٌ قبل اكتمال الصوت (أمر المالك 2026-10-04: «عيّنةٌ احترافية… ولو بلا صوت أو جزءٌ منها بلا صوت»):

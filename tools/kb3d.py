@@ -25,18 +25,26 @@ from envpaths import FF
 from depthpath import depth_of  # noqa: E402 — خريطة العمق في images/ أو img/ (درس الأرك 2026-10-04)
 
 W, H, FPS = 1920, 1080, 25
-OVER = 1.10          # تكبير احتياطي قبل القصّ (يمنع الحواف السوداء)
-MAXPX = 34.0         # أقصى إزاحة للطبقة الأقرب، بالبكسل
-DEPTH_BLUR = 9       # تنعيم خريطة العمق — يمنع التمزّق
+# ⭐ الإصدار الثاني (حكم المالك 2026-10-04 على عيّنة الأرك: «التحريك المجسّم… لازال بعيداً جداً عمّا أطمح إليه»):
+#    أخذُ العيّنات ثنائيّ الخطّ (cv2.remap) بدل أقرب جار — كان يُرعش الحوافّ —، وإزاحةُ عمقٍ أكبر بمرّتين، وكاميرا تتقدّم
+#    فيكبر القريب أسرع من البعيد، ودورانٌ خفيف في المدار، وعمقُ ميدانٍ خفيف حين يبرز في الصورة قريبٌ واضح.
+OVER = 1.20          # تكبير احتياطي قبل القصّ (يمنع الحواف السوداء)
+MAXPX = 78.0         # أقصى إزاحة للطبقة الأقرب، بالبكسل
+DEPTH_BLUR = 13      # تنعيم خريطة العمق — يمنع التمزّق
+PAR_ZOOM = 1.25      # القريب يكبر بقدر (1 + PAR_ZOOM × عمقه) من تقدّم الكاميرا
+DOF = 0.42           # أقصى مزجٍ للخلفية المغبّشة (عمق الميدان) — يُطفأ في الصور المسطّحة
+VERSION = 2          # يُكتب في اسم المقطع عند mont_hybrid فلا يُعاد استعمال مقاطع الإصدار الأوّل
 
-# ستة أنماط حركة، تُوزَّع بالتناوب فلا تتشابه لقطتان متجاورتان
+# ثمانية مسارات كاميرا: (إزاحة أفقية، رأسية) بوحدة MAXPX، والتكبير، والدوران بالدرجات — تتناوب فلا تتشابه لقطتان متجاورتان
 MOVES = [
-    ("pan_r",  lambda p: ( 1.0*p - 0.5,  0.10*p - 0.05, 1.00 + 0.045*p)),
-    ("pan_l",  lambda p: (-1.0*p + 0.5, -0.08*p + 0.04, 1.00 + 0.045*p)),
-    ("push",   lambda p: ( 0.18*p - 0.09, 0.06*p - 0.03, 1.00 + 0.075*p)),
-    ("pull",   lambda p: (-0.15*p + 0.07, 0.05*p - 0.02, 1.075 - 0.075*p)),
-    ("rise",   lambda p: ( 0.12*p - 0.06, 0.85*p - 0.42, 1.00 + 0.050*p)),
-    ("drift",  lambda p: ( 0.75*p - 0.37,-0.55*p + 0.27, 1.00 + 0.040*p)),
+    ("dolly_in",  lambda p: ( 0.12 * p - 0.06, -0.06 * p + 0.03, 1.00 + 0.15 * p, 0.0)),
+    ("truck_r",   lambda p: ( 1.00 * p - 0.50,  0.08 * p - 0.04, 1.07, 0.0)),
+    ("crane_up",  lambda p: ( 0.10 * p - 0.05,  0.95 * p - 0.47, 1.04 + 0.06 * p, 0.0)),
+    ("orbit",     lambda p: ( 0.90 * p - 0.45, -0.10 * p + 0.05, 1.08, 1.8 * p - 0.9)),
+    ("dolly_out", lambda p: (-0.12 * p + 0.06,  0.06 * p - 0.03, 1.16 - 0.14 * p, 0.0)),
+    ("truck_l",   lambda p: (-1.00 * p + 0.50, -0.06 * p + 0.03, 1.07, 0.0)),
+    ("push_tilt", lambda p: ( 0.16 * p - 0.08,  0.12 * p - 0.06, 1.00 + 0.13 * p, -1.5 * p + 0.3)),
+    ("reveal",    lambda p: ( 0.06 * p - 0.03, -0.60 * p + 0.30, 1.19 - 0.16 * p, 0.0)),
 ]
 
 
@@ -63,54 +71,78 @@ def depth_maps(proj):
             print(f"  ⛔ {os.path.basename(f)}: {e}", flush=True)
 
 
-def render(src, out, dur=6.0, seed=0, size=None):
+def _cover(im, bw, bh, resample):
+    """قصٌّ مركزيٌّ يملأ (bw، bh) بلا تشويه."""
+    iw, ih = im.size
+    sc = max(bw / iw, bh / ih)
+    im = im.resize((max(bw, int(iw * sc + 0.5)), max(bh, int(ih * sc + 0.5))), resample)
+    return im.crop(((im.width - bw) // 2, (im.height - bh) // 2,
+                    (im.width - bw) // 2 + bw, (im.height - bh) // 2 + bh))
+
+
+def render(src, out, dur=6.0, seed=0, size=None, energy=1.0):
     """يصيّر مقطعًا مجسَّمًا واحدًا. يحتاج <src>_depth.png بجانب الصورة أو في <proj>/img.
-    size=(عرض,ارتفاع) للريلزات العمودية (1080,1920)؛ والافتراض أفقيّ 1920×1080."""
+    size=(عرض,ارتفاع) للريلزات العمودية (1080,1920)؛ والافتراض أفقيّ 1920×1080.
+    energy: شدّة الحركة (المعركة أقوى من التمهيد) — تضرب الإزاحة والتكبير."""
+    import cv2                                  # opencv-python-headless (weekly-film يثبّته)
     W, H = size if size else (globals()["W"], globals()["H"])
     dpath = depth_of(src)
     bw, bh = int(W * OVER), int(H * OVER)
-    im = Image.open(src).convert("RGB")
-    iw, ih = im.size                       # قصّ مركزيّ يملأ الإطار بلا تشويه
-    sc = max(bw / iw, bh / ih)
-    im = im.resize((max(bw, int(iw * sc + 0.5)), max(bh, int(ih * sc + 0.5))), Image.LANCZOS)
-    im = im.crop(((im.width - bw) // 2, (im.height - bh) // 2,
-                  (im.width - bw) // 2 + bw, (im.height - bh) // 2 + bh))
-    a = np.asarray(im, dtype=np.uint8)
+    a = np.asarray(_cover(Image.open(src).convert("RGB"), bw, bh, Image.LANCZOS), dtype=np.uint8)
 
     if os.path.exists(dpath):
-        dm = Image.open(dpath).convert("L")
-        dsc = max(bw / dm.width, bh / dm.height)
-        dm = dm.resize((max(bw, int(dm.width * dsc + 0.5)), max(bh, int(dm.height * dsc + 0.5))), Image.LANCZOS)
-        dm = dm.crop(((dm.width - bw) // 2, (dm.height - bh) // 2,
-                      (dm.width - bw) // 2 + bw, (dm.height - bh) // 2 + bh))
+        dm = _cover(Image.open(dpath).convert("L"), bw, bh, Image.BILINEAR)
         dm = dm.filter(ImageFilter.GaussianBlur(DEPTH_BLUR))
         d = np.asarray(dm, dtype=np.float32) / 255.0
     else:   # بلا عمق: تدرّج رأسيّ — كين-بيرنز محسَّن، لا مجسَّم
         d = np.linspace(0.15, 1.0, bh, dtype=np.float32)[:, None].repeat(bw, 1)
     d = d - d.mean()                       # المتوسّط ثابت، فالحركة حول مستوى الصورة
+    sep = float(d.std())
+    dof = DOF * min(1.0, max(0.0, (sep - 0.12) / 0.10))     # عمق ميدانٍ حين يبرز قريبٌ واضح فقط (لا أثر «المجسّم المصغّر»)
+    blur = cv2.GaussianBlur(a, (0, 0), 3.2) if dof > 0.02 else None
+    dfocus = float(np.percentile(d, 90))                    # البؤرة على القريب
 
     name, fn = MOVES[seed % len(MOVES)]
-    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    e = max(0.4, float(energy))
+    # الإزاحة ناعمةٌ (العمق مغبَّش) فتُحسب على شبكةٍ بربع الدقّة ثم تُكبَّر ثنائياً — أسرع بأضعاف، والصورة نفسها تُؤخذ بدقّتها الكاملة
+    F = 4
+    ws, hs = (W + F - 1) // F, (H + F - 1) // F
+    gy, gx = np.mgrid[0:hs, 0:ws].astype(np.float32)
     ox, oy = (bw - W) / 2.0, (bh - H) / 2.0
+    cx, cy = bw / 2.0, bh / 2.0
+    qx = (gx + 0.5) * F - 0.5 + ox - cx              # موضع عيّنة الشبكة من مركز الصورة (محاذاة cv2.resize)
+    qy = (gy + 0.5) * F - 0.5 + oy - cy
     N = max(2, int(round(FPS * dur)))
 
     p = sp.Popen([FF, "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24",
                   "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-                  "-c:v", "libx264", "-preset", "medium", "-crf", "19",
+                  "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
                   "-pix_fmt", "yuv420p", out], stdin=sp.PIPE)
     try:
         for i in range(N):
             t = i / (N - 1)
-            t = t * t * (3 - 2 * t)                 # تنعيم البداية والنهاية
-            mx, my, zm = fn(t)
-            cx, cy = bw / 2.0, bh / 2.0
-            sx = cx + (xx + ox - cx) / zm
-            sy = cy + (yy + oy - cy) / zm
-            dd = d[np.clip(sy, 0, bh - 1).astype(np.int32),
-                   np.clip(sx, 0, bw - 1).astype(np.int32)]
-            sx = np.clip(sx + MAXPX * mx * dd, 0, bw - 1).astype(np.int32)
-            sy = np.clip(sy + MAXPX * my * dd, 0, bh - 1).astype(np.int32)
-            p.stdin.write(a[sy, sx].tobytes())
+            t = 0.75 * t + 0.25 * t * t * (3 - 2 * t)   # حركةٌ متّصلة تكاد تكون خطّية: لا توقّف عند الانتقالات المتداخلة
+            mx, my, zm, rot = fn(t)
+            zm = 1.0 + (zm - 1.0) * e
+            mx, my, rot = mx * e, my * e, rot * e
+            th = np.deg2rad(rot)
+            c, s_ = np.float32(np.cos(th)), np.float32(np.sin(th))
+            rx, ry = c * qx + s_ * qy, -s_ * qx + c * qy          # دورانٌ عكسيّ حول المركز
+            dd = np.zeros_like(qx)
+            for _ in range(3):                                     # تكرارٌ ثابت النقطة: العمق في موضع المصدر الحقيقيّ
+                z = zm * (1.0 + PAR_ZOOM * (zm - 1.0) * dd)
+                sx = cx + rx / z - MAXPX * mx * dd
+                sy = cy + ry / z - MAXPX * my * dd
+                dd = cv2.remap(d, sx, sy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+            z = zm * (1.0 + PAR_ZOOM * (zm - 1.0) * dd)
+            sx = cv2.resize(cx + rx / z - MAXPX * mx * dd, (W, H), interpolation=cv2.INTER_LINEAR)
+            sy = cv2.resize(cy + ry / z - MAXPX * my * dd, (W, H), interpolation=cv2.INTER_LINEAR)
+            fr = cv2.remap(a, sx, sy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+            if blur is not None:
+                w = cv2.resize(np.clip((dfocus - dd) / 0.55, 0.0, 1.0) * dof, (W, H), interpolation=cv2.INTER_LINEAR)
+                fb = cv2.remap(blur, sx, sy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+                fr = cv2.blendLinear(fr, fb, (1.0 - w).astype(np.float32), w.astype(np.float32))
+            p.stdin.write(fr.tobytes())
         p.stdin.close()
     except BrokenPipeError:
         pass
