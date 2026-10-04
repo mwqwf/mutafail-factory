@@ -64,6 +64,17 @@ class Layout(unittest.TestCase):
         self.assertGreater(xs[0], xs[1])
         self.assertGreater(xs[1], xs[2])
 
+    def test_slam_moves_above_cards_when_both(self):
+        # الأرك K09f: كانت الضربة «صفٌّ واحد» تغطّي بطاقات الصور في وسط الشاشة
+        s = {'slam': {'text': 'صف واحد', 'word': 'واحد'},
+             'cards': [{'img': 'x', 'label': 'أ'}, {'img': 'y', 'label': 'ب'}]}
+        els, shakes, _, flashes = K.shot_els('/nonexistent', s, [('صف', 0.2, 0.6), ('واحد', 0.6, 1.1)], 4.0)
+        slam = [e for e in els if e.anim == 'slam'][0]
+        labels = [e for e in els if e.anim == 'rise']
+        self.assertLess(slam.y + slam.img.height, K.H / 2 + 110 - 124)   # فوق أعلى البطاقات المنخفضة
+        self.assertTrue(labels and min(e.y for e in labels) > K.H / 2)
+        self.assertEqual(len(shakes), 1); self.assertEqual(len(flashes), 1)
+
     def test_compose_draws_inside_frame(self):
         e = k.El(k.sprite('اختبار', k.kufi(80), k.GOLD, stroke=4, shadow=4), 100, 100, 0.0, 'slam', 0.2)
         im = k.compose([e], 0.5)

@@ -456,11 +456,12 @@ def kt_els(kt: dict, wt: list, span: float) -> list:
     return [band_el(640)] + els
 
 
-def slam_els(sl: dict, t: float, span: float) -> list:
-    size = 176
+def slam_els(sl: dict, t: float, span: float, top: bool = False) -> list:
+    """top: الضربة أعلى الشاشة وأصغر قليلاً، حين تشاركها بطاقاتُ صورٍ في اللقطة نفسها (لا تغطّيها)."""
+    size = 140 if top else 176
     while size > 90 and text_w(sl['text'], kufi(size, 'Black')) > 1700: size -= 8
     big = sprite(sl['text'], kufi(size, 'Black'), sl.get('color') and tuple(sl['color']) or GOLD, stroke=9, shadow=10)
-    y = H / 2 - big.height / 2 - (40 if sl.get('sub') else 0)
+    y = 30 if top else H / 2 - big.height / 2 - (40 if sl.get('sub') else 0)
     els = [dim_el(0.38, t, 0.15), El(big, W / 2 - big.width / 2, y, t, 'slam', 0.24, z=3)]
     if sl.get('sub'):
         sub = sprite(sl['sub'], kufi(58, 'Bold'), WHITE, stroke=4, shadow=5)
@@ -507,7 +508,8 @@ def label_els(labels: list, wt: list) -> list:
     return els
 
 
-def card_els(proj: str, cards: list, wt: list, span: float) -> list:
+def card_els(proj: str, cards: list, wt: list, span: float, low: bool = False) -> list:
+    """low: البطاقات أسفل الوسط لتفسح أعلى الشاشة لضربةٍ مكتوبة في اللقطة نفسها."""
     n = len(cards)
     cw, ch_ = (440, 248) if n <= 3 else (380, 214)
     gap = 40
@@ -522,7 +524,7 @@ def card_els(proj: str, cards: list, wt: list, span: float) -> list:
                 if os.path.exists(p): src = p; break
             if src: break
         x = (W + total) / 2 - (i + 1) * cw - i * gap          # البطاقة الأولى يميناً
-        y = H / 2 - ch_ / 2 - 40
+        y = H / 2 - ch_ / 2 + (110 if low else -40)
         t = find_word(wt, c.get('word'), 0.3 + i * 0.6)
         if src:
             im = Image.open(src).convert('RGB')
@@ -557,13 +559,10 @@ def base_filters(shakes: list[float], punches: list[float], span: float) -> str:
     return ','.join(f)
 
 
-def apply(proj: str, s: dict, seg: str, span: float, texts: dict, durs: dict, gap: float, work: str, enc: list) -> str:
-    """يركّب مؤثّرات العرض على مقطع اللقطة ويعيد مسار الناتج (يُستأنف إن وُجد بالمدّة نفسها)."""
-    res = seg[:-4] + '_kin.mp4'
-    if os.path.exists(res) and abs(_dur(res) - span) < 0.08:
-        return res
-    wt = shot_word_times(proj, s, texts, durs, gap)
+def shot_els(proj: str, s: dict, wt: list, span: float) -> tuple[list, list, list, list]:
+    """عناصر العرض للّقطة وأزمنة الارتجاج والتكبير والومضات — مشتركةٌ بين المونتاج والمعاينة الثابتة."""
     els, shakes, punches, flashes = [], [], [], []
+    both = bool(s.get('slam') and s.get('cards'))   # K09f في الأرك: الضربة كانت تغطّي البطاقات
     if s.get('flash'):
         flashes.append(0.0)
     if s.get('kt'):
@@ -573,20 +572,30 @@ def apply(proj: str, s: dict, seg: str, span: float, texts: dict, durs: dict, ga
     if s.get('labels'):
         els += label_els(s['labels'], wt)
     if s.get('cards'):
-        els += card_els(proj, s['cards'], wt, span)
+        els += card_els(proj, s['cards'], wt, span, low=both)
     if s.get('name'):
         els += name_els(s['name'], find_word(wt, s['name'].get('word'), 0.3))
     if s.get('slam'):
         sl = s['slam']
         t = float(sl['at']) if 'at' in sl else find_word(wt, sl.get('word'), 0.25)
         t = min(t, max(0.0, span - 0.5))
-        els += slam_els(sl, t, span); shakes.append(t); flashes.append(t)
+        els += slam_els(sl, t, span, top=both); shakes.append(t); flashes.append(t)
     if s.get('_chapter'):
         els += chapter_els(s['_chapter'], span)
     for w in s.get('shake', []) or []:
         shakes.append(min(find_word(wt, w, 0.2), max(0.0, span - 0.4)))
     for w in s.get('punch', []) or []:
         punches.append(min(find_word(wt, w, 0.2), max(0.0, span - 0.4)))
+    return els, shakes, punches, flashes
+
+
+def apply(proj: str, s: dict, seg: str, span: float, texts: dict, durs: dict, gap: float, work: str, enc: list) -> str:
+    """يركّب مؤثّرات العرض على مقطع اللقطة ويعيد مسار الناتج (يُستأنف إن وُجد بالمدّة نفسها)."""
+    res = seg[:-4] + '_kin.mp4'
+    if os.path.exists(res) and abs(_dur(res) - span) < 0.08:
+        return res
+    wt = shot_word_times(proj, s, texts, durs, gap)
+    els, shakes, punches, flashes = shot_els(proj, s, wt, span)
     name = os.path.basename(seg)[:-4]
     lst = render_track(els, span, work, name)
     cmd = [envpaths.FF, '-v', 'error', '-y', '-i', seg]
