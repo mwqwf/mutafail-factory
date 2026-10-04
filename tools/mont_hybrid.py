@@ -5,7 +5,7 @@
 ⛔ لا موسيقى: المؤثّرات طبيعية CC0، وصوتُ Kling لا يدخل إلا إن اجتاز sfx_gate (clips/<id>.ok)."""
 import json, os, sys, glob, random, subprocess as sp
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import envpaths, kb3d
+import envpaths, kb3d, kinetic   # kinetic: الكتابة المتحرّكة بأسلوب العروض التقديمية (أمر المالك 2026-10-04)
 from sfx_verdict import ok as sfx_ok   # صوت Kling يدخل بحكمٍ مطابقٍ لبصمة المقطع الحاليّ (MF-07)
 from envpaths import FF, FP
 from PIL import Image, ImageDraw, ImageFilter
@@ -18,6 +18,13 @@ WORK = P('work'); SEG = os.path.join(WORK, 'seg'); os.makedirs(SEG, exist_ok=Tru
 blocks = [b for b in json.load(open(P('blocks.json'), encoding='utf-8')) if not b.get('reel_only')]
 shots = json.load(open(P('shots.json'), encoding='utf-8'))
 STILL = {s['id'] for s in shots if s.get('still')}
+SHOT = {s['id']: s for s in shots}
+# عنوانُ كلّ فصلٍ (عدا الافتتاحية) يُكتب أعلى أوّل لقطةٍ فيه — kinetic.chapter_els
+_secs = json.load(open(P('sections.json'), encoding='utf-8')) if os.path.exists(P('sections.json')) else []
+_first = {x['id']: x['title'] for x in _secs[1:]}
+for _s in shots:
+    if _s.get('blocks') and _s['blocks'][0] in _first and not _s.get('_chapter'):
+        _s['_chapter'] = _first.pop(_s['blocks'][0])
 ENC = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '19', '-pix_fmt', 'yuv420p', '-r', '25', '-an']
 
 
@@ -29,6 +36,9 @@ def dur(f):
 def clip(sid):
     # مقطعُ Kling؛ وإن فشلت مطابقةُ شفاه الراوي فالخامُ المتحرّك خيرٌ من صورةٍ ثابتة
     if sid in STILL: return None                   # مقطعٌ رُفض بعد الفحص (وجهُ صحابيّ مثلاً): تبقى الصورة المعتمدة
+    if SHOT.get(sid, {}).get('clip'):             # الأرك 2026-10-04: مقطعُ لقطةٍ أخرى يُعاد في الافتتاحية بلا كلفة
+        r = kinetic.reuse_clip(PROJ, SHOT[sid])
+        if r: return r
     return (find(sid + '_av', ['clips'], ['mp4']) or find(sid, ['clips'], ['mp4'])
             or find(sid + '_raw', ['clips'], ['mp4']))
 
@@ -189,6 +199,7 @@ def captions(s, seg, span):
 
 # ② اللقطات + جدول المؤثّرات
 segs, fx = [], []   # fx: (بداية، مدة، ملف، مستوى)
+clean = []          # المقاطع قبل الكتابة المتحرّكة والبطاقات — تُصنع منها الريلزات العمودية فلا يُقصّ نصٌّ محروق
 # ⭐ أمر المالك 2026-10-03 («لا أكشن»): كان المقطعُ الحيّ يُبطَّأ ×1.4 ليملأ كلاماً أطول، فتصير الخيلُ والسيوف حركةً بطيئةً
 #    مائعة. ⇒ لا إبطاء فوق ×1.15، وما زاد يكمله kb3d — والعلاجُ الحقّ لقطاتٌ أقصر (thrill_gate: ≤ 6 ث متوسّطاً).
 SLOW_MAX = 1.15
@@ -234,10 +245,13 @@ for n, s in enumerate(shots):
             pad = max(0.0, span - dur(an) + 0.1)
             sp.run([FF, '-v', 'error', '-y', '-i', an, '-vf', 'tpad=stop_mode=clone:stop_duration=%.3f,fps=25' % pad,
                     '-t', '%.3f' % span] + ENC + [out], check=True)
+    clean.append(out)
     if s.get('overlays'):                          # زرّ الاشتراك والجرس لحظةَ نطق كلمتهما (الزلاقة)
         out = overlay(s, out, span)
     if s.get('title') or s.get('counter'):         # بطاقةُ الاسم لحظةَ كشفه وعدّادُ السنين في العودة إلى الماضي (عين جالوت)
         out = captions(s, out, span)
+    if kinetic.has_fx(s):                          # الكتابة المتحرّكة والضربات والبطاقات (الأرك)
+        out = kinetic.apply(PROJ, s, out, span, {b['id']: b['text'] for b in blocks}, durs, GAP, WORK, ENC)
     segs.append(out)
     # صوتُ Kling الطبيعي (إن اجتاز الفحص) وإلا مؤثّرُ المكتبة
     if kl and sfx_ok(kl):
@@ -253,6 +267,9 @@ json.dump(TL, open(P('timeline.json'), 'w', encoding='utf-8'))
 vlist = os.path.join(WORK, 'vlist.txt')
 open(vlist, 'w', encoding='utf-8').write(''.join("file '%s'\n" % x.replace('\\', '/') for x in segs))
 silent = os.path.join(WORK, 'video_silent.mp4')
+clist = os.path.join(WORK, 'clist.txt')
+open(clist, 'w', encoding='utf-8').write(''.join("file '%s'\n" % x.replace('\\', '/') for x in clean))
+sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', clist, '-c', 'copy', os.path.join(WORK, 'video_clean.mp4')], check=True)
 sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', vlist, '-c', 'copy', silent], check=True)
 
 # ③ المزج: الصوت + الرياح + المؤثّرات (−18dB تقريباً تحت الكلام)

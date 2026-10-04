@@ -46,12 +46,14 @@ VD = dur(voice) + 0.6                               # نَفَسٌ قصير بع
 
 # ② الصورة: قطعٌ كلّ CUT ثانية يدور على اللقطات؛ وفي كلّ دورةٍ جزءٌ آخر من اللقطة نفسها (حركةٌ جديدة لا تكرار)
 n = max(1, math.ceil(VD / CUT)); per = VD / n; shots = R['shots']; segs = []
+# الفيلم بلا كتابته المحروقة (mont_hybrid: work/video_clean.mp4) — قصُّ الإطار العموديّ لا يبتر نصّاً (الأرك 2026-10-04)
+SRC = P('work', 'video_clean.mp4') if os.path.exists(P('work', 'video_clean.mp4')) else P('film.mp4')
 for k in range(n):
     sid = shots[k % len(shots)]; st, span = TL[sid]; rep = k // len(shots)
     s0 = st + min(max(0.0, span - per - 0.1), 0.3 + rep * per)
     out = os.path.join(WORK, 's%03d.mp4' % k)
     z = "zoompan=z='1.0+0.0022*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=%dx%d:fps=30" % (W, FG_H)
-    run(['-ss', '%.3f' % s0, '-t', '%.3f' % per, '-i', P('film.mp4'), '-an', '-vf',
+    run(['-ss', '%.3f' % s0, '-t', '%.3f' % per, '-i', SRC, '-an', '-vf',
          'scale=-2:%d,crop=%d:%d,%s,fade=t=in:st=0:d=0.12:color=white,tpad=stop_mode=clone:stop_duration=%.2f' % (FG_H, W, FG_H, z, per),
          '-t', '%.3f' % per, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p', out])
     segs.append(out)
@@ -89,7 +91,9 @@ lg = Image.open(envpaths.logo()).convert('RGBA').resize((110, 110))
 m = Image.new('L', (110, 110), 0); ImageDraw.Draw(m).ellipse([2, 2, 108, 108], fill=255); top.paste(lg, ((W - 110) // 2, H - 150), m)
 top.save(os.path.join(WORK, 'top.png'))
 
-hook = Image.new('RGBA', (W, H), (0, 0, 0, 110)); d = ImageDraw.Draw(hook)
+# ⭐ الجيل الثالث (الأرك 2026-10-04 — «ريلزات بقوة لم يسبق لنا مثلها»): الخطّاف فوق الحركة نفسها بلا تعتيمٍ يحجبها،
+#    وارتجاجٌ في أوّل 0.7 ث يجعل الثانية الأولى ضربةً لا عنواناً ساكناً
+hook = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(hook)
 fh_ = envpaths.arfont(96, path=FB); hl = lines(d, R.get('hook') or R['title'], fh_, W - 140)[:3]; y = (H - len(hl) * 130) / 2
 for ln in hl:
     centered(d, y, ln, fh_, WHITE, 6, band=(200, 32, 34, 235)); y += 150
@@ -151,7 +155,8 @@ flt = ['[0:v]split[a][b]', '[a]scale=%d:%d:force_original_aspect_ratio=increase,
        '[%d:v]format=rgba,fade=t=out:st=%.2f:d=0.25:alpha=1[hk]' % (iH, HOOK_T - 0.25),
        "[v3][hk]overlay=0:0:enable='lte(t,%.2f)'[v4]" % HOOK_T,
        '[%d:v]format=rgba,fade=t=in:st=%.2f:d=0.35:alpha=1[en]' % (iE, VD - END_T),
-       "[v4][en]overlay=0:0:enable='gte(t,%.2f)',fps=30,setsar=1,format=yuv420p[v]" % (VD - END_T), amix]
+       "[v4]crop=w=iw-48:h=ih-48:x='24+if(lt(t,0.7),22*sin(70*t)*exp(-5*t),0)':y='24+if(lt(t,0.7),16*cos(85*t)*exp(-5*t),0)',scale=%d:%d[v4s]" % (W, H),
+       "[v4s][en]overlay=0:0:enable='gte(t,%.2f)',fps=30,setsar=1,format=yuv420p[v]" % (VD - END_T), amix]
 out = P('reels', RID + '.mp4')
 run(inp + ['-filter_complex', ';'.join(flt), '-map', '[v]', '-map', '[au]', '-t', '%.3f' % VD,
            '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-c:a', 'aac', '-b:a', '192k', out])

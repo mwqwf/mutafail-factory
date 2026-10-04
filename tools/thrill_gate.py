@@ -51,7 +51,8 @@ SUBSCRIBE = re.compile(r"(اشتركوا|اشترك|الجرس)")
 # ⭐ أمر المالك 2026-10-03: «لا داعي لذكر المصادر في الفيلم… يكفي الإشارة بأنّ المصادر في الوصف، لأنّ هذا يطيل جداً ويشتّت الانتباه»
 CITATION = re.compile(r"(رواه|رَوَاهُ|أخرجه|حسّنه|حسنه|صحّحه|صححه|بإسناد|في صحيحه|في مسنده|في سننه|في تاريخه|في كتابه|الطبعة|"
                       r"المصادر الأولى|مصادرها|صحيح البخاري|صحيح مسلم|ابن هشام|الواقدي|ابن الأثير|ابن كثير|الطبري|الهيثمي)")
-PRICE_LIVE, PRICE_AUDIO, PRICE_AVATAR = 0.07, 0.14, 0.16   # $/ث (tools/fal_animate.py)
+PRICE_LIVE, PRICE_AUDIO, PRICE_AVATAR, PRICE_FLF = 0.07, 0.14, 0.16, 0.112   # $/ث (tools/fal_animate.py)
+CLIP_SEC = 5              # مدّة مقطع Kling المدفوع (DUR في tools/fal_animate.py)
 BUDGET_SHARE = 0.90      # المخطّط ≤ 90٪ من السقف (هامشُ إعادات)، والفيلم كلّه حيّ إلا ما وُسم kb3d صراحةً
 
 
@@ -167,7 +168,10 @@ def pacing(proj: Path, blocks: list[dict], film: list[dict], sections: list[dict
             if s.get("avatar") or s.get("lipsync"):
                 est += span * PRICE_AVATAR
             elif s.get("kind") == "حيّة":
-                est += span * (PRICE_AUDIO if s.get("audio") else PRICE_LIVE)
+                # ⭐ الأرك 2026-10-04: Kling يحاسب مقطعاً كاملاً (duration، 5 ث افتراضاً) لكلّ لقطةٍ حيّة مهما قصرت جملتها —
+                #    كان التقدير بطول الكلام يُخفي نحو نصف الكلفة في الجمل القصيرة. والتحوّل (end_image) بسعر v3.
+                clip = float(s.get("duration") or CLIP_SEC)
+                est += clip * (PRICE_FLF if s.get("end_image") else PRICE_AUDIO if s.get("audio") else PRICE_LIVE)
             else:
                 still += span
         total = est + still * PRICE_LIVE
