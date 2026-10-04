@@ -67,6 +67,7 @@ def main(out: str) -> None:
         tok = r.get('nextPageToken')
         if not tok:
             break
+    ids = list(dict.fromkeys(ids))      # قائمة الرفع قد تعيد الفيديو نفسه مرّتين (وقع في تقرير 2026-10-04)
     rows = []
     for i in range(0, len(ids), 50):
         r = yt.videos().list(part='snippet,contentDetails,statistics,status', id=','.join(ids[i:i + 50])).execute()
@@ -75,7 +76,9 @@ def main(out: str) -> None:
             rows.append({'id': v['id'], 'title': v['snippet']['title'], 'published': v['snippet']['publishedAt'],
                          'seconds': seconds(v['contentDetails'].get('duration')), 'privacy': v['status'].get('privacyStatus'),
                          'views': int(st.get('viewCount', 0)), 'likes': int(st.get('likeCount', 0)),
-                         'comments': int(st.get('commentCount', 0))})
+                         'comments': int(st.get('commentCount', 0)),
+                         # أوّل الوصف العامّ: يكشف موضوع الريلز إن كان عنوانه مؤقّتاً («reel2») فيُبنى غلافه على مضمونه
+                         'description': (v['snippet'].get('description') or '')[:300]})
     rows = [r for r in rows if r['privacy'] == 'public']
     analytics = 'غير متاحة'
     try:
