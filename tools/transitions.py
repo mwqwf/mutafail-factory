@@ -253,9 +253,9 @@ def blend(name: str, A, B, p: float):
 
 # ══════════ المُجمِّع ══════════
 class _Reader:
-    """يقرأ إطارات مقطعٍ بالتتابع (rgb24)، ويكرّر آخر إطارٍ إن قصر المقطع عمّا يُطلب منه."""
-    def __init__(self, f, w, h):
-        self.w, self.h, self.n, self.last = w, h, 0, None
+    """يقرأ إطارات مقطعٍ بالتتابع (rgb24)، ويكرّر آخر إطارٍ إن قصر المقطع عمّا يُطلب منه؛ look: تدريجٌ يُطبَّق على كلّ إطار."""
+    def __init__(self, f, w, h, look=None):
+        self.w, self.h, self.n, self.last, self.look = w, h, 0, None, look
         self.p = sp.Popen([envpaths.FF, '-v', 'error', '-i', f, '-f', 'rawvideo', '-pix_fmt', 'rgb24',
                            '-s', '%dx%d' % (w, h), '-'], stdout=sp.PIPE, stderr=sp.DEVNULL)   # يُقتل بعد حاجته منه
         self.short = 0
@@ -265,6 +265,8 @@ class _Reader:
         buf = self.p.stdout.read(self.w * self.h * 3)
         if len(buf) == self.w * self.h * 3:
             self.last = np.frombuffer(buf, np.uint8).reshape(self.h, self.w, 3)
+            if self.look is not None:
+                self.last = self.look(self.last)
         else:
             self.short += 1
             if self.last is None:
@@ -273,8 +275,10 @@ class _Reader:
         return self.last
 
     def skip(self, k):
+        look, self.look = self.look, None                 # الإطارات المتخطّاة لا تُدرَّج (توفيراً)
         for _ in range(k):
             self.read()
+        self.look = look
 
     def close(self):
         try:
@@ -284,9 +288,10 @@ class _Reader:
         self.p.kill(); self.p.wait()
 
 
-def assemble(segs: list, nfr: list, tplan: list, out: str, enc: list, hf: int = HF, size=(1920, 1080)) -> int:
+def assemble(segs: list, nfr: list, tplan: list, out: str, enc: list, hf: int = HF, size=(1920, 1080), looks=None) -> int:
     """يكتب الفيلم الصامت من مقاطع اللقطات بمقابضها: segs[i] فيه hf إطاراً قبل اللقطة ثم nfr[i] ثم hf بعدها.
-    tplan[i] انتقال الحدّ (i، i+1). يعيد عدد الإطارات المكتوبة = مجموع nfr."""
+    tplan[i] انتقال الحدّ (i، i+1). looks[i]: تدريج اللقطة (tools/look.py) يُطبَّق على إطاراتها قبل مزج الانتقال.
+    يعيد عدد الإطارات المكتوبة = مجموع nfr."""
     import numpy as np
     w, h = size
     half = fit(nfr, tplan, hf)
@@ -296,7 +301,7 @@ def assemble(segs: list, nfr: list, tplan: list, out: str, enc: list, hf: int = 
     wrote, short = 0, []
     tailA: list = []                                  # إطارات اللقطة السابقة التي تدخل الانتقال الجاري
     for i, f in enumerate(segs):
-        r = _Reader(f, w, h)
+        r = _Reader(f, w, h, looks[i] if looks else None)
         hp = half[i - 1] if i > 0 and names[i - 1] else 0
         hn = half[i] if i < len(half) and names[i] else 0
         if hp:

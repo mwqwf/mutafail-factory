@@ -54,14 +54,28 @@ class TokensAndTiming(unittest.TestCase):
         self.assertEqual(k.spread(3, 0.0, 3.0), [0.0, 1.0, 2.0])
 
     def test_camera_shake_and_punch(self):
-        self.assertEqual(k.cam(1.0, [], []), (1.0, 0.0, 0.0))
-        z, dx, dy = k.cam(0.5, [1.0], [])                 # قبل الارتجاج: تكبيرٌ أساسيّ ثابت فلا قفزة عند بدئه
-        self.assertAlmostEqual(z, 1.035); self.assertEqual((dx, dy), (0.0, 0.0))
-        self.assertNotEqual(k.cam(1.05, [1.0], [])[1], 0.0)
+        self.assertEqual(k.cam(1.0, [], []), (1.0, 0.0, 0.0, 0.0))
+        z, dx, dy, r = k.cam(0.5, [1.0], [])              # قبل الارتجاج: تكبيرٌ أساسيّ ثابت فلا قفزة عند بدئه
+        self.assertAlmostEqual(z, 1.035); self.assertEqual((dx, dy, r), (0.0, 0.0, 0.0))
+        self.assertNotEqual(k.cam(1.1, [(1.0, 1.0)], [])[1], 0.0)
         self.assertGreater(k.cam(2.0, [], [2.0])[0], 1.1)
         self.assertEqual(k.cam(2.7, [], [2.0])[0], 1.0)   # التكبير الخاطف ينتهي
         self.assertEqual(k.flash_alpha(5.0, [1.0]), 0.0)
-        self.assertGreater(k.flash_alpha(1.02, [1.0]), 0.8)
+        self.assertGreater(k.flash_alpha(1.02, [1.0]), 0.6)
+        self.assertGreater(k.flash_alpha(1.01, [(1.0, 0.55, 0.08)]), 0.4)     # ومضة الارتطام الثقيل: إطاران
+        self.assertEqual(k.flash_alpha(1.1, [(1.0, 0.55, 0.08)]), 0.0)
+
+    def test_shake_is_not_jitter(self):
+        # درس البحث 2026-10-04: موجةٌ فوق 12.5 هرتز تُرى بـ25 إطاراً ارتعاشاً بين إطارين؛ الارتجاج يغيّر اتّجاهه ببطء
+        xs = [k.cam(1.0 + i / 25, [(1.0, 1.0)], [])[1] for i in range(1, 12)]
+        flips = sum(1 for a, b in zip(xs, xs[1:]) if a * b < 0)
+        self.assertLessEqual(flips, 4)
+        self.assertGreater(max(abs(x) for x in xs), 3.0)
+
+    def test_spring_overshoots_then_settles(self):
+        v = [k.spring(u / 100, 3.0, 0.6) for u in range(0, 120)]
+        self.assertGreater(max(v), 1.03)                   # تجاوز
+        self.assertLess(abs(v[-1] - 1), 0.01)              # استقرار
 
 
 def _word_card(path, widths, gap=70, h=200):
@@ -102,7 +116,10 @@ class Layout(unittest.TestCase):
         labels = [e for e in els if e.anim == 'rise']
         self.assertLess(slam.y + slam.img.height, k.H / 2 + 110 - 124)   # فوق أعلى البطاقات المنخفضة
         self.assertTrue(labels and min(e.y for e in labels) > k.H / 2)
-        self.assertEqual(len(shakes), 1); self.assertEqual(len(flashes), 1)
+        self.assertEqual(len(shakes), 1); self.assertEqual(len(flashes), 0)     # الضربة المتوسّطة بلا ومضة
+        s['_tier'] = 'heavy'                                                   # الثقيلة (ثلاثٌ في الفيلم) بومضة إطارين
+        _, shakes, _, flashes = k.shot_els(proj, s, [('صف', 0.2, 0.6), ('واحد', 0.6, 1.1)], 4.0, {})
+        self.assertEqual(len(flashes), 1); self.assertEqual(shakes[0][1], k.SHAKE_AMP['heavy'])
 
     def test_missing_card_is_skipped_not_drawn(self):
         # أمر المالك: لا يرسم Claude نصّاً — البطاقة الغائبة يُتخطّى عنصرها

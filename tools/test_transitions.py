@@ -83,6 +83,20 @@ class Assemble(unittest.TestCase):
         px = np.frombuffer(raw, np.uint8).reshape(180, 320, 3)[90, 160].astype(int)
         self.assertTrue(px[0] > 40 and px[1] > 40, px)
 
+    def test_looks_applied_per_shot(self):
+        import numpy as np
+        d = tempfile.mkdtemp()
+        nfr = [30, 30]
+        segs = [self.seg(d, 'l%d' % i, n, c) for i, (n, c) in enumerate(zip(nfr, ('red', 'blue')))]
+        out = os.path.join(d, 'lk.mp4')
+        inv = lambda f: 255 - f                                  # «تدريج» يقلب الألوان ليُرى أثره بلا لبس
+        t.assemble(segs, nfr, [None], out, ENC, size=(320, 180), looks=[inv, None])
+        raw = sp.run(['ffmpeg', '-v', 'error', '-i', out, '-vf', 'select=eq(n\\,10)+eq(n\\,45)', '-vsync', '0', '-f', 'rawvideo',
+                      '-pix_fmt', 'rgb24', '-'], capture_output=True).stdout
+        a = np.frombuffer(raw, np.uint8).reshape(2, 180, 320, 3)[:, 90, 160].astype(int)
+        self.assertGreater(a[0][1], 150); self.assertGreater(a[0][2], 150)    # أحمر مقلوب ⇒ سماويّ
+        self.assertGreater(a[1][2], 150)                                         # الثانية بلا تدريج: زرقاء
+
     def test_blend_kinds_return_frames(self):
         import numpy as np
         A = np.full((90, 160, 3), 200, np.uint8); B = np.zeros((90, 160, 3), np.uint8)

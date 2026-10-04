@@ -5,7 +5,7 @@
 ⛔ لا موسيقى: المؤثّرات طبيعية CC0، وصوتُ Kling لا يدخل إلا إن اجتاز sfx_gate (clips/<id>.ok)."""
 import json, os, sys, glob, random, subprocess as sp
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import cards, envpaths, kb3d, kinetic, transitions   # kinetic: الكتابة المتحرّكة بأسلوب العروض التقديمية (أمر المالك 2026-10-04)
+import cards, envpaths, kb3d, kinetic, look, sfx_synth, transitions   # kinetic: الكتابة المتحرّكة (أمر المالك 2026-10-04)
 from sfx_verdict import ok as sfx_ok   # صوت Kling يدخل بحكمٍ مطابقٍ لبصمة المقطع الحاليّ (MF-07)
 from envpaths import FF, FP
 from PIL import Image, ImageDraw, ImageFilter
@@ -107,7 +107,21 @@ NF = [FST[i + 1] - FST[i] for i in range(len(shots))]
 LEN = lambda n: (NF[n] + 2 * HF) / 25.0          # مدّة مقطع اللقطة بمقبضيه
 ENERGY = {'battle': 1.35, 'buildup': 1.1, None: 1.15}   # شدّة الحركة المجسّمة: المعركة أقوى، والافتتاحية حماسية
 energy = lambda n: ENERGY.get(SECS[n], 1.0)
-ANIM = lambda s: P('anim', '%s.v%d.mp4' % (s['id'], kb3d.VERSION))   # لا تُعاد مقاطع الإصدار الأوّل
+ANIM = lambda s: P('anim', '%s.v%d.mp4' % (s['id'], kb3d.VERSION))   # لا تُعاد مقاطع إصدارٍ أقدم
+# «النصّ خلف العنصر» (طلب المالك 2026-10-04: «أقوى وأكثر إبهاراً»): لقطةٌ مجسّمة فيها كتابةٌ كبيرة (عبارةٌ وسطى، ضربة، عنوان فصل)
+# يكتب لها kb3d قناع الطبقة القريبة إطاراً بإطار، فتمرّ الكتابة خلف القريب من الصورة إن حجب منها جزءاً معتدلاً
+OCC = lambda s: bool((s.get('kt') or {}).get('style') == 'center' or (s.get('slam') and not s.get('cards')) or s.get('_chapter')
+                     or s.get('title'))
+MATTE = lambda s: ANIM(s)[:-4] + '.matte.mp4' if OCC(s) else None
+need_matte = lambda s: OCC(s) and not (os.path.exists(MATTE(s)) or os.path.exists(MATTE(s) + '.none'))
+
+# درجات الارتطام (بحث 2026-10-04: «لا تفاوت في الشدّة» من علامات الهواية): الثقيلة ثلاثٌ في الفيلم كلّه — اسم الفيلم، وأوّل ضربةٍ
+# مكتوبة، وأوّل ضربةٍ في المعركة — والبقيّة متوسّطة
+_heavy = [s['id'] for s in shots if s.get('title')][:1]
+_heavy += [s['id'] for s in shots if s.get('slam') and s['id'] not in _heavy][:1]
+_heavy += [s['id'] for n_, s in enumerate(shots) if s.get('slam') and SECS[n_] == 'battle' and s['id'] not in _heavy][:1]
+for _s in shots:
+    _s['_tier'] = 'heavy' if _s['id'] in _heavy[:3] else 'medium'
 
 # ①ب تصييرُ مشاهد kb3d مسبقاً بالتوازي على كلّ الأنوية (درس القادسية: تسلسلياً أخذ ساعاتٍ على عدّاء GitHub)
 def _pre(job):
@@ -120,9 +134,9 @@ for n, s in enumerate(shots):
     if clip(s['id']):
         continue
     an = ANIM(s)
-    if os.path.exists(an) and dur(an) >= LEN(n) - 0.02:
+    if os.path.exists(an) and dur(an) >= LEN(n) - 0.02 and not need_matte(s):
         continue
-    jobs.append((image_of(s), an, LEN(n) + 0.04, n, None, energy(n)))
+    jobs.append((image_of(s), an, LEN(n) + 0.04, n, None, energy(n), MATTE(s)))
 if jobs:
     from concurrent.futures import ProcessPoolExecutor
     with ProcessPoolExecutor(os.cpu_count() or 2) as ex:
@@ -184,7 +198,7 @@ def captions(s, seg, span, L):
             y += size * 1.35
         p = os.path.join(WORK, name); im.save(p); return p
 
-    ti = s.get('title')
+    ti = s.get('title') if not kinetic.has_fx(s) else None   # العنوان صار ضربةً في kinetic (title_els)؛ هنا العدّاد وحده
     # ⛔ أمر المالك 2026-10-04: العنوان بطاقةٌ من كوديكس (tools/cards.py) — لا يُرسم هنا، والغائبة يُتخطّى عنصرها
     spec = next((c for c in cards.shot_cards(s, {}) if c['role'] == 'title'), None) if ti else None
     tim = kinetic.card(PROJ, spec['key']) if spec else None
@@ -238,7 +252,7 @@ for n, s in enumerate(shots):
     span = NF[n] / 25.0                            # مدّة اللقطة مؤطَّرةً (تختلف عن span_of بأقلّ من نصف إطار)
     L, NT = LEN(n), NF[n] + 2 * HF
     t = FST[n] / 25.0
-    out = os.path.join(SEG, 's%03d.mp4' % n)
+    out = os.path.join(SEG, 's%03d_v%d.mp4' % (n, kb3d.VERSION))   # بإصدار المجسّم: تغيّره يعيد بناء المقطع
     kl = clip(s['id']); img = image_of(s)
     if not (os.path.exists(out) and abs(dur(out) - L) < 0.03):
         if kl:
@@ -279,8 +293,8 @@ for n, s in enumerate(shots):
                         '-frames:v', str(NT)] + ENC + [out], check=True)
         else:
             an = ANIM(s)
-            if not (os.path.exists(an) and dur(an) >= L - 0.02):
-                kb3d.render(img, an, L + 0.04, n, None, energy(n))
+            if not (os.path.exists(an) and dur(an) >= L - 0.02) or need_matte(s):
+                kb3d.render(img, an, L + 0.04, n, None, energy(n), MATTE(s))
             sp.run([FF, '-v', 'error', '-y', '-i', an, '-vf', 'tpad=stop_mode=clone:stop=4,fps=25',
                     '-frames:v', str(NT)] + ENC + [out], check=True)
     clean.append(out)
@@ -289,7 +303,8 @@ for n, s in enumerate(shots):
     if s.get('title') or s.get('counter'):         # بطاقةُ الاسم لحظةَ كشفه وعدّادُ السنين في العودة إلى الماضي (عين جالوت)
         out = captions(s, out, span, L)
     if kinetic.has_fx(s):                          # الكتابة المتحرّكة كلمةً كلمة والضربات والبطاقات (الأرك)
-        out = kinetic.apply(PROJ, s, out, span, TEXTS, durs, GAP, WORK, ENC, HEAD, L)
+        mt = MATTE(s) if not kl else None                # القناع للّقطة المجسّمة وحدها (المقطع الحيّ بلا عمقٍ إطاراً بإطار)
+        out = kinetic.apply(PROJ, s, out, span, TEXTS, durs, GAP, WORK, ENC, HEAD, L, mt if mt and os.path.exists(mt) else None)
     segs.append(out)
     # صوتُ Kling الطبيعي (إن اجتاز الفحص) وإلا مؤثّرُ المكتبة
     if kl and sfx_ok(kl):
@@ -305,8 +320,11 @@ json.dump(TL, open(P('timeline.json'), 'w', encoding='utf-8'))
 #    مُجمِّعٌ واحد يقرأ المقاطع بمقابضها ويكتب الفيلم الصامت: عدد الإطارات = مجموع إطارات اللقطات، فالصوت متزامن
 print('②ب الانتقالات: %d من %d حدّاً' % (sum(1 for x in TP if x), len(TP)), flush=True)
 silent = os.path.join(WORK, 'video_silent.mp4')
-nv = transitions.assemble(segs, NF, TP, silent, ENC)
-nc = transitions.assemble(clean, NF, TP, os.path.join(WORK, 'video_clean.mp4'), ENC)
+# التدريج السينمائيّ بحسب الفصل (tools/look.py) على كلّ إطار — والنسخة النظيفة للريلزات بالتدريج نفسه
+_lk = {}
+LOOKS = [_lk.setdefault(sec, look.Look(sec)) for sec in SECS]
+nv = transitions.assemble(segs, NF, TP, silent, ENC, looks=LOOKS)
+nc = transitions.assemble(clean, NF, TP, os.path.join(WORK, 'video_clean.mp4'), ENC, looks=LOOKS)
 assert nv == nc == sum(NF), 'عدد إطارات الفيلم لا يساوي مجموع اللقطات (%d، %d، %d)' % (nv, nc, sum(NF))
 
 # ③ المزج: الصوت + الرياح + المؤثّرات (−18dB تقريباً تحت الكلام)
@@ -316,17 +334,66 @@ if os.environ.get('MONT_MUTE_VOICE') == '1':
     voice = os.path.join(WORK, 'voice_muted.wav')
     sp.run([FF, '-v', 'error', '-y', '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=mono', '-t', '%.3f' % VD, voice], check=True)
     print('③ الكلام مكتومٌ في المزج (MONT_MUTE_VOICE)', flush=True)
-inp = [FF, '-v', 'error', '-y', '-i', voice, '-f', 'lavfi', '-t', str(VD), '-i', 'anoisesrc=c=pink:r=48000']
-flt = ['[1:a]lowpass=520,highpass=60,volume=0.10[w]']; mix = ['[0:a]', '[w]']
+# ③أ ارتطامٌ وحفيف (tools/sfx_synth.py — ضجيجٌ مرشَّح بلا نغمة): حفيفٌ قبل كلّ ضربةٍ مكتوبة وارتطامٌ لحظة هبوطها (الثقيلة أعلى)،
+#     وارتطامٌ خفيف للختم، وحفيفٌ تقع ذروته على القطع في الانتقالات الخاطفة، وحفيفٌ عميقٌ طويل عند التعتيم بين الفصول
+SB = sfx_synth.bank(WORK)
+hits, heavy_t = [], []
+for n, s in enumerate(shots):
+    ev = kinetic.EVENTS.get(s['id']) or {}
+    t0 = FST[n] / 25.0
+    for x in ev.get('slam', []):
+        ts, tier = (x, 'medium') if isinstance(x, (int, float)) else x
+        hv = tier == 'heavy'
+        hits += [(t0 + ts - 0.30, 'whoosh_fast', 0.34 if hv else 0.24),
+                 (t0 + ts + kinetic.IMPACT_AT - 0.02, 'thud', 0.85 if hv else 0.5)]
+        if hv:
+            heavy_t.append(t0 + ts + kinetic.IMPACT_AT)
+    for ts in ev.get('stamp', []):
+        hits.append((t0 + ts - 0.02, 'thud_soft', 0.32))
+for i, p_ in enumerate(TP):
+    if not p_:
+        continue
+    cut = FST[i + 1] / 25.0
+    if p_[0] in ('whip', 'whipr', 'push', 'zoom', 'flash'):
+        hits.append((cut - 0.32, 'whoosh_fast', 0.24))          # ذروة الحفيف (62% من 0.55 ث) على القطع
+    elif p_[0] == 'fadeblack':
+        hits.append((cut - 0.70, 'whoosh_slow', 0.28))
+HITS = sfx_synth.mix(hits, VD, SB, os.path.join(WORK, 'hits.wav'))
+print('③أ الارتطام والحفيف: %d مؤثّراً (منها %d ثقيلة)' % (len(hits), len(heavy_t)), flush=True)
+# ③ب المزج (بحث 2026-10-04 في تصميم صوت الوثائقيات): جوّ اللقطة يسبقها بنصف ثانية (قطع J)، والرياح والجوّ تنخفض تحت الكلام
+#     بضاغطٍ يقوده الكلام نفسه وترتفع بين الجمل، وتصمت قبيل الارتطام الثقيل فيدوّي، ثم تسوية الجهارة إلى −14 LUFS (معيار يوتيوب)
+inp = [FF, '-v', 'error', '-y', '-i', voice, '-f', 'lavfi', '-t', str(VD), '-i', 'anoisesrc=c=pink:r=48000', '-i', HITS]
+flt = ['[0:a]aresample=48000,aformat=channel_layouts=mono,asplit=2[v][vsc]',
+       '[1:a]lowpass=520,highpass=60,volume=0.10[w]', '[2:a]aresample=48000,aformat=channel_layouts=mono[h]']
+amb = ['[w]']
 for i, (st, d, f, vol) in enumerate(fx):
     inp += ['-stream_loop', '-1', '-i', f]
-    k = i + 2
-    flt.append('[%d:a]atrim=0:%.3f,afade=t=in:d=0.4,afade=t=out:st=%.3f:d=0.6,volume=%.2f,adelay=%d|%d,aresample=48000,aformat=channel_layouts=mono[f%d]'
-               % (k, d, max(0, d - 0.6), vol, int(st * 1000), int(st * 1000), i))
-    mix.append('[f%d]' % i)
-flt.append('%samix=inputs=%d:duration=first:normalize=0[a]' % (''.join(mix), len(mix)))
+    k = i + 3
+    st2 = max(0.0, st - 0.5); d2 = d + (st - st2)
+    flt.append('[%d:a]atrim=0:%.3f,afade=t=in:d=0.5,afade=t=out:st=%.3f:d=0.6,volume=%.2f,adelay=%d|%d,aresample=48000,aformat=channel_layouts=mono[f%d]'
+               % (k, d2, max(0, d2 - 0.6), vol, int(st2 * 1000), int(st2 * 1000), i))
+    amb.append('[f%d]' % i)
+flt.append('%samix=inputs=%d:duration=first:normalize=0[amb]' % (''.join(amb), len(amb)))
+dip = '+'.join('between(t,%.3f,%.3f)' % (ht - 0.28, ht) for ht in heavy_t)
+flt.append('[amb][vsc]sidechaincompress=threshold=0.025:ratio=5:attack=50:release=450:makeup=1[ambd]')
+flt.append("[ambd]volume='max(0.3,1-0.7*(%s))':eval=frame[amb2]" % (dip or '0'))
+flt.append('[v][amb2][h]amix=inputs=3:duration=first:normalize=0[a]')
+raw = os.path.join(WORK, 'audio_mix.wav')
+sp.run(inp + ['-filter_complex', ';'.join(flt), '-map', '[a]', '-c:a', 'pcm_s16le', '-ar', '48000', raw], check=True)
 mixed = os.path.join(WORK, 'audio_final.m4a')
-sp.run(inp + ['-filter_complex', ';'.join(flt), '-map', '[a]', '-c:a', 'aac', '-b:a', '192k', mixed], check=True)
+LN = 'loudnorm=I=-14:TP=-1.0:LRA=11'
+if os.environ.get('MONT_MUTE_VOICE') == '1':                   # بلا كلام: لا تُرفع الرياح إلى جهارة الكلام
+    sp.run([FF, '-v', 'error', '-y', '-i', raw, '-c:a', 'aac', '-b:a', '192k', mixed], check=True)
+else:
+    o = sp.run([FF, '-hide_banner', '-nostats', '-i', raw, '-af', LN + ':print_format=json', '-f', 'null', '-'],
+               capture_output=True, text=True).stderr
+    try:
+        mj = json.loads(o[o.rindex('{'):o.rindex('}') + 1])
+        LN2 = LN + (':measured_I=%s:measured_TP=%s:measured_LRA=%s:measured_thresh=%s:offset=%s:linear=true'
+                    % (mj['input_i'], mj['input_tp'], mj['input_lra'], mj['input_thresh'], mj['target_offset']))
+    except (ValueError, KeyError):
+        LN2 = LN
+    sp.run([FF, '-v', 'error', '-y', '-i', raw, '-af', LN2 + ',aresample=48000', '-c:a', 'aac', '-b:a', '192k', mixed], check=True)
 
 # ④ الدمج والشعار (⛔ لا فيلم بلا شعار)
 lg = os.path.join(WORK, 'logo_round.png')
@@ -337,6 +404,6 @@ o = Image.new('RGBA', (120, 120), (0, 0, 0, 0)); o.paste(im, (0, 0), m)
 o.putalpha(o.split()[3].point(lambda v: int(v * 0.72))); o.save(lg)
 final = P('film.mp4')
 sp.run([FF, '-v', 'error', '-y', '-i', silent, '-i', mixed, '-i', lg, '-filter_complex', '[0:v][2:v]overlay=W-w-46:46:format=auto[v]',
-        '-map', '[v]', '-map', '1:a', '-c:v', 'libx264', '-preset', 'medium', '-crf', '24', '-pix_fmt', 'yuv420p',
+        '-map', '[v]', '-map', '1:a', '-c:v', 'libx264', '-preset', 'medium', '-crf', '21', '-tune', 'film', '-pix_fmt', 'yuv420p',
         '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', '-shortest', final], check=True)
 print('✅ %s | %.2f د | مؤثّرات: %d' % (final, dur(final) / 60, len(fx)), flush=True)

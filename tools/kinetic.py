@@ -36,7 +36,7 @@ from PIL import Image, ImageChops  # noqa: E402
 
 W, H, FPS = 1920, 1080, 25
 TEMPO = 1.05                      # mont_hybrid يسرّع مسار الصوت كلّه 1.05
-FX_KEYS = ('kt', 'slam', 'cards', 'labels', 'name', 'date', 'flash', 'shake', 'punch', '_chapter')
+FX_KEYS = ('kt', 'slam', 'cards', 'labels', 'name', 'date', 'flash', 'shake', 'punch', '_chapter', 'title')
 HARAKAT = re.compile('[ً-ْٰـ]')
 PUNCT = '…،,.؟?!:؛«»"“”()-—'
 PAUSE_MARKS = '…،,.؟?!:؛'
@@ -177,6 +177,16 @@ def ease_back(p, s=1.9):
     return p * p * ((s + 1) * p + s) + 1
 
 
+def spring(u, f=3.0, zeta=0.6):
+    """نابضٌ مخمَّد من 0 إلى 1 بعد u ثانية (بدل ease_back): يتجاوز ثم يستقرّ استقراراً طبيعياً — f تردّده وzeta تخميده
+    (للكلمات 3 هرتز و0.6: تجاوزٌ نحو 9% واستقرارٌ في ثلث ثانية؛ وللضربة 0.45: تجاوزٌ نحو 20%)."""
+    if u <= 0:
+        return 0.0
+    w = 2 * math.pi * f
+    wd = w * math.sqrt(1 - zeta * zeta)
+    return 1 - math.exp(-zeta * w * u) * (math.cos(wd * u) + zeta * w / wd * math.sin(wd * u))
+
+
 def _cl(p):
     return 0.0 if p < 0 else (1.0 if p > 1 else p)
 
@@ -193,13 +203,17 @@ class El:
     """عنصرٌ يدخل عند t0 بحركة anim مدّتها d، ويخرج اختيارياً عند t1 بحركة ex مدّتها od.
     grow/piv/g0: تقريبٌ بطيءٌ مستمرّ للمجموعة حول محورها منذ g0 · act=(بداية، نهاية) نطق الكلمة: انتفاخٌ بقدر actk أثناءه ·
     sweep: زمن لمعة الضوء · glow: قوّة توهّجٍ من ألفا البطاقة نفسها خلفها · rot: زاوية الاستقرار · amp: سعة الدخول.
-    kind: img (بطاقة) · dim (تعتيمٌ للإطار كلّه بقدر lvl) · band (تدرّجٌ معتمٌ أسفل الإطار من y)."""
+    kind: img (بطاقة) · dim (تعتيمٌ للإطار كلّه بقدر lvl) · band (تدرّجٌ معتمٌ أسفل الإطار من y).
+    occ: كتابةٌ كبيرة يجوز أن يحجب القريبُ من الصورة جزءاً منها («النصّ خلف العنصر» بخريطة العمق)."""
     def __init__(self, img, x, y, t0=0.0, anim='fade', d=0.2, t1=None, z=1, ex='fade', od=0.3, grow=0.0, piv=None, g0=None,
-                 act=None, actk=0.06, sweep=None, glow=0.0, rot=0.0, amp=1.0, kind='img', lvl=1.0):
+                 act=None, actk=0.06, sweep=None, glow=0.0, rot=0.0, amp=1.0, kind='img', lvl=1.0, occ=False, tier='medium'):
         self.img, self.x, self.y, self.t0, self.anim, self.d, self.t1, self.z = img, x, y, t0, anim, d, t1, z
         self.ex, self.od, self.grow, self.piv, self.g0 = ex, od, grow, piv, g0
         self.act, self.actk, self.sweep, self.glow, self.rot, self.amp = act, actk, sweep, glow, rot, amp
         self.kind, self.lvl = kind, lvl
+        self.occ, self.behind = occ, None   # occ: يجوز أن يمرّ خلف القريب من الصورة (يُحسم behind عند أوّل ظهور)
+        self.grp, self.words = None, None   # grp: كلمات السطر الواحد تُحسم معاً · words: كلمات البطاقة الواحدة (للحكم بكلّ كلمة)
+        self.tier = tier                    # درجة ارتطام الضربة: heavy (ثلاثٌ في الفيلم كلّه) · medium · light
         self._arr = self._glw = None
 
     def frame_times(self):
@@ -233,38 +247,44 @@ class El:
         return self._glw
 
     def st(self, t):
-        """الحالة عند t: (ألفا، إزاحة س، إزاحة ص، تحجيم، دوران، كشف، تقريب المجموعة) أو None قبل الدخول."""
+        """الحالة عند t: (ألفا، إزاحة س، إزاحة ص، تحجيم، دوران، كشف، تقريب المجموعة، دورانٌ مجسّم حول المحور الرأسي)
+        أو None قبل الدخول."""
         if t + 1e-6 < self.t0:
             return None
         p = 1.0 if self.anim == 'none' or self.d <= 0 else _cl((t - self.t0) / self.d)
-        a, ox, oy, k, r, rev, m = 1.0, 0.0, 0.0, 1.0, self.rot, 1.0, self.amp
+        u = t - self.t0                         # الزمن منذ الدخول: النوابض بالثواني لا بنسبة المدّة
+        a, ox, oy, k, r, rev, m, ry = 1.0, 0.0, 0.0, 1.0, self.rot, 1.0, self.amp, 0.0
         an = self.anim
         if an == 'fade':
             a = ease_out(p)
         elif an == 'rise':
             a = ease_out(p); oy = 34 * m * (1 - ease_out(p))
-        elif an == 'pop':                       # تكبيرٌ من الصغر بتجاوزٍ ثم استقرار
-            a = _cl(p * 3); k = 1 - 0.45 * m + 0.45 * m * ease_back(p, 2.6); oy = 16 * (1 - ease_out(p))
+        # التحجيم أُسّيٌّ (s0^(1-e)) لا خطّيّ: خطّيّاً يبدو مسرعاً ثم متباطئاً
+        elif an == 'pop':                       # تكبيرٌ من الصغر بنابضٍ يتجاوز ثم يستقرّ
+            a = _cl(p * 3); k = max(0.05, 1 - 0.45 * m) ** (1 - spring(u, 3.2, 0.5)); oy = 16 * (1 - spring(u, 3.0, 0.8))
         elif an == 'drop':                      # تصغيرٌ من الكبر إلى موضعها بارتدادٍ خفيف
-            a = _cl(p * 2.6); k = 1 + 0.62 * m * (1 - ease_back(p, 1.7))
+            a = _cl(p * 2.6); k = (1 + 0.62 * m) ** (1 - spring(u, 3.0, 0.6))
         elif an == 'zoom':
-            a = _cl(p * 3); k = 1 + 0.35 * m * (1 - ease_out(p))
+            a = _cl(p * 3); k = (1 + 0.35 * m) ** (1 - spring(u, 3.0, 0.75))
         elif an == 'settle':                    # خلفيةٌ تستقرّ (الرقّ)
             a = ease_out(p); k = 1 + 0.06 * (1 - ease_out(p))
-        elif an == 'slam':
-            a = _cl(p * 3); k = max(0.6, 2.3 - 1.3 * ease_back(p))
-        elif an == 'slide':                     # من اليمين (اتجاه القراءة) بتجاوزٍ قليل
-            a = _cl(p * 2); ox = 420 * (1 - ease_back(p, 1.3))
+        elif an == 'slam':                      # تهبط من الضخامة بنابضٍ قليل التخميد: تنضغط تحت حجمها ثم تستقرّ
+            a = _cl(p * 3); k = max(0.6, 2.3 ** (1 - spring(u, 3.4, 0.45)))
+        elif an == 'slide':                     # من اليمين (اتجاه القراءة) بنابضٍ مخمَّد يكاد لا يتجاوز
+            a = _cl(p * 2); ox = 420 * (1 - spring(u, 2.6, 0.85))
         elif an == 'slidel':
-            a = _cl(p * 2); ox = -420 * (1 - ease_back(p, 1.3))
+            a = _cl(p * 2); ox = -420 * (1 - spring(u, 2.6, 0.85))
         elif an == 'wipe':                      # تُخطّ من اليمين بحافّةٍ ناعمة
             rev = ease_out(p); ox = 14 * (1 - ease_out(p))
         elif an == 'ink':                       # حبرٌ يجري على الكلمة بطول نطقها
             rev = _smooth(p) * 0.85 + p * 0.15
         elif an == 'stamp':                     # ختمٌ يهبط دائراً ثم يستقرّ
-            a = _cl(p * 4); k = 1.9 - 0.9 * ease_back(p, 2.2); r += -9 * (1 - ease_out(p))
+            a = _cl(p * 4); k = 1.9 ** (1 - spring(u, 3.6, 0.42)); r += -9 * (1 - spring(u, 3.0, 0.6))
         elif an == 'toss':                      # صورةٌ تُرمى من أسفل يمين ثم تستقرّ مائلة
-            a = _cl(p * 3); ox = 150 * (1 - ease_out(p)); oy = 240 * (1 - ease_back(p, 1.2)); r += 11 * (1 - ease_out(p))
+            a = _cl(p * 3); ox = 150 * (1 - spring(u, 2.4, 0.8)); oy = 240 * (1 - spring(u, 2.4, 0.55))
+            r += 11 * (1 - spring(u, 2.4, 0.6))
+        elif an == 'flip':                      # تنقلب الكلمة إلى مكانها حول محورها الرأسيّ بمنظورٍ مجسّم
+            a = _cl(p * 2.5); ry = -78 * m * (1 - spring(u, 2.8, 0.55)); oy = 10 * (1 - spring(u, 3.0, 0.8))
         if self.t1 is not None and t >= self.t1:
             q = _cl((t - self.t1) / max(0.04, self.od)); e = q * q
             if self.ex == 'up':
@@ -281,7 +301,7 @@ class El:
         g = 1.0
         if self.grow:
             g = 1 + self.grow * max(0.0, t - (self.t0 if self.g0 is None else self.g0))
-        return a, ox, oy, k, r, rev, g
+        return a, ox, oy, k, r, rev, g, ry
 
 
 def _reveal(arr, rev):
@@ -314,7 +334,7 @@ def _place(e, t, mul=1.0):
     s = e.st(t)
     if s is None:
         return None
-    a, ox, oy, k, r, rev, g = s
+    a, ox, oy, k, r, rev, g, ry = s
     a *= mul
     if a <= 0.003 or rev <= 0.002:
         return None
@@ -330,25 +350,63 @@ def _place(e, t, mul=1.0):
         k *= g
     th = math.radians(r)
     c, sn = math.cos(th) * k, math.sin(th) * k
+    if abs(ry) > 0.3:                                        # منظورٌ مجسّم: زوايا البطاقة بعد دورانها حول محورها الرأسيّ
+        import cv2
+        f, phi = 1500.0, math.radians(ry)
+        dst_pts = []
+        for x_, y_ in ((-w / 2, -h / 2), (w / 2, -h / 2), (w / 2, h / 2), (-w / 2, h / 2)):
+            X, Z = x_ * math.cos(phi) * k, x_ * math.sin(phi) * k
+            q = f / (f + Z)
+            px, py = X * q, y_ * k * q
+            dst_pts.append((cx + px * math.cos(th) - py * math.sin(th), cy + px * math.sin(th) + py * math.cos(th)))
+        M = cv2.getPerspectiveTransform(np.float32([[0, 0], [w, 0], [w, h], [0, h]]), np.float32(dst_pts))
+        return arr, M.astype(np.float32), a, (cx, cy, k, th)
     M = np.float32([[c, -sn, cx - c * w / 2 + sn * h / 2], [sn, c, cy - sn * w / 2 - c * h / 2]])
     return arr, M, a, (cx, cy, k, th)
 
 
+def _bbox(M, w, h, W_, H_):
+    """حدود صورة المستطيل (w×h) بعد التحويل M (تآلفيّ 2×3 أو منظوريّ 3×3) داخل الإطار."""
+    import numpy as np
+    pts = M @ np.float32([[0, 0, 1], [w, 0, 1], [0, h, 1], [w, h, 1]]).T
+    if M.shape[0] == 3:
+        pts = pts[:2] / np.maximum(pts[2:3], 1e-6)
+    x0, y0 = max(0, int(math.floor(pts[0].min())) - 1), max(0, int(math.floor(pts[1].min())) - 1)
+    x1, y1 = min(W_, int(math.ceil(pts[0].max())) + 2), min(H_, int(math.ceil(pts[1].max())) + 2)
+    return x0, y0, x1, y1
+
+
+def _warp(arr, M, x0, y0, x1, y1):
+    """arr محوَّلاً بـM إلى المستطيل (x0،y0)–(x1،y1) من الإطار."""
+    import cv2
+    import numpy as np
+    T = np.float32([[1, 0, -x0], [0, 1, -y0], [0, 0, 1]])
+    if M.shape[0] == 3:
+        return cv2.warpPerspective(arr, T @ M, (x1 - x0, y1 - y0), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT,
+                                   borderValue=(0, 0, 0, 0))
+    M2 = M.copy(); M2[0, 2] -= x0; M2[1, 2] -= y0
+    return cv2.warpAffine(arr, M2, (x1 - x0, y1 - y0), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT,
+                          borderValue=(0, 0, 0, 0))
+
+
 def _blit(dst, arr, M, a, dsta=None):
     """يحوّل arr بـM ويمزجه فوق dst (uint8 RGB، أو float32 مضروبٌ مسبقاً مع dsta لألفا اللوحة)."""
-    import cv2
     import numpy as np
     H_, W_ = dst.shape[:2]
     h, w = arr.shape[:2]
-    pts = M @ np.float32([[0, 0, 1], [w, 0, 1], [0, h, 1], [w, h, 1]]).T
-    x0, y0 = max(0, int(math.floor(pts[0].min())) - 1), max(0, int(math.floor(pts[1].min())) - 1)
-    x1, y1 = min(W_, int(math.ceil(pts[0].max())) + 2), min(H_, int(math.ceil(pts[1].max())) + 2)
+    x0, y0, x1, y1 = _bbox(M, w, h, W_, H_)
     if x1 <= x0 or y1 <= y0:
         return
-    M2 = M.copy(); M2[0, 2] -= x0; M2[1, 2] -= y0
-    wp = cv2.warpAffine(arr, M2, (x1 - x0, y1 - y0), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0))
-    al = wp[..., 3:4].astype(np.float32) * (a / 255.0)
-    src = wp[..., :3].astype(np.float32) * a
+    wp = _warp(arr, M, x0, y0, x1, y1)
+    _over(dst, wp.astype(np.float32) * a, x0, y0, dsta)
+
+
+def _over(dst, wpa, x0, y0, dsta=None):
+    """يمزج مصفوفةً مضروبةً مسبقاً بألفاها (float32 RGBA، قيم 0..255) فوق dst من الموضع (x0، y0)."""
+    import numpy as np
+    y1, x1 = y0 + wpa.shape[0], x0 + wpa.shape[1]
+    al = wpa[..., 3:4] / 255.0
+    src = wpa[..., :3]
     if dsta is None:
         roi = dst[y0:y1, x0:x1].astype(np.float32)
         dst[y0:y1, x0:x1] = np.clip(src + roi * (1 - al), 0, 255).astype(np.uint8)
@@ -367,11 +425,59 @@ def _layer_alpha(e, t):
     return a * e.lvl
 
 
-def draw(dst, els: list, t: float, dsta=None) -> None:
-    """يرسم عناصر المشهد عند t فوق dst — إطار المقطع (uint8 RGB) أو لوحةٌ شفّافة (float32 مع dsta)."""
+MB_ANIMS = {'slam', 'slide', 'slidel', 'drop', 'pop', 'toss', 'stamp', 'rise', 'zoom', 'flip'}
+
+
+def _el(dst, e, t, dsta=None):
+    """يرسم عنصراً واحداً عند t — بغبش حركةٍ حقيقيّ (عيّناتٌ زمنية داخل غالق نصف إطار) ما دام يتحرّك سريعاً:
+    الكلمة المندفعة تُرى ممتدّةً في اتجاه حركتها كما تلتقطها الكاميرا، لا قفزاتٍ متقطّعة."""
+    import numpy as np
+    pl = _place(e, t)
+    if not pl:
+        return
+    arr, M, a, (cx, cy, k, th) = pl
+    if e.glow > 0:                                           # توهّجٌ من البطاقة نفسها خلفها
+        gl, pad = e.glw()
+        gh, gw = gl.shape[:2]
+        c, sn = math.cos(th) * k, math.sin(th) * k
+        Mg = np.float32([[c, -sn, cx - c * gw / 2 + sn * gh / 2], [sn, c, cy - sn * gw / 2 - c * gh / 2]])
+        _blit(dst, gl, Mg, a * e.glow, dsta)
+    moving = e.anim in MB_ANIMS and (0 <= t - e.t0 < e.d or (e.t1 is not None and e.t1 <= t < e.t1 + e.od))
+    if moving:
+        sh = (1.0 if e.anim == 'slam' else 0.5) / FPS
+        pl0 = _place(e, t - sh)
+        if pl0:
+            h, w = arr.shape[:2]
+            c1 = M @ np.float32([w / 2, h / 2, 1]); c0 = pl0[1] @ np.float32([w / 2, h / 2, 1])
+            if M.shape[0] == 3: c1 = c1[:2] / c1[2]
+            if pl0[1].shape[0] == 3: c0 = c0[:2] / c0[2]
+            span_px = float(np.hypot(*(c1[:2] - c0[:2]))) + abs(pl0[3][2] - k) * max(w, h)
+            if span_px > 1.5:
+                n = int(min(9, max(3, span_px / 6)))
+                samples = [_place(e, t - sh * i / (n - 1)) for i in range(n)]
+                samples = [x for x in samples if x]
+                H_, W_ = dst.shape[:2]
+                boxes = [_bbox(x[1], x[0].shape[1], x[0].shape[0], W_, H_) for x in samples]
+                x0, y0 = min(b[0] for b in boxes), min(b[1] for b in boxes)
+                x1, y1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
+                if x1 > x0 and y1 > y0:
+                    acc = np.zeros((y1 - y0, x1 - x0, 4), np.float32)
+                    for ar, Mx, ax, _ in samples:
+                        acc += _warp(ar, Mx, x0, y0, x1, y1).astype(np.float32) * ax
+                    _over(dst, acc / len(samples), x0, y0, dsta)
+                return
+    _blit(dst, arr, M, a, dsta)
+
+
+def draw(dst, els: list, t: float, dsta=None, matte=None) -> None:
+    """يرسم عناصر المشهد عند t فوق dst — إطار المقطع (uint8 RGB) أو لوحةٌ شفّافة (float32 مع dsta).
+    matte (H×W uint8): قناع القريب من الصورة في هذا الإطار — العنصر الذي حُسم behind يُرسم خلفه («النصّ خلف العنصر»)."""
     import cv2
     import numpy as np
-    for e in sorted(els, key=lambda e: e.z):
+    order = sorted(els, key=lambda e: e.z)
+    behind = [e for e in order if matte is not None and e.behind]
+    done_behind = False
+    for e in order:
         if e.kind == 'dim':
             a = _layer_alpha(e, t)
             if a > 0.003:
@@ -389,22 +495,17 @@ def draw(dst, els: list, t: float, dsta=None) -> None:
                 else:
                     dst[e.y:] *= (1 - g[..., None]); dsta[e.y:] = g + dsta[e.y:] * (1 - g)
             continue
-        if e.anim == 'slam' and 0 <= t - e.t0 < e.d:           # أثرٌ خلف الضربة في اندفاعها
-            for dt, mul in ((0.08, 0.2), (0.04, 0.38)):
-                pl = _place(e, t - dt, mul)
-                if pl:
-                    _blit(dst, pl[0], pl[1], pl[2], dsta)
-        pl = _place(e, t)
-        if not pl:
+        if behind and e in behind:
+            if not done_behind:                                  # كلّ ما خلف القريب يُرسم معاً ثم يُعاد القريب فوقه
+                done_behind = True
+                base = dst.copy()
+                for b in behind:
+                    _el(dst, b, t, dsta)
+                m = matte.astype(np.float32)[..., None] / 255.0
+                if dsta is None:
+                    dst[:] = (dst.astype(np.float32) * (1 - m) + base.astype(np.float32) * m).astype(np.uint8)
             continue
-        arr, M, a, (cx, cy, k, th) = pl
-        if e.glow > 0:                                           # توهّجٌ من البطاقة نفسها خلفها
-            gl, pad = e.glw()
-            gh, gw = gl.shape[:2]
-            c, sn = math.cos(th) * k, math.sin(th) * k
-            Mg = np.float32([[c, -sn, cx - c * gw / 2 + sn * gh / 2], [sn, c, cy - sn * gw / 2 - c * gh / 2]])
-            _blit(dst, gl, Mg, a * e.glow, dsta)
-        _blit(dst, arr, M, a, dsta)
+        _el(dst, e, t, dsta)
 
 
 def compose(els: list, t: float) -> Image.Image:
@@ -611,14 +712,14 @@ def word_times(c: dict, wt: list, nwords: int, t0: float, t1: float) -> list[tup
 
 
 def line_els(proj: str, c: dict, im: Image.Image, x: float, y: float, times: list, anim: str, d: float, z: int = 2,
-             act: float = 0.06, ink: bool = False) -> list:
+             act: float = 0.06, ink: bool = False, occ: bool = False) -> list:
     """عناصر كلمات سطرٍ: كلُّ كلمةٍ قصاصةٌ من بطاقتها في موضعها تدخل لحظة نطقها؛ والكلمة المبرَزة أكبر دخولاً وتلمع.
     إن تعذّر التقسيم فالسطر كلّه يُخطّ من اليمين من أوّل كلماته إلى آخرها."""
     words = c['text'].split()
     sp_ = spans_of(proj, c['key'], words, im.width)
     t0, t1 = times[0][0], times[-1][1]
     if not sp_:
-        return [El(im, x, y, t0, 'wipe', max(0.3, min(2.6, t1 - t0)), z=z)]
+        return [El(im, x, y, t0, 'wipe', max(0.3, min(2.6, t1 - t0)), z=z, occ=occ)]
     hl = {bare(h) for h in (c.get('hl') or [])}
     els = []
     for (a, b), (ws, we), w in zip(sp_, times, words):
@@ -628,7 +729,8 @@ def line_els(proj: str, c: dict, im: Image.Image, x: float, y: float, times: lis
         dd = max(0.25, min(1.1, we - ws)) if ink else d * (1.15 if big else 1.0)
         els.append(El(im.crop((a, 0, b, im.height)), x + a, y, max(0.0, ws - 0.04), anim, dd, z=z,
                       act=(ws, we) if act else None, actk=act, amp=1.4 if big else 1.0,
-                      sweep=(ws + 0.22) if big else None))
+                      sweep=(ws + 0.22) if big else None, occ=occ))
+        els[-1].grp = c['key']
     return els
 
 
@@ -712,15 +814,16 @@ def kt_els(proj: str, kt: dict, specs: list, wt: list, span: float, nwords: int)
             els.append(El(im, (W - bw) / 2 + 70, top + bh - 75, 0.3, 'fade', 0.4, z=2))
         return group(els, 0.006, exit_at(span, last), 'fade')
     if style in ('center', 'quote'):
-        maxw, maxh, lh = (1680, 150, 178) if style == 'center' else (1560, 132, 158)
+        maxw, maxh, lh = (1760, 196, 226) if style == 'center' else (1640, 160, 190)   # الكلمة نجمُ الشاشة لا حاشيتها
         n = len(pairs)
         top = H / 2 - n * lh / 2 - (30 if src else 0)
-        els.append(dim_el(0.55 if style == 'center' else 0.6))
-        anim, d = ('drop', 0.34) if style == 'center' else ('rise', 0.42)
+        els.append(dim_el(0.42 if style == 'center' else 0.5))
+        # العبارة الوسطى تهبط كلمةً كلمة ويجوز أن تمرّ خلف القريب من الصورة؛ والقول المأثور ينقلب كلمةً كلمة بمنظورٍ مجسّم
+        anim, d = ('drop', 0.45) if style == 'center' else ('flip', 0.55)
         for i, (c, im, (t0, t1)) in enumerate(pairs):
             im = fit(im, maxw, maxh)
             els += line_els(proj, c, im, W / 2 - im.width / 2, top + i * lh + (lh - im.height) / 2, word_times(c, wt, nwords, t0, t1),
-                            anim, d)
+                            anim, d, occ=style == 'center')
         if src and card(proj, src['key']) is not None:
             im = fit(card(proj, src['key']), 900, 56)
             els.append(El(im, W / 2 - im.width / 2, top + n * lh + 14, max(speech0 + 0.6, last), 'rise', 0.45, z=2))
@@ -732,18 +835,19 @@ def kt_els(proj: str, kt: dict, specs: list, wt: list, span: float, nwords: int)
     for i, (c, im, (t0, t1)) in enumerate(pairs):
         im = fit(im, 1640, 84)
         els += line_els(proj, c, im, W / 2 - im.width / 2, H - 70 - (n - i) * lh + (lh - im.height) / 2,
-                        word_times(c, wt, nwords, t0, t1), 'pop', 0.28)
+                        word_times(c, wt, nwords, t0, t1), 'pop', 0.42)
     return group(els, 0.004, exit_at(span, last, 0.24), 'fade', 0.22)
 
 
-def slam_els(proj: str, spec: dict, t: float, top: bool = False, span: float | None = None) -> list:
+def slam_els(proj: str, spec: dict, t: float, top: bool = False, span: float | None = None, tier: str = 'medium') -> list:
     """top: الضربة أعلى الشاشة وأصغر قليلاً حين تشاركها بطاقاتُ صورٍ في اللقطة نفسها (لا تغطّيها)."""
     im = card(proj, spec['key'])
     if im is None:
         return []
     im = fit(im, 1300, 300) if top else fit(im, 1560, 420)
     y = 40 if top else H / 2 - im.height / 2
-    e = El(im, W / 2 - im.width / 2, y, t, 'slam', 0.26, z=3, sweep=t + 0.3, glow=0.5)
+    e = El(im, W / 2 - im.width / 2, y, t, 'slam', 0.45, z=3, sweep=t + 0.35, glow=0.5, occ=not top, tier=tier)
+    e.words = (spec.get('text') or '').split()
     els = [dim_el(0.38, t, 0.15), e]
     return group(els, 0.02, exit_at(span, t + 0.6, 0.26) if span else None, 'shrink', 0.26)
 
@@ -818,37 +922,71 @@ def thumb_els(proj: str, items: list, specs: list, wt: list, span: float, low: b
     return group(els, 0.008, None)
 
 
+def title_els(proj: str, spec: dict, t: float, span: float) -> list:
+    """اسم الفيلم (بطاقة العنوان من كوديكس): يهبط ضربةً كبيرةً بتوهّجٍ ولمعة وارتطام، ويجوز أن يمرّ خلف القريب من الصورة."""
+    im = card(proj, spec['key'])
+    if im is None:
+        return []
+    im = fit(im, 1760, 640)
+    e = El(im, W / 2 - im.width / 2, H * 0.42 - im.height / 2, t, 'slam', 0.5, z=3, sweep=t + 0.6, glow=0.6, occ=True,
+           tier='heavy')
+    e.words = (spec.get('text') or '').split()
+    return group([dim_el(0.3, t, 0.3), e], 0.018, exit_at(span, t + 1.4, 0.3), 'shrink', 0.3)
+
+
 def chapter_els(proj: str, spec: dict, span: float) -> list:
     im = card(proj, spec['key'])
     if im is None:
         return []
     im = fit(im, 1400, 110)
     t1 = min(span - 0.35, 3.6)
-    return [El(im, W / 2 - im.width / 2, 60, 0.2, 'wipe', 0.8, t1=t1, ex='up', od=0.35, z=2, sweep=1.05, glow=0.35)]
+    return [El(im, W / 2 - im.width / 2, 60, 0.2, 'wipe', 0.8, t1=t1, ex='up', od=0.35, z=2, sweep=1.05, glow=0.35, occ=True)]
 
 
 # ══════════ الكاميرا والومضات على الإطار كلّه ══════════
-def cam(t: float, shakes: list, punches: list) -> tuple[float, float, float]:
-    """(تكبير، إزاحة س، إزاحة ص) للإطار المركَّب عند t: ارتجاجٌ عند كلمات shake والضربات، وتكبيرٌ خاطف عند كلمات punch.
-    التكبير الأساسيّ 1.035 طوال اللقطة إن كان فيها ارتجاج (فلا تظهر حوافّ ولا قفزة عند بدئه)."""
+SHAKE_AMP = {'heavy': 1.0, 'medium': 0.55, 'light': 0.28}
+IMPACT_AT = 0.16          # لحظة الارتطام بعد بدء الضربة: حين يبلغ نابضها حجمها أوّل مرّة
+
+
+def _noise(t, seed):
+    """ضجيجٌ ناعم من ثلاث موجاتٍ بين 4 و8 هرتز — دون حدّ 12.5 هرتز لـ25 إطاراً/ث، فيُرى اهتزازاً لا ارتعاشاً بين إطارين."""
+    return (math.sin(2 * math.pi * 4.1 * t + seed) + 0.6 * math.sin(2 * math.pi * 6.3 * t + 2.1 * seed)
+            + 0.35 * math.sin(2 * math.pi * 7.7 * t + 4.3 * seed)) / 1.95
+
+
+def cam(t: float, shakes: list, punches: list) -> tuple[float, float, float, float]:
+    """(تكبير، إزاحة س، إزاحة ص، دوران بالدرجات) للإطار المركَّب عند t.
+    الارتجاج بنموذج «الصدمة» (Eiserloh): السعة = أقصاها × صدمة² × ضجيجٌ ناعم، والصدمة تنقص بمعدّل 2 في الثانية؛
+    وعناصر shakes أزمنةٌ أو (زمن، شدّة) بحسب درجة الارتطام. التكبير الأساسيّ 1.035 طوال اللقطة إن كان فيها ارتجاج
+    (فلا تظهر حوافّ ولا قفزة عند بدئه)، وتكبيرٌ خاطف عند كلمات punch."""
     z = 1.035 if shakes else 1.0
-    dx = dy = 0.0
+    dx = dy = rot = 0.0
     for tp in punches:
         if tp <= t <= tp + 0.6:
             z += 0.11 * math.exp(-7 * (t - tp))
-    for ts in shakes:
-        if ts <= t <= ts + 0.55:
-            u = t - ts; env = math.exp(-7 * u) * _cl(u / 0.02)
-            dx += 26 * math.sin(75 * u) * env
-            dy += 18 * math.sin(90 * u + 1.2) * env
-    return z, dx, dy
+    for sh in shakes:
+        ts, amp = (sh, 0.55) if isinstance(sh, (int, float)) else sh
+        u = t - ts
+        if 0 <= u <= 0.5:
+            tr = (1 - 2 * u) ** 2 * amp * _cl(u / 0.03)
+            dx += 16 * tr * _noise(t, 1.0)
+            dy += 11 * tr * _noise(t, 2.0)
+            rot += 1.3 * tr * _noise(t, 3.0)
+    return z, dx, dy, rot
 
 
 def flash_alpha(t: float, flashes: list) -> float:
+    """ومضةٌ بيضاء: الزمن وحده لومضة القطع (0.7 تخمد في ربع ثانية)، أو (زمن، ذروة، مدّة) لومضة الارتطام الثقيل (إطاران)."""
     a = 0.0
-    for tf in flashes:
-        if tf - 0.02 <= t <= tf + 0.26:
-            a = max(a, 0.85 * (_cl((t - tf + 0.02) / 0.04) if t < tf + 0.02 else 1 - _cl((t - tf - 0.04) / 0.22)))
+    for fl in flashes:
+        if isinstance(fl, (int, float)):
+            tf = fl
+            if tf - 0.02 <= t <= tf + 0.26:
+                a = max(a, 0.7 * (_cl((t - tf + 0.02) / 0.04) if t < tf + 0.02 else 1 - _cl((t - tf - 0.04) / 0.22)))
+        else:
+            tf, pk, d = fl
+            if tf <= t <= tf + d:
+                a = max(a, pk * (1 - (t - tf) / d))
     return a
 
 
@@ -872,70 +1010,198 @@ def shot_els(proj: str, s: dict, wt: list, span: float, texts: dict | None = Non
         els += thumb_els(proj, s['cards'], by('clabel'), wt, span, low=both)
     if s.get('name') and by('name'):
         els += name_els(proj, by('name')[0], find_word(wt, s['name'].get('word'), 0.3), span)
+    tier = s.get('_tier', 'medium')                    # يحسمها mont_hybrid للفيلم كلّه: الثقيلة ثلاثٌ لا أكثر
     if s.get('slam') and by('slam'):
         sl = s['slam']
         t = float(sl['at']) if 'at' in sl else find_word(wt, sl.get('word'), 0.25)
         t = min(t, max(0.0, span - 0.5))
-        els += slam_els(proj, by('slam')[0], t, top=both, span=span); shakes.append(t); flashes.append(t)
+        els += slam_els(proj, by('slam')[0], t, top=both, span=span, tier=tier)
+        shakes.append((t + IMPACT_AT, SHAKE_AMP[tier]))
+        if tier == 'heavy':
+            flashes.append((t + IMPACT_AT, 0.55, 0.08))
     if s.get('_chapter') and by('chapter'):
         els += chapter_els(proj, by('chapter')[0], span)
+    if s.get('title') and by('title'):                 # اسم الفيلم ضربةً كبيرة لحظة نطقه (كان تلاشياً في captions)
+        ti = s['title']
+        t = find_word(wt, ti.get('word'), float(ti.get('at', 0.3))) if ti.get('word') else float(ti.get('at', 0.3))
+        t = min(t, max(0.0, span - 0.8))
+        els += title_els(proj, by('title')[0], t, span)
+        shakes.append((t + IMPACT_AT, SHAKE_AMP['heavy'])); flashes.append((t + IMPACT_AT, 0.55, 0.08))
+    for e in els:                                      # الختم يرتطم ارتطاماً خفيفاً
+        if e.anim == 'stamp':
+            shakes.append((e.t0 + IMPACT_AT, SHAKE_AMP['light']))
     for w in s.get('shake', []) or []:
-        shakes.append(min(find_word(wt, w, 0.2), max(0.0, span - 0.4)))
+        shakes.append((min(find_word(wt, w, 0.2), max(0.0, span - 0.4)), SHAKE_AMP['medium']))
     for w in s.get('punch', []) or []:
         punches.append(min(find_word(wt, w, 0.2), max(0.0, span - 0.4)))
-    return els, sorted(set(round(x, 2) for x in shakes)), sorted(set(round(x, 2) for x in punches)), \
-        sorted(set(round(x, 2) for x in flashes))
+    rnd = lambda x: round(x, 2) if isinstance(x, (int, float)) else tuple(round(v, 2) for v in x)
+    key = lambda x: x if isinstance(x, (int, float)) else x[0]
+    return els, sorted({rnd(x) for x in shakes}, key=key), sorted({round(x, 2) for x in punches}), \
+        sorted({rnd(x) for x in flashes}, key=key)
 
 
-def render(seg: str, res: str, n: int, head: float, els: list, shakes: list, punches: list, flashes: list, enc: list) -> None:
-    """يقرأ إطارات المقطع ويرسم عليها المشهد إطاراً إطاراً (الزمن المحلّي t = i/FPS - head) ثم يكتبها مرمَّزة."""
+class Impact:
+    """ارتطام الضربة المكتوبة على الإطار كلّه: موجةٌ تنطلق من مركزها تُزيح الصورة، وانحرافٌ لونيّ (انفصال الأحمر والأزرق)،
+    ووهجٌ يتفتّح من مواضع الضوء — ثلثا ثانية ثم يزول. مؤثّراتٌ على الصورة نفسها لا رسم."""
+    TIERS = {'heavy': (28.0, 10.0, 0.55, 0.08), 'medium': (14.0, 5.0, 0.3, 0.05), 'light': (0.0, 0.0, 0.15, 0.03)}
+
+    def __init__(self, t, cx, cy, tier='medium'):
+        import numpy as np
+        self.t, self.cx, self.cy, self.tier = t, cx, cy, tier
+        self.A, self.ca, self.bl, self.kick = self.TIERS.get(tier, self.TIERS['medium'])
+        yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+        dx, dy = xx - cx, yy - cy
+        self.r = np.sqrt(dx * dx + dy * dy) + 1e-3
+        self.ux, self.uy, self.xx, self.yy = dx / self.r, dy / self.r, xx, yy
+
+    def apply(self, fr, t):
+        import cv2
+        import numpy as np
+        u = t - self.t
+        if not 0 <= u <= 0.62:
+            return fr
+        if u <= 0.5 and self.A > 0:                          # الموجة: حلقة إزاحةٍ تتّسع وتخمد
+            R = 40 + 1650 * ease_out(u / 0.5)
+            A = self.A * (1 - u / 0.5) ** 2
+            d = A * np.exp(-((self.r - R) / 85.0) ** 2)
+            fr = cv2.remap(fr, self.xx - self.ux * d, self.yy - self.uy * d, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+        if u <= 0.3 and self.ca > 0:                         # الانحراف اللونيّ: الأحمر يتّسع والأزرق ينكمش حول المركز
+            k = self.ca * (1 - u / 0.3) ** 1.5 / (W / 2)
+            ch = list(cv2.split(fr))
+            for c, sc in ((0, 1 + k), (2, 1 - k)):
+                M = np.float32([[sc, 0, (1 - sc) * self.cx], [0, sc, (1 - sc) * self.cy]])
+                ch[c] = cv2.warpAffine(ch[c], M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+            fr = cv2.merge(ch)
+        g = self.bl * (1 - u / 0.62) ** 2                    # وهجٌ من مواضع الضوء
+        if g > 0.01:
+            sm = cv2.resize(fr, (W // 4, H // 4), interpolation=cv2.INTER_AREA)
+            hi = cv2.GaussianBlur(cv2.subtract(sm, np.full_like(sm, 150)), (0, 0), 9)
+            fr = cv2.add(fr, cv2.resize(cv2.convertScaleAbs(hi, alpha=g * 2.2), (W, H), interpolation=cv2.INTER_LINEAR))
+        return fr
+
+
+def _decide_behind(els, matte, t):
+    """يحسم أن تمرّ الكتابة الكبيرة (occ) خلف القريب من الصورة — كلمات السطر الواحد معاً، فلا يكون القريب أمام كلمةٍ وخلف جارتها:
+    إن حجب القريب من السطر 3%–22% ولم يحجب من أيّ كلمةٍ أكثر من 40% (فلا تضيع الكلمة المفتاح كـ«فارس» في «٧ إلى ٨ آلاف فارس»)،
+    وإلا بقيت الكتابة فوقه. البطاقة الواحدة متعدّدة الكلمات (ضربة، عنوان) تُقسَم إلى كلماتها للحكم (word_spans)."""
+    import numpy as np
+    groups = {}
+    for e in els:
+        if e.occ and e.behind is None and e.kind == 'img' and e.st(t) is not None:
+            groups.setdefault(e.grp or id(e), []).append(e)
+    for g in groups.values():
+        tot_ink = tot_cov = 0
+        worst = 0.0
+        for e in g:
+            x0, y0 = int(e.x), int(e.y)
+            ink = np.asarray(e.img.getchannel('A')) > 128
+            h, w = ink.shape
+            xa, ya, xb, yb = max(0, x0), max(0, y0), min(W, x0 + w), min(H, y0 + h)
+            if xb <= xa or yb <= ya:
+                continue
+            ink_v = ink[ya - y0:yb - y0, xa - x0:xb - x0]
+            hid = (matte[ya:yb, xa:xb] > 128) & ink_v
+            parts = [(0, w)]
+            if e.words and len(e.words) > 1:
+                parts = word_spans(e.img, e.words) or parts
+            for a, b in parts:                                # كلّ كلمةٍ وحدها
+                a2, b2 = max(a, xa - x0), min(b, xb - x0)
+                if b2 <= a2:
+                    continue
+                wi = int(ink_v[:, a2 - (xa - x0):b2 - (xa - x0)].sum())
+                if wi:
+                    worst = max(worst, int(hid[:, a2 - (xa - x0):b2 - (xa - x0)].sum()) / wi)
+            tot_ink += int(ink_v.sum()); tot_cov += int(hid.sum())
+        frac = tot_cov / tot_ink if tot_ink else 0.0
+        ok = 0.03 <= frac <= 0.22 and worst <= 0.40
+        for e in g:
+            e.behind = ok
+
+
+def render(seg: str, res: str, n: int, head: float, els: list, shakes: list, punches: list, flashes: list, enc: list,
+           matte: str | None = None) -> None:
+    """يقرأ إطارات المقطع ويرسم عليها المشهد إطاراً إطاراً (الزمن المحلّي t = i/FPS - head) ثم يكتبها مرمَّزة.
+    matte: مقطع قناع القريب من الصورة (يصنعه kb3d) إطاراً بإطار — به تمرّ الكتابة الكبيرة خلف العنصر."""
     import cv2
     import numpy as np
     dec = sp.Popen([envpaths.FF, '-v', 'error', '-i', seg, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (W, H), '-'],
                    stdout=sp.PIPE, stderr=sp.DEVNULL)                 # يُقتل بعد حاجته منه
+    mdec = None
+    if matte and os.path.exists(matte) and any(e.occ for e in els):
+        mdec = sp.Popen([envpaths.FF, '-v', 'error', '-i', matte, '-f', 'rawvideo', '-pix_fmt', 'gray', '-s', '%dx%d' % (W, H), '-'],
+                        stdout=sp.PIPE, stderr=sp.DEVNULL)
     out = sp.Popen([envpaths.FF, '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (W, H), '-r', str(FPS),
                     '-i', '-'] + enc + ['-frames:v', str(n), res], stdin=sp.PIPE)
     last = np.zeros((H, W, 3), np.uint8)
+    mlast = None
     white = np.full((H, W, 3), 255, np.uint8)
+    impacts = []
+    for e in els:                                            # لحظة ارتطام كلّ ضربة: حين يبلغ نابضها حجمها أوّل مرّة
+        if e.anim == 'slam' and e.kind == 'img':
+            impacts.append(Impact(e.t0 + IMPACT_AT, e.x + e.img.width / 2, e.y + e.img.height / 2, e.tier))
     for i in range(n):
         buf = dec.stdout.read(W * H * 3)
         if len(buf) == W * H * 3:
             last = np.frombuffer(buf, np.uint8).reshape(H, W, 3)
         fr = last.copy()
         t = i / FPS - head
-        draw(fr, els, t)
-        z, dx, dy = cam(t, shakes, punches)
-        if z != 1.0 or dx or dy:
-            M = np.float32([[z, 0, (1 - z) * W / 2 + dx], [0, z, (1 - z) * H / 2 + dy]])
+        m = None
+        if mdec is not None:
+            mb = mdec.stdout.read(W * H)
+            if len(mb) == W * H:
+                mlast = np.frombuffer(mb, np.uint8).reshape(H, W)
+            m = mlast
+            if m is not None:
+                _decide_behind(els, m, t)
+        draw(fr, els, t, matte=m)
+        for imp in impacts:
+            fr = imp.apply(fr, t)
+        z, dx, dy, rot = cam(t, shakes, punches)
+        for imp in impacts:                                  # ركلة تكبيرٍ خاطفة لحظة الارتطام، وتحفّزٌ قبل الثقيلة
+            u = t - imp.t
+            if 0 <= u <= 0.4:
+                z += imp.kick * math.exp(-11 * u)
+            elif imp.tier == 'heavy' and -0.1 <= u < 0:
+                z -= 0.012 * (1 + u / 0.1)
+        if z != 1.0 or dx or dy or rot:
+            M = cv2.getRotationMatrix2D((W / 2, H / 2), rot, z)
+            M[0, 2] += dx; M[1, 2] += dy
             fr = cv2.warpAffine(fr, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
         fa = flash_alpha(t, flashes)
         if fa > 0.003:
             fr = cv2.addWeighted(fr, 1 - fa, white, fa, 0.0)
         out.stdin.write(fr.tobytes())
-    try:
-        dec.stdout.close()
-    except OSError:
-        pass
-    dec.kill(); dec.wait()
+    for p_ in [dec] + ([mdec] if mdec is not None else []):
+        try:
+            p_.stdout.close()
+        except OSError:
+            pass
+        p_.kill(); p_.wait()
     out.stdin.close(); out.wait()
     if out.returncode:
         raise RuntimeError('⛔ تعذّر ترميز %s' % res)
 
 
+EVENTS: dict = {}          # لكلّ لقطة: أزمنة الضربات والأختام (محلّية) — يجدول منها mont_hybrid الارتطام والحفيف
+
+
 def apply(proj: str, s: dict, seg: str, span: float, texts: dict, durs: dict, gap: float, work: str, enc: list,
-          head: float = 0.0, total: float | None = None) -> str:
+          head: float = 0.0, total: float | None = None, matte: str | None = None) -> str:
     """يركّب مؤثّرات العرض على مقطع اللقطة ويعيد مسار الناتج (يُستأنف إن وُجد بالمدّة نفسها).
-    head: ثواني المقبض قبل بداية اللقطة في المقطع (إطاره الأوّل عند الزمن المحلّي -head)؛ total: مدّة المقطع كلّه."""
+    head: ثواني المقبض قبل بداية اللقطة في المقطع (إطاره الأوّل عند الزمن المحلّي -head)؛ total: مدّة المقطع كلّه.
+    matte: قناع القريب من الصورة (kb3d) لتمرّ الكتابة الكبيرة خلف العنصر."""
     total = span if total is None else total
-    res = seg[:-4] + '_k2.mp4'
+    res = seg[:-4] + '_k6.mp4'
     n = int(round(total * FPS))
-    if os.path.exists(res) and abs(_dur(res) - n / FPS) < 0.06:
-        return res
     wt = shot_word_times(proj, s, texts, durs, gap)
     els, shakes, punches, flashes = shot_els(proj, s, wt, span, texts)
+    EVENTS[s.get('id')] = {'slam': [(e.t0, e.tier) for e in els if e.anim == 'slam' and e.kind == 'img'],
+                           'stamp': [e.t0 + IMPACT_AT for e in els if e.anim == 'stamp']}
+    if os.path.exists(res) and abs(_dur(res) - n / FPS) < 0.06:
+        return res
     if not (els or shakes or punches or flashes):
         return seg
-    render(seg, res, n, head, els, shakes, punches, flashes, enc)
+    render(seg, res, n, head, els, shakes, punches, flashes, enc, matte)
     return res
 
 

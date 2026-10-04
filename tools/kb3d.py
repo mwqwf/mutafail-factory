@@ -33,7 +33,8 @@ MAXPX = 78.0         # أقصى إزاحة للطبقة الأقرب، بالب�
 DEPTH_BLUR = 13      # تنعيم خريطة العمق — يمنع التمزّق
 PAR_ZOOM = 1.25      # القريب يكبر بقدر (1 + PAR_ZOOM × عمقه) من تقدّم الكاميرا
 DOF = 0.42           # أقصى مزجٍ للخلفية المغبّشة (عمق الميدان) — يُطفأ في الصور المسطّحة
-VERSION = 2          # يُكتب في اسم المقطع عند mont_hybrid فلا يُعاد استعمال مقاطع الإصدار الأوّل
+VERSION = 4          # يُكتب في اسم المقطع عند mont_hybrid فلا يُعاد استعمال مقاطع إصدارٍ أقدم
+RAYS = 0.42          # قوّة أشعّة الضوء الحجمية من مصدر الضوء في الصورة (شمسٌ أو سماءٌ ساطعة) — تُطفأ بلا مصدرٍ واضح
 
 # ثمانية مسارات كاميرا: (إزاحة أفقية، رأسية) بوحدة MAXPX، والتكبير، والدوران بالدرجات — تتناوب فلا تتشابه لقطتان متجاورتان
 MOVES = [
@@ -80,18 +81,69 @@ def _cover(im, bw, bh, resample):
                     (im.width - bw) // 2 + bw, (im.height - bh) // 2 + bh))
 
 
-def render(src, out, dur=6.0, seed=0, size=None, energy=1.0):
+def _light(a, raw=None):
+    """موضع مصدر الضوء في الصورة (بنسبة العرض والارتفاع) إن كان فيها شمسٌ أو بقعةُ سماءٍ ساطعة محدودة، وإلا None —
+    فلا تُضاف أشعّةٌ إلى صورةٍ مسطّحة الإضاءة (تصير غشاوةً لا أشعّة)."""
+    import cv2
+    g = cv2.cvtColor(cv2.resize(a, (a.shape[1] // 8, a.shape[0] // 8), interpolation=cv2.INTER_AREA), cv2.COLOR_RGB2GRAY)
+    g = cv2.GaussianBlur(g, (0, 0), 2)
+    top = g[: int(g.shape[0] * 0.62)]
+    hi = top > 222
+    frac = float(hi.mean())
+    if top.max() < 232 or not (0.002 <= frac <= 0.18):
+        return None
+    y, x = np.unravel_index(int(np.argmax(top)), top.shape)
+    if raw is not None:                                      # المصدر ساطعٌ وبعيدٌ معاً — لا يُشعّ درعٌ لامعٌ قريب (بحث 2026-10-04)
+        dsm = cv2.resize(raw, (g.shape[1], g.shape[0]), interpolation=cv2.INTER_AREA)
+        if dsm[y, x] > np.percentile(dsm, 35):
+            return None
+    return (x + 0.5) / g.shape[1], (y + 0.5) / g.shape[0]
+
+
+def _rays(fr, lx, ly, k):
+    """أشعّةٌ حجمية: أضواء الإطار نفسه تُمدّ شعاعياً نحو مصدر الضوء (غبشٌ شعاعيّ بالتكبير المتكرّر على ربع الدقّة)."""
+    import cv2
+    h, w = fr.shape[0] // 4, fr.shape[1] // 4
+    g = cv2.cvtColor(cv2.resize(fr, (w, h), interpolation=cv2.INTER_AREA), cv2.COLOR_RGB2GRAY)
+    hi = cv2.subtract(g, 175).astype(np.float32)
+    acc = np.zeros_like(hi)
+    cx, cy = lx * w, ly * h
+    for i in range(48):                                      # 48 عيّنة بخطوة صغيرة: أشعّةٌ متّصلة لا متكسّرة
+        sc = 1.0 - 0.015 * i
+        M = np.float32([[sc, 0, (1 - sc) * cx], [0, sc, (1 - sc) * cy]])
+        acc += cv2.warpAffine(hi, M, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT) * (0.965 ** i)
+    acc = cv2.GaussianBlur(acc, (0, 0), 2.0) * (k / 12.0)
+    small = cv2.merge([cv2.convertScaleAbs(acc, alpha=c) for c in (1.0, 0.86, 0.66)])   # ضوءٌ دافئ
+    return cv2.add(fr, cv2.resize(small, (fr.shape[1], fr.shape[0]), interpolation=cv2.INTER_LINEAR))
+
+
+def _guided(I, p, r, eps):
+    """مرشّحٌ موجَّه (He وآخرون): يُلصق حوافّ القناع بحوافّ الصورة نفسها — قناع العمق ناعمٌ مبهم الحوافّ وحده."""
+    import cv2
+    k = (2 * r + 1, 2 * r + 1)
+    mean = lambda x: cv2.boxFilter(x, -1, k)
+    mI, mp = mean(I), mean(p)
+    a = (mean(I * p) - mI * mp) / (mean(I * I) - mI * mI + eps)
+    b = mp - a * mI
+    return mean(a) * I + mean(b)
+
+
+def render(src, out, dur=6.0, seed=0, size=None, energy=1.0, matte=None):
     """يصيّر مقطعًا مجسَّمًا واحدًا. يحتاج <src>_depth.png بجانب الصورة أو في <proj>/img.
     size=(عرض,ارتفاع) للريلزات العمودية (1080,1920)؛ والافتراض أفقيّ 1920×1080.
-    energy: شدّة الحركة (المعركة أقوى من التمهيد) — تضرب الإزاحة والتكبير."""
+    energy: شدّة الحركة (المعركة أقوى من التمهيد) — تضرب الإزاحة والتكبير.
+    matte: مسار مقطعٍ رماديّ بقناع الطبقة القريبة إطاراً بإطار (لتمرّ الكتابة الكبيرة خلف العنصر) — يُكتب إن برزت في الصورة
+    طبقةٌ قريبةٌ واضحة، وإلا لا يُكتب فتبقى الكتابة فوق الصورة."""
     import cv2                                  # opencv-python-headless (weekly-film يثبّته)
     W, H = size if size else (globals()["W"], globals()["H"])
     dpath = depth_of(src)
     bw, bh = int(W * OVER), int(H * OVER)
     a = np.asarray(_cover(Image.open(src).convert("RGB"), bw, bh, Image.LANCZOS), dtype=np.uint8)
 
+    raw = None
     if os.path.exists(dpath):
         dm = _cover(Image.open(dpath).convert("L"), bw, bh, Image.BILINEAR)
+        raw = np.asarray(dm.filter(ImageFilter.GaussianBlur(1.5)), dtype=np.float32) / 255.0   # حوافّ القناع أدقّ من حوافّ الإزاحة
         dm = dm.filter(ImageFilter.GaussianBlur(DEPTH_BLUR))
         d = np.asarray(dm, dtype=np.float32) / 255.0
     else:   # بلا عمق: تدرّج رأسيّ — كين-بيرنز محسَّن، لا مجسَّم
@@ -101,6 +153,26 @@ def render(src, out, dur=6.0, seed=0, size=None, energy=1.0):
     dof = DOF * min(1.0, max(0.0, (sep - 0.12) / 0.10))     # عمق ميدانٍ حين يبرز قريبٌ واضح فقط (لا أثر «المجسّم المصغّر»)
     blur = cv2.GaussianBlur(a, (0, 0), 3.2) if dof > 0.02 else None
     dfocus = float(np.percentile(d, 90))                    # البؤرة على القريب
+
+    light = _light(a, raw) if RAYS > 0 else None
+    mp, mlo, mhi = None, 0.0, 1.0
+    if matte:
+        for f_ in (matte, matte + '.none'):                  # لا يبقى قناعٌ قديم ولا علامة «لا قناع» من تصييرٍ سابق
+            if os.path.exists(f_):
+                os.remove(f_)
+    if matte and raw is not None:
+        p50, p85, p93, p97 = np.percentile(raw, [50, 85, 93, 97])
+        if p97 - p50 > 0.22:                                 # طبقةٌ قريبةٌ بارزة عن بقية المشهد
+            mlo, mhi = float(p85), float(max(p93, p85 + 0.03))
+            gray = cv2.cvtColor(a, cv2.COLOR_RGB2GRAY).astype(np.float32) / 255.0
+            q = _guided(gray, np.clip((raw - mlo) / (mhi - mlo), 0, 1).astype(np.float32), 10, 2e-3)
+            q = np.clip((q - 0.25) / 0.5, 0, 1)
+            near = (q * q * (3 - 2 * q)).astype(np.float32)   # القناع الثابت للصورة، يتبع الكاميرا بالإزاحة نفسها
+            mp = sp.Popen([FF, "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "gray", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
+                           "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", matte], stdin=sp.PIPE)
+
+    if matte and mp is None:
+        open(matte + '.none', 'w').close()                   # حُسم: لا طبقة قريبة بارزة، فلا يُعاد التصيير لأجل القناع
 
     name, fn = MOVES[seed % len(MOVES)]
     e = max(0.4, float(energy))
@@ -142,11 +214,22 @@ def render(src, out, dur=6.0, seed=0, size=None, energy=1.0):
                 w = cv2.resize(np.clip((dfocus - dd) / 0.55, 0.0, 1.0) * dof, (W, H), interpolation=cv2.INTER_LINEAR)
                 fb = cv2.remap(blur, sx, sy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
                 fr = cv2.blendLinear(fr, fb, (1.0 - w).astype(np.float32), w.astype(np.float32))
+            if light is not None:                            # الضوء يتبع حركة الكاميرا: موضعه في الإطار من خريطة المصدر نفسها
+                lx = ((light[0] * bw - cx) * zm + cx - ox) / W
+                ly = ((light[1] * bh - cy) * zm + cy - oy) / H
+                fr = _rays(fr, lx, ly, RAYS * (0.85 + 0.15 * np.sin(6.2832 * i / max(1, N - 1))))
             p.stdin.write(fr.tobytes())
+            if mp is not None:
+                mm = cv2.remap(near, sx, sy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+                mp.stdin.write((mm * 255).astype(np.uint8).tobytes())
         p.stdin.close()
+        if mp is not None:
+            mp.stdin.close()
     except BrokenPipeError:
         pass
     p.wait()
+    if mp is not None:
+        mp.wait()
     return name
 
 
