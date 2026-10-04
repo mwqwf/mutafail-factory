@@ -3,18 +3,20 @@
 
 نصُّ الأمر: «حاول تعويض التحريك بأي شيء… استعمل طرقاً مبتكرة، مثلاً أحياناً تحريكٌ للكتابة والصور مثل نوعية ما
 يُستعمل في العروض التقديمية (البوربوينت)، كأنّ الكتابة تُكتب أثناء الإلقاء، وغيرها من الأساليب التي لم نجربها».
+ثم في اليوم نفسه: «الصور ممنوعة عليك اتركها لكوديكس… حتى البطاقات المكتوبة اتركها لكوديكس».
 
-⛔ نصٌّ وتنسيقٌ مركَّبان فوق صور كوديكس وقصٌّ لها فقط — لا يُرسم به محتوى صورة (أمر المالك 2026-09-29).
-كلُّ ما هنا مجانيّ (PIL + ffmpeg على عدّاء GitHub)، ويُستدعى من tools/mont_hybrid.py لكلّ لقطةٍ فيها حقلٌ مما يلي:
+⛔ لا يرسم هذا الملفّ حرفاً: كلّ كتابةٍ بطاقةُ PNG شفّافة يصنعها كوديكس (tools/cards.py يحصرها ويُلحقها بالطابور)،
+وهنا تُقصّ وتُحجَّم وتُحرَّك فقط. البطاقة الغائبة يُتخطّى عنصرها ولا يُرسم بديلٌ عنها.
+يُستدعى من tools/mont_hybrid.py لكلّ لقطةٍ فيها حقلٌ مما يلي:
 
-  kt     كتابةٌ تظهر كلمةً كلمةً **لحظةَ نطقها**: lower (شريطٌ سفليّ) · center (وسطٌ مع تعتيم) · quote (قولٌ مأثور)
-         · letter (رسالةٌ تُكتب على ورقة) · poem (شطران متقابلان) · list (قائمةٌ تظهر بنداً بنداً)
-  slam   رقمٌ أو كلمةٌ تُضرب على الشاشة بتكبيرٍ وارتجاجٍ وومضة عند كلمتها
-  cards  بطاقاتُ صورٍ تطير إلى الشاشة واحدةً بعد أخرى عند كلماتها (عرضٌ تقديميّ)
+  kt     كتابةٌ تُكشف سطراً سطراً **لحظةَ نطقه** من اليمين: lower · center · quote · letter (على رقٍّ من كوديكس)
+         · poem (شطران متقابلان) · list (بنودٌ تنزلق بنداً بنداً)
+  slam   ضربةٌ مكتوبة بتكبيرٍ وارتجاجٍ وومضة عند كلمتها
+  cards  صورُ كوديكس مصغّرةً في إطارٍ تطير واحدةً بعد أخرى، وتحت كلٍّ بطاقةُ اسمها
   labels تسمياتٌ على مواضعها من الصورة (خريطة التشكيل)
-  name   بطاقةُ اسمٍ سفلية (قائدٌ، حصن، مدينة) · date ختمٌ زمنيّ يُكتب حرفاً حرفاً
-  flash  ومضةٌ بيضاء في أوّل اللقطة · shake ارتجاجٌ عند كلمات · punch تكبيرٌ خاطف عند كلمات
-  _chapter عنوان الفصل يُكتب أعلى أوّل لقطةٍ فيه (يضعه mont_hybrid من sections.json)
+  name   بطاقةُ اسمٍ سفلية · date ختمٌ زمنيّ يُكشف من اليمين
+  flash  ومضةٌ بيضاء · shake ارتجاجٌ عند كلمات · punch تكبيرٌ خاطف عند كلمات
+  _chapter عنوان الفصل أعلى أوّل لقطةٍ فيه (يضعه mont_hybrid من sections.json)
 
 التوقيت: زمنُ كلّ كلمةٍ من صوت كتلتها نفسه — مواضعُ الصمت (silencedetect) تُطابَق بعلامات الوقف في النصّ
 (… ، . ؟ !) ثم تُوزَّع الكلمات بين المرتكزات بعدد حروفها. وإن تعذّر الكشف فبنسبة الحروف وحدها.
@@ -28,14 +30,12 @@ import subprocess as sp
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import cards  # noqa: E402
 import envpaths  # noqa: E402
-from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont  # noqa: E402
+from PIL import Image, ImageChops, ImageDraw  # noqa: E402
 
 W, H, FPS = 1920, 1080, 25
 TEMPO = 1.05                      # mont_hybrid يسرّع مسار الصوت كلّه 1.05
-GOLD, WHITE, CREAM, INK = (247, 199, 74, 255), (255, 255, 255, 255), (245, 236, 214, 255), (52, 34, 16, 255)
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-KUFI = os.path.join(REPO, 'assets', 'fonts', 'NotoKufiArabic[wght].ttf')
 FX_KEYS = ('kt', 'slam', 'cards', 'labels', 'name', 'date', 'flash', 'shake', 'punch', '_chapter')
 HARAKAT = re.compile('[ً-ْٰـ]')
 PUNCT = '…،,.؟?!:؛«»"“”()-—'
@@ -53,88 +53,6 @@ def plain(t: str) -> str:
 def bare(w: str) -> str:
     """الكلمة بلا تشكيل ولا علامات — للمطابقة بين حقول fx والنصّ المنطوق."""
     return plain(w).strip(PUNCT + ' ').replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا').replace('ة', 'ه')
-
-
-# ══════════ الخطوط ══════════
-_FONTS: dict = {}
-
-
-def kufi(size: int, weight: str = 'Bold'):
-    """نوتو كوفي (رخصة OFL في assets/fonts) بمحرّك BASIC — يمنع القلب المزدوج (envpaths)."""
-    key = ('k', size, weight)
-    if key not in _FONTS:
-        if os.path.exists(KUFI):
-            f = ImageFont.truetype(KUFI, size, layout_engine=ImageFont.Layout.BASIC)
-            try:
-                f.set_variation_by_name(weight)
-            except Exception:
-                pass
-        else:                                   # بديلٌ لا يُسقط المونتاج
-            f = envpaths.arfont(size)
-        _FONTS[key] = f
-    return _FONTS[key]
-
-
-def naskh(size: int):
-    key = ('a', size)
-    if key not in _FONTS:
-        _FONTS[key] = envpaths.arfont(size, path=envpaths.font(bold=True))
-    return _FONTS[key]
-
-
-# ══════════ رسم النصّ ══════════
-_PROBE = ImageDraw.Draw(Image.new('RGBA', (8, 8)))
-
-
-def text_w(t: str, f) -> float:
-    return _PROBE.textlength(envpaths.ar(t), font=f)
-
-
-def sprite(t: str, f, fill=WHITE, stroke: int = 0, stroke_fill=(0, 0, 0, 255), shadow: int = 0, pad: int = 0) -> Image.Image:
-    """صورةٌ شفّافة لنصٍّ واحد (كلمة أو سطر)، بحدٍّ أسود وظلٍّ ناعم اختياريّين.
-    ⭐ خطّ الصعود (ascender) على ارتفاع pad دائماً، فتصطفّ كلماتُ السطر الواحد على خطٍّ واحد مهما اختلفت حروفها."""
-    s = envpaths.ar(t)
-    l, _, r, _ = _PROBE.textbbox((0, 0), s, font=f, anchor='la', stroke_width=stroke)
-    asc, desc = f.getmetrics()
-    pad = pad or (stroke + shadow * 2 + 6)
-    w, h = int(r - l + 2 * pad), int(asc + desc + 2 * pad + stroke)
-    im = Image.new('RGBA', (max(1, w), max(1, h)), (0, 0, 0, 0))
-    org = (pad - l, pad)
-    if shadow:
-        sh = Image.new('RGBA', im.size, (0, 0, 0, 0))
-        ImageDraw.Draw(sh).text((org[0] + 3, org[1] + 4), s, font=f, anchor='la', fill=(0, 0, 0, 170),
-                                stroke_width=stroke, stroke_fill=(0, 0, 0, 170))
-        im = Image.alpha_composite(im, sh.filter(ImageFilter.GaussianBlur(shadow)))
-    ImageDraw.Draw(im).text(org, s, font=f, anchor='la', fill=fill, stroke_width=stroke, stroke_fill=stroke_fill)
-    return im
-
-
-def wrap(words: list[str], f, maxw: float) -> list[list[int]]:
-    """يلفّ الكلمات (بترتيبها المنطقيّ) أسطراً لا يتجاوز عرضها maxw — يعيد أرقام الكلمات في كلّ سطر."""
-    sp_w = text_w(' ', f)
-    lines, cur, cw = [], [], 0.0
-    for i, w in enumerate(words):
-        ww = text_w(w, f)
-        if cur and cw + sp_w + ww > maxw:
-            lines.append(cur); cur, cw = [], 0.0
-        cw += (sp_w if cur else 0) + ww; cur.append(i)
-    return lines + ([cur] if cur else [])
-
-
-def layout_rtl(words: list[str], f, maxw: float, cx: float, top: float, lh: float, align: str = 'center'):
-    """مواضعُ الكلمات (يمين ← يسار) في أسطرٍ ملفوفة: [(رقم الكلمة، x، y)] و(عدد الأسطر)."""
-    sp_w = text_w(' ', f)
-    out, lines = [], wrap(words, f, maxw)
-    for li, idx in enumerate(lines):
-        widths = [text_w(words[i], f) for i in idx]
-        tw = sum(widths) + sp_w * (len(idx) - 1)
-        right = cx + tw / 2 if align == 'center' else cx        # align='right' ⇒ cx حافّة اليمين
-        x = right
-        for i, wd in zip(idx, widths):
-            x -= wd
-            out.append((i, x, top + li * lh))
-            x -= sp_w
-    return out, len(lines)
 
 
 # ══════════ توقيت الكلمات من الصوت ══════════
@@ -328,7 +246,52 @@ def render_track(els: list, span: float, work: str, name: str) -> str | None:
     return lst
 
 
-# ══════════ مكوّنات العرض ══════════
+# ══════════ بطاقات كوديكس ══════════
+_CARDS: dict = {}
+_MISSING: set = set()
+
+
+def keyout(im: Image.Image) -> Image.Image:
+    """بطاقةٌ بلا شفافيةٍ حقيقية (خلفيةٌ موحّدة): تُعزل خلفيتها بلون زواياها — قصٌّ ومونتاج لا رسم."""
+    rgb = im.convert('RGB')
+    w, h = rgb.size
+    pts = [rgb.getpixel((x, y)) for x, y in ((2, 2), (w - 3, 2), (2, h - 3), (w - 3, h - 3))]
+    if max(max(abs(a[i] - b[i]) for i in range(3)) for a in pts for b in pts) > 40:
+        return im                                  # الزوايا مختلفة: ليست خلفيةً موحّدة، تُترك كما هي
+    bg = tuple(sum(p[i] for p in pts) // 4 for i in range(3))
+    diff = ImageChops.difference(rgb, Image.new('RGB', rgb.size, bg)).convert('L')
+    alpha = diff.point(lambda v: 0 if v < 28 else (255 if v > 70 else int((v - 28) * 255 / 42)))
+    out = im.convert('RGBA')
+    out.putalpha(alpha)
+    return out
+
+
+def card(proj: str, key: str) -> Image.Image | None:
+    """بطاقة كوديكس cards/<المفتاح>.png مقصوصةً إلى حدود ما فيها؛ None إن غابت (ويُتخطّى عنصرها)."""
+    if key in _CARDS:
+        return _CARDS[key]
+    path = os.path.join(proj, 'cards', key + '.png')
+    if not os.path.exists(path):
+        if key not in _MISSING:
+            _MISSING.add(key)
+            print('⚠ بطاقةٌ غائبة يُتخطّى عنصرها:', key, flush=True)
+        _CARDS[key] = None
+        return None
+    im = Image.open(path).convert('RGBA')
+    if im.getchannel('A').getextrema()[0] >= 250:
+        im = keyout(im)
+    bb = im.getchannel('A').point(lambda v: 255 if v > 16 else 0).getbbox()
+    if bb:
+        im = im.crop(bb)
+    _CARDS[key] = im
+    return im
+
+
+def fit(im: Image.Image, maxw: float, maxh: float, up: float = 1.8) -> Image.Image:
+    k = min(maxw / im.width, maxh / im.height, up)
+    return im.resize((max(1, int(im.width * k)), max(1, int(im.height * k))), Image.LANCZOS)
+
+
 def dim_el(alpha: float, t0: float = 0.0, d: float = 0.3, z: int = 0):
     return El(Image.new('RGBA', (W, H), (0, 0, 0, int(255 * alpha))), 0, 0, t0, 'fade', d, z=z)
 
@@ -342,25 +305,6 @@ def band_el(y0: int, t0=0.0):
     return El(im, 0, y0, t0, 'fade', 0.3, z=0)
 
 
-def panel(w, h, fill=(10, 10, 14, 175), radius=26, border=None):
-    im = Image.new('RGBA', (int(w), int(h)), (0, 0, 0, 0))
-    ImageDraw.Draw(im).rounded_rectangle([0, 0, int(w) - 1, int(h) - 1], radius=radius, fill=fill,
-                                         outline=border, width=3 if border else 0)
-    return im
-
-
-def word_els(words, times, f, maxw, cx, top, lh, hl=(), anim='rise', fill=WHITE, stroke=4, shadow=6, align='center', z=2, ad=0.18):
-    hlb = {bare(h) for h in hl}
-    pos, n = layout_rtl(words, f, maxw, cx, top, lh, align)
-    els = []
-    for i, x, y in pos:
-        col = GOLD if bare(words[i]) in hlb else fill
-        sp_ = sprite(words[i], f, col, stroke=stroke, shadow=shadow)
-        pad = stroke + shadow * 2 + 6
-        els.append(El(sp_, x - pad, y - pad, times[i], anim, ad, z=z))
-    return els, n
-
-
 def spread(n: int, t0: float, t1: float) -> list[float]:
     if n <= 0:
         return []
@@ -368,155 +312,138 @@ def spread(n: int, t0: float, t1: float) -> list[float]:
     return [t0 + i * step for i in range(n)]
 
 
-def kt_els(kt: dict, wt: list, span: float) -> list:
+def line_times(specs: list, wt: list, speech0: float, speech1: float, nwords: int) -> list[tuple[float, float]]:
+    """بداية كلّ سطرٍ ونهايته من أزمنة كلماته المنطوقة، وإلا فبالتوزيع على الكلام."""
+    if specs and all(c.get('spoken') for c in specs) and len(wt) == nwords:
+        return [(wt[c['idx'][0]][1], wt[c['idx'][-1]][2]) for c in specs]
+    ts = spread(len(specs), speech0, speech1)
+    return [(t, (ts[i + 1] if i + 1 < len(ts) else speech1)) for i, t in enumerate(ts)]
+
+
+def kt_els(proj: str, kt: dict, specs: list, wt: list, span: float, nwords: int) -> list:
     style = kt.get('style', 'lower')
     speech0 = wt[0][1] if wt else 0.2
     speech1 = wt[-1][2] if wt else max(0.4, span - 0.3)
-    hl = kt.get('hl', [])
-    text = kt.get('text')
+    lines = [c for c in specs if c['role'] in ('line', 'item')]
+    src = next((c for c in specs if c['role'] == 'src'), None)
+    els: list = []
     if style == 'list':
-        items = text if isinstance(text, list) else [text or '']
+        imgs = [(c, card(proj, c['key'])) for c in lines]
+        imgs = [(c, fit(im, 1100, 92)) for c, im in imgs if im is not None]
+        if not imgs:
+            return []
         keep = int(kt.get('keep', 0))
-        f = kufi(54, 'Bold'); lh = 96
-        maxw = max(text_w('• ' + it, f) for it in items) + 90
-        top = 300 if len(items) > 2 else 380
-        els = [El(panel(maxw, lh * len(items) + 60), W - 80 - maxw, top - 30, 0.0, 'fade', 0.25, z=1)]
-        ts = [0.0] * min(keep, len(items)) + spread(len(items) - keep, speech0, speech1 * 0.9)
-        for i, it in enumerate(items):
-            sp_ = sprite('• ' + it, f, GOLD if i == len(items) - 1 and i >= keep else WHITE, stroke=3, shadow=4)
-            els.append(El(sp_, W - 80 - 40 - sp_.width, top + i * lh, ts[i], 'none' if ts[i] == 0.0 and i < keep else 'slide', 0.3, z=2))
+        lh, top = 110, (300 if len(imgs) > 2 else 380)
+        ts = [0.0] * min(keep, len(imgs)) + spread(len(imgs) - keep, speech0, speech1 * 0.9)
+        for i, (c, im) in enumerate(imgs):
+            els.append(El(im, W - 80 - im.width, top + i * lh, ts[i], 'none' if ts[i] == 0.0 and i < keep else 'slide', 0.3, z=2))
         return els
     if style == 'poem':
-        h1, h2 = (text + ['', ''])[:2] if isinstance(text, list) else (text or '', '')
-        size = 78
-        while size > 44 and max(text_w(h1, naskh(size)), text_w(h2, naskh(size))) > 840: size -= 4
-        f = naskh(size)
-        els = [dim_el(0.55)]
         mid = (speech0 + speech1) / 2
-        for h, cx, t0, t1 in ((h1, 1440, speech0, mid), (h2, 480, mid, speech1)):
-            sp_ = sprite(h, f, GOLD, stroke=3, shadow=6)
-            els.append(El(sp_, cx - sp_.width / 2, 470 - sp_.height / 2, t0, 'wipe', max(0.4, t1 - t0) * 0.9, z=2))
-        if kt.get('src'):
-            s2 = sprite('— ' + kt['src'], kufi(36, 'Medium'), WHITE, stroke=2, shadow=3)
-            els.append(El(s2, W / 2 - s2.width / 2, 600, speech0, 'fade', 0.4, z=2))
-        return els
-    if style == 'letter':
-        words = (text if isinstance(text, str) else None) or ' '.join(w.rstrip('.،,:؛') for w, _, _ in wt)
-        words = words.split()
-        f = naskh(78)
-        lh = 122
-        pos, n = layout_rtl(words, f, 1240, W / 2, 0, lh)
-        cw = min(1400, max(760, (max(text_w(' '.join(words[i] for i in ln), f) for ln in wrap(words, f, 1240)) if words else 600) + 160))
-        ph = n * lh + 150
-        top = (H - ph) / 2
-        card = panel(cw, ph, fill=(239, 227, 200, 236), radius=18, border=(150, 118, 70, 255))
-        els = [dim_el(0.35), El(card, (W - cw) / 2, top, 0.0, 'fade', 0.25, z=1)]
-        times = [a for _, a, _ in wt] if not isinstance(text, str) and len(wt) == len(words) else spread(len(words), speech0, speech1)
-        ends = times[1:] + [speech1]
-        hlb = {bare(h) for h in hl}
-        for (i, x, y) in pos:
-            sp_ = sprite(words[i], f, (150, 30, 20, 255) if bare(words[i]) in hlb else INK, stroke=0, shadow=0, pad=8)
-            els.append(El(sp_, x - 8, top + 60 + y - 8, times[i], 'wipe', max(0.15, min(0.55, ends[i] - times[i])), z=2))
-        if kt.get('src'):
-            s2 = sprite('— ' + kt['src'], kufi(32, 'Medium'), (120, 86, 40, 255), pad=6)
-            els.append(El(s2, (W - cw) / 2 + 40, top + ph - 62, 0.0, 'fade', 0.3, z=2))
-        return els
-    # lower · center · quote: كلمةٌ كلمةٌ لحظةَ نطقها
-    if isinstance(text, str):
-        words = text.split(); times = spread(len(words), speech0, speech1)
-    else:
-        words = [w.rstrip('.،,:؛') for w, _, _ in wt]; times = [a for _, a, _ in wt]
-    if not words:
+        for c, (cx, t0, t1) in zip(lines[:2], ((1440, speech0, mid), (480, mid, speech1))):
+            im = card(proj, c['key'])
+            if im is None:
+                continue
+            im = fit(im, 840, 130)
+            els.append(El(im, cx - im.width / 2, 470 - im.height / 2, t0, 'wipe', max(0.4, t1 - t0) * 0.9, z=2))
+        if els and src and card(proj, src['key']) is not None:
+            im = fit(card(proj, src['key']), 900, 56)
+            els.append(El(im, W / 2 - im.width / 2, 600, speech0, 'fade', 0.4, z=2))
+        return [dim_el(0.55)] + els if els else []
+    times = line_times(lines, wt, speech0, speech1, nwords)
+    pairs = [(c, card(proj, c['key']), tt) for c, tt in zip(lines, times)]
+    pairs = [(c, im, tt) for c, im, tt in pairs if im is not None]
+    if not pairs:
         return []
-    if style == 'center':
-        size = 96
-        while size > 56 and len(wrap(words, kufi(size), 1500)) > 3: size -= 6
-        f = kufi(size, 'Bold'); lh = size * 1.55
-        n = len(wrap(words, f, 1500))
-        els, _ = word_els(words, times, f, 1500, W / 2, H / 2 - n * lh / 2, lh, hl, 'zoom', stroke=5, shadow=8)
-        return [dim_el(0.55)] + els
-    if style == 'quote':
-        size = 84
-        while size > 50 and len(wrap(words, naskh(size), 1450)) > 3: size -= 6
-        f = naskh(size); lh = size * 1.6
-        n = len(wrap(words, f, 1450))
-        top = H / 2 - n * lh / 2 - 30
-        els, _ = word_els(words, times, f, 1450, W / 2, top, lh, hl, 'fade', fill=CREAM, stroke=3, shadow=7, ad=0.25)
-        out = [dim_el(0.6)] + els
-        if kt.get('src'):
-            s2 = sprite('— ' + kt['src'], kufi(38, 'Medium'), GOLD, stroke=2, shadow=3)
-            out.append(El(s2, W / 2 - s2.width / 2, top + n * lh + 20, speech0, 'fade', 0.4, z=2))
-        return out
+    if style == 'letter':
+        bg = card(proj, 'letter_bg')
+        n = len(pairs)
+        lh = 112
+        bw = 1480
+        bh = min(980, n * lh + 190)
+        top = (H - bh) / 2
+        if bg is not None:
+            els += [dim_el(0.35), El(bg.resize((bw, int(bh)), Image.LANCZOS), (W - bw) / 2, top, 0.0, 'fade', 0.3, z=1)]
+        else:
+            els.append(dim_el(0.45))
+        for i, (c, im, (t0, t1)) in enumerate(pairs):
+            im = fit(im, bw - 220, 92)
+            els.append(El(im, W / 2 - im.width / 2, top + 95 + i * lh, t0, 'wipe', max(0.3, min(3.0, t1 - t0)), z=2))
+        if src and card(proj, src['key']) is not None:
+            im = fit(card(proj, src['key']), 640, 50)
+            els.append(El(im, (W - bw) / 2 + 70, top + bh - 75, 0.0, 'fade', 0.3, z=2))
+        return els
+    if style in ('center', 'quote'):
+        maxw, maxh, lh = (1600, 128, 152) if style == 'center' else (1500, 116, 140)
+        n = len(pairs)
+        top = H / 2 - n * lh / 2 - (30 if src else 0)
+        els.append(dim_el(0.55 if style == 'center' else 0.6))
+        for i, (c, im, (t0, t1)) in enumerate(pairs):
+            im = fit(im, maxw, maxh)
+            els.append(El(im, W / 2 - im.width / 2, top + i * lh + (lh - im.height) / 2, t0, 'wipe', max(0.3, min(2.6, t1 - t0)), z=2))
+        if src and card(proj, src['key']) is not None:
+            im = fit(card(proj, src['key']), 900, 56)
+            els.append(El(im, W / 2 - im.width / 2, top + n * lh + 14, speech0, 'fade', 0.4, z=2))
+        return els
     # lower
-    size = 60
-    while size > 42 and len(wrap(words, kufi(size), 1640)) > 2: size -= 4
-    f = kufi(size, 'Bold'); lh = size * 1.6
-    n = len(wrap(words, f, 1640))
-    els, _ = word_els(words, times, f, 1640, W / 2, H - 70 - n * lh, lh, hl, 'rise', stroke=4, shadow=6)
-    return [band_el(640)] + els
-
-
-def slam_els(sl: dict, t: float, span: float, top: bool = False) -> list:
-    """top: الضربة أعلى الشاشة وأصغر قليلاً، حين تشاركها بطاقاتُ صورٍ في اللقطة نفسها (لا تغطّيها)."""
-    size = 140 if top else 176
-    while size > 90 and text_w(sl['text'], kufi(size, 'Black')) > 1700: size -= 8
-    big = sprite(sl['text'], kufi(size, 'Black'), sl.get('color') and tuple(sl['color']) or GOLD, stroke=9, shadow=10)
-    y = 30 if top else H / 2 - big.height / 2 - (40 if sl.get('sub') else 0)
-    els = [dim_el(0.38, t, 0.15), El(big, W / 2 - big.width / 2, y, t, 'slam', 0.24, z=3)]
-    if sl.get('sub'):
-        sub = sprite(sl['sub'], kufi(58, 'Bold'), WHITE, stroke=4, shadow=5)
-        els.append(El(sub, W / 2 - sub.width / 2, y + big.height - 10, min(span - 0.1, t + 0.25), 'rise', 0.25, z=3))
+    n = len(pairs)
+    lh = 100
+    els.append(band_el(640))
+    for i, (c, im, (t0, t1)) in enumerate(pairs):
+        im = fit(im, 1640, 84)
+        els.append(El(im, W / 2 - im.width / 2, H - 70 - (n - i) * lh + (lh - im.height) / 2, t0, 'wipe', max(0.3, min(2.4, t1 - t0)), z=2))
     return els
 
 
-def name_els(nm: dict, t: float) -> list:
-    a = sprite(nm['text'], kufi(64, 'Bold'), WHITE, stroke=3, shadow=5)
-    b = sprite(nm['sub'], kufi(38, 'Medium'), GOLD, stroke=2, shadow=4) if nm.get('sub') else None
-    w = max(a.width, b.width if b else 0) + 70
-    h = a.height + (b.height if b else 0) + 30
-    x, y = W - 90 - w, H - 120 - h
-    els = [El(panel(w, h, fill=(8, 8, 12, 190), radius=14), x, y, t, 'slide', 0.35, z=1),
-           El(panel(10, h, fill=GOLD, radius=4), W - 90 - 10, y, t, 'slide', 0.35, z=2),
-           El(a, W - 90 - 40 - a.width, y + 8, t + 0.1, 'wipe', 0.4, z=2)]
-    if b:
-        els.append(El(b, W - 90 - 40 - b.width, y + 8 + a.height - 8, t + 0.3, 'fade', 0.3, z=2))
-    return els
+def slam_els(proj: str, spec: dict, t: float, top: bool = False) -> list:
+    """top: الضربة أعلى الشاشة وأصغر قليلاً حين تشاركها بطاقاتُ صورٍ في اللقطة نفسها (لا تغطّيها)."""
+    im = card(proj, spec['key'])
+    if im is None:
+        return []
+    im = fit(im, 1300, 300) if top else fit(im, 1560, 420)
+    y = 40 if top else H / 2 - im.height / 2
+    return [dim_el(0.38, t, 0.15), El(im, W / 2 - im.width / 2, y, t, 'slam', 0.24, z=3)]
 
 
-def date_els(dt: dict) -> list:
-    a = sprite(dt['text'], kufi(54, 'Bold'), WHITE, stroke=3, shadow=5)
-    b = sprite(dt['sub'], kufi(34, 'Medium'), GOLD, stroke=2, shadow=3) if dt.get('sub') else None
-    w = max(a.width, b.width if b else 0) + 60
-    h = a.height + (b.height if b else 0) + 24
-    y0 = 200                                    # تحت شعار القناة (أعلى اليمين 46–166)
-    els = [El(panel(w, h, fill=(8, 8, 12, 165), radius=12), W - 46 - w, y0, 0.15, 'fade', 0.25, z=1),
-           El(a, W - 46 - 30 - a.width, y0 + 6, 0.25, 'wipe', 0.8, z=2)]
-    if b:
-        els.append(El(b, W - 46 - 30 - b.width, y0 + 6 + a.height - 6, 0.9, 'wipe', 0.5, z=2))
-    return els
+def name_els(proj: str, spec: dict, t: float) -> list:
+    im = card(proj, spec['key'])
+    if im is None:
+        return []
+    im = fit(im, 860, 190)
+    return [El(im, W - 90 - im.width, H - 120 - im.height, t, 'slide', 0.35, z=2)]
 
 
-def label_els(labels: list, wt: list) -> list:
+def date_els(proj: str, spec: dict) -> list:
+    im = card(proj, spec['key'])
+    if im is None:
+        return []
+    im = fit(im, 680, 160)
+    return [El(im, W - 46 - im.width, 200, 0.25, 'wipe', 0.9, z=2)]       # تحت شعار القناة (أعلى اليمين 46–166)
+
+
+def label_els(proj: str, specs: list, wt: list) -> list:
     els = []
-    for lb in labels:
-        t = find_word(wt, lb.get('word'), 0.0) if lb.get('word') else 0.0
-        s_ = sprite('• ' + lb['text'], kufi(42, 'Bold'), WHITE, stroke=3, shadow=4)
-        bg = panel(s_.width + 24, s_.height + 8, fill=(8, 8, 12, 160), radius=12)
-        x, y = lb['x'] - s_.width / 2, lb['y'] - s_.height / 2
-        anim = 'zoom' if lb.get('word') else 'none'
-        els += [El(bg, x - 12, y - 4, t, anim, 0.25, z=1), El(s_, x, y, t, anim, 0.25, z=2)]
+    for c in specs:
+        im = card(proj, c['key'])
+        if im is None:
+            continue
+        im = fit(im, 640, 78)
+        t = find_word(wt, c.get('word'), 0.0) if c.get('word') else 0.0
+        els.append(El(im, c['x'] - im.width / 2, c['y'] - im.height / 2, t, 'zoom' if c.get('word') else 'none', 0.25, z=2))
     return els
 
 
-def card_els(proj: str, cards: list, wt: list, span: float, low: bool = False) -> list:
-    """low: البطاقات أسفل الوسط لتفسح أعلى الشاشة لضربةٍ مكتوبة في اللقطة نفسها."""
-    n = len(cards)
+def thumb_els(proj: str, items: list, specs: list, wt: list, span: float, low: bool = False) -> list:
+    """صورٌ مصغّرة من كوديكس في إطارٍ أبيض (قصٌّ وتحجيم)، وتحت كلٍّ بطاقةُ اسمها من كوديكس.
+    low: البطاقات أسفل الوسط لتفسح أعلى الشاشة لضربةٍ مكتوبة في اللقطة نفسها."""
+    n = len(items)
     cw, ch_ = (440, 248) if n <= 3 else (380, 214)
     gap = 40
     total = n * cw + (n - 1) * gap
-    t_first = min([find_word(wt, c.get('word'), 0.3) for c in cards] or [0.3])
+    t_first = min([find_word(wt, c.get('word'), 0.3) for c in items] or [0.3])
     els = [dim_el(0.5, t_first, 0.3)]
-    for i, c in enumerate(cards):
+    labs = {c['n']: c for c in specs}
+    for i, c in enumerate(items):
         src = None
         for d in ('images', 'img'):
             for e in ('jpg', 'png'):
@@ -533,17 +460,21 @@ def card_els(proj: str, cards: list, wt: list, span: float, low: bool = False) -
             im = im.crop(((im.width - cw) // 2, (im.height - ch_) // 2, (im.width - cw) // 2 + cw, (im.height - ch_) // 2 + ch_))
             fr = Image.new('RGBA', (cw + 12, ch_ + 12), (255, 255, 255, 255)); fr.paste(im, (6, 6))
             els.append(El(fr, x - 6, y - 6, t, 'slide', 0.35, z=2))
-        lab = sprite(c['label'], kufi(40 if n <= 3 else 36, 'Bold'), GOLD, stroke=3, shadow=4)
-        els.append(El(lab, x + cw / 2 - lab.width / 2, y + ch_ + 18, t + 0.12, 'rise', 0.25, z=2))
+        lab = labs.get(i)
+        im2 = card(proj, lab['key']) if lab else None
+        if im2 is not None:
+            im2 = fit(im2, cw, 62)
+            els.append(El(im2, x + cw / 2 - im2.width / 2, y + ch_ + 16, t + 0.12, 'rise', 0.25, z=2))
     return els
 
 
-def chapter_els(title: str, span: float) -> list:
-    a = sprite(title, kufi(50, 'Bold'), GOLD, stroke=4, shadow=6)
+def chapter_els(proj: str, spec: dict, span: float) -> list:
+    im = card(proj, spec['key'])
+    if im is None:
+        return []
+    im = fit(im, 1400, 110)
     t1 = min(span - 0.35, 3.6)
-    line = panel(min(a.width + 80, 1500), 5, fill=GOLD, radius=2)
-    return [El(a, W / 2 - a.width / 2, 70, 0.2, 'wipe', 0.9, t1=t1, z=2),
-            El(line, W / 2 - line.width / 2, 70 + a.height + 4, 0.35, 'wipe', 0.8, t1=t1, z=2)]
+    return [El(im, W / 2 - im.width / 2, 60, 0.2, 'wipe', 0.9, t1=t1, z=2)]
 
 
 # ══════════ المؤثّرات على المقطع نفسه ══════════
@@ -559,29 +490,33 @@ def base_filters(shakes: list[float], punches: list[float], span: float) -> str:
     return ','.join(f)
 
 
-def shot_els(proj: str, s: dict, wt: list, span: float) -> tuple[list, list, list, list]:
-    """عناصر العرض للّقطة وأزمنة الارتجاج والتكبير والومضات — مشتركةٌ بين المونتاج والمعاينة الثابتة."""
+def shot_els(proj: str, s: dict, wt: list, span: float, texts: dict | None = None) -> tuple[list, list, list, list]:
+    """عناصر العرض للّقطة وأزمنة الارتجاج والتكبير والومضات — مشتركةٌ بين المونتاج والمعاينة الثابتة.
+    texts: نصوص الكتل (لتقسيم أسطر الكلام كما قسّمها tools/cards.py فتُعرف أزمنتها)."""
     els, shakes, punches, flashes = [], [], [], []
+    specs = cards.shot_cards(s, texts or {}, s.get('_chapter'))
+    by = lambda *roles: [c for c in specs if c['role'] in roles]
+    nwords = len(cards.shot_words(s, texts or {})[0])
     both = bool(s.get('slam') and s.get('cards'))   # K09f في الأرك: الضربة كانت تغطّي البطاقات
     if s.get('flash'):
         flashes.append(0.0)
     if s.get('kt'):
-        els += kt_els(s['kt'], wt, span)
-    if s.get('date'):
-        els += date_els(s['date'])
+        els += kt_els(proj, s['kt'], by('line', 'item', 'src', 'bg'), wt, span, nwords)
+    if s.get('date') and by('date'):
+        els += date_els(proj, by('date')[0])
     if s.get('labels'):
-        els += label_els(s['labels'], wt)
+        els += label_els(proj, by('label'), wt)
     if s.get('cards'):
-        els += card_els(proj, s['cards'], wt, span, low=both)
-    if s.get('name'):
-        els += name_els(s['name'], find_word(wt, s['name'].get('word'), 0.3))
-    if s.get('slam'):
+        els += thumb_els(proj, s['cards'], by('clabel'), wt, span, low=both)
+    if s.get('name') and by('name'):
+        els += name_els(proj, by('name')[0], find_word(wt, s['name'].get('word'), 0.3))
+    if s.get('slam') and by('slam'):
         sl = s['slam']
         t = float(sl['at']) if 'at' in sl else find_word(wt, sl.get('word'), 0.25)
         t = min(t, max(0.0, span - 0.5))
-        els += slam_els(sl, t, span, top=both); shakes.append(t); flashes.append(t)
-    if s.get('_chapter'):
-        els += chapter_els(s['_chapter'], span)
+        els += slam_els(proj, by('slam')[0], t, top=both); shakes.append(t); flashes.append(t)
+    if s.get('_chapter') and by('chapter'):
+        els += chapter_els(proj, by('chapter')[0], span)
     for w in s.get('shake', []) or []:
         shakes.append(min(find_word(wt, w, 0.2), max(0.0, span - 0.4)))
     for w in s.get('punch', []) or []:
@@ -595,7 +530,7 @@ def apply(proj: str, s: dict, seg: str, span: float, texts: dict, durs: dict, ga
     if os.path.exists(res) and abs(_dur(res) - span) < 0.08:
         return res
     wt = shot_word_times(proj, s, texts, durs, gap)
-    els, shakes, punches, flashes = shot_els(proj, s, wt, span)
+    els, shakes, punches, flashes = shot_els(proj, s, wt, span, texts)
     name = os.path.basename(seg)[:-4]
     lst = render_track(els, span, work, name)
     cmd = [envpaths.FF, '-v', 'error', '-y', '-i', seg]

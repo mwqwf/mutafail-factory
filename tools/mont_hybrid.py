@@ -5,7 +5,7 @@
 ⛔ لا موسيقى: المؤثّرات طبيعية CC0، وصوتُ Kling لا يدخل إلا إن اجتاز sfx_gate (clips/<id>.ok)."""
 import json, os, sys, glob, random, subprocess as sp
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import envpaths, kb3d, kinetic   # kinetic: الكتابة المتحرّكة بأسلوب العروض التقديمية (أمر المالك 2026-10-04)
+import cards, envpaths, kb3d, kinetic   # kinetic: الكتابة المتحرّكة بأسلوب العروض التقديمية (أمر المالك 2026-10-04)
 from sfx_verdict import ok as sfx_ok   # صوت Kling يدخل بحكمٍ مطابقٍ لبصمة المقطع الحاليّ (MF-07)
 from envpaths import FF, FP
 from PIL import Image, ImageDraw, ImageFilter
@@ -162,11 +162,15 @@ def captions(s, seg, span):
         p = os.path.join(WORK, name); im.save(p); return p
 
     ti = s.get('title')
-    if ti:
+    # ⛔ أمر المالك 2026-10-04: العنوان بطاقةٌ من كوديكس (tools/cards.py) — لا يُرسم هنا، والغائبة يُتخطّى عنصرها
+    spec = next((c for c in cards.shot_cards(s, {}) if c['role'] == 'title'), None) if ti else None
+    tim = kinetic.card(PROJ, spec['key']) if spec else None
+    if ti and tim is not None:
         T = max(0.0, word_time(s, ti)) if ti.get('word') else float(ti.get('at', 0.3))
-        rows = [(ti['text'], int(ti.get('size', 190)), (244, 214, 140, 255))]
-        if ti.get('sub'): rows.append((ti['sub'], 70, (255, 255, 255, 235)))
-        cmd += ['-loop', '1', '-t', '%.3f' % span, '-i', card(rows, 'title_%s.png' % s['id'])]; k += 1
+        tim = kinetic.fit(tim, 1500, 420)
+        full = Image.new('RGBA', (1920, 1080), (0, 0, 0, 0)); full.alpha_composite(tim, ((1920 - tim.width) // 2, int(1080 * 0.36)))
+        tp = os.path.join(WORK, 'title_%s.png' % s['id']); full.save(tp)
+        cmd += ['-loop', '1', '-t', '%.3f' % span, '-i', tp]; k += 1
         flt.append('[%d:v]format=rgba,fade=t=in:st=%.2f:d=0.6:alpha=1[t%d]' % (k, T, k))
         flt.append("%s[t%d]overlay=0:0:enable='gte(t,%.2f)'[v%d]" % (last, k, T, k)); last = '[v%d]' % k
     c = s.get('counter')
@@ -193,6 +197,8 @@ def captions(s, seg, span):
         cmd += ['-framerate', '25', '-i', os.path.join(fdir, '%04d.png')]
         flt.append('[%d:v]format=rgba,setpts=PTS+%.3f/TB,fade=t=in:st=%.2f:d=0.3:alpha=1[c%d]' % (k, st, st, k))
         flt.append("%s[c%d]overlay=0:H*0.34:eof_action=repeat:enable='gte(t,%.2f)'[w%d]" % (last, k, st, k)); last = '[w%d]' % k
+    if not flt:
+        return seg                                   # بطاقةٌ غائبة ولا عدّاد: المقطع كما هو
     sp.run(cmd + ['-filter_complex', ';'.join(flt), '-map', last, '-t', '%.3f' % span] + ENC + [res], check=True)
     return res
 

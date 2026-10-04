@@ -62,49 +62,39 @@ fg = os.path.join(WORK, 'fg.mp4')
 run(['-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'v.txt'), '-c', 'copy', fg])
 
 
-def lines(d, text, f, maxw):
-    out, cur = [], ''
-    for w in text.split():
-        c = (cur + ' ' + w).strip()
-        if d.textlength(ar(c), font=f) > maxw and cur: out.append(cur); cur = w
-        else: cur = c
-    return out + ([cur] if cur else [])
-
-
-def centered(d, y, text, f, fill, stroke=5, band=None):
-    t = ar(text); tw = d.textlength(t, font=f)
-    if band:
-        d.rounded_rectangle([(W - tw) / 2 - 50, y - 18, (W + tw) / 2 + 50, y + f.size + 34], radius=36, fill=band)
-    d.text(((W - tw) / 2, y), t, font=f, fill=fill, stroke_width=stroke, stroke_fill=(0, 0, 0, 255))
-
-
 # ③ الطبقات الثابتة: العنوان أعلى والشعار أسفل، والخطّاف، وبطاقة الختام
+# ⛔ أمر المالك 2026-10-04: «حتى البطاقات المكتوبة اتركها لكوديكس» — العنوان والخطّاف والسؤال وعبارتا الختام
+#    بطاقاتٌ من كوديكس (tools/cards.py: rtitle · rhook · rend · rcta1 · rcta2) تُقصّ وتُحجَّم هنا فقط، والغائبة تُترك.
+import cards, kinetic  # noqa: E402
+RC = {k: kinetic.card(PROJ, c['key']) for k, c in cards.reel_cards(R).items()}
+
+
+def put(canvas, im, cy, maxw, maxh):
+    if im is None:
+        return cy
+    im = kinetic.fit(im, maxw, maxh)
+    canvas.alpha_composite(im, ((W - im.width) // 2, int(cy)))
+    return cy + im.height
+
+
 top = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(top)
-# العنوان كاملاً بلا بتر (بُتر في عين جالوت عند سطرين): يصغر الخطّ حتى يسعه ثلاثة أسطر
-for sz in (62, 56, 50, 46):
-    ft = envpaths.arfont(sz, path=FB); tl = lines(d, R['title'], ft, W - 90)
-    if len(tl) <= 3: break
-y = 110
-for i, ln in enumerate(tl):
-    centered(d, y, ln, ft, GOLD if i else WHITE); y += int(sz * 1.3)
+put(top, RC['title'], 100, W - 80, 330)
 lg = Image.open(envpaths.logo()).convert('RGBA').resize((110, 110))
 m = Image.new('L', (110, 110), 0); ImageDraw.Draw(m).ellipse([2, 2, 108, 108], fill=255); top.paste(lg, ((W - 110) // 2, H - 150), m)
 top.save(os.path.join(WORK, 'top.png'))
 
 # ⭐ الجيل الثالث (الأرك 2026-10-04 — «ريلزات بقوة لم يسبق لنا مثلها»): الخطّاف فوق الحركة نفسها بلا تعتيمٍ يحجبها،
 #    وارتجاجٌ في أوّل 0.7 ث يجعل الثانية الأولى ضربةً لا عنواناً ساكناً
-hook = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(hook)
-fh_ = envpaths.arfont(96, path=FB); hl = lines(d, R.get('hook') or R['title'], fh_, W - 140)[:3]; y = (H - len(hl) * 130) / 2
-for ln in hl:
-    centered(d, y, ln, fh_, WHITE, 6, band=(200, 32, 34, 235)); y += 150
+hook = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+if RC['hook'] is not None:
+    hi = kinetic.fit(RC['hook'], W - 100, 560)
+    hook.alpha_composite(hi, ((W - hi.width) // 2, (H - hi.height) // 2))
 hook.save(os.path.join(WORK, 'hook.png'))
 
-end = Image.new('RGBA', (W, H), (0, 0, 0, 150)); d = ImageDraw.Draw(end)
-fq = envpaths.arfont(74, path=FB); y = 660
-for ln in lines(d, R.get('end_q') or 'ماذا حدث بعد ذلك؟', fq, W - 120)[:3]:
-    centered(d, y, ln, fq, GOLD); y += 102
-centered(d, y + 60, 'الجواب في الفيلم الكامل', envpaths.arfont(66, path=FB), WHITE, 4, band=(200, 32, 34, 245))
-centered(d, y + 240, 'اشترك وفعّل الجرس', envpaths.arfont(54, path=FB), WHITE, 4)
+end = Image.new('RGBA', (W, H), (0, 0, 0, 150))
+y = put(end, RC['end'], 640, W - 100, 420)
+y = put(end, RC['cta1'], y + 50, W - 160, 150)
+put(end, RC['cta2'], y + 40, W - 240, 120)
 end.save(os.path.join(WORK, 'end.png'))
 
 # ④ الترجمة كلمةً بكلمة: ثلاث كلماتٍ في السطر، والكلمة المنطوقة ذهبيّة — صورٌ متتابعة بمُددها في مسارٍ واحد
