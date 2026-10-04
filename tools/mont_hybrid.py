@@ -5,7 +5,7 @@
 ⛔ لا موسيقى: المؤثّرات طبيعية CC0، وصوتُ Kling لا يدخل إلا إن اجتاز sfx_gate (clips/<id>.ok)."""
 import json, os, sys, glob, random, subprocess as sp
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import cards, envpaths, kb3d, kinetic   # kinetic: الكتابة المتحرّكة بأسلوب العروض التقديمية (أمر المالك 2026-10-04)
+import cards, envpaths, kb3d, kinetic, transitions   # kinetic: الكتابة المتحرّكة بأسلوب العروض التقديمية (أمر المالك 2026-10-04)
 from sfx_verdict import ok as sfx_ok   # صوت Kling يدخل بحكمٍ مطابقٍ لبصمة المقطع الحاليّ (MF-07)
 from envpaths import FF, FP
 from PIL import Image, ImageDraw, ImageFilter
@@ -277,6 +277,12 @@ for n, s in enumerate(shots):
     print('  [%d/%d] %s · %.1f ث · %s' % (n + 1, len(shots), s['id'], span, s.get('sfx', '-')), flush=True)
 
 json.dump(TL, open(P('timeline.json'), 'w', encoding='utf-8'))
+# ②ب الانتقالات بحسب الموقف (أمر المالك 2026-10-04: «تلاشي الصور وظهور الجديدة، وانقسام صورة ثم ظهور الجديدة مكانها…»)
+#    متمركزةٌ على نقاط القطع بلا تغيير عدد الإطارات، فتبقى timeline.json والصوت متزامنين؛ والنسخة النظيفة بالانتقالات نفسها
+TP = transitions.plan(shots, _secs)
+print('②ب الانتقالات: %d من %d حدّاً' % (sum(1 for x in TP if x), len(TP)), flush=True)
+segs = transitions.apply(segs, TP, WORK, ENC, 'v')
+clean = transitions.apply(clean, TP, WORK, ENC, 'c')
 vlist = os.path.join(WORK, 'vlist.txt')
 open(vlist, 'w', encoding='utf-8').write(''.join("file '%s'\n" % x.replace('\\', '/') for x in segs))
 silent = os.path.join(WORK, 'video_silent.mp4')
