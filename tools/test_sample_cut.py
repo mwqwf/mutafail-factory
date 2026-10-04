@@ -54,7 +54,7 @@ class SampleCut(unittest.TestCase):
 
 class DepthPath(unittest.TestCase):
     def test_depth_found_in_sibling_img(self):
-        import kb3d
+        import depthpath as kb3d                                   # بلا numpy: يعمل على عدّاء الاختبارات أيضاً
         d = tempfile.mkdtemp()
         os.makedirs(os.path.join(d, 'images')); os.makedirs(os.path.join(d, 'img'))
         src = os.path.join(d, 'images', 'K19.jpg'); open(src, 'wb').close()

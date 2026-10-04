@@ -22,6 +22,7 @@ from PIL import Image, ImageFilter
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from envpaths import FF
+from depthpath import depth_of  # noqa: E402 — خريطة العمق في images/ أو img/ (درس الأرك 2026-10-04)
 
 W, H, FPS = 1920, 1080, 25
 OVER = 1.10          # تكبير احتياطي قبل القصّ (يمنع الحواف السوداء)
@@ -60,17 +61,6 @@ def depth_maps(proj):
             print(f"  [{i}/{len(todo)}] {os.path.basename(f)}  {time.time()-t:.1f} ث", flush=True)
         except Exception as e:
             print(f"  ⛔ {os.path.basename(f)}: {e}", flush=True)
-
-
-def depth_of(src):
-    """خريطة عمق الصورة: بجانبها، وإلا في <proj>/img حيث يكتبها depth_maps.
-    ⛔ درس الأرك 2026-10-04: المونتاج يأخذ الصورة من images/ والعمق في img/، فكان كلّ مشهدٍ مجسَّم يسقط إلى التدرّج
-    الرأسيّ (كين-بيرنز) منذ الأفلام الهجينة — والعمق محسوبٌ في كلّ شوطٍ بلا فائدة."""
-    d = src.rsplit('.', 1)[0] + "_depth.png"
-    if os.path.exists(d):
-        return d
-    alt = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(src))), 'img', os.path.basename(d))
-    return alt if os.path.exists(alt) else d
 
 
 def render(src, out, dur=6.0, seed=0, size=None):
