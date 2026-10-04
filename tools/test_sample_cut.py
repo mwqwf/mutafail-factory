@@ -41,6 +41,13 @@ class SampleCut(unittest.TestCase):
         self.assertTrue(os.path.islink(os.path.join(out, 'audio')))
         self.assertEqual(json.load(open(os.path.join(out, 'reels.json'), encoding='utf-8')), [])
 
+    def test_picked_shots_keep_film_order(self):
+        out = os.path.join(self.d, 'pick')
+        self.assertEqual(sample_cut.cut(self.d, out, pick=['D', 'A']), ['A', 'D'])
+        self.assertEqual([x['id'] for x in json.load(open(os.path.join(out, 'sections.json'), encoding='utf-8'))], ['n_01', 'd_001'])
+        with self.assertRaises(SystemExit):                      # لقطةٌ كتلتها بلا صوت
+            sample_cut.cut(self.d, os.path.join(self.d, 'pick2'), pick=['C'])
+
     def test_max_seconds(self):
         self.assertEqual(sample_cut.cut(self.d, os.path.join(self.d, 's2'), max_s=5.0), ['A'])
 

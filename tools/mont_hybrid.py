@@ -292,6 +292,12 @@ sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', clist, '-c'
 sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', vlist, '-c', 'copy', silent], check=True)
 
 # ③ المزج: الصوت + الرياح + المؤثّرات (−18dB تقريباً تحت الكلام)
+# MONT_MUTE_VOICE=1: عيّنةٌ قبل اكتمال الصوت (أمر المالك 2026-10-04: «عيّنةٌ احترافية… ولو بلا صوت أو جزءٌ منها بلا صوت»):
+#   الكلام صمتٌ بطوله وتبقى الرياح والمؤثّرات؛ والتوقيت كلّه من الأصوات المؤقّتة فالكتابة تُكشف بإيقاع الكلام
+if os.environ.get('MONT_MUTE_VOICE') == '1':
+    voice = os.path.join(WORK, 'voice_muted.wav')
+    sp.run([FF, '-v', 'error', '-y', '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=mono', '-t', '%.3f' % VD, voice], check=True)
+    print('③ الكلام مكتومٌ في المزج (MONT_MUTE_VOICE)', flush=True)
 inp = [FF, '-v', 'error', '-y', '-i', voice, '-f', 'lavfi', '-t', str(VD), '-i', 'anoisesrc=c=pink:r=48000']
 flt = ['[1:a]lowpass=520,highpass=60,volume=0.10[w]']; mix = ['[0:a]', '[w]']
 for i, (st, d, f, vol) in enumerate(fx):
