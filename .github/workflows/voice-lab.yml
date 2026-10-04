@@ -1,0 +1,65 @@
+name: مختبر الأصوات — اختيار أقوى صوتٍ وأجوده آلياً
+
+run-name: 🎙️ ${{ github.event.head_commit.message }}
+
+# أمر المالك 2026-10-04: «يجب إعطاء أولوية قصوى لتحسين الصوت… والصوت الأفضل والأقوى يبدأ به أولاً في الافتتاحية وغيرها».
+# الجلسة تدفع ops/voice-lab/<slug>.json (الأصوات والأساليب والجمل)، فيولّد هذا الشوط العيّنات ويقيسها ويحكّم بينها
+# نموذجٌ يسمع (tools/voice_lab.py)، ثم يودِع النتيجة في ops/voice-lab/results/<slug>-results.json على الفرع نفسه،
+# ويرفع mp3 لكلّ تركيبةٍ متأهّلة في إصدار مسوّدة <slug>-voicelab ليسمعها المالك إن شاء. Gemini بحصّته المجّانية والعدّاء مجّاني.
+on:
+  push:
+    paths: ["ops/voice-lab/*.json"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: voice-lab-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: الأدوات
+        run: |
+          sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg >/dev/null
+          pip install -q numpy
+      - name: المفاتيح
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+      - name: التوليد والقياس والتحكيم
+        run: |
+          set -euo pipefail
+          F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/voice-lab/[^/]*\.json$' | head -1 || true)
+          [ -n "$F" ] || { echo "::notice::لا مواصفة مختبرٍ في هذا الإيداع"; exit 0; }
+          SLUG=$(python3 -c "import json,sys,re;s=json.load(open(sys.argv[1]))['slug'];assert re.fullmatch(r'[a-z0-9-]+',s);print(s)" "$F")
+          echo "SLUG=$SLUG" >> "$GITHUB_ENV"
+          python3 tools/voice_lab.py "$F" --keys /tmp/keys.json --out out || true
+          ls -la out
+          test -f "out/$SLUG-results.json"
+      - name: إيداع النتيجة على الفرع
+        if: env.SLUG != ''
+        run: |
+          mkdir -p ops/voice-lab/results
+          cp "out/$SLUG-results.json" ops/voice-lab/results/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ops/voice-lab/results/
+          git commit -m "مختبر الأصوات: نتيجة $SLUG [skip ci]" || exit 0
+          for i in 1 2 3 4; do git pull -q --rebase origin "$GITHUB_REF_NAME" && git push -q origin "HEAD:$GITHUB_REF_NAME" && break; sleep $((i*3)); done
+      - name: إصدار مسوّدة بالعيّنات
+        if: env.SLUG != ''
+        run: |
+          gh release view "$SLUG-voicelab" >/dev/null 2>&1 || gh release create "$SLUG-voicelab" --draft --title "$SLUG — مختبر الأصوات" --notes "عيّنات المتأهّلين والفائز بكلّ معالجة؛ الترتيب في ops/voice-lab/results/$SLUG-results.json"
+          ls out/*.mp3 >/dev/null 2>&1 && gh release upload "$SLUG-voicelab" out/*.mp3 "out/$SLUG-results.json" --clobber || true
