@@ -11,10 +11,10 @@ T من مضاعفات 0.08 ث فيقع T/2 على إطارٍ كامل (25 إطا
 
 السياسة (plan) — تختار ولا تُكثر:
   • أوّل لقطةٍ في فصلٍ جديد ← تعتيمٌ إلى السواد (fadeblack)
-  • لقطةٌ على الصورة نفسها التي قبلها ← ذوبانٌ ناعم (dissolve)
+  • لقطةٌ على الصورة نفسها التي قبلها ← تلاشٍ ناعمٌ قصير (fade)
   • لقطةٌ فيها ومضةٌ أو ضربةٌ في أوّلها ← قطعٌ حادّ (الومضة هي الانتقال)
   • المعركة ← قطعٌ حادّ غالباً، وكلّ رابع قطعٍ خطفةٌ سريعة (slideleft · smoothleft · hblur · wipeleft)
-  • خارج المعركة ← تلاشٍ متقاطع كلّ ثاني قطع (fade · dissolve)، وأسلوبٌ مختلف كلّ سادس (coverleft · revealleft · zoomin · …)
+  • خارج المعركة ← تلاشٍ متقاطع كلّ ثاني قطع (fade)، وأسلوبٌ مختلف كلّ سادس (coverleft · revealleft · zoomin · fadegrays · …)
   • والحقل tr في اللقطة يغلب السياسة: "cut" أو اسم انتقال أو [الاسم، المدّة] — للحظات الكشف مثلاً:
     vertopen/horzopen (انقسام الصورة ثم ظهور الجديدة مكانها)، circleopen، radial، hlslice …
 """
@@ -29,8 +29,8 @@ import envpaths  # noqa: E402
 
 FPS = 25
 WHIP = ['slideleft', 'smoothleft', 'hblur', 'wipeleft']
-SOFT = ['fade', 'dissolve']
-STYLE = ['coverleft', 'revealleft', 'zoomin', 'squeezeh', 'diagtl', 'circleopen']
+SOFT = ['fade']          # dissolve في ffmpeg حبيبيٌّ مشوّش (عُوين في التجربة) فلا يُستعمل تلقائياً
+STYLE = ['coverleft', 'revealleft', 'zoomin', 'fadegrays', 'squeezeh', 'diagtl', 'circleopen']
 KNOWN = set(WHIP + SOFT + STYLE + ['fadeblack', 'fadewhite', 'vertopen', 'vertclose', 'horzopen', 'horzclose',
                                    'circleclose', 'radial', 'hlslice', 'hrslice', 'vuslice', 'vdslice', 'pixelize',
                                    'smoothright', 'smoothup', 'smoothdown', 'slideright', 'slideup', 'slidedown',
@@ -78,7 +78,7 @@ def plan(shots: list, sections: list) -> list:
         if b.get('flash') or (b.get('slam') and float(b['slam'].get('at', 1.0)) < 0.3) or b.get('lipsync'):
             out.append(None); continue
         if b.get('file') and b.get('file') == a.get('file'):
-            out.append(('dissolve', 0.48)); continue
+            out.append(('fade', 0.48)); continue
         if secs[i + 1] == 'battle':
             if i % 4 == 3:
                 out.append((WHIP[kw % len(WHIP)], 0.32)); kw += 1

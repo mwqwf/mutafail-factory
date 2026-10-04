@@ -29,7 +29,7 @@ class Plan(unittest.TestCase):
 
     def test_same_image_dissolves_and_flash_cuts(self):
         shots = [self.shot('A', 'd1'), {'id': 'B', 'blocks': ['d2'], 'file': 'A.jpg'}, self.shot('C', 'd3', flash=True)]
-        self.assertEqual(t.plan(shots, self.sections), [('dissolve', 0.48), None])
+        self.assertEqual(t.plan(shots, self.sections), [('fade', 0.48), None])
 
     def test_override_and_unknown_name(self):
         shots = [self.shot('A', 'd1'), self.shot('B', 'd2', tr=['vertopen', 0.5]), self.shot('C', 'd3', tr='nonsense'),
