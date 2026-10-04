@@ -133,7 +133,17 @@ jobs:
         if: env.STAGE != 'animate'
         run: |
           # regen.txt في الحمولة = كتلٌ تغيّر نصُّها بعد التوليد (تحكيم الإصغاء) ⇒ يُحذف صوتُها ليُعاد
-          [ -f proj/regen.txt ] && for id in $(cat proj/regen.txt); do rm -f "proj/audio/$id.wav"; done; true
+          # ⛔ مرّةً واحدة لكلّ حمولةٍ مختومة (الأرك 2026-10-04): شوطٌ ثانٍ بالحمولة نفسها — بعد نفاد الحصّة مثلاً — كان يحذف
+          #    من جديد ما وُلّد في الشوط الأوّل. البصمة: بصمة الحمولة (لكلّ ختمٍ مفتاحٌ جديد)، وإلا فالنصوص وقائمة الإعادة معاً.
+          if [ -f proj/regen.txt ]; then
+            RID=$( (cat "ops/sealed/$SLUG/SHA256SUMS" 2>/dev/null || cat proj/blocks.json proj/regen.txt) | sha256sum | cut -c1-16)
+            if [ "$(cat proj/audio/.regen_applied 2>/dev/null)" = "$RID" ]; then
+              echo "↻ قائمة الإعادة طُبّقت في شوطٍ سابقٍ بهذه الحمولة — لا يُحذف ما وُلّد بعدها"
+            else
+              for id in $(cat proj/regen.txt); do rm -f "proj/audio/$id.wav"; done
+              mkdir -p proj/audio && echo "$RID" > proj/audio/.regen_applied
+            fi
+          fi
           # قصُّ ما نُطق من توجيهٍ إنجليزي في أول الكتلة (lead_cut) صوتاً ومقطعَ راوٍ، قبل الفحص والإصغاء ليُتحقَّق منه
           # audio_fix/ في الحمولة: صوتٌ مصحَّح يغلب ما في حالة الشوط السابق (مثلاً صوتٌ أُعيد توليده خطأً وله مقطع راوٍ مدفوع)
           [ -d proj/audio_fix ] && cp proj/audio_fix/*.wav proj/audio/ || true

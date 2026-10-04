@@ -71,6 +71,20 @@ let state = {};
 try { state = JSON.parse(fs.readFileSync(STATE, 'utf8')); } catch (e) { state = {}; }
 state.done = state.done || {}; state.dead = state.dead || {}; state.calls = state.calls || 0;
 state.model_of = state.model_of || {};
+// تشخيص الحصّة (الأرك 2026-10-04): أعلنت المفاتيح كلّها «حدّ اليوم» ثم ولّد الشوط التالي بعد دقيقتين 16 كتلة
+// ⇒ تُعدّ معرّفات الحدود (quotaId) في أجسام 429 مع عيّنةٍ مقنّعة من رسالتها، لنعرف أيّ حدٍّ يُضرب فعلاً. لا مفاتيح في السجلّ.
+state.q429 = state.q429 || {};
+function note429(txt) {
+  const ids = [...new Set((txt.match(/"quotaId"\s*:\s*"[^"]+"/g) || []).map(x => x.replace(/^.*"([^"]+)"$/, '$1')))];
+  for (const q of (ids.length ? ids : ['بلا_معرّف'])) {
+    const e = state.q429[q] || (state.q429[q] = { n: 0, sample: '' });
+    e.n++;
+    if (!e.sample) {
+      let m = txt; try { m = JSON.parse(txt)?.error?.message || txt; } catch (err) {}
+      e.sample = String(m).replace(/AIza[0-9A-Za-z_\-]{10,}|AQ\.[0-9A-Za-z_\-]{10,}/g, '***').replace(/\s+/g, ' ').slice(0, 220);
+    }
+  }
+}
 // ⭐ إحياء المفاتيح بعد تجديد الحصّة اليوميّ (07:00 UTC / 08:00 الجزائر).
 {
   const now = new Date();
@@ -136,6 +150,7 @@ async function genWith(model, blk) {
       state.calls++;
       if (r.status === 429) {
         const txt = await r.text();
+        note429(txt);
         // ⭐ اقرأ جسم الخطأ: ميّز حدّ اليوم من حدّ الدقيقة
         if (/PerDay/i.test(txt)) { deadOf(model)[key] = 'daily'; save(); continue; }
         await new Promise(z => setTimeout(z, 3000)); continue;
@@ -219,6 +234,7 @@ async function genOne(blk) {
   Object.values(state.model_of).forEach(m => { models[m] = (models[m] || 0) + 1; });
   console.log(`انتهى: نجح ${ok} | فشل ${fail} | إجمالي النداءات ${state.calls}`);
   console.log(`النماذج المستعمَلة: ${JSON.stringify(models)}`);
+  if (Object.keys(state.q429).length) console.log(`حدود 429 المضروبة: ${JSON.stringify(state.q429)}`);
   if (fail) {
     console.log(`⛔ الكتل المتعذّرة: ${failed.join(' · ')}`);
     process.exit(2);            // ⛔ الفشل يُعلَن ولا يُبتلع
