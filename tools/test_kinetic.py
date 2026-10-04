@@ -68,11 +68,11 @@ class Layout(unittest.TestCase):
         # الأرك K09f: كانت الضربة «صفٌّ واحد» تغطّي بطاقات الصور في وسط الشاشة
         s = {'slam': {'text': 'صف واحد', 'word': 'واحد'},
              'cards': [{'img': 'x', 'label': 'أ'}, {'img': 'y', 'label': 'ب'}]}
-        els, shakes, _, flashes = K.shot_els('/nonexistent', s, [('صف', 0.2, 0.6), ('واحد', 0.6, 1.1)], 4.0)
+        els, shakes, _, flashes = k.shot_els('/nonexistent', s, [('صف', 0.2, 0.6), ('واحد', 0.6, 1.1)], 4.0)
         slam = [e for e in els if e.anim == 'slam'][0]
         labels = [e for e in els if e.anim == 'rise']
-        self.assertLess(slam.y + slam.img.height, K.H / 2 + 110 - 124)   # فوق أعلى البطاقات المنخفضة
-        self.assertTrue(labels and min(e.y for e in labels) > K.H / 2)
+        self.assertLess(slam.y + slam.img.height, k.H / 2 + 110 - 124)   # فوق أعلى البطاقات المنخفضة
+        self.assertTrue(labels and min(e.y for e in labels) > k.H / 2)
         self.assertEqual(len(shakes), 1); self.assertEqual(len(flashes), 1)
 
     def test_compose_draws_inside_frame(self):
