@@ -39,10 +39,13 @@ def rank(rows: list, today: dt.date) -> list:
     mature = [r for r in shorts if not r['early']]
     med = statistics.median([r['views_per_day'] for r in mature]) if mature else 0
     have_pct = [r for r in mature if r.get('avg_view_pct') is not None]
+    # ريلزٌ بلا نسبةٍ والبقيّةُ لها نسبة ⇒ يُعطى الوسيط، فلا يبدو أضعفَ لمجرّد غياب الرقم
+    med_pct = statistics.median([r['avg_view_pct'] for r in have_pct]) if have_pct else None
     for r in shorts:
         rel = r['views_per_day'] / med if med else 0
+        pct = r['avg_view_pct'] if r.get('avg_view_pct') is not None else med_pct
         # نسبة المشاهدة أصدقُ مقياسٍ للريلز (هل يكمله المشاهد؟)، والمشاهدات اليومية نسبةً إلى الوسيط تكملها
-        r['score'] = round((r['avg_view_pct'] / 100.0 if r.get('avg_view_pct') is not None and have_pct else 0) + rel, 3)
+        r['score'] = round((pct / 100.0 if pct is not None else 0) + rel, 3)
     return sorted(shorts, key=lambda r: (r['early'], r['score']))
 
 
@@ -83,7 +86,8 @@ def main(out: str) -> None:
         for i in range(0, len(vids), 200):
             q = ya.reports().query(ids='channel==MINE', startDate=start, endDate=dt.date.today().isoformat(),
                                    metrics='views,averageViewDuration,averageViewPercentage', dimensions='video',
-                                   filters='video==' + ','.join(vids[i:i + 200]), maxResults=200).execute()
+                                   filters='video==' + ','.join(vids[i:i + 200]), maxResults=200,
+                                   sort='-views').execute()   # تقرير «أعلى الفيديوهات» يشترط ترتيباً تنازلياً
             for row in q.get('rows', []):
                 got[row[0]] = {'avg_view_seconds': row[2], 'avg_view_pct': row[3]}
         for r in rows:
