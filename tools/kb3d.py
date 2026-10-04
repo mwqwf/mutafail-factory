@@ -62,11 +62,22 @@ def depth_maps(proj):
             print(f"  ⛔ {os.path.basename(f)}: {e}", flush=True)
 
 
+def depth_of(src):
+    """خريطة عمق الصورة: بجانبها، وإلا في <proj>/img حيث يكتبها depth_maps.
+    ⛔ درس الأرك 2026-10-04: المونتاج يأخذ الصورة من images/ والعمق في img/، فكان كلّ مشهدٍ مجسَّم يسقط إلى التدرّج
+    الرأسيّ (كين-بيرنز) منذ الأفلام الهجينة — والعمق محسوبٌ في كلّ شوطٍ بلا فائدة."""
+    d = src.rsplit('.', 1)[0] + "_depth.png"
+    if os.path.exists(d):
+        return d
+    alt = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(src))), 'img', os.path.basename(d))
+    return alt if os.path.exists(alt) else d
+
+
 def render(src, out, dur=6.0, seed=0, size=None):
-    """يصيّر مقطعًا مجسَّمًا واحدًا. يحتاج <src>_depth.png بجانب الصورة.
+    """يصيّر مقطعًا مجسَّمًا واحدًا. يحتاج <src>_depth.png بجانب الصورة أو في <proj>/img.
     size=(عرض,ارتفاع) للريلزات العمودية (1080,1920)؛ والافتراض أفقيّ 1920×1080."""
     W, H = size if size else (globals()["W"], globals()["H"])
-    dpath = src.rsplit('.', 1)[0] + "_depth.png"
+    dpath = depth_of(src)
     bw, bh = int(W * OVER), int(H * OVER)
     im = Image.open(src).convert("RGB")
     iw, ih = im.size                       # قصّ مركزيّ يملأ الإطار بلا تشويه

@@ -13,11 +13,11 @@ on:
     inputs:
       slug: { description: "اسم الحلقة (مثل qadisiyya)", required: true, type: string }
       stage:
-        description: "all = كل شيء · audio = الصوت والفحص فقط · animate = التحريك والمونتاج (بعد صوتٍ سليم)"
+        description: "all = كل شيء · audio = الصوت والفحص فقط · animate = التحريك والمونتاج (بعد صوتٍ سليم) · visuals = التحريك وعيّنةٌ من أوّل الفيلم بلا توليد صوت"
         required: true
         default: all
         type: choice
-        options: [all, audio, animate, clips]
+        options: [all, audio, animate, clips, visuals]
   # ⭐ الزناد الجذري (2026-09-27): الجلسة السحابية لا تملك تشغيل workflow_dispatch،
   #    لكنها تملك الدفع. فدفعُ ملفٍّ ops/run/<slug>.json = {"slug":"…","stage":"audio|animate|all"}
   #    على أيّ فرعٍ يُطلق هذا الشوط بنفسه، بلا يد المالك.
@@ -58,7 +58,7 @@ jobs:
           import json,sys,re
           d=json.load(open(sys.argv[1],encoding='utf-8'))
           slug=d['slug']; stage=d.get('stage','all')
-          assert re.fullmatch(r'[a-z0-9-]+',slug) and stage in ('all','audio','animate','clips')
+          assert re.fullmatch(r'[a-z0-9-]+',slug) and stage in ('all','audio','animate','clips','visuals')
           print('slug='+slug); print('stage='+stage)
           PY
 
@@ -130,7 +130,8 @@ jobs:
         run: printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
 
       - name: ① الصوت (gemini-3.8-flash-tts) + الفحوص الآلية — حتى ست جولات
-        if: env.STAGE != 'animate'
+        # visuals (الأرك 2026-10-04): لا توليد صوت — حين تنفد حصّته يُحرَّك ما لا يحتاجه وتُصنع عيّنةٌ مما اكتمل صوته
+        if: env.STAGE != 'animate' && env.STAGE != 'visuals'
         run: |
           # regen.txt في الحمولة = كتلٌ تغيّر نصُّها بعد التوليد (تحكيم الإصغاء) ⇒ يُحذف صوتُها ليُعاد
           # ⛔ مرّةً واحدة لكلّ حمولةٍ مختومة (الأرك 2026-10-04): شوطٌ ثانٍ بالحمولة نفسها — بعد نفاد الحصّة مثلاً — كان يحذف
@@ -160,7 +161,7 @@ jobs:
 
       - name: ② الإصغاء المشكول (كتلة كتلة) — تقريرٌ للتحكيم
         # ⛔ لا إصغاءَ في شوطٍ «[موازٍ]»: شوطان يصغيان معاً يستنفدان الحصّة مرّتين (عين جالوت 2026-09-29) — يُصغي الشوطُ الرئيسيّ وحده
-        if: env.STAGE != 'animate' && !contains(github.event.head_commit.message, '[موازٍ]')
+        if: env.STAGE != 'animate' && env.STAGE != 'visuals' && !contains(github.event.head_commit.message, '[موازٍ]')
         run: |
           # ⭐ أحدثُ نتائج الإصغاء قبل البدء (أمر المالك 2026-09-29): ما حفظه شوطٌ انتهى بعد بدء هذا الشوط،
           #    وما سُمع من مقاطع الراوي في شوط الافتتاحية — فلا يُعاد فحصُ ما فُحص (البصمةُ تُسقط ما تغيّر صوتُه)
@@ -187,7 +188,7 @@ jobs:
 
       - name: ②ب حارس نطق التعليمات الإنجليزية (يعيد التوليد بلا توجيه، ويمنع التحريك إن بقي)
         # درس الزلاقة 2026-09-28: قال الراوي «Say quickly…» بصوته ثم حُرِّكت شفاهه عليه — أفسد المشهد
-        if: env.STAGE != 'animate' && !contains(github.event.head_commit.message, '[موازٍ]')
+        if: env.STAGE != 'animate' && env.STAGE != 'visuals' && !contains(github.event.head_commit.message, '[موازٍ]')
         run: |
           for i in 1 2 3; do
             python tools/style_leak.py proj && break
@@ -224,7 +225,7 @@ jobs:
 
       - name: ④ المونتاج الهجين والمؤثّرات والشورتات
         # clips = تحريكٌ فقط ثم حفظُ المقاطع لفحصها قبل المونتاج (أمر المالك 2026-09-27)
-        if: env.STAGE != 'audio' && env.STAGE != 'clips'
+        if: env.STAGE != 'audio' && env.STAGE != 'clips' && env.STAGE != 'visuals'
         run: |
           python tools/mont_hybrid.py proj 0.30
           # فصول يوتيوب من مدد الصوت (publish_youtube يرفض {CHAPTERS} بلا الفصول.txt)
@@ -240,6 +241,21 @@ jobs:
               *)    python tools/mkreel3d.py proj "$r" || echo "⛔ تعذّر الريلز $r" ;;
             esac
           done
+
+      - name: ④ب عيّنةٌ من أوّل الفيلم للمالك (visuals)
+        # أمر المالك 2026-10-04: «أرسل لي عيّنةً عمّا سيكون عليه الفيلم، مقطعاً قصيراً حتى أراه» — اللقطات من أوّل الفيلم ما دام
+        # صوتها كاملاً، تُمنتَج بالأداة نفسها (الصوت، المقاطع الحيّة، المجسّمة بعمقها، البطاقات، الانتقالات)، ويُصغى إلى كتلها
+        if: env.STAGE == 'visuals'
+        run: |
+          python tools/sample_cut.py proj sample --max 90
+          python tools/mont_hybrid.py sample 0.30
+          node tools/listen.js sample 12 --keys /tmp/keys.json --batch 1 || true
+          for m in gemini-flash-latest gemini-3.8-flash gemini-3.5-flash-lite gemini-flash-lite-latest; do
+            node tools/listen.js sample 12 --keys /tmp/keys.json --batch 1 --model "$m" || true
+          done
+          mkdir -p out && cp sample/film.mp4 out/sample_opening.mp4
+          ffmpeg -v error -y -i sample/film.mp4 -vf "fps=1/2,scale=320:-1,tile=6x5" -frames:v 1 out/sample_sheet.jpg || true
+          [ -f sample/listen_results.json ] && cp sample/listen_results.json out/sample_listen.json || true
 
       - name: ⑤ مخرجات المراجعة (إصدار مسوّدة خاص)
         if: always()
