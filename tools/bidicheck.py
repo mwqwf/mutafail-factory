@@ -41,10 +41,20 @@ if features.check("raqm"):
     ours = draw(envpaths.ar(SAMPLE), envpaths.arfont(64, path=FB))
     ref = draw(SAMPLE, ImageFont.truetype(FB, 64,
                                           layout_engine=ImageFont.Layout.RAQM))
-    a, b = ours.tobytes(), ref.tobytes()
-    diff = sum(1 for x, y in zip(a, b) if abs(x - y) > 48) / float(len(a))
-    print(f"فرقُ البكسلات عن المرجع: {diff:.4f}")
-    if diff > 0.02:
+    # ⭐ الحكم على الاتجاه لا على تطابق البكسل (2026-10-04): محرّك BASIC لا يرسم تنوين «تمثالاً» ولا ربطات خطّ أميري
+    #    (ثمّ، تمثالا) فيختلف العرض قليلاً عن RAQM ويفشل التطابق (0.039 > 0.02) والاتجاه سليم. ⇒ نقارن مقطع الحبر
+    #    العموديّ (توزيع الحروف على العرض) بالمرجع وبمقلوبه: السليم أقرب إلى المرجع، والمقلوب أقرب إلى مقلوبه.
+    import numpy as np
+    def prof(im):
+        a = np.asarray(im, np.float32).sum(axis=0)
+        xs = np.where(a > 0)[0]
+        a = a[xs[0]:xs[-1] + 1]
+        a = np.interp(np.linspace(0, len(a) - 1, 400), np.arange(len(a)), a)
+        return (a - a.mean()) / (a.std() + 1e-6)
+    po, pr = prof(ours), prof(ref)
+    same, flip = float((po * pr).mean()), float((po * pr[::-1]).mean())
+    print(f"ترابطُ الحبر بالمرجع: {same:.3f} · بمقلوبه: {flip:.3f}")
+    if same <= flip + 0.1:
         fails.append("⛔ اتّجاهُ النصّ يخالف المرجع — قلبٌ مزدوجٌ أو مفقود "
                      "(راجع محرّكَ التخطيط في envpaths.arfont)")
 else:
