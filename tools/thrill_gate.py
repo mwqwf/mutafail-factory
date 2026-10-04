@@ -229,10 +229,12 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
         if long_open:
             warns.append(f"{len(long_open)} فصلاً يفتح بكتلةٍ طويلة (> {CHAPTER_OPEN_MAX} كلمة): {', '.join(long_open[:5])}")
 
-    # ٣. الريلزات: ثلاثة، ولكلٍّ سؤالٌ معلّق
+    # ٣. الريلزات: ثلاثة، ولكلٍّ سؤالٌ معلّق — إلا ما أمر به المالك لفيلمٍ بعينه (publish.json: reels_required؛
+    #    الأرك 2026-10-04: «الريلزات يكفي اثنان فقط لهذا الفيلم فاخترهما بعناية»)
     reels = load(proj, "reels.json") or []
-    if len(reels) != 3:
-        errs.append(f"{len(reels)} ريلز (المطلوب 3: الافتتاحية + اثنان)")
+    need = int((load(proj, "publish.json") or {}).get("reels_required", 3))
+    if len(reels) != need:
+        errs.append(f"{len(reels)} ريلز (المطلوب {need}" + (": الافتتاحية + اثنان)" if need == 3 else " بأمر المالك)"))
     for r in reels:
         rb = [by_id[i]["text"] for i in r.get("blocks", []) if i in by_id]
         end = plain(rb[-1]) if rb else plain(r.get("end_q", ""))

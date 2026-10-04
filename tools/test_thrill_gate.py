@@ -43,6 +43,14 @@ class ThrillGateTests(unittest.TestCase):
         self.assertIn("بمعلّقة", text)
         self.assertIn("2 ريلز", text)
 
+    def test_owner_reel_count_override(self):
+        # الأرك 2026-10-04: «الريلزات يكفي اثنان فقط لهذا الفيلم» ⇒ publish.json: reels_required = 2
+        d = proj(GOOD + RB, SECS, REELS[:2])
+        pub = json.loads((d / "publish.json").read_text(encoding="utf-8")); pub["reels_required"] = 2
+        (d / "publish.json").write_text(json.dumps(pub, ensure_ascii=False), encoding="utf-8")
+        errs, _ = g.check(d, None)
+        self.assertFalse(any("ريلز (المطلوب" in e for e in errs))
+
     def test_thumb_text_with_tashkeel_or_too_long_fails(self):
         d = proj(GOOD + RB, SECS, REELS)
         t = d / "thumbs.json"

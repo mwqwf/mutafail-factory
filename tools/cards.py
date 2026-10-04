@@ -193,7 +193,7 @@ def shot_cards(s: dict, texts: dict, chapter: str | None = None) -> list[dict]:
     return out
 
 
-CTA1, CTA2 = 'الجواب في الفيلم الكامل', 'اشترك وفعّل الجرس'
+CTA1, CTA2 = 'الجواب في الفيلم الكامل', 'اكتب جوابك في التعليقات'   # التفاعل السريع (أمر المالك 2026-10-04) بدل «اشترك وفعّل الجرس»
 
 
 def reel_cards(r: dict) -> dict[str, dict]:

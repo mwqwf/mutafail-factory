@@ -41,7 +41,12 @@ with open(os.path.join(WORK, 'a.txt'), 'w', encoding='utf-8') as fh:
         times.append((b, t, d)); t += d + GAP / 1.05
         fh.write("file '%s'\nfile '%s'\n" % (a, sil))
 voice = os.path.join(WORK, 'v.wav')
-run(['-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'a.txt'), '-filter:a', 'atempo=1.05,adeclick,dynaudnorm', '-ar', '48000', voice])
+# معالجة الصوت نفسها التي اختارها مختبر الأصوات للفيلم (publish.json: voice_filter) — لا يختلف صوت الريلز عن صوت فيلمه
+try:
+    VF = json.load(open(P('publish.json'), encoding='utf-8')).get('voice_filter') or 'atempo=1.05,adeclick,dynaudnorm'
+except (OSError, ValueError):
+    VF = 'atempo=1.05,adeclick,dynaudnorm'
+run(['-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'a.txt'), '-filter:a', VF, '-ar', '48000', voice])
 VD = dur(voice) + 0.6                               # نَفَسٌ قصير بعد آخر كلمة تحت بطاقة الختام
 
 # ② الصورة: قطعٌ كلّ CUT ثانية يدور على اللقطات؛ وفي كلّ دورةٍ جزءٌ آخر من اللقطة نفسها (حركةٌ جديدة لا تكرار)
