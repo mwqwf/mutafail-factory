@@ -82,8 +82,15 @@ with open(os.path.join(WORK, 'alist.txt'), 'w', encoding='utf-8') as fh:
         fh.write("file '%s'\nfile '%s'\n" % (a.replace('\\', '/'), sil.replace('\\', '/')))
 span_of = lambda s: float(s['hold']) if s['id'] in HOLD else sum(durs[b] + GAP for b in s['blocks']) / 1.05
 voice = os.path.join(WORK, 'voice.wav')
+# سلسلة معالجة الصوت: الافتراضية، أو ما اختاره مختبر الأصوات للفيلم (publish.json: voice_filter — الأرك 2026-10-04)
+VF = 'atempo=1.05,adeclick,dynaudnorm'
+try:
+    VF = json.load(open(P('publish.json'), encoding='utf-8')).get('voice_filter') or VF
+except (OSError, ValueError):
+    pass
+assert VF.startswith('atempo=1.05,adeclick'), 'سلسلة الصوت يجب أن تبدأ بـatempo=1.05,adeclick (التوقيت ودرس الطقطقة)'
 sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'alist.txt'),
-        '-filter:a', 'atempo=1.05,adeclick,dynaudnorm', '-ar', '48000', voice], check=True)
+        '-filter:a', VF, '-ar', '48000', voice], check=True)
 VD = dur(voice); print('① الصوت %.2f د' % (VD / 60), flush=True)
 
 # ①ب تصييرُ مشاهد kb3d مسبقاً بالتوازي على كلّ الأنوية (درس القادسية: تسلسلياً أخذ ساعاتٍ على عدّاء GitHub)
