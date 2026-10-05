@@ -52,11 +52,14 @@ INTRO_MAX = 60.0         # الفصل الأوّل كلّه (ث): بدر كان�
 INTRO_NARRATOR_MAX = 45  # كلماتُ الراوي الظاهر في الافتتاحية
 BATTLE_MIN, SETUP_MAX, AFTER_MAX, FIRST_CLASH_MAX = 0.45, 0.15, 0.15, 0.35
 PHASES = ("setup", "buildup", "battle", "aftermath")
-SUPERLATIVE = re.compile(r"(?<!من )(?<!الله )\b(أعظم|أكبر|الوحيد|لم يسبق)")   # «الله أكبر» تكبيرٌ لا تفضيل
+# «الله أكبر» تكبيرٌ لا تفضيل. و«أخطر/أقوى» من مراجعة مؤتة («أخطر من ادّعى النبوّة»)؛ و«أشدّ» تُترك: أكثرها نسبيٌّ («أشدّ ساعات القتال»)
+SUPERLATIVE = re.compile(r"(?<!من )(?<!الله )\b(أعظم|أكبر|الوحيد|لم يسبق|أخطر|أقوى)")
 SUBSCRIBE = re.compile(r"(اشتركوا|اشترك|الجرس)")
 # ⭐ أمر المالك 2026-10-03: «لا داعي لذكر المصادر في الفيلم… يكفي الإشارة بأنّ المصادر في الوصف، لأنّ هذا يطيل جداً ويشتّت الانتباه»
 CITATION = re.compile(r"(رواه|رَوَاهُ|أخرجه|حسّنه|حسنه|صحّحه|صححه|بإسناد|في صحيحه|في مسنده|في سننه|في تاريخه|في كتابه|الطبعة|"
-                      r"المصادر الأولى|مصادرها|صحيح البخاري|صحيح مسلم|ابن هشام|الواقدي|ابن الأثير|ابن كثير|الطبري|الهيثمي)")
+                      r"المصادر الأولى|مصادرها|صحيح البخاري|صحيح مسلم|ابن هشام|الواقدي|ابن الأثير|ابن كثير|الطبري|الهيثمي|"
+                      # مراجعة مؤتة: كانت تفلت «يروي ابن إسحاق» و«مؤرّخهم»
+                      r"ابن إسحاق|ابن اسحاق|ابن سعد|البيهقي|موسى بن عقبة|ابن حجر|الذهبي|ابن عساكر|البلاذري|مؤرّخ|مؤرخ|ثيوفانيس)")
 PRICE_LIVE, PRICE_AUDIO, PRICE_AVATAR, PRICE_FLF = 0.07, 0.14, 0.16, 0.112   # $/ث (tools/fal_animate.py)
 CLIP_SEC = 5              # مدّة مقطع Kling المدفوع (DUR في tools/fal_animate.py)
 BUDGET_SHARE = 0.90      # المخطّط ≤ 90٪ من السقف (هامشُ إعادات)، والفيلم كلّه حيّ إلا ما وُسم kb3d صراحةً
@@ -68,6 +71,13 @@ OPEN_NUMBERS_MAX = 1     # رقمٌ واحد في أوّل 30 ث على الأك
 DANGER = (60.0, 360.0)   # الدقائق 1–6: موضع النزيف في منحنياتنا
 REHOOK_GAP_MAX = 45.0    # أطول فجوةٍ بين إعادتَي شدٍّ في الدقائق 1–6
 NEXT_TAIL = 60.0         # خطّاف الحلقة التالية في آخر دقيقة من فيلمٍ في سلسلة
+# دراسة الأسلوب 2026-10-05: وعد الكشف والتصحيح في الافتتاحية («سنكشف لكم حقائق كنتم تحسبونها مسلّمات») في 5 من أفلامنا
+# الثمانية، في موضع نزيفنا، ولا شيء منه في أفلامهم السبعة ⇒ مانعٌ في أوّل ثلاث دقائق (الوعد بالقصّة لا بالتصحيح)
+DEBUNK_PROMISE = re.compile(r"(تحسبون|تحسبونها|تحسبها|مسلّمات|مسلمات|لم تقع أصلا|لم يقلها|لم يقله|خرافات|خرافة|أسطورة|أساطير|"
+                            r"أكاذيب|كذبة|نصحّح|نصحح|تصحيح)")
+DEBUNK_WINDOW = 180.0
+# سجلّ الحلقات المفتوحة (مراجعة مؤتة §١٥): إن حملت الكتل opens/closes قيست إعادة الشدّ بها لا بعلامات الترقيم
+LOOPS_MIN, LOOPS_FROM = 2, 45.0
 ASK = re.compile(r"(اشتركوا|اشترك |الجرس|اكتب في التعليقات|اكتبوا|علّقوا|في التعليقات|المنهج|منهجنا|مصادرنا|"
                  r"المصادر في الوصف|نوثّق|نوثق|سنحكيها|نترككم)")
 NUMBER = re.compile(r"[0-9٠-٩]+|\b[وفبل]?(واحد|اثنان|اثنين|ثلاث|ثلاثة|أربع|أربعة|خمس|خمسة|ست|ستة|سبع|سبعة|ثمان|ثمانية|تسع|تسعة|عشر|عشرة|"
@@ -246,10 +256,32 @@ def owner_1005(blocks: list[dict], film: list[dict], shots: list[dict], pub: dic
         if cuts < OPEN_CUTS_MIN:
             errs.append(f"{cuts} لقطةً في أوّل 30 ث (≥ {OPEN_CUTS_MIN}): لقطةٌ كلّ ثانيتين — جملٌ أقصر أو لقطاتٌ صامتة (hold) للأكشن")
 
+    promised = [b["id"] for b in early(DEBUNK_WINDOW) if DEBUNK_PROMISE.search(plain(b["text"]))]
+    if promised:
+        errs.append(f"وعدُ كشفٍ أو تصحيحٍ في أوّل ثلاث دقائق ({', '.join(promised[:4])}): الوعد بالقصّة لا بالتصحيح "
+                    "(دراسة الأسلوب: في موضع نزيفنا، ولا شيء منه عند الناجحين)")
+
+    looped = any(x.get("opens") or x.get("closes") for x in film)
+    if looped:
+        opened, closed = {}, {}
+        for x in film:
+            for k in x.get("opens") or []:
+                opened.setdefault(k, start[x["id"]])
+            for k in x.get("closes") or []:
+                closed.setdefault(k, start[x["id"]])
+        orphan = sorted(set(closed) - set(opened))
+        if orphan:
+            errs.append(f"حلقاتٌ تُغلق ولم تُفتح: {', '.join(orphan[:5])}")
+        live = lambda t: sum(1 for k, s0 in opened.items() if s0 <= t and closed.get(k, 1e9) > t)
+        thin = [f"{start[x['id']]:.0f}" for x in film
+                if LOOPS_FROM <= start[x["id"]] < total - NEXT_TAIL and live(start[x["id"]]) < LOOPS_MIN]
+        if thin:
+            errs.append(f"أقلّ من {LOOPS_MIN} حلقاتٍ مفتوحة عند {', '.join(thin[:6])} ث: سؤالٌ أو وعدٌ قائم يُفتح قبل أن يُغلق آخر")
     a, b = DANGER
     zone = [x for x in film if a <= start[x["id"]] < min(b, total)]
     if zone:
-        marks = [a] + [start[x["id"]] for x in zone if REHOOK.search(plain(x["text"]))] + [min(b, total)]
+        hooked = (lambda x: bool(x.get("opens"))) if looped else (lambda x: bool(REHOOK.search(plain(x["text"]))))
+        marks = [a] + [start[x["id"]] for x in zone if hooked(x)] + [min(b, total)]
         gap = max(q - p for p, q in zip(marks, marks[1:]))
         if gap > REHOOK_GAP_MAX:
             errs.append(f"فجوةٌ {gap:.0f} ث بلا إعادة شدٍّ في الدقائق 1–6 (≤ {REHOOK_GAP_MAX:.0f}): موضع النزيف في منحنياتنا")
@@ -299,7 +331,7 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
     elif loops > 3:
         warns.append(f"{loops} أسئلة متتابعة في الدقيقة الأولى: سلسلة أسئلةٍ تشويقٌ طويل — سؤالٌ مركزيّ واحد ثم القصّة")
     if not any(PROMISE.search(plain(b["text"])) for b in film[:12]):
-        warns.append("لا وعدَ صريحاً في الافتتاح («سنحكي…» / «سنكشف…»)")
+        warns.append("لا وعدَ صريحاً في الافتتاح بالقصّة («سترى كيف…»)، ولا يكون وعداً بكشفٍ أو تصحيح")
 
     # ٢. الفصول: كلّ فصلٍ يُختم بمعلّقة ويفتح بخطّافٍ قصير
     sections = load(proj, "sections.json") or []

@@ -150,6 +150,24 @@ class ThrillGateTests(unittest.TestCase):
         text = "\n".join(g.owner_1005(good, good, json.loads((d2 / "shots.json").read_text(encoding="utf-8")), pub)[0])
         self.assertEqual(text, "")
 
+    def test_debunk_promise_loops_and_citations(self):
+        w = lambda n, tail=".": " ".join(["كَلِمَةٌ"] * n) + tail
+        pub = {"series": "سيف الله"}
+        # وعد الكشف في أوّل ثلاث دقائق مانع (دراسة الأسلوب 2026-10-05)، والوعد بالقصّة جائز
+        film = COLD + [B("p1", "وَسَنَكْشِفُ لَكُمْ حَقَائِقَ كُنْتُمْ تَحْسَبُونَهَا مُسَلَّمَاتٍ؟")] + [B(f"y{i}", w(14, "…")) for i in range(30)]
+        self.assertIn("وعدُ كشفٍ", "\n".join(g.owner_1005(film, film, [], pub)[0]))
+        film[4] = B("p1", "وَسَتَرَى كَيْفَ خَرَجُوا مِنْ بَيْنِ أَيْدِيهِمْ؟")
+        self.assertNotIn("وعدُ كشفٍ", "\n".join(g.owner_1005(film, film, [], pub)[0]))
+        # سجلّ الحلقات: حلقةٌ واحدة مفتوحة بعد الثانية 45 لا تكفي، وإعادة الشدّ تُقاس بالفتح لا بالترقيم
+        loops = COLD[:1] + [dict(COLD[1], opens=["سيوف"])] + COLD[2:] + [B("c1", w(14), opens=["نجاة"])]
+        loops += [B(f"l{i}", w(14, "…"), closes=["سيوف"] if i == 3 else []) for i in range(30)]
+        text = "\n".join(g.owner_1005(loops, loops, [], pub)[0])
+        self.assertIn("حلقاتٍ مفتوحة", text)
+        self.assertIn("بلا إعادة شدٍّ", text)                          # «…» لا تُحسب حين يوجد السجلّ
+        self.assertIn("ذكرُ مصدرٍ", "\n".join(g.check(proj(COLD + GOOD + [B("e1", "وَيَرْوِي ابْنُ إِسْحَاقَ أَنَّهُ…")] + RB, SECS_C, REELS), None)[0]))
+        self.assertEqual(g.absolute("أَخْطَرُ مَنِ ادَّعَى النُّبُوَّةَ"), ["أخطر"])
+        self.assertEqual(g.absolute("مِنْ أَخْطَرِ الْمَعَارِكِ"), [])
+
 
 if __name__ == "__main__":
     unittest.main()
