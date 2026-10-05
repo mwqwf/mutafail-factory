@@ -176,23 +176,34 @@ def truth(ya, rows: list, today: dt.date) -> dict:
 def reach(ya, rows: list, today: dt.date) -> dict:
     """الظهور ونسبة النقر لكلّ فيديو (videoThumbnailImpressions وClickRate) — سؤال المالك 2026-10-05: «لماذا قنواتٌ أقلّ
     جودةً تحتفظ بالمشاهد أكثر؟». منحنى البقاء يقيس من نقر؛ وهذا يقيس هل يُعرض الفيلم أصلاً وهل يُنقر عليه:
-    ظهورٌ كثيرٌ بنقرٍ قليل ⇒ العنوان والمصغّرة؛ ونقرٌ جيّدٌ ثم سقوطٌ في 30 ث ⇒ الافتتاحية. فشلُ النداء لا يُسقط التقرير."""
-    vids = [r['id'] for r in rows]
-    if not vids:
+    ظهورٌ كثيرٌ بنقرٍ قليل ⇒ العنوان والمصغّرة؛ ونقرٌ جيّدٌ ثم سقوطٌ في 30 ث ⇒ الافتتاحية. فشلُ النداء لا يُسقط التقرير.
+    ⛔ الشوط 37313830497: رُفض الطلب (400) مع مرشّح الفيديوهات ⇒ صيغٌ متدرّجة، وسببُ الرفض من جسم الردّ لا من الرابط."""
+    if not rows:
         return {}
-    start = min(r['published'][:10] for r in rows)
-    got, err = {}, None
-    for i in range(0, len(vids), 200):
+    start, end = min(r['published'][:10] for r in rows), today.isoformat()
+    M = 'videoThumbnailImpressions,videoThumbnailImpressionsClickRate'
+
+    def why(e):
+        c = getattr(e, 'content', b'') or b''
+        return (c.decode('utf-8', 'ignore') if isinstance(c, bytes) else str(c))[:400] or str(e)[:200]
+
+    tries = [dict(dimensions='video', metrics=M, sort='-videoThumbnailImpressions', maxResults=200),
+             dict(dimensions='video', metrics=M + ',views', sort='-views', maxResults=200),
+             dict(metrics=M)]
+    errs = []
+    for kw in tries:
         try:
-            r = ya.reports().query(ids='channel==MINE', startDate=start, endDate=today.isoformat(), dimensions='video',
-                                   metrics='videoThumbnailImpressions,videoThumbnailImpressionsClickRate,views',
-                                   filters='video==' + ','.join(vids[i:i + 200]), maxResults=200,
-                                   sort='-videoThumbnailImpressions').execute()
-            for row in r.get('rows', []):
-                got[row[0]] = {'الظهور': row[1], 'نسبة_النقر': round(row[2], 2), 'المشاهدات': row[3]}
+            r = ya.reports().query(ids='channel==MINE', startDate=start, endDate=end, **kw).execute()
+            heads = [h['name'] for h in r.get('columnHeaders', [])]
+            got = [dict(zip(heads, row)) for row in r.get('rows', [])]
+            if 'video' in heads:
+                return {'لكل_فيديو': {x['video']: {'الظهور': x['videoThumbnailImpressions'],
+                                                   'نسبة_النقر': round(x['videoThumbnailImpressionsClickRate'], 2)} for x in got},
+                        **({'أخطاء': errs} if errs else {})}
+            return {'القناة': got, 'أخطاء': errs}
         except Exception as e:
-            err = str(e)[:300]
-    return {'لكل_فيديو': got, **({'خطأ': err} if err else {})}
+            errs.append(why(e))
+    return {'أخطاء': errs}
 
 
 def main(out: str) -> None:
