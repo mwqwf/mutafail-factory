@@ -16,7 +16,8 @@ STATE = os.path.join("ops", "state", "quota_usage.json")
 CAP = 10000          # سقفُ يوتيوب اليوميّ للمشروع
 MARGIN = 400         # هامشٌ يُترك لعملياتٍ صغيرةٍ لا تُحصى
 COST = {"upload": 1600, "thumbnail": 50, "playlist_insert": 50,
-        "video_update": 50, "read": 1}
+        "video_update": 50, "read": 1,
+        "search": 100}   # search.list — بحث الطلب الخارجيّ (tools/topic_demand.py، 2026-10-05)
 
 
 def _today(now=None):
