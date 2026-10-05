@@ -181,16 +181,24 @@ jobs:
         timeout-minutes: 40
         env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
         run: |
           set -euo pipefail
           printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
           mkdir -p /tmp/sj
           if [ -s out/style.json ]; then cp out/style.json /tmp/sj/style.json; else gh release download channel-stats -p style.json -D /tmp/sj --clobber; fi
-          python tools/blind_judge.py out/judge.json --keys /tmp/keys.json --style /tmp/sj/style.json --stats out/channel_stats.json
+          DRAFT=""
+          # المسوّدة نصٌّ لم يُنشر: مختومةٌ بالمفتاح العامّ في ops/stats/judge_draft/ (tools/seal.sh، كحمولات ops/commands)،
+          # ويفضّها العدّاء بالمفتاح الخاصّ وحده. (رفع الملفّات الثنائيّة إلى الإصدار محجوبٌ عن الجلسة السحابيّة.)
+          if python3 -c "import json,sys; sys.exit(0 if json.load(open('ops/stats/judge.json',encoding='utf-8')).get('المسوّدة_المختومة') else 1)"; then
+            mkdir -p /tmp/jds && cp ops/stats/judge_draft/payload.enc ops/stats/judge_draft/key.enc /tmp/jds/
+            bash tools/unseal.sh /tmp/jds /tmp/jd && DRAFT="--draft /tmp/jd/draft.json"
+          fi
+          python tools/blind_judge.py out/judge.json --keys /tmp/keys.json --style /tmp/sj/style.json --stats out/channel_stats.json $DRAFT
       - name: رفع المقارنة العمياء
         if: always() && steps.changed.outputs.judge == '1'
         run: |
-          rm -f /tmp/keys.json
+          rm -f /tmp/keys.json; rm -rf /tmp/jd /tmp/jds
           [ -s out/judge.json ] || { echo "⛔ لا تقرير"; exit 1; }
           gh release upload channel-stats out/judge.json --clobber
           echo "✅ رُفعت المقارنة العمياء إلى الإصدار المسوّد channel-stats"

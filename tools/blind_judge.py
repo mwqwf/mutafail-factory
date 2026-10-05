@@ -26,7 +26,10 @@
 الطلب في ops/stats/judge.json:
 {"المحاولة": 1, "المرجع": [ids], "السقف": [ids للاطلاع], "المعايرة": [ids أفلامنا],
  "المسوّدة": [{"id", "النوع": "opening|danger|action", "النصّ"}]}
-الاستعمال: python tools/blind_judge.py <out.json> --keys K --style style.json --stats channel_stats.json
+الاستعمال: python tools/blind_judge.py <out.json> --keys K --style style.json --stats channel_stats.json [--draft draft.json]
+- المسوّدة لا تُكتب في الطلب العامّ: نصٌّ لم يُنشر. تُختم بالمفتاح العامّ (tools/seal.sh) في ops/stats/judge_draft/،
+  ويفضّها العدّاء بالمفتاح الخاصّ وحده.
+  والطلب يقول «المسوّدة_المختومة»: true، فتُقرأ من --draft ({"المسوّدة": [...]}) وتغلب «المسوّدة» في الطلب.
 ⛔ نصوص المنافسين محميّة: التقرير إلى الإصدار المسوّد الخاصّ وحده، ولا يُطبع منها شيءٌ في السجلّ العامّ."""
 from __future__ import annotations
 
@@ -297,11 +300,16 @@ def main() -> int:
     ap.add_argument('--style', required=True, help='style.json من الإصدار الخاصّ')
     ap.add_argument('--stats', help='channel_stats.json: منحنيات أفلامنا لصلاحية الحَكَم')
     ap.add_argument('--workers', type=int, default=6)
+    ap.add_argument('--draft', help='المسوّدة المفضوضة من الإصدار الخاصّ (لا تُودَع في المستودع العامّ)')
     a = ap.parse_args()
     keys = keys_from(a.keys)
     if not keys:
         print('⛔ لا مفاتيح جيميناي'); return 1
     req = json.load(io.open(os.path.join('ops', 'stats', 'judge.json'), encoding='utf-8'))
+    if req.get('المسوّدة_المختومة'):
+        if not (a.draft and os.path.exists(a.draft)):
+            print('⛔ الطلب يقول إنّ المسوّدة مختومة ولم تُفضّ'); return 1
+        req['المسوّدة'] = json.load(io.open(a.draft, encoding='utf-8')).get('المسوّدة') or []
     style = json.load(io.open(a.style, encoding='utf-8'))
     stats = json.load(io.open(a.stats, encoding='utf-8')) if a.stats and os.path.exists(a.stats) else None
     rep = run(req, style, stats, Gem(keys), a.workers)

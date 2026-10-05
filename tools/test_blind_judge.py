@@ -126,5 +126,34 @@ class RunTest(unittest.TestCase):
         self.assertTrue(all('error' in r for r in rows))
 
 
+class SealedDraftTest(unittest.TestCase):
+    def test_main_reads_unsealed_draft_and_refuses_without_it(self):
+        import tempfile
+        d = tempfile.mkdtemp()
+        os.makedirs(os.path.join(d, 'ops', 'stats'))
+        json.dump({'المسوّدة_المختومة': True, 'المسوّدة': [], 'المعايرة': []},
+                  open(os.path.join(d, 'ops', 'stats', 'judge.json'), 'w', encoding='utf-8'), ensure_ascii=False)
+        json.dump({'الأفلام': []}, open(os.path.join(d, 'style.json'), 'w', encoding='utf-8'))
+        json.dump({'المسوّدة': [{'id': 'm', 'النوع': 'opening', 'النصّ': 'سيف'}]},
+                  open(os.path.join(d, 'draft.json'), 'w', encoding='utf-8'), ensure_ascii=False)
+        seen = {}
+
+        def fake_run(req, style, stats, g, workers=6):
+            seen['req'] = req
+            return {'الخلاصة': {'الصلاحية': {'أزواج': 0}, 'أفلامنا': {}, 'المسوّدة': {}}, 'تجتاز': {}}
+        cwd = os.getcwd()
+        try:
+            os.chdir(d)
+            with mock.patch.object(bj, 'keys_from', lambda p: ['k']), mock.patch.object(bj, 'run', fake_run):
+                with mock.patch.object(sys, 'argv', ['bj', os.path.join(d, 'o.json'), '--keys', 'k', '--style', 'style.json']):
+                    self.assertEqual(bj.main(), 1)                         # مختومةٌ ولم تُفضّ ⇒ لا حكم
+                with mock.patch.object(sys, 'argv', ['bj', os.path.join(d, 'o.json'), '--keys', 'k', '--style', 'style.json',
+                                                     '--draft', 'draft.json']):
+                    bj.main()
+        finally:
+            os.chdir(cwd)
+        self.assertEqual(seen['req']['المسوّدة'][0]['id'], 'm')
+
+
 if __name__ == '__main__':
     unittest.main()
