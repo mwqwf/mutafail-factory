@@ -1,0 +1,377 @@
+{
+ "slug": "mutah",
+ "stage1": {
+  "L1": {
+   "order": [
+    "Charon·epic",
+    "Charon·reverent",
+    "Sadaltager·epic",
+    "Algenib·reverent",
+    "Algenib·urgent",
+    "Charon·urgent",
+    "Algenib·epic"
+   ],
+   "leaked": [],
+   "notes": {
+    "Charon·epic": "صوت رخيم، هيبة استثنائية، نطق سليم وإيقاع مثالي للتشويق.",
+    "Charon·reverent": "حضور قوي وفخامة في الصوت مع وضوح ممتاز ومناسب جداً كخطاف.",
+    "Sadaltager·epic": "نطق سليم وواضح جداً، لكنه يفتقر قليلاً للغموض الملحمي مقارنة بالأول.",
+    "Algenib·reverent": "أداء غامض ومشوق، لكن الهمس الزائد يقلل من قوة الحضور.",
+    "Algenib·urgent": "نبرة حادة وقوية، لكن بها بحّة مصطنعة قليلًا تؤثر على الطبيعية.",
+    "Charon·urgent": "الإيقاع سريع ومستعجل يفقد الجملة هيبتها التاريخية.",
+    "Algenib·epic": "أداء مسرحي مبالغ فيه وبطيء يفتقر للقوة الطبيعية."
+   }
+  },
+  "L2": {
+   "order": [
+    "Charon·urgent",
+    "Algenib·urgent",
+    "Charon·epic",
+    "Sadaltager·epic",
+    "Algenib·epic",
+    "Charon·reverent",
+    "Algenib·reverent"
+   ],
+   "leaked": [],
+   "notes": {
+    "Charon·urgent": "أداء ممتاز يجمع بين الحماس والتوتر المناسب لقلب المعركة مع وضوح مخارج الحروف وقوة الحضور.",
+    "Algenib·urgent": "صوت جهوري فخم ذو هيبة وحضور قوي جداً، لكن الإيقاع أبطأ قليلاً من العينة الأولى.",
+    "Charon·epic": "نبرة طبيعية ومقنعة للغاية مع وضوح ممتاز ونقاء صوتي عالٍ يناسب الوثائقيات.",
+    "Sadaltager·epic": "أداء جيد ولكن النبرة بها همس زائد يقلل من هيبة الصوت وقوته في سياق المعركة.",
+    "Algenib·epic": "الصوت فخم ولكن الإيقاع بطيء نوعاً ما ولا يعكس التوتر والسرعة المطلوبة للمشهد.",
+    "Charon·reverent": "الأداء رتيب ويفتقر إلى الحماس والتشويق الملحمي المطلوب.",
+    "Algenib·reverent": "بطيء جداً وهامس، مما يفقده الهيبة والحضور المناسبين لجو المعركة المشدود."
+   }
+  },
+  "L3": {
+   "order": [
+    "Algenib·epic",
+    "Algenib·urgent",
+    "Charon·reverent",
+    "Charon·epic",
+    "Algenib·reverent",
+    "Charon·urgent"
+   ],
+   "leaked": [],
+   "notes": {}
+  },
+  "L4": {
+   "order": [
+    "Algenib·epic",
+    "Charon·epic",
+    "Algenib·urgent",
+    "Algenib·reverent",
+    "Charon·urgent"
+   ],
+   "leaked": [],
+   "notes": {}
+  }
+ },
+ "metrics": {
+  "Algenib·epic": {
+   "L1": {
+    "dur": 4.16,
+    "lufs": -15.5,
+    "lra": 2.8,
+    "f0": 106.0,
+    "pitch_sd_st": 2.42,
+    "cps": 4.8
+   },
+   "L2": {
+    "dur": 6.36,
+    "lufs": -18.6,
+    "lra": 1.3,
+    "f0": 121.2,
+    "pitch_sd_st": 3.96,
+    "cps": 5.7
+   },
+   "L3": {
+    "dur": 6.52,
+    "lufs": -19.1,
+    "lra": 2.3,
+    "f0": 117.6,
+    "pitch_sd_st": 2.81,
+    "cps": 6.3
+   },
+   "L4": {
+    "dur": 4.16,
+    "lufs": -16.2,
+    "lra": 0.9,
+    "f0": 128.0,
+    "pitch_sd_st": 2.82,
+    "cps": 6.0
+   },
+   "ALL": {
+    "dur": 23.0,
+    "lufs": -17.4,
+    "lra": 5.9,
+    "f0": 117.6,
+    "pitch_sd_st": 3.3,
+    "cps": 5.3
+   }
+  },
+  "Algenib·urgent": {
+   "L1": {
+    "dur": 3.48,
+    "lufs": -18.8,
+    "lra": 0.4,
+    "f0": 123.1,
+    "pitch_sd_st": 3.73,
+    "cps": 5.7
+   },
+   "L2": {
+    "dur": 6.0,
+    "lufs": -19.5,
+    "lra": 4.4,
+    "f0": 135.6,
+    "pitch_sd_st": 3.85,
+    "cps": 6.0
+   },
+   "L3": {
+    "dur": 7.08,
+    "lufs": -17.3,
+    "lra": 4.3,
+    "f0": 122.1,
+    "pitch_sd_st": 3.14,
+    "cps": 5.8
+   },
+   "L4": {
+    "dur": 4.28,
+    "lufs": -20.4,
+    "lra": 0.7,
+    "f0": 91.7,
+    "pitch_sd_st": 2.51,
+    "cps": 5.8
+   },
+   "ALL": {
+    "dur": 22.64,
+    "lufs": -18.6,
+    "lra": 6.1,
+    "f0": 121.2,
+    "pitch_sd_st": 4.21,
+    "cps": 5.4
+   }
+  },
+  "Algenib·reverent": {
+   "L1": {
+    "dur": 3.44,
+    "lufs": -17.6,
+    "lra": 0.8,
+    "f0": 95.2,
+    "pitch_sd_st": 4.58,
+    "cps": 5.8
+   },
+   "L2": {
+    "dur": 7.76,
+    "lufs": -18.4,
+    "lra": 3.4,
+    "f0": 120.3,
+    "pitch_sd_st": 3.26,
+    "cps": 4.6
+   },
+   "L3": {
+    "dur": 7.44,
+    "lufs": -18.1,
+    "lra": 5.1,
+    "f0": 103.9,
+    "pitch_sd_st": 2.83,
+    "cps": 5.5
+   },
+   "L4": {
+    "dur": 6.32,
+    "lufs": -21.1,
+    "lra": 6.3,
+    "f0": 104.6,
+    "pitch_sd_st": 3.14,
+    "cps": 4.0
+   }
+  },
+  "Charon·epic": {
+   "L1": {
+    "dur": 3.72,
+    "lufs": -16.7,
+    "lra": 1.0,
+    "f0": 129.0,
+    "pitch_sd_st": 2.34,
+    "cps": 5.4
+   },
+   "L2": {
+    "dur": 6.04,
+    "lufs": -18.4,
+    "lra": 0.9,
+    "f0": 108.8,
+    "pitch_sd_st": 1.3,
+    "cps": 6.0
+   },
+   "L3": {
+    "dur": 6.8,
+    "lufs": -18.8,
+    "lra": 5.5,
+    "f0": 107.7,
+    "pitch_sd_st": 2.92,
+    "cps": 6.0
+   },
+   "L4": {
+    "dur": 3.96,
+    "lufs": -18.4,
+    "lra": 0.8,
+    "f0": 115.9,
+    "pitch_sd_st": 2.27,
+    "cps": 6.3
+   },
+   "ALL": {
+    "dur": 22.32,
+    "lufs": -18.1,
+    "lra": 4.9,
+    "f0": 113.5,
+    "pitch_sd_st": 2.54,
+    "cps": 5.5
+   }
+  },
+  "Charon·urgent": {
+   "L1": {
+    "dur": 3.0,
+    "lufs": -16.6,
+    "lra": 20.0,
+    "f0": 132.2,
+    "pitch_sd_st": 3.46,
+    "cps": 6.7
+   },
+   "L2": {
+    "dur": 5.64,
+    "lufs": -18.5,
+    "lra": 1.2,
+    "f0": 115.1,
+    "pitch_sd_st": 3.42,
+    "cps": 6.4
+   },
+   "L3": {
+    "dur": 6.24,
+    "lufs": -18.3,
+    "lra": 1.9,
+    "f0": 108.8,
+    "pitch_sd_st": 2.38,
+    "cps": 6.6
+   },
+   "L4": {
+    "dur": 4.56,
+    "lufs": -17.8,
+    "lra": 1.1,
+    "f0": 112.7,
+    "pitch_sd_st": 2.64,
+    "cps": 5.5
+   }
+  },
+  "Charon·reverent": {
+   "L1": {
+    "dur": 3.8,
+    "lufs": -18.5,
+    "lra": 1.4,
+    "f0": 95.5,
+    "pitch_sd_st": 2.63,
+    "cps": 5.3
+   },
+   "L2": {
+    "dur": 7.56,
+    "lufs": -22.3,
+    "lra": 3.6,
+    "f0": 106.7,
+    "pitch_sd_st": 3.15,
+    "cps": 4.8
+   },
+   "L3": {
+    "dur": 8.4,
+    "lufs": -19.5,
+    "lra": 6.8,
+    "f0": 83.3,
+    "pitch_sd_st": 1.46,
+    "cps": 4.9
+   }
+  },
+  "Sadaltager·epic": {
+   "L1": {
+    "dur": 3.48,
+    "lufs": -19.7,
+    "lra": 0.3,
+    "f0": 121.7,
+    "pitch_sd_st": 3.48,
+    "cps": 5.7
+   },
+   "L2": {
+    "dur": 5.48,
+    "lufs": -19.1,
+    "lra": 1.7,
+    "f0": 99.1,
+    "pitch_sd_st": 2.8,
+    "cps": 6.6
+   }
+  },
+  "chain_M0": {
+   "ALL": {
+    "dur": 21.24,
+    "lufs": -17.7,
+    "lra": 4.8,
+    "f0": 112.7,
+    "pitch_sd_st": 2.54,
+    "cps": 5.7
+   }
+  },
+  "chain_M1": {
+   "ALL": {
+    "dur": 21.24,
+    "lufs": -16.3,
+    "lra": 2.9,
+    "f0": 112.7,
+    "pitch_sd_st": 2.65,
+    "cps": 5.7
+   }
+  },
+  "chain_M2": {
+   "ALL": {
+    "dur": 21.24,
+    "lufs": -16.4,
+    "lra": 3.0,
+    "f0": 112.7,
+    "pitch_sd_st": 2.58,
+    "cps": 5.7
+   }
+  }
+ },
+ "generated": 25,
+ "suspect_duration": [],
+ "finalists": [
+  "Charon·epic",
+  "Algenib·urgent",
+  "Algenib·epic"
+ ],
+ "leaked": [],
+ "final": {
+  "order": [
+   "Charon·epic",
+   "Algenib·urgent",
+   "Algenib·epic"
+  ],
+  "error": "لا حكم"
+ },
+ "chains": {
+  "order": [
+   "M0",
+   "M1",
+   "M2"
+  ],
+  "error": "لا حكم",
+  "filters": {
+   "M0": "atempo=1.05,adeclick,dynaudnorm",
+   "M1": "atempo=1.05,adeclick,highpass=f=70,acompressor=threshold=-20dB:ratio=3:attack=8:release=180:makeup=3,equalizer=f=3000:t=q:w=1.2:g=2.5,equalizer=f=180:t=q:w=1:g=1.5,loudnorm=I=-16:TP=-1.5:LRA=9",
+   "M2": "atempo=1.05,adeclick,highpass=f=70,acompressor=threshold=-18dB:ratio=2.5:attack=10:release=200:makeup=2,loudnorm=I=-16:TP=-1.5:LRA=11"
+  }
+ },
+ "winner": {
+  "voice": "Charon",
+  "style": "epic",
+  "director": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: an epic battle documentary.\n### DIRECTOR'S NOTES\nStyle: powerful, commanding and epic, with weight and suspense; full chest voice.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+  "chain": "M0",
+  "filter": "atempo=1.05,adeclick,dynaudnorm"
+ },
+ "judge_calls": 2
+}
