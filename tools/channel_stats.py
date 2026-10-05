@@ -49,6 +49,38 @@ def rank(rows: list, today: dt.date) -> list:
     return sorted(shorts, key=lambda r: (r['early'], r['score']))
 
 
+def insights(ya, rows: list, today: dt.date) -> dict:
+    """من أين جاء المشاهدون؟ — طلب المالك 2026-10-05: «اقترح فلماً عليه طلبٌ حقيقيّ».
+    مشاهداتٌ كثيرة بنسبة بقاءٍ 3٪ (اليرموك) نمطُ إعلانٍ أو تجربةِ تصفّح لا طلب؛ فالفيصل مصادر الزيارات لكلّ فيديو بارز،
+    وكلماتُ البحث التي جاءت بالمشاهدين (الطلب الحقيقيّ)، والفيديوهات التي تقترحنا، والبلدان. كلّ استعلامٍ مستقلّ:
+    فشلُ واحدٍ يُسجَّل بنصّه ولا يُسقط غيره."""
+    end, start90 = today.isoformat(), (today - dt.timedelta(days=90)).isoformat()
+    out = {}
+
+    def q(**kw):
+        try:
+            r = ya.reports().query(ids='channel==MINE', endDate=end, **kw).execute()
+            return [dict(zip([h['name'] for h in r.get('columnHeaders', [])], row)) for row in r.get('rows', [])]
+        except Exception as e:                   # نطاقٌ أو بُعدٌ غير متاح: يُسمّى ولا يُدّعى
+            return {'خطأ': str(e)[:200]}
+
+    top = sorted(rows, key=lambda r: -r['views'])[:12]
+    out['مصادر_الزيارات'] = {r['id']: {'العنوان': r['title'][:80], 'المشاهدات': r['views'],
+                                         'المصادر': q(startDate=r['published'][:10], dimensions='insightTrafficSourceType',
+                                                     metrics='views,estimatedMinutesWatched,averageViewDuration',
+                                                     filters='video==' + r['id'], sort='-views')} for r in top}
+    detail = dict(startDate=start90, dimensions='insightTrafficSourceDetail', metrics='views,estimatedMinutesWatched',
+                  sort='-views', maxResults=25)
+    out['كلمات_البحث_90_يوماً'] = q(filters='insightTrafficSourceType==YT_SEARCH', **detail)
+    out['فيديوهات_تقترحنا_90_يوماً'] = q(filters='insightTrafficSourceType==RELATED_VIDEO', **detail)
+    out['مصادر_القناة_90_يوماً'] = q(startDate=start90, dimensions='insightTrafficSourceType',
+                                     metrics='views,estimatedMinutesWatched,averageViewDuration', sort='-views')
+    out['البلدان_90_يوماً'] = q(startDate=start90, dimensions='country', sort='-views', maxResults=15,
+                                metrics='views,estimatedMinutesWatched,averageViewDuration')
+    out['العمر_والجنس_90_يوماً'] = q(startDate=start90, dimensions='ageGroup,gender', metrics='viewerPercentage')
+    return out
+
+
 def main(out: str) -> None:
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
@@ -81,6 +113,7 @@ def main(out: str) -> None:
                          'description': (v['snippet'].get('description') or '')[:300]})
     rows = [r for r in rows if r['privacy'] == 'public']
     analytics = 'غير متاحة'
+    ins = {}
     try:
         ya = build('youtubeAnalytics', 'v2', credentials=cred, cache_discovery=False)
         start = min(r['published'][:10] for r in rows) if rows else dt.date.today().isoformat()
@@ -96,6 +129,7 @@ def main(out: str) -> None:
         for r in rows:
             r.update(got.get(r['id'], {}))
         analytics = 'متاحة (%d فيديو)' % len(got)
+        ins = insights(ya, rows, dt.date.today())
     except HttpError as e:
         analytics = 'غير متاحة: %s' % str(e)[:200]
     except Exception as e:                       # نطاق التحليلات غير ممنوح أو المكتبة غير مثبّتة
@@ -104,6 +138,7 @@ def main(out: str) -> None:
     rep = {'القناة': ch['snippet']['title'], 'تاريخ': dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
            'التحليلات': analytics, 'عدد_العام': len(rows), 'عدد_الريلزات': len(ranked),
            'الريلزات_من_الأضعف': ranked,
+           'رؤى': ins,
            'الأفلام': sorted([r for r in rows if r['seconds'] > SHORT_MAX], key=lambda r: r['published'], reverse=True)}
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     json.dump(rep, io.open(out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
