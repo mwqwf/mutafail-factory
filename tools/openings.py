@@ -106,7 +106,7 @@ class Gem:
                         'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s' % (model, key),
                         data=body(vid, light), headers={'content-type': 'application/json'})
                     try:
-                        with urllib.request.urlopen(req, timeout=420) as r:
+                        with urllib.request.urlopen(req, timeout=300) as r:
                             j = json.loads(r.read().decode('utf-8'))
                         txt = ''.join(p.get('text', '') for p in j['candidates'][0]['content']['parts'])
                         out = json.loads(re.search(r'\{.*\}', txt, re.S).group(0))
@@ -133,11 +133,17 @@ class Gem:
         return {'error': last or 'لا مفاتيح صالحة'}
 
 
+def report(films: list, res: dict) -> dict:
+    ok = sum('error' not in v for v in res.values())
+    return {'تاريخ': dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'), 'المقطع_ث': END_S, 'نجح': ok, 'المطلوب': len(films),
+            'الأفلام': [res[f['id']] | {'id': f['id']} for f in films if f['id'] in res]}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument('out')
     ap.add_argument('--keys', required=True)
-    ap.add_argument('--workers', type=int, default=4)
+    ap.add_argument('--workers', type=int, default=6)
     a = ap.parse_args()
     keys = keys_from(a.keys)
     if not keys:
@@ -145,20 +151,20 @@ def main() -> int:
     films = json.load(io.open(os.path.join('ops', 'stats', 'openings.json'), encoding='utf-8'))['الأفلام']
     g = Gem(keys)
     print('مفاتيح: %d | أفلام: %d | المقطع: 0–%d ث' % (len(keys), len(films), END_S), flush=True)
-    res = {}
+    os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
+    res, t0 = {}, time.time()
     with cf.ThreadPoolExecutor(max_workers=a.workers) as ex:
         futs = {ex.submit(g.video, f['id']): f for f in films}
         for fu in cf.as_completed(futs):
             f = futs[fu]
             r = fu.result()
             res[f['id']] = {'الجهة': f['الجهة'], 'الوسم': f['الوسم'], **r}
-            print('%s %-12s %-40s خطاف=%s مشهد=%s %s' % ('✅' if 'error' not in r else '⛔', f['id'], f['الوسم'][:40],
-                  (r.get('hook') or {}).get('score'), r.get('first_scene_s'), r.get('error', '')[:120]), flush=True)
+            # ⛔ الشوط 37313830497 تجاوز عشرين دقيقة: يُكتب التقرير بعد كلّ فيلم، فإن انقضت مهلة الخطوة رُفع ما اكتمل
+            json.dump(report(films, res), io.open(a.out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+            print('%s [%3d ث] %-12s %-40s خطاف=%s مشهد=%s %s' % (
+                '✅' if 'error' not in r else '⛔', time.time() - t0, f['id'], f['الوسم'][:40],
+                (r.get('hook') or {}).get('score'), r.get('first_scene_s'), r.get('error', '')[:120]), flush=True)
     ok = sum('error' not in v for v in res.values())
-    rep = {'تاريخ': dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'), 'المقطع_ث': END_S, 'نجح': ok, 'المطلوب': len(films),
-           'الأفلام': [res[f['id']] | {'id': f['id']} for f in films if f['id'] in res]}
-    os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
-    json.dump(rep, io.open(a.out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print('نجح %d من %d' % (ok, len(films)))
     return 0 if ok else 1
 

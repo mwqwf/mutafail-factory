@@ -100,17 +100,26 @@ jobs:
       # ⭐ تشريح الافتتاحيات: نصفُ مشاهدينا الطبيعيّين يغادرون في أوّل 30 ث ⇒ جيميناي يشاهد أوّل 150 ث من أفلامنا وأفلام
       #    المنافسين الناجحة بمعيارٍ واحد (لا يُخبَر أيُّها لنا). يجلب الفيديو من يوتيوب بنفسه، فلا حصّة يوتيوب ولا تنزيل.
       - name: تشريح الافتتاحيات
+        id: openings
         if: steps.changed.outputs.open == '1'
+        timeout-minutes: 30
         env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: |
           set -euo pipefail
           printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
-          python tools/openings.py out/openings.json --keys /tmp/keys.json --workers 4
+          python tools/openings.py out/openings.json --keys /tmp/keys.json --workers 6
+      # ⛔ الشوط 37313830497: تجاوز التشريح عشرين دقيقة ⇒ للخطوة مهلتها، والأداة تكتب بعد كلّ فيلم، ويُرفع ما اكتمل في كلّ حال
+      - name: رفع تشريح الافتتاحيات
+        if: always() && steps.changed.outputs.open == '1'
+        run: |
           rm -f /tmp/keys.json
+          [ -s out/openings.json ] || { echo "⛔ لا تقرير"; exit 1; }
           gh release upload channel-stats out/openings.json --clobber
           echo "✅ رُفع تشريح الافتتاحيات إلى الإصدار المسوّد channel-stats"
-          echo "ops/stats/openings.json:$(sha256sum ops/stats/openings.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
+          if [ "${{ steps.openings.outcome }}" = "success" ]; then
+            echo "ops/stats/openings.json:$(sha256sum ops/stats/openings.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
+          fi
       - name: دفتر الحصص إلى master
         if: steps.changed.outputs.topics == '1' || steps.changed.outputs.comp == '1'
         run: |
