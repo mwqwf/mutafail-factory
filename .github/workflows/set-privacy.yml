@@ -1,0 +1,52 @@
+name: مصنع المتفائل — تغيير خصوصية فيديو منشور (بلا حذف)
+
+run-name: 🔒 ${{ github.event.head_commit.message }}
+
+# ⭐ أمر المالك 2026-10-05: المقطعان «3 أوت 2026» رُفعا عمداً لصفحتَي تطبيقَي منبر ومصحفك في Google Play:
+#    «اجعلهما غير مدرجين إن كانت سياسة المتجر تسمح بذلك دون حذفهما». والسياسة تسمح بالعامّ وغير المدرج، لا الخاصّ،
+#    وتشترط التضمين. ⇒ دفعُ ops/privacy_pending/<videoId>.json يغيّر الخصوصية وحدها (tools/set_privacy.py) ويتحقّق.
+#    ⛔ لا حذف بحال. والحصّة من دفتر master (50 وحدة للتحديث).
+on:
+  push:
+    paths: ["ops/privacy_pending/**"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mutafail-sealed-publish
+  cancel-in-progress: false
+
+jobs:
+  privacy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
+      - name: حالةُ النشر ودفتر الحصص من master
+        run: git fetch -q origin master && git checkout origin/master -- ops/state/
+      - name: تغيير الخصوصية والتحقّق
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: |
+          ls ops/privacy_pending/*.json >/dev/null 2>&1 || { echo "لا طلبات"; exit 0; }
+          python tools/set_privacy.py
+      - name: تسجيلُ الحالة في master
+        if: always()
+        run: |
+          git config user.name  "مصنع المتفائل"
+          git config user.email "factory@mutafail.local"
+          [ -n "$(git status --porcelain ops/state)" ] || { echo "لا جديد"; exit 0; }
+          rm -rf /tmp/state_keep && mkdir -p /tmp/state_keep && cp -a ops/state/. /tmp/state_keep/
+          for i in 1 2 3 4; do
+            if git fetch -q origin master && git reset -q --hard origin/master; then
+              cp -a /tmp/state_keep/. ops/state/ && git add -A ops/state
+              if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
+              git commit -qm "🔒 تغيّرت خصوصية فيديو منشور (بلا حذف)" && git push -q origin HEAD:master && exit 0
+            fi
+            sleep $(( i * 3 ))
+          done
+          echo "⛔ تعذّر دفعُ الحالة"; exit 1
