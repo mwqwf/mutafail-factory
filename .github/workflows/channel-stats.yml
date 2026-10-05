@@ -27,6 +27,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - name: المكتبات
@@ -44,32 +45,55 @@ jobs:
           gh release view channel-stats >/dev/null 2>&1 || gh release create channel-stats --draft --title "إحصاءات القناة — خاصّ" --notes "تقرير tools/channel_stats.py: مشاهدات الفيديوهات العامّة ونسبة المشاهدة وترتيب الريلزات من الأضعف. خاصٌّ: لا يُودَع في المستودع العامّ."
           gh release upload channel-stats out/channel_stats.json --clobber
           echo "✅ رُفع التقرير إلى الإصدار المسوّد channel-stats"
-      # ⭐ الطلب الخارجيّ المقيس (طلب المالك 2026-10-05: «بحثٌ حقيقيّ جادّ… وأهمّ هدفٍ الاحتفاظ بالمشاهد»):
-      #    أعلى فيديوهات كلّ موضوعٍ في ops/stats/topics.json واقتراحات البحث. البحث 100 وحدة ⇒ من دفتر الحصص على master،
-      #    بحجز رفعٍ واحد، ويُعاد الدفترُ إلى master بعد الإنفاق فلا يجهله شوطُ نشرٍ لاحق.
+      # ⭐ الطلب الخارجيّ المقيس (طلب المالك 2026-10-05: «بحثٌ حقيقيّ جادّ… وأهمّ هدفٍ الاحتفاظ بالمشاهد»)،
+      #    وتحليل المنافسين (سؤاله: «لماذا قنواتٌ أقلّ جودةً تحتفظ بالمشاهد أكثر؟»). كلٌّ منهما لا يعمل إلا إذا تغيّر ملفّه
+      #    في الإيداع نفسه: البحث 100 وحدة، فلا يُعاد إنفاقه حين يتغيّر ملفٌّ آخر في ops/stats.
+      # ⛔ الشوط 37311286244: النسخة ضحلة فلم يكن origin/master معروفاً ⇒ فشل دفع الدفتر. الجلبُ الآن بمرجعٍ صريح.
+      - name: ما الذي تغيّر في هذا الإيداع؟
+        id: changed
+        run: |
+          set -euo pipefail
+          F=$(git show --pretty= --name-only "$GITHUB_SHA")
+          T=$(echo "$F" | grep -qx 'ops/stats/topics.json' && echo 1 || echo 0)
+          C=$(echo "$F" | grep -qx 'ops/stats/competitors.json' && echo 1 || echo 0)
+          echo "topics=$T" >> "$GITHUB_OUTPUT"; echo "comp=$C" >> "$GITHUB_OUTPUT"
+          echo "البحث: $T | المنافسون: $C"
+          # الدفتر من master لا من الفرع: هو مصدر الحقيقة لحصّة اليوم (والإنفاق يُحسب عليه)
+          if [ "$T$C" != "00" ]; then
+            git fetch -q origin master:refs/remotes/origin/master
+            git show origin/master:ops/state/quota_usage.json > ops/state/quota_usage.json
+          fi
       - name: الطلب الخارجيّ على الموضوعات المرشّحة
-        if: hashFiles('ops/stats/topics.json') != ''
+        if: steps.changed.outputs.topics == '1'
         env:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
         run: |
           set -euo pipefail
-          git fetch -q origin master && git show origin/master:ops/state/quota_usage.json > ops/state/quota_usage.json || true
           python tools/topic_demand.py out/topic_demand.json
           gh release upload channel-stats out/topic_demand.json --clobber
           echo "✅ رُفع تقرير الطلب الخارجيّ إلى الإصدار المسوّد channel-stats"
+      - name: تحليل المنافسين
+        if: steps.changed.outputs.comp == '1'
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: |
+          set -euo pipefail
+          python tools/competitors.py out/competitors.json
+          gh release upload channel-stats out/competitors.json --clobber
+          echo "✅ رُفع تحليل المنافسين إلى الإصدار المسوّد channel-stats"
       - name: دفتر الحصص إلى master
-        if: hashFiles('ops/stats/topics.json') != ''
+        if: steps.changed.outputs.topics == '1' || steps.changed.outputs.comp == '1'
         run: |
           set -euo pipefail
           git config user.name  "مصنع المتفائل"
           git config user.email "factory@mutafail.local"
           cp ops/state/quota_usage.json /tmp/quota_keep.json
           for i in 1 2 3 4; do
-            if git fetch -q origin master && git checkout -q -B qsync origin/master; then
+            if git fetch -q origin master:refs/remotes/origin/master && git checkout -q -B qsync origin/master; then
               cp /tmp/quota_keep.json ops/state/quota_usage.json
               git add ops/state/quota_usage.json
               if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
-              git commit -qm "📊 دفتر حصّة يوتيوب بعد بحث الطلب الخارجيّ" && git push -q origin HEAD:master && exit 0
+              git commit -qm "📊 دفتر حصّة يوتيوب بعد بحث الطلب وتحليل المنافسين" && git push -q origin HEAD:master && exit 0
             fi
             sleep $(( i * 3 ))
           done
