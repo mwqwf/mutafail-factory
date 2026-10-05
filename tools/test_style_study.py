@@ -70,5 +70,30 @@ class RunTest(unittest.TestCase):
         self.assertEqual(rep['نجح'], {'الأفلام': 2, 'الريلزات': 0, 'المصغّرات': 6})   # 5 من الأولى + 1
 
 
+class LocalTest(unittest.TestCase):
+    def test_local_draft_is_sent_inline_without_page_or_action(self):
+        d = tempfile.mkdtemp()
+        src = os.path.join(d, 'preview.mp4')
+        open(src, 'wb').write(b'0' * 10)
+        sent = []
+
+        def fake_call(self, mk, tag, budget_s=420, parse=None, cap_s=240):
+            sent.append(json.loads(mk(False))['contents'][0]['parts'][0])
+            return {'duration_s': 720, 'action_scenes': [{'from': 60, 'intensity': 9}], 'transcript': ''}
+
+        def fake_proxy(path):
+            p = path + '.proxy.mp4'
+            open(p, 'wb').write(b'tiny')
+            return p
+        with mock.patch.object(ss.Gem, 'call', fake_call), mock.patch.object(ss, 'proxy', fake_proxy), \
+             mock.patch.object(ss, 'page', lambda vid: self.fail('لا صفحة لمسوّدة')):
+            st = ss.Study({'الأفلام': [{'id': 'mutah-draft', 'ملف': src, 'الطول_ث': 720}]}, {}, os.path.join(d, 'o.json'),
+                          ss.Gem(['k']))
+            st.run({'films', 'page'}, 1)
+        self.assertEqual(len(sent), 1)                                   # التحليل وحده: لا نافذة أكشن ولا صفحة
+        self.assertEqual(sent[0]['inlineData']['mimeType'], 'video/mp4')
+        self.assertEqual(sent[0]['videoMetadata'], {'fps': 0.2})
+
+
 if __name__ == '__main__':
     unittest.main()

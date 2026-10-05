@@ -106,10 +106,27 @@ THUMB_PROMPT = """أمامك مصغّراتُ أفلامٍ يوتيوب عن ا�
 - readable_small: هل تُقرأ وتُفهم على شاشة هاتفٍ صغيرة."""
 
 
-def film_body(vid: str, light: bool, dur_s: float) -> bytes:
+def proxy(path: str) -> str:
+    """نسخةٌ صغيرة من فيلمٍ محلّيّ لم يُنشر (المسوّدة المصوّرة): 320 عرضاً، إطارٌ في الثانية، وصوتٌ أحاديّ 32 ك.ب/ث —
+    نحو 4 م.ب لفيلم 12 دقيقة، تُرسل في الطلب نفسه (inlineData) فلا رفع ولا تخزين. ⚠ جيميناي المجّانيّ قد يستعمل المدخلات
+    لتحسين نماذجه، فلا يُرسل الأصل بجودته (دراسة مؤتة §١٠)."""
+    out = os.path.splitext(path)[0] + '.proxy.mp4'
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', path, '-vf', 'scale=320:-2,fps=1', '-c:v', 'libx264',
+                    '-crf', '32', '-preset', 'veryfast', '-c:a', 'aac', '-b:a', '32k', '-ac', '1', out], check=True)
+    return out
+
+
+def media(src: str) -> dict:
+    """مصدر الفيلم: رابط يوتيوب لفيلمٍ منشور، أو ملفٌّ محلّيّ (مسوّدةٌ مصوّرة) يُرسل نسخةً صغيرة في الطلب."""
+    if src.endswith('.mp4') and os.path.exists(src):
+        return {'inlineData': {'mimeType': 'video/mp4', 'data': base64.b64encode(open(proxy(src), 'rb').read()).decode('ascii')}}
+    return {'fileData': {'fileUri': YT + src}}
+
+
+def film_body(vid: str, light: bool, dur_s: float, part0: dict | None = None) -> bytes:
     """إطارٌ كلّ خمس ثوانٍ (وكلّ عشرٍ لما جاوز نصف الساعة) بدقّةٍ منخفضة، والصوت كلّه: نحو 45 رمزاً في الثانية بدل 98.
     light: بلا دقّة وسائط — لنموذجٍ يرفضها (400). ويبقى معدّل الإطارات: بدونه يقارب فيلمُ ساعةٍ حدَّ المليون رمز."""
-    part = {'fileData': {'fileUri': YT + vid}, 'videoMetadata': {'fps': 0.2 if dur_s <= 1800 else 0.1}}
+    part = dict(part0 or {'fileData': {'fileUri': YT + vid}}, videoMetadata={'fps': 0.2 if dur_s <= 1800 else 0.1})
     cfg = {'temperature': 0.1, 'maxOutputTokens': 60000}
     if not light:
         cfg['mediaResolution'] = 'MEDIA_RESOLUTION_LOW'
@@ -238,7 +255,11 @@ class Study:
     # ———— المهامّ ————
     def film(self, f: dict, with_page: bool) -> dict:
         dur = float(f.get('الطول_ث') or 60 * float(f.get('الطول_د') or 0) or 1500)
-        r = self.g.call(lambda light: film_body(f['id'], light, dur), f['id'], budget_s=1200, parse=parse_film, cap_s=900)
+        local = f.get('ملف')            # المسوّدة المصوّرة قبل التحريك المدفوع: تُحلَّل بالمعيار الذي حُلّلت به أفلامهم
+        part0 = media(local) if local else None
+        r = self.g.call(lambda light: film_body(f['id'], light, dur, part0), f['id'], budget_s=1200, parse=parse_film, cap_s=900)
+        if local:
+            return r                    # لقطاتنا معلومةٌ من shots.json، ولا صفحة يوتيوب لمسوّدة
         if 'error' not in r:
             win = strongest_action(r, dur)
             if win:
