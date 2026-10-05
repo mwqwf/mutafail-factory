@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """حارس المحظورات — يُشغَّل إلزامًا على script.md قبل توليد أي صورة أو صوت.
-   الاستعمال:  python guard.py <path/to/script.md>
-   يعود بـ exit code 1 عند أي مخالفة، فيوقف خطّ الإنتاج."""
+   الاستعمال:  python guard.py <path/to/script.md>   أو   python guard.py <yarmouk-media/<slug>/codex_job.json>
+   يعود بـ exit code 1 عند أي مخالفة، فيوقف خطّ الإنتاج.
+   ⛔⛔ ثغرةٌ ثانية أُغلقت 2026-10-05 (مؤتة): صار كوديكس مصدرَ الصور كلّها (أمر المالك 2026-09-29)، وأوامره في
+   codex_job.json لا في script.md، فكانت تمرّ بلا فحص ⇒ يُفحص كلّ وصفٍ فيه كسطر IMG. والمصغّرات (thumbs/) فيها نصٌّ
+   مقصود، فتُعفى من الجملة الواقية وحدها لا من المحظورات."""
 import io, re, sys, os
 # طرفية وندوز (cp1252) تُسقط الطباعة العربية والرموز — يُفرض UTF-8 أيّاً كانت البيئة.
 for _s in (sys.stdout, sys.stderr):
@@ -19,9 +22,20 @@ BANNED_IMG = {
 # الجملة الواقية الإلزامية في آخر كل وصف صورة
 REQUIRED_TAIL = 'No text, no letters, no captions, no watermark.'
 
+def codex_lines(path):
+    """أوامر كوديكس سطورَ IMG: (الاسم، السطر، يُعفى من الجملة الواقية؟)."""
+    import json
+    job = json.load(io.open(path, encoding='utf-8'))
+    return [(it.get('file', '?'), 'IMG:%s|%s' % (it.get('file', '?'), it.get('prompt', '').replace('\n', ' ')),
+             str(it.get('file', '')).startswith('thumbs/')) for it in job.get('items') or []]
+
+
 def main(path):
     if not os.path.exists(path):
         print(f'✗ لا يوجد ملف: {path}'); return 1
+    if path.endswith('.json'):
+        return check([(f'{os.path.basename(path)}:{name}', line, thumb) for name, line, thumb in codex_lines(path)],
+                     os.path.basename(path))
     # ⛔⛔ ثغرةٌ أُغلقت 2026-09-14: الحارسُ كان يفحص `script.md` وحدَه، و`images-extra.md`
     #    فيه أوصافُ صورٍ تُولَّد وتدخل الفيلم كغيرها — فكانت تمرّ بلا فحصٍ البتّة.
     files = [path]
@@ -29,24 +43,31 @@ def main(path):
     if os.path.basename(path) == 'script.md' and os.path.exists(extra):
         files.append(extra)
 
-    problems = []
-    imgs = 0
+    rows = []
     for f in files:
         lines = io.open(f, encoding='utf-8').read().split('\n')
-        for n, l in enumerate(lines, 1):
-            if not l.startswith('IMG:'):
-                continue
-            imgs += 1
-            body = l.split('|', 2)[-1]
-            low = body.lower()
-            for label, pat in BANNED_IMG.items():
-                m = re.search(pat, low, re.I)
-                if m:
-                    problems.append((f'{os.path.basename(f)}:{n}', label, m.group(0), l[:90]))
-            if REQUIRED_TAIL.lower() not in low:
-                problems.append((f'{os.path.basename(f)}:{n}', 'الجملة الواقية ناقصة', REQUIRED_TAIL, l[:90]))
+        rows += [(f'{os.path.basename(f)}:{n}', l, False) for n, l in enumerate(lines, 1) if l.startswith('IMG:')]
+    return check(rows, " و".join(os.path.basename(f) for f in files))
 
-    print(f'فُحص {imgs} وصف صورة في {" و".join(os.path.basename(f) for f in files)}')
+
+def check(rows, where):
+    """rows: (الموضع، سطر IMG، يُعفى من الجملة الواقية؟) — المحظورات على الجميع بلا استثناء."""
+    problems = []
+    imgs = 0
+    for at, l, thumb in rows:
+        imgs += 1
+        body = l.split('|', 2)[-1]
+        low = body.lower()
+        for label, pat in BANNED_IMG.items():
+            if thumb and label == 'كتابة في الصورة':
+                continue                    # نصّ المصغّرة مقصود (والمحظورات الثلاث الأخرى باقية)
+            m = re.search(pat, low, re.I)
+            if m:
+                problems.append((at, label, m.group(0), l[:90]))
+        if not thumb and REQUIRED_TAIL.lower() not in low:
+            problems.append((at, 'الجملة الواقية ناقصة', REQUIRED_TAIL, l[:90]))
+
+    print(f'فُحص {imgs} وصف صورة في {where}')
     if problems:
         print(f'\n⛔ {len(problems)} مخالفة — التوليد موقوف:\n')
         for n, label, hit, ctx in problems:

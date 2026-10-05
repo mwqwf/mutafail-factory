@@ -252,6 +252,7 @@ No text, no letters, no captions, no watermark.
 ### 🛡️ الحارس الآلي — خطوة إلزامية لا تُتخطّى
 ```bash
 python ~/.claude/skills/video-factory/guard.py <path>/script.md
+python tools/guard.py ../yarmouk-media/<slug>/codex_job.json   # أوامر كوديكس قبل دفعها (2026-10-05)
 ```
 ⛔ **لا يبدأ توليد صورة ولا صوت قبل أن يعود بـ«لا مخالفات».** وهو يفحص:
 نساء · آلات موسيقية · موسيقى وغناء ورقص · كتابة في الصورة · وجودَ الجملة الواقية في كل وصف.

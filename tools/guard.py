@@ -7,6 +7,10 @@
    codex_job.json لا في script.md، فكانت تمرّ بلا فحص ⇒ يُفحص كلّ وصفٍ فيه كسطر IMG. والمصغّرات (thumbs/) فيها نصٌّ
    مقصود، فتُعفى من الجملة الواقية وحدها لا من المحظورات."""
 import io, re, sys, os
+# طرفية وندوز (cp1252) تُسقط الطباعة العربية والرموز — يُفرض UTF-8 أيّاً كانت البيئة.
+for _s in (sys.stdout, sys.stderr):
+    try: _s.reconfigure(encoding='utf-8')
+    except Exception: pass
 
 # ⛔ محظورات صاحب القناة — لا تُخفَّف ولا يُستثنى منها شيء
 BANNED_IMG = {
