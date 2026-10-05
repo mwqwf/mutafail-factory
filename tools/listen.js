@@ -128,7 +128,10 @@ async function checkGroup(group) {
     const file = path.join(PROJ, 'audio', b.id + '.wav');
     return [b.id, fs.existsSync(file) ? fingerprint(b.text, fs.readFileSync(file)) : null];
   }));
-  const todo = blocks.filter(b => !digests.get(b.id) || !reusable(res[b.id], digests.get(b.id)))
+  // ⛔ درس الشوط 87 (الأرك 2026-10-05): كتلةُ ريلزٍ حذفها فاحصُ النقرات (r_003) فانهار الإصغاءُ كلُّه على ملفّها الغائب
+  //    (ENOENT) ومرّ الشوطُ بلا إصغاءٍ لكتلةٍ واحدة. ⇒ الكتلةُ بلا صوتٍ تُسمّى «لم يُفحص» بسببها، ويُصغى إلى الباقي.
+  for (const b of blocks) if (!digests.get(b.id)) res[b.id] = {ok: null, why: 'لا ملفّ صوت'};
+  const todo = blocks.filter(b => digests.get(b.id) && !reusable(res[b.id], digests.get(b.id)))
     .map(block => ({block, audio: fs.readFileSync(path.join(PROJ, 'audio', block.id + '.wav'))}));
   const batches = pack(todo, BATCH);
   let i = 0, done = 0;
