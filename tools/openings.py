@@ -101,7 +101,7 @@ class Gem:
     def video(self, vid: str, budget_s: int = 420) -> dict:
         return self.call(lambda light: body(vid, light), vid, budget_s)
 
-    def call(self, mk, tag: str, budget_s: int = 420, parse=json_out, cap_s: int = 240) -> dict:
+    def call(self, mk, tag: str, budget_s: int = 420, parse=json_out, cap_s: int = 240, models: list | None = None) -> dict:
         """mk(light) يبني جسم النداء، وparse(النصّ) يستخرج الجواب (وإخفاقُه يجرّب نموذجاً آخر) — تستعمله دراسة الأسلوب أيضاً.
         موعدٌ نهائيّ لكلّ طلب (لا تكرار بلا نهاية)، وكلُّ إخفاقٍ يُطبع مختصراً — بلا رابط النداء لأنّ فيه المفتاح."""
         vid = tag
@@ -109,7 +109,7 @@ class Gem:
         while time.time() < t_end:
             tried = False
             for light in (False, True):
-                for model in MODELS:
+                for model in (models or MODELS):
                     if (model, light) in refused or time.time() >= t_end:
                         continue
                     ks = [k for k in self.keys if k not in self.dead.setdefault(model, set())]
@@ -149,7 +149,7 @@ class Gem:
                     if sig not in seen:              # كلُّ نوعِ إخفاقٍ مرّةً واحدة لكلّ فيلم: سجلٌّ عامّ لا يُغرق
                         seen.add(sig)
                         print('   ↻ %s %s' % (vid, last[:160]), flush=True)
-            if not tried or len(refused) >= 2 * len(MODELS):
+            if not tried or len(refused) >= 2 * len(models or MODELS):
                 break                       # لا نموذج ولا مفتاح صالح، أو رفضه الكلّ بالصيغتين: الفيديو نفسه
         return {'error': last or 'لا مفاتيح صالحة'}
 
