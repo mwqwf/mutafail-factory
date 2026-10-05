@@ -1,0 +1,135 @@
+{
+ "slug": "mutah-voices",
+ "stage1": {
+  "Q1": {
+   "order": [
+    "Iapetus·recitation",
+    "Iapetus·quote",
+    "Enceladus·quote"
+   ],
+   "leaked": [],
+   "notes": {}
+  },
+  "Q2": {
+   "order": [
+    "Charon·quote",
+    "Iapetus·recitation",
+    "Enceladus·recitation"
+   ],
+   "leaked": [],
+   "notes": {}
+  },
+  "P1": {
+   "order": [
+    "Rasalgethi·quote",
+    "Enceladus·recitation"
+   ],
+   "leaked": [],
+   "notes": {}
+  },
+  "P2": {
+   "order": [
+    "Enceladus·recitation"
+   ],
+   "leaked": [],
+   "notes": {
+    "Enceladus·recitation": "أداء ملحمي فخم ومهيب بنبرة رخيمة ونطق فصيح وسليم، ملائم تماماً للأفلام الوثائقية التاريخية."
+   }
+  }
+ },
+ "metrics": {
+  "Enceladus·quote": {
+   "Q1": {
+    "dur": 8.64,
+    "lufs": -18.2,
+    "lra": 2.1,
+    "f0": 103.2,
+    "pitch_sd_st": 1.8,
+    "cps": 5.2
+   }
+  },
+  "Enceladus·recitation": {
+   "Q2": {
+    "dur": 8.72,
+    "lufs": -16.9,
+    "lra": 2.2,
+    "f0": 117.6,
+    "pitch_sd_st": 1.89,
+    "cps": 6.4
+   },
+   "P1": {
+    "dur": 7.8,
+    "lufs": -15.6,
+    "lra": 3.5,
+    "f0": 125.0,
+    "pitch_sd_st": 2.43,
+    "cps": 4.6
+   },
+   "P2": {
+    "dur": 8.76,
+    "lufs": -14.7,
+    "lra": 4.5,
+    "f0": 107.4,
+    "pitch_sd_st": 2.33,
+    "cps": 4.1
+   }
+  },
+  "Iapetus·quote": {
+   "Q1": {
+    "dur": 9.2,
+    "lufs": -15.3,
+    "lra": 1.9,
+    "f0": 130.1,
+    "pitch_sd_st": 4.3,
+    "cps": 4.9
+   }
+  },
+  "Iapetus·recitation": {
+   "Q1": {
+    "dur": 9.32,
+    "lufs": -16.2,
+    "lra": 1.8,
+    "f0": 116.8,
+    "pitch_sd_st": 2.86,
+    "cps": 4.8
+   },
+   "Q2": {
+    "dur": 9.88,
+    "lufs": -15.5,
+    "lra": 2.6,
+    "f0": 112.7,
+    "pitch_sd_st": 2.85,
+    "cps": 5.7
+   }
+  },
+  "Rasalgethi·quote": {
+   "P1": {
+    "dur": 7.6,
+    "lufs": -21.6,
+    "lra": 6.8,
+    "f0": 91.4,
+    "pitch_sd_st": 3.55,
+    "cps": 4.7
+   }
+  },
+  "Charon·quote": {
+   "Q2": {
+    "dur": 8.84,
+    "lufs": -19.6,
+    "lra": 2.8,
+    "f0": 95.2,
+    "pitch_sd_st": 3.01,
+    "cps": 6.3
+   }
+  }
+ },
+ "generated": 9,
+ "suspect_duration": [],
+ "finalists": [
+  "Iapetus·recitation",
+  "Charon·quote",
+  "Enceladus·recitation"
+ ],
+ "leaked": [],
+ "judge_calls": 1
+}
