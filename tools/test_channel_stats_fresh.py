@@ -54,6 +54,13 @@ class FreshTest(unittest.TestCase):
         self.assertEqual(k['حصة_المقترحات'], 70)          # (60+10)/(60+10+30): المدفوع خارج المقام
         self.assertEqual(set(k['تحت_الحدّ']), {'بقاء_30ث', 'بقاء_150ث', 'متوسط_المشاهدة_ث', 'طبيعية_يومياً'})
 
+    def test_nearest_point_on_coarse_curve(self):
+        # فيلم 1668 ث: النقاط عند 16.7 ث (1.02) و33.4 ث (0.63) ⇒ أقرب نقطةٍ إلى 30 ث هي 33.4 لا 16.7 (كان 102٪ خطأً)
+        rows = [[0.01, 1.02], [0.02, 0.63], [0.09, 0.33], [0.10, 0.31]]
+        k = cs.fresh(_YA(rows), [film(الطول_ث=1668)], dt.date(2026, 10, 5))['v1']
+        self.assertEqual((k['بقاء_30ث'], k['عند_ث'][0]), (63, 33))
+        self.assertEqual((k['بقاء_150ث'], k['عند_ث'][1]), (33, 150))
+
     def test_window_and_reels_skipped(self):
         ya = _YA([])
         out = cs.fresh(ya, [film(id='r', ريلز=True), film(id='old', الأيام=20), film(id='new', الأيام=2)], dt.date(2026, 10, 5))
