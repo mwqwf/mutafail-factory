@@ -77,12 +77,12 @@ SCHEMA = {'type': 'OBJECT', 'required': ['t30', 'segments', 'first_scene_s', 'gr
 
 
 def body(vid: str, light: bool) -> bytes:
-    """light: بلا مخطّطٍ صارم ولا دقّة وسائط ولا معدّل إطارات — لنموذجٍ يرفض أحدها (400)."""
+    """light: بلا مخطّطٍ صارم ولا دقّة وسائط — لنموذجٍ يرفض أحدهما (400). ومعدّل الإطارات الافتراضيّ (إطارٌ في الثانية):
+    ⛔ الشوط 37313830497 طال جداً، و fps=2 تضاعف الرموز فتقرب من حدّ الرموز في الدقيقة للطبقة المجّانية."""
     part = {'fileData': {'fileUri': 'https://www.youtube.com/watch?v=' + vid},
             'videoMetadata': {'startOffset': '0s', 'endOffset': '%ds' % END_S}}
     cfg = {'temperature': 0.1, 'responseMimeType': 'application/json'}
     if not light:
-        part['videoMetadata']['fps'] = 2
         cfg.update(responseSchema=SCHEMA, mediaResolution='MEDIA_RESOLUTION_LOW')
     return json.dumps({'contents': [{'parts': [part, {'text': PROMPT}]}], 'generationConfig': cfg}).encode('utf-8')
 
@@ -91,22 +91,24 @@ class Gem:
     def __init__(self, keys: list[str]):
         self.keys, self.dead = keys, {}
 
-    def video(self, vid: str, tries: int = 8) -> dict:
-        last, refused = '', set()          # refused: (النموذج، الخفّة) رفضا هذا الفيديو بـ400 ⇒ لا يُعادان له
-        for _ in range(tries):
+    def video(self, vid: str, budget_s: int = 420) -> dict:
+        """موعدٌ نهائيّ لكلّ فيلم (لا تكرار بلا نهاية)، وكلُّ إخفاقٍ يُطبع مختصراً — بلا رابط النداء لأنّ فيه المفتاح."""
+        last, refused, t_end, seen = '', set(), time.time() + budget_s, set()
+        while time.time() < t_end:
+            tried = False
             for light in (False, True):
                 for model in MODELS:
-                    if (model, light) in refused:
+                    if (model, light) in refused or time.time() >= t_end:
                         continue
                     ks = [k for k in self.keys if k not in self.dead.setdefault(model, set())]
                     if not ks:
                         continue
-                    key = random.choice(ks)
+                    tried, key = True, random.choice(ks)
                     req = urllib.request.Request(
                         'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s' % (model, key),
                         data=body(vid, light), headers={'content-type': 'application/json'})
                     try:
-                        with urllib.request.urlopen(req, timeout=300) as r:
+                        with urllib.request.urlopen(req, timeout=max(30, min(240, t_end - time.time()))) as r:
                             j = json.loads(r.read().decode('utf-8'))
                         txt = ''.join(p.get('text', '') for p in j['candidates'][0]['content']['parts'])
                         out = json.loads(re.search(r'\{.*\}', txt, re.S).group(0))
@@ -124,12 +126,16 @@ class Gem:
                             self.dead[model].add(key)
                         elif e.code == 400:
                             refused.add((model, light))
-                        time.sleep(3)
+                        time.sleep(3 if e.code != 429 else 15)
                     except Exception as e:
                         last = '%s: %s' % (model, str(e)[:200])
                         time.sleep(3)
-            if len(refused) >= 2 * len(MODELS):
-                break                       # رفضه كلُّ نموذجٍ بالصيغتين: الفيديو نفسه (خاصّ أو محجوب)
+                    sig = last[:60]
+                    if sig not in seen:              # كلُّ نوعِ إخفاقٍ مرّةً واحدة لكلّ فيلم: سجلٌّ عامّ لا يُغرق
+                        seen.add(sig)
+                        print('   ↻ %s %s' % (vid, last[:160]), flush=True)
+            if not tried or len(refused) >= 2 * len(MODELS):
+                break                       # لا نموذج ولا مفتاح صالح، أو رفضه الكلّ بالصيغتين: الفيديو نفسه
         return {'error': last or 'لا مفاتيح صالحة'}
 
 
