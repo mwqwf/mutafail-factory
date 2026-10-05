@@ -173,6 +173,28 @@ def truth(ya, rows: list, today: dt.date) -> dict:
     return out
 
 
+def reach(ya, rows: list, today: dt.date) -> dict:
+    """الظهور ونسبة النقر لكلّ فيديو (videoThumbnailImpressions وClickRate) — سؤال المالك 2026-10-05: «لماذا قنواتٌ أقلّ
+    جودةً تحتفظ بالمشاهد أكثر؟». منحنى البقاء يقيس من نقر؛ وهذا يقيس هل يُعرض الفيلم أصلاً وهل يُنقر عليه:
+    ظهورٌ كثيرٌ بنقرٍ قليل ⇒ العنوان والمصغّرة؛ ونقرٌ جيّدٌ ثم سقوطٌ في 30 ث ⇒ الافتتاحية. فشلُ النداء لا يُسقط التقرير."""
+    vids = [r['id'] for r in rows]
+    if not vids:
+        return {}
+    start = min(r['published'][:10] for r in rows)
+    got, err = {}, None
+    for i in range(0, len(vids), 200):
+        try:
+            r = ya.reports().query(ids='channel==MINE', startDate=start, endDate=today.isoformat(), dimensions='video',
+                                   metrics='videoThumbnailImpressions,videoThumbnailImpressionsClickRate,views',
+                                   filters='video==' + ','.join(vids[i:i + 200]), maxResults=200,
+                                   sort='-videoThumbnailImpressions').execute()
+            for row in r.get('rows', []):
+                got[row[0]] = {'الظهور': row[1], 'نسبة_النقر': round(row[2], 2), 'المشاهدات': row[3]}
+        except Exception as e:
+            err = str(e)[:300]
+    return {'لكل_فيديو': got, **({'خطأ': err} if err else {})}
+
+
 def main(out: str) -> None:
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
@@ -205,7 +227,7 @@ def main(out: str) -> None:
                          'description': (v['snippet'].get('description') or '')[:300]})
     rows = [r for r in rows if r['privacy'] == 'public']
     analytics = 'غير متاحة'
-    ins, tr = {}, {}
+    ins, tr, rc = {}, {}, {}
     try:
         ya = build('youtubeAnalytics', 'v2', credentials=cred, cache_discovery=False)
         start = min(r['published'][:10] for r in rows) if rows else dt.date.today().isoformat()
@@ -223,6 +245,7 @@ def main(out: str) -> None:
         analytics = 'متاحة (%d فيديو)' % len(got)
         ins = insights(ya, rows, dt.date.today(), yt)
         tr = truth(ya, rows, dt.date.today())
+        rc = reach(ya, rows, dt.date.today())
     except HttpError as e:
         analytics = 'غير متاحة: %s' % str(e)[:200]
     except Exception as e:                       # نطاق التحليلات غير ممنوح أو المكتبة غير مثبّتة
@@ -231,7 +254,7 @@ def main(out: str) -> None:
     rep = {'القناة': ch['snippet']['title'], 'تاريخ': dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
            'التحليلات': analytics, 'عدد_العام': len(rows), 'عدد_الريلزات': len(ranked),
            'الريلزات_من_الأضعف': ranked,
-           'رؤى': ins, 'الحقيقة': tr,
+           'رؤى': ins, 'الحقيقة': tr, 'الظهور_والنقر': rc,
            'الأفلام': sorted([r for r in rows if r['seconds'] > SHORT_MAX], key=lambda r: r['published'], reverse=True)}
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     json.dump(rep, io.open(out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)

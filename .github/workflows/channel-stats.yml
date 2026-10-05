@@ -22,7 +22,7 @@ concurrency:
 jobs:
   stats:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 40
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -56,8 +56,9 @@ jobs:
           F=$(git show --pretty= --name-only "$GITHUB_SHA")
           T=$(echo "$F" | grep -qx 'ops/stats/topics.json' && echo 1 || echo 0)
           C=$(echo "$F" | grep -qx 'ops/stats/competitors.json' && echo 1 || echo 0)
-          echo "topics=$T" >> "$GITHUB_OUTPUT"; echo "comp=$C" >> "$GITHUB_OUTPUT"
-          echo "البحث: $T | المنافسون: $C"
+          O=$(echo "$F" | grep -qx 'ops/stats/openings.json' && echo 1 || echo 0)
+          echo "topics=$T" >> "$GITHUB_OUTPUT"; echo "comp=$C" >> "$GITHUB_OUTPUT"; echo "open=$O" >> "$GITHUB_OUTPUT"
+          echo "البحث: $T | المنافسون: $C | الافتتاحيات: $O"
           # الدفتر من master لا من الفرع: هو مصدر الحقيقة لحصّة اليوم (والإنفاق يُحسب عليه)
           if [ "$T$C" != "00" ]; then
             git fetch -q origin master:refs/remotes/origin/master
@@ -81,6 +82,19 @@ jobs:
           python tools/competitors.py out/competitors.json
           gh release upload channel-stats out/competitors.json --clobber
           echo "✅ رُفع تحليل المنافسين إلى الإصدار المسوّد channel-stats"
+      # ⭐ تشريح الافتتاحيات: نصفُ مشاهدينا الطبيعيّين يغادرون في أوّل 30 ث ⇒ جيميناي يشاهد أوّل 150 ث من أفلامنا وأفلام
+      #    المنافسين الناجحة بمعيارٍ واحد (لا يُخبَر أيُّها لنا). يجلب الفيديو من يوتيوب بنفسه، فلا حصّة يوتيوب ولا تنزيل.
+      - name: تشريح الافتتاحيات
+        if: steps.changed.outputs.open == '1'
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          python tools/openings.py out/openings.json --keys /tmp/keys.json --workers 4
+          rm -f /tmp/keys.json
+          gh release upload channel-stats out/openings.json --clobber
+          echo "✅ رُفع تشريح الافتتاحيات إلى الإصدار المسوّد channel-stats"
       - name: دفتر الحصص إلى master
         if: steps.changed.outputs.topics == '1' || steps.changed.outputs.comp == '1'
         run: |
@@ -89,7 +103,7 @@ jobs:
           git config user.email "factory@mutafail.local"
           cp ops/state/quota_usage.json /tmp/quota_keep.json
           for i in 1 2 3 4; do
-            if git fetch -q origin master:refs/remotes/origin/master && git checkout -q -B qsync origin/master; then
+            if git fetch -q origin master:refs/remotes/origin/master && git checkout -f -q -B qsync origin/master; then
               cp /tmp/quota_keep.json ops/state/quota_usage.json
               git add ops/state/quota_usage.json
               if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
