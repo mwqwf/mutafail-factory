@@ -172,8 +172,9 @@ jobs:
           if [ "${{ steps.style.outcome }}" = "success" ]; then
             echo "ops/stats/style.json:$(sha256sum ops/stats/style.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
           fi
-      # ⭐ المقارنة العمياء (دراسة مؤتة §١٠): مقاطع المسوّدة بجانب مقاطع أنجح أفلامهم في الموضع نفسه، بحَكَمين وترتيبين،
-      #    ومعايرةٌ بأفلامنا المنشورة. الشرط قبل أيّ إنفاق: الفوز ≥ 70٪. النسب وحدها في السجلّ، والتفصيل في الإصدار الخاصّ.
+      # ⭐ المقارنة العمياء، الإصدار الثاني (دراسة مؤتة §١٠): صلاحية الحَكَم أوّلاً على منحنيات أفلامنا (out/channel_stats.json
+      #    من الخطوة الأولى)، ثم خطّ أساسٍ بأفلامنا، ثم المسوّدة على نصف بوّابةٍ لا تُحفظ أسبابه. والشرط مركّبٌ في الشيفرة.
+      #    النسب وحدها في السجلّ، والتفصيل في الإصدار الخاصّ.
       - name: المقارنة العمياء
         id: judge
         if: steps.changed.outputs.judge == '1'
@@ -185,7 +186,7 @@ jobs:
           printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
           mkdir -p /tmp/sj
           if [ -s out/style.json ]; then cp out/style.json /tmp/sj/style.json; else gh release download channel-stats -p style.json -D /tmp/sj --clobber; fi
-          python tools/blind_judge.py out/judge.json --keys /tmp/keys.json --style /tmp/sj/style.json
+          python tools/blind_judge.py out/judge.json --keys /tmp/keys.json --style /tmp/sj/style.json --stats out/channel_stats.json
       - name: رفع المقارنة العمياء
         if: always() && steps.changed.outputs.judge == '1'
         run: |
