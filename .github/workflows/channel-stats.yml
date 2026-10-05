@@ -25,7 +25,7 @@ concurrency:
 jobs:
   stats:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 90
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -61,7 +61,7 @@ jobs:
           #    والبحث وحده 3000 وحدة): بصمةُ كلّ طلبٍ عولج في done.txt بالإصدار الخاصّ. وإن غاب الدفتر يُبذر بما لم يتغيّر هنا.
           if ! gh release download channel-stats -p done.txt -D /tmp --clobber 2>/dev/null; then
             : > /tmp/done.txt
-            for f in ops/stats/topics.json ops/stats/competitors.json ops/stats/openings.json; do
+            for f in ops/stats/topics.json ops/stats/competitors.json ops/stats/openings.json ops/stats/style.json; do
               [ -f "$f" ] && ! echo "$F" | grep -qxF "$f" && echo "$f:$(sha256sum "$f" | cut -c1-16)" >> /tmp/done.txt || true
             done
             gh release upload channel-stats /tmp/done.txt --clobber
@@ -78,9 +78,17 @@ jobs:
              && python3 -c "import sys,json; sys.path.insert(0,'tools'); import openings as o; d=json.load(open('/tmp/prev/openings.json',encoding='utf-8')); sys.exit(0 if any('error' in f and f.get('_tries',1)<o.MAX_TRIES for f in d['الأفلام']) else 1)"; then
             O=1; R=1
           fi
+          # دراسة الأسلوب: الاستئناف نفسه (حصّة جيميناي اليومية تنفد في الأفلام الكاملة) — يطلبه الطلب أو يكمله المجدول
+          S=$(flag ops/stats/style.json); SR=0
+          if [ "$S" = 1 ] && python3 -c "import json,sys; sys.exit(0 if json.load(open('ops/stats/style.json',encoding='utf-8')).get('استئناف') else 1)"; then SR=1; fi
+          if [ "$S" = 0 ] && [ -f ops/stats/style.json ] && mkdir -p /tmp/prevs && gh release download channel-stats -p style.json -D /tmp/prevs --clobber 2>/dev/null \
+             && python3 -c "import sys,json; sys.path.insert(0,'tools'); import openings as o; d=json.load(open('/tmp/prevs/style.json',encoding='utf-8')); sys.exit(0 if any('error' in f and f.get('_tries',1)<o.MAX_TRIES for k in ('الأفلام','الريلزات','المصغّرات') for f in d.get(k) or []) else 1)"; then
+            S=1; SR=1
+          fi
+          echo "style=$S" >> "$GITHUB_OUTPUT"; echo "style_resume=$SR" >> "$GITHUB_OUTPUT"
           echo "resume=$R" >> "$GITHUB_OUTPUT"
           echo "topics=$T" >> "$GITHUB_OUTPUT"; echo "comp=$C" >> "$GITHUB_OUTPUT"; echo "open=$O" >> "$GITHUB_OUTPUT"
-          echo "البحث: $T | المنافسون: $C | الافتتاحيات: $O"
+          echo "البحث: $T | المنافسون: $C | الافتتاحيات: $O | الأسلوب: $S"
           # الدفتر من master لا من الفرع: هو مصدر الحقيقة لحصّة اليوم (والإنفاق يُحسب عليه)
           if [ "$T$C" != "00" ]; then
             git fetch -q origin master:refs/remotes/origin/master
@@ -132,6 +140,34 @@ jobs:
           echo "✅ رُفع تشريح الافتتاحيات إلى الإصدار المسوّد channel-stats"
           if [ "${{ steps.openings.outcome }}" = "success" ]; then
             echo "ops/stats/openings.json:$(sha256sum ops/stats/openings.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
+          fi
+      # ⭐ دراسة الأسلوب (أمر المالك 2026-10-05: «اعرف أسلوب من نجحوا وطبّقه أو طبّق أفضل منه… الحماسة والأكشن»):
+      #    الأفلام كاملةً (التحليل والتفريغ ونافذة الأكشن) والريلزات والمصغّرات، وصفحة الفيديو عبر yt-dlp أفضلَ جهد.
+      #    ⛔ تفريغ أفلام المنافسين نصٌّ محميّ ⇒ التقرير إلى الإصدار الخاصّ وحده، ولا يُطبع منه شيءٌ في السجلّ العامّ.
+      - name: دراسة الأسلوب
+        id: style
+        if: steps.changed.outputs.style == '1'
+        timeout-minutes: 60
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          pip install -q yt-dlp || echo "⚠ لم يُثبَّت yt-dlp: تُدرس الأفلام بلا صفحاتها"
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          ARGS=""
+          if [ "${{ steps.changed.outputs.style_resume }}" = "1" ]; then
+            mkdir -p /tmp/prevs && gh release download channel-stats -p style.json -D /tmp/prevs --clobber && ARGS="--resume /tmp/prevs/style.json"
+          fi
+          python tools/style_study.py out/style.json --keys /tmp/keys.json --workers 4 $ARGS
+      - name: رفع دراسة الأسلوب
+        if: always() && steps.changed.outputs.style == '1'
+        run: |
+          rm -f /tmp/keys.json
+          [ -s out/style.json ] || { echo "⛔ لا تقرير"; exit 1; }
+          gh release upload channel-stats out/style.json --clobber
+          echo "✅ رُفعت دراسة الأسلوب إلى الإصدار المسوّد channel-stats"
+          if [ "${{ steps.style.outcome }}" = "success" ]; then
+            echo "ops/stats/style.json:$(sha256sum ops/stats/style.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
           fi
       - name: دفتر الحصص إلى master
         if: steps.changed.outputs.topics == '1' || steps.changed.outputs.comp == '1'

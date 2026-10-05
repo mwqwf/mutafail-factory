@@ -90,12 +90,21 @@ def body(vid: str, light: bool) -> bytes:
     return json.dumps({'contents': [{'parts': [part, {'text': PROMPT}]}], 'generationConfig': cfg}).encode('utf-8')
 
 
+def json_out(txt: str) -> dict:
+    return json.loads(re.search(r'\{.*\}', txt, re.S).group(0))
+
+
 class Gem:
     def __init__(self, keys: list[str]):
         self.keys, self.dead = keys, {}
 
     def video(self, vid: str, budget_s: int = 420) -> dict:
-        """موعدٌ نهائيّ لكلّ فيلم (لا تكرار بلا نهاية)، وكلُّ إخفاقٍ يُطبع مختصراً — بلا رابط النداء لأنّ فيه المفتاح."""
+        return self.call(lambda light: body(vid, light), vid, budget_s)
+
+    def call(self, mk, tag: str, budget_s: int = 420, parse=json_out, cap_s: int = 240) -> dict:
+        """mk(light) يبني جسم النداء، وparse(النصّ) يستخرج الجواب (وإخفاقُه يجرّب نموذجاً آخر) — تستعمله دراسة الأسلوب أيضاً.
+        موعدٌ نهائيّ لكلّ طلب (لا تكرار بلا نهاية)، وكلُّ إخفاقٍ يُطبع مختصراً — بلا رابط النداء لأنّ فيه المفتاح."""
+        vid = tag
         last, refused, t_end, seen = '', set(), time.time() + budget_s, set()
         while time.time() < t_end:
             tried = False
@@ -109,14 +118,17 @@ class Gem:
                     tried, key = True, random.choice(ks)
                     req = urllib.request.Request(
                         'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s' % (model, key),
-                        data=body(vid, light), headers={'content-type': 'application/json'})
+                        data=mk(light), headers={'content-type': 'application/json'})
                     try:
-                        with urllib.request.urlopen(req, timeout=max(30, min(240, t_end - time.time()))) as r:
+                        with urllib.request.urlopen(req, timeout=max(30, min(cap_s, t_end - time.time()))) as r:
                             j = json.loads(r.read().decode('utf-8'))
-                        txt = ''.join(p.get('text', '') for p in j['candidates'][0]['content']['parts'])
-                        out = json.loads(re.search(r'\{.*\}', txt, re.S).group(0))
+                        cand = j['candidates'][0]
+                        txt = ''.join(p.get('text', '') for p in cand['content']['parts'] if not p.get('thought'))
+                        out = parse(txt)
                         out['_model'], out['_light'] = model, light
                         out['_tokens'] = j.get('usageMetadata', {}).get('totalTokenCount')
+                        if cand.get('finishReason') not in (None, 'STOP'):
+                            out['_finish'] = cand.get('finishReason')
                         return out
                     except urllib.error.HTTPError as e:
                         msg = e.read().decode('utf-8', 'ignore')
