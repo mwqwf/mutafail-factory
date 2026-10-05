@@ -99,6 +99,71 @@ def insights(ya, rows: list, today: dt.date, yt=None) -> dict:
     return out
 
 
+PAID = ('ADVERTISING', 'PROMOTED', 'CAMPAIGN_CARD')
+
+
+def truth(ya, rows: list, today: dt.date) -> dict:
+    """ما تقوله الأرقام حقّاً — طلب المالك 2026-10-05: «أغلب الأفلام المنتشرة انتشرت بالإعلان، وأحياناً أعتمد الإعلان
+    الممول لفيديوهاتٍ ناجحة فعلاً». لكلّ فيديوٍ عامّ: المشاهدات المدفوعة والطبيعية (كلّ ما عدا الإعلان: التصفّح والمقترحات
+    والبحث والشورتس والمشتركون…) ومدّة بقاء كلٍّ منهما؛ ثمّ منحنىً يوميّ للفيديوهات المموَّلة: هل أطلق الإعلانُ مشاهداتٍ
+    طبيعية بعده أم انطفأ معه؟ والاشتراكات والمشاركات لكلّ فيديو."""
+    end = today.isoformat()
+
+    def q(**kw):
+        try:
+            r = ya.reports().query(ids='channel==MINE', endDate=end, **kw).execute()
+            return [dict(zip([h['name'] for h in r.get('columnHeaders', [])], row)) for row in r.get('rows', [])]
+        except Exception as e:
+            return {'خطأ': str(e)[:200]}
+
+    per = []
+    for r in rows:
+        src = q(startDate=r['published'][:10], dimensions='insightTrafficSourceType', filters='video==' + r['id'],
+                metrics='views,estimatedMinutesWatched,averageViewDuration', sort='-views')
+        if not isinstance(src, list):
+            per.append({'id': r['id'], 'خطأ': src}); continue
+        paid = [x for x in src if x['insightTrafficSourceType'] in PAID]
+        org = [x for x in src if x['insightTrafficSourceType'] not in PAID]
+        pv, ov = sum(x['views'] for x in paid), sum(x['views'] for x in org)
+        pm, om = sum(x['estimatedMinutesWatched'] for x in paid), sum(x['estimatedMinutesWatched'] for x in org)
+        days = max(1, (today - dt.date.fromisoformat(r['published'][:10])).days)
+        per.append({'id': r['id'], 'العنوان': r['title'][:90], 'النشر': r['published'][:10], 'الأيام': days,
+                    'الطول_ث': r['seconds'], 'ريلز': r['seconds'] <= SHORT_MAX,
+                    'مدفوعة': pv, 'طبيعية': ov, 'طبيعية_يومياً': round(ov / days, 1),
+                    'بقاء_المدفوعة_ث': round(pm * 60 / pv, 1) if pv else None,
+                    'بقاء_الطبيعية_ث': round(om * 60 / ov, 1) if ov else None,
+                    'نسبة_بقاء_الطبيعية': round(100 * om * 60 / ov / r['seconds'], 1) if ov and r['seconds'] else None,
+                    'دقائق_طبيعية': round(om), 'المصادر': {x['insightTrafficSourceType']: [x['views'], round(x['averageViewDuration'])]
+                                                         for x in src}})
+    out = {'لكل_فيديو': per}
+    # الاشتراكات والمشاركات: تقرير «أعلى الفيديوهات» يشترط ترتيباً تنازلياً بمقياسٍ مطلوب
+    subs = {}
+    vids = [r['id'] for r in rows]
+    for i in range(0, len(vids), 200):
+        got = q(startDate=min(r['published'][:10] for r in rows), dimensions='video', filters='video==' + ','.join(vids[i:i + 200]),
+                metrics='views,subscribersGained,subscribersLost,shares,likes', sort='-views', maxResults=200)
+        if isinstance(got, list):
+            for x in got:
+                subs[x['video']] = {k: x[k] for k in ('subscribersGained', 'subscribersLost', 'shares', 'likes')}
+        else:
+            subs['خطأ'] = got
+    out['الاشتراكات_والمشاركات'] = subs
+    # المنحنى اليوميّ للفيديوهات المموَّلة: مدفوعة/طبيعية في كلّ يوم منذ النشر
+    funded = sorted([p for p in per if p.get('مدفوعة', 0) > 300], key=lambda p: -p['مدفوعة'])[:10]
+    daily = {}
+    for p in funded:
+        got = q(startDate=p['النشر'], dimensions='day,insightTrafficSourceType', filters='video==' + p['id'], metrics='views', sort='day')
+        if not isinstance(got, list):
+            daily[p['id']] = got; continue
+        dd = {}
+        for x in got:
+            k = 'مدفوعة' if x['insightTrafficSourceType'] in PAID else 'طبيعية'
+            dd.setdefault(x['day'], {'مدفوعة': 0, 'طبيعية': 0})[k] += x['views']
+        daily[p['id']] = dd
+    out['يومي_للمموَّلة'] = daily
+    return out
+
+
 def main(out: str) -> None:
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
@@ -131,7 +196,7 @@ def main(out: str) -> None:
                          'description': (v['snippet'].get('description') or '')[:300]})
     rows = [r for r in rows if r['privacy'] == 'public']
     analytics = 'غير متاحة'
-    ins = {}
+    ins, tr = {}, {}
     try:
         ya = build('youtubeAnalytics', 'v2', credentials=cred, cache_discovery=False)
         start = min(r['published'][:10] for r in rows) if rows else dt.date.today().isoformat()
@@ -148,6 +213,7 @@ def main(out: str) -> None:
             r.update(got.get(r['id'], {}))
         analytics = 'متاحة (%d فيديو)' % len(got)
         ins = insights(ya, rows, dt.date.today(), yt)
+        tr = truth(ya, rows, dt.date.today())
     except HttpError as e:
         analytics = 'غير متاحة: %s' % str(e)[:200]
     except Exception as e:                       # نطاق التحليلات غير ممنوح أو المكتبة غير مثبّتة
@@ -156,7 +222,7 @@ def main(out: str) -> None:
     rep = {'القناة': ch['snippet']['title'], 'تاريخ': dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
            'التحليلات': analytics, 'عدد_العام': len(rows), 'عدد_الريلزات': len(ranked),
            'الريلزات_من_الأضعف': ranked,
-           'رؤى': ins,
+           'رؤى': ins, 'الحقيقة': tr,
            'الأفلام': sorted([r for r in rows if r['seconds'] > SHORT_MAX], key=lambda r: r['published'], reverse=True)}
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     json.dump(rep, io.open(out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
