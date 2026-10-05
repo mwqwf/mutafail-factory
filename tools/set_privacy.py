@@ -12,14 +12,21 @@
 
 الطلب: ops/privacy_pending/<videoId>.json = {"privacy": "unlisted", "store": true, "سبب": "…"}.
 ما نجح يُنقل إلى ops/state/privacy_done/، وما رُفض يبقى في الطابور مع سببه.
+
+الشوط 37377637752: تغيّر 9umHdqczPJQ، وقُرئ CL4RGstCWc0 «عامّاً» بعد تحديثه مباشرةً. ⇒ يُقرأ جوابُ التحديث نفسه، ثم يُعاد
+التحقّق بمهلٍ متزايدة (قراءة يوتيوب تتأخّر أحياناً عن الكتابة)، وإن بقي على حاله أُعيد التحديث مرّةً واحدة،
+وإن أخفق طُبعت حقول الحالة التي تفسّر الرفض (لا سرّ فيها: الفيديو عامّ).
 """
-import glob, io, json, os, shutil, sys
+import glob, io, json, os, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 PENDING = os.path.join('ops', 'privacy_pending')
 DONE = os.path.join('ops', 'state', 'privacy_done')
 WRITABLE = ('embeddable', 'license', 'publicStatsViewable', 'selfDeclaredMadeForKids', 'containsSyntheticMedia')
 ALLOWED = {'public', 'unlisted', 'private'}
+WAITS = (0, 5, 10, 20)                          # ثوانٍ بين قراءات التحقّق
+WHY = ('uploadStatus', 'failureReason', 'rejectionReason', 'publishAt', 'madeForKids', 'selfDeclaredMadeForKids')
+SLEEP = time.sleep
 
 
 def plan(status: dict, req: dict) -> tuple[dict | None, str]:
@@ -55,13 +62,23 @@ def run(svc, quota=None) -> int:
             if not why.startswith('على الحال'):
                 bad += 1; continue
         else:
-            svc.videos().update(part='status', body={'id': vid, 'status': body}).execute()
-            quota and quota.spend('video_update', vid)
-            st = svc.videos().list(part='status', id=vid).execute()['items'][0]['status']
-            quota and quota.spend('read', vid)
-            ok = st.get('privacyStatus') == req['privacy'] and (not req.get('store') or st.get('embeddable'))
+            ok = False
+            for attempt in (1, 2):                  # تحديثٌ ثم إعادةٌ واحدة إن لم يظهر أثره
+                r = svc.videos().update(part='status', body={'id': vid, 'status': body}).execute()
+                quota and quota.spend('video_update', vid)
+                print('%s: جوابُ التحديث %d: %s' % (vid, attempt, ((r or {}).get('status') or {}).get('privacyStatus')))
+                for w in WAITS:
+                    SLEEP(w)
+                    st = svc.videos().list(part='status', id=vid).execute()['items'][0]['status']
+                    quota and quota.spend('read', vid)
+                    ok = st.get('privacyStatus') == req['privacy'] and (not req.get('store') or st.get('embeddable'))
+                    if ok:
+                        break
+                if ok:
+                    break
             print('%s %s: %s، التضمين %s' % ('✅' if ok else '⛔', vid, st.get('privacyStatus'), st.get('embeddable')))
             if not ok:
+                print('   حالةُ الفيديو:', {k: st[k] for k in WHY if k in st})
                 bad += 1; continue
         rec = dict(req, النتيجة=st.get('privacyStatus'), التضمين=st.get('embeddable'), العنوان=items[0]['snippet'].get('title'))
         io.open(os.path.join(DONE, vid + '.json'), 'w', encoding='utf-8').write(json.dumps(rec, ensure_ascii=False, indent=1))

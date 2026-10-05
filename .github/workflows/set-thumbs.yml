@@ -26,7 +26,9 @@ jobs:
         with: { python-version: "3.11" }
       - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
       - name: حالةُ النشر من master
-        run: git fetch -q origin master && git checkout origin/master -- ops/state/
+        # ⛔ الشوط 37377637752 (set-privacy) حمل ops/state/films/mutah.json من فرع الجلسة إلى master: التسجيلُ ينسخ ops/state كلّها،
+        #    والفرعُ يُبقي فيها ما ليس في master. ⇒ تُمحى أوّلاً فتصير نسخةَ master تماماً، ولا يُسجَّل إلا ما غيّرته الأداة.
+        run: git fetch -q origin master && rm -rf ops/state && git checkout origin/master -- ops/state/
       - name: ضبطُ المصغّرات المعلّقة
         env:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
