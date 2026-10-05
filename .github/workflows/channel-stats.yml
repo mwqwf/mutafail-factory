@@ -70,6 +70,15 @@ jobs:
                    if grep -qxF "$f:$(sha256sum "$f" | cut -c1-16)" /tmp/done.txt; then echo 0
                    elif echo "$F" | grep -qxF "$f"; then echo 1; else echo 0; fi; }
           T=$(flag ops/stats/topics.json); C=$(flag ops/stats/competitors.json); O=$(flag ops/stats/openings.json)
+          # استئناف تشريحٍ ناقص (الشوط 37313830497: نفدت حصّة جيميناي بعد 13 فيلماً من 28): يُبقى ما نجح ويُعاد ما فشل.
+          # يطلبه الطلب نفسه بـ«استئناف»، أو يكمله وحده أوّلُ تشغيلٍ بعد تجدّد الحصّة (المجدول يومياً) حتى MAX_TRIES.
+          R=0
+          if [ "$O" = 1 ] && python3 -c "import json,sys; sys.exit(0 if json.load(open('ops/stats/openings.json',encoding='utf-8')).get('استئناف') else 1)"; then R=1; fi
+          if [ "$O" = 0 ] && mkdir -p /tmp/prev && gh release download channel-stats -p openings.json -D /tmp/prev --clobber 2>/dev/null \
+             && python3 -c "import sys,json; sys.path.insert(0,'tools'); import openings as o; d=json.load(open('/tmp/prev/openings.json',encoding='utf-8')); sys.exit(0 if any('error' in f and f.get('_tries',1)<o.MAX_TRIES for f in d['الأفلام']) else 1)"; then
+            O=1; R=1
+          fi
+          echo "resume=$R" >> "$GITHUB_OUTPUT"
           echo "topics=$T" >> "$GITHUB_OUTPUT"; echo "comp=$C" >> "$GITHUB_OUTPUT"; echo "open=$O" >> "$GITHUB_OUTPUT"
           echo "البحث: $T | المنافسون: $C | الافتتاحيات: $O"
           # الدفتر من master لا من الفرع: هو مصدر الحقيقة لحصّة اليوم (والإنفاق يُحسب عليه)
@@ -108,7 +117,11 @@ jobs:
         run: |
           set -euo pipefail
           printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
-          python tools/openings.py out/openings.json --keys /tmp/keys.json --workers 6
+          ARGS=""
+          if [ "${{ steps.changed.outputs.resume }}" = "1" ]; then
+            mkdir -p /tmp/prev && gh release download channel-stats -p openings.json -D /tmp/prev --clobber && ARGS="--resume /tmp/prev/openings.json"
+          fi
+          python tools/openings.py out/openings.json --keys /tmp/keys.json --workers 6 $ARGS
       # ⛔ الشوط 37313830497: تجاوز التشريح عشرين دقيقة ⇒ للخطوة مهلتها، والأداة تكتب بعد كلّ فيلم، ويُرفع ما اكتمل في كلّ حال
       - name: رفع تشريح الافتتاحيات
         if: always() && steps.changed.outputs.open == '1'

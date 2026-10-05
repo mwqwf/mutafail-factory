@@ -29,7 +29,10 @@ import urllib.request
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from voice_lab import keys_from  # noqa: E402
 
-MODELS = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.8-flash', 'gemini-3.5-pro', 'gemini-pro-latest']
+MODELS = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.8-flash', 'gemini-3.5-pro', 'gemini-pro-latest',
+          # ⛔ الشوط 37313830497: نفدت حصّة اليوم للنماذج الخمسة بعد 13 فيلماً ⇒ الخفيفان آخراً، ولكلٍّ حصّته المستقلّة
+          'gemini-3.5-flash-lite', 'gemini-flash-lite-latest']
+MAX_TRIES = 3          # محاولات الاستئناف القصوى للفيلم الواحد عبر الأشواط (فيديو خاصٌّ أو محجوب لا يُطارَد للأبد)
 END_S = 150
 
 PROMPT = """أنت محلّلُ بقاءٍ لمشاهدي يوتيوب. أمامك أوّلُ ١٥٠ ثانيةً من فيلمٍ وثائقيٍّ تاريخيّ طويل.
@@ -150,26 +153,36 @@ def main() -> int:
     ap.add_argument('out')
     ap.add_argument('--keys', required=True)
     ap.add_argument('--workers', type=int, default=6)
+    ap.add_argument('--resume', help='تقريرٌ سابق: يُبقى ما نجح فيه، ويُعاد ما فشل (حتى MAX_TRIES) وما لم يُحلَّل')
     a = ap.parse_args()
     keys = keys_from(a.keys)
     if not keys:
         print('⛔ لا مفاتيح جيميناي'); return 1
     films = json.load(io.open(os.path.join('ops', 'stats', 'openings.json'), encoding='utf-8'))['الأفلام']
+    res, prev = {}, {}
+    if a.resume and os.path.exists(a.resume):
+        prev = {f['id']: f for f in json.load(io.open(a.resume, encoding='utf-8')).get('الأفلام', [])}
+        res = {i: f for i, f in prev.items() if 'error' not in f and i in {x['id'] for x in films}}
+    todo = [f for f in films if f['id'] not in res and prev.get(f['id'], {}).get('_tries', 1 if f['id'] in prev else 0) < MAX_TRIES]
     g = Gem(keys)
-    print('مفاتيح: %d | أفلام: %d | المقطع: 0–%d ث' % (len(keys), len(films), END_S), flush=True)
+    print('مفاتيح: %d | أفلام: %d | محفوظٌ من قبل: %d | للتحليل: %d | المقطع: 0–%d ث' % (
+        len(keys), len(films), len(res), len(todo), END_S), flush=True)
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
-    res, t0 = {}, time.time()
+    t0 = time.time()
     with cf.ThreadPoolExecutor(max_workers=a.workers) as ex:
-        futs = {ex.submit(g.video, f['id']): f for f in films}
+        futs = {ex.submit(g.video, f['id']): f for f in todo}
         for fu in cf.as_completed(futs):
             f = futs[fu]
             r = fu.result()
+            if 'error' in r:
+                r['_tries'] = prev.get(f['id'], {}).get('_tries', 1 if f['id'] in prev else 0) + 1
             res[f['id']] = {'الجهة': f['الجهة'], 'الوسم': f['الوسم'], **r}
             # ⛔ الشوط 37313830497 تجاوز عشرين دقيقة: يُكتب التقرير بعد كلّ فيلم، فإن انقضت مهلة الخطوة رُفع ما اكتمل
             json.dump(report(films, res), io.open(a.out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
             print('%s [%3d ث] %-12s %-40s خطاف=%s مشهد=%s %s' % (
                 '✅' if 'error' not in r else '⛔', time.time() - t0, f['id'], f['الوسم'][:40],
                 (r.get('hook') or {}).get('score'), r.get('first_scene_s'), r.get('error', '')[:120]), flush=True)
+    json.dump(report(films, res), io.open(a.out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     ok = sum('error' not in v for v in res.values())
     print('نجح %d من %d' % (ok, len(films)))
     return 0 if ok else 1
