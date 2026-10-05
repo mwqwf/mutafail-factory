@@ -36,6 +36,10 @@ from voice_lab import keys_from  # noqa: E402
 
 YT = 'https://www.youtube.com/watch?v='
 MARK = '===TRANSCRIPT==='
+# قد يكتب النموذج العلامة بصيغةٍ أخرى (الشوط 37329810245: ثلاثة تفريغاتٍ ضاعت كاملةً) أو الزمن دقائقَ:ثوانيَ (نصف الأفلام)
+MARK_RE = re.compile(r'={2,}\s*TRANSCRIPT\s*={2,}|^\s*#+\s*(?:TRANSCRIPT|التفريغ)\s*:?\s*$', re.I | re.M)
+TS = re.compile(r'^(\s*)\[(\d+):(\d{2})(?::(\d{2}))?(?:[.,]\d+)?\]', re.M)
+STAMP = re.compile(r'^\s*\[\d', re.M)
 ACTION_S = 90
 
 FILM_PROMPT = """أنت محلّلُ أسلوبٍ وبقاءٍ لمشاهدي يوتيوب. أمامك فيلمٌ وثائقيٌّ تاريخيٌّ كامل (إطارٌ كلّ بضع ثوانٍ مع الصوت كلّه).
@@ -65,7 +69,8 @@ FILM_PROMPT = """أنت محلّلُ أسلوبٍ وبقاءٍ لمشاهدي ي
 - strengths: حتى ستّة أسبابٍ تجعل المشاهد يكمل إلى النهاية (بالعربية).
 
 التفريغ: سطرٌ لكلّ جملةٍ منطوقة بالصيغة: [الثانية] (المتكلّم) النصّ — حرفيّاً بلغته كما قيل،
-والمتكلّم: راوٍ، أو اسم الشخصيّة، أو منشد. ولا تلخّص ولا تحذف شيئاً من الكلام."""
+والمتكلّم: راوٍ، أو اسم الشخصيّة، أو منشد. ولا تلخّص ولا تحذف شيئاً من الكلام.
+والثانية عددٌ صحيحٌ من بداية الفيلم (مثل [754] لا [12:34])، ولا يجمع السطرُ الواحد أكثر من خمس عشرة ثانيةً من الكلام."""
 
 ACTION_PROMPT = """أمامك مقطعُ أكشن من فيلمٍ تاريخيّ (إطارٌ كلّ ثانية مع الصوت). صفه وصفاً دقيقاً قابلاً للتقليد. JSON وحده:
 - shots: عدد اللقطات المختلفة، وshot_s: متوسّط طول اللقطة بالثواني.
@@ -126,15 +131,18 @@ def media(src: str) -> dict:
 def film_body(vid: str, light: bool, dur_s: float, part0: dict | None = None) -> bytes:
     """إطارٌ كلّ خمس ثوانٍ (وكلّ عشرٍ لما جاوز نصف الساعة) بدقّةٍ منخفضة، والصوت كلّه: نحو 45 رمزاً في الثانية بدل 98.
     light: بلا دقّة وسائط — لنموذجٍ يرفضها (400). ويبقى معدّل الإطارات: بدونه يقارب فيلمُ ساعةٍ حدَّ المليون رمز."""
-    part = dict(part0 or {'fileData': {'fileUri': YT + vid}}, videoMetadata={'fps': 0.2 if dur_s <= 1800 else 0.1})
+    # المسوّدة المحلّية إطارٌ في الثانية: فيها نريد أن يُرى الإيقاع وعدد اللقطات (12 في أوّل 30 ث)، لا إطارٌ كلّ خمس
+    fps = 1.0 if part0 else 0.2 if dur_s <= 1800 else 0.1
+    part = dict(part0 or {'fileData': {'fileUri': YT + vid}}, videoMetadata={'fps': fps})
     cfg = {'temperature': 0.1, 'maxOutputTokens': 60000}
     if not light:
         cfg['mediaResolution'] = 'MEDIA_RESOLUTION_LOW'
     return json.dumps({'contents': [{'parts': [part, {'text': FILM_PROMPT}]}], 'generationConfig': cfg}).encode('utf-8')
 
 
-def clip_body(vid: str, light: bool, prompt: str, a: float | None = None, b: float | None = None) -> bytes:
-    part = {'fileData': {'fileUri': YT + vid}}
+def clip_body(vid: str, light: bool, prompt: str, a: float | None = None, b: float | None = None,
+              part0: dict | None = None) -> bytes:
+    part = dict(part0 or {'fileData': {'fileUri': YT + vid}})
     if a is not None:
         part['videoMetadata'] = {'startOffset': '%ds' % a, 'endOffset': '%ds' % b}
     cfg = {'temperature': 0.1, 'responseMimeType': 'application/json'}
@@ -143,13 +151,54 @@ def clip_body(vid: str, light: bool, prompt: str, a: float | None = None, b: flo
     return json.dumps({'contents': [{'parts': [part, {'text': prompt}]}], 'generationConfig': cfg}).encode('utf-8')
 
 
+def norm_ts(t: str) -> str:
+    """[12:34] و[1:02:03] ⇒ [754] و[3723]: صيغةٌ واحدة لكلّ من يقرأ التفريغ (المقارنة العمياء ومطابقة المنحنيات)."""
+    def secs(m):
+        a, b, c = int(m.group(2)), int(m.group(3)), m.group(4)
+        return '%s[%d]' % (m.group(1), a * 3600 + b * 60 + int(c) if c is not None else a * 60 + b)
+    return TS.sub(secs, t or '')
+
+
+def n_lines(t: str) -> int:
+    return len(STAMP.findall(t or ''))
+
+
+def thin(f: dict) -> bool:
+    """تفريغٌ لا تُبنى عليه مطابقة: أقلّ من عشرين سطراً، أو من سطرٍ لكلّ دقيقة (الأرك جاء سطراً واحداً بالفيلم كلّه)."""
+    return 'error' not in f and n_lines(f.get('transcript')) < max(20, (f.get('duration_s') or 0) / 60.0)
+
+
 def parse_film(txt: str) -> dict:
-    """JSON التحليل أوّلاً ثم التفريغ: إن قُطع الجواب في التفريغ بقي التحليل وما وصل من التفريغ."""
-    head, _, tail = txt.partition(MARK)
-    out = json_out(head)
-    out['transcript'] = tail.strip()
-    out['_lines'] = len(re.findall(r'^\s*\[\d', out['transcript'], re.M))
+    """JSON التحليل أوّلاً ثم التفريغ: إن قُطع الجواب في التفريغ بقي التحليل وما وصل من التفريغ.
+    وإن غابت العلامة أو تغيّرت صيغتها، فما بعد الكائن تفريغ؛ وإن جاء التفريغ داخل الكائن أُخذ منه."""
+    m = MARK_RE.search(txt)
+    if m:
+        out, tail = json_out(txt[:m.start()]), txt[m.end():]
+    else:
+        i = txt.find('{')
+        try:
+            out, end = json.JSONDecoder().raw_decode(txt[i:])
+            tail = txt[i + end:]
+        except ValueError:
+            out, tail = json_out(txt), ''
+    inner = out.pop('transcript', None)
+    tail = tail.strip().strip('`').strip()
+    if not STAMP.search(tail) and inner:
+        tail = inner if isinstance(inner, str) else '\n'.join(
+            '[%s] (%s) %s' % (x.get('s', 0), x.get('speaker', 'راوٍ'), x.get('text', '')) for x in inner if isinstance(x, dict))
+    out['transcript'] = norm_ts(tail)
+    out['_lines'] = n_lines(out['transcript'])
     return out
+
+
+def needs_more(rep: dict) -> bool:
+    """في التقرير ما يستحقّ شوطاً آخر: إخفاقٌ أو تفريغٌ رقيق لم يستنفد محاولاته (للاستئناف الآليّ في سير العمل)."""
+    for k in ('الأفلام', 'الريلزات', 'المصغّرات'):
+        for f in rep.get(k) or []:
+            bad = 'error' in f or (k == 'الأفلام' and thin(f))
+            if bad and f.get('_tries', 1) < MAX_TRIES:
+                return True
+    return False
 
 
 def parse_list(txt: str) -> dict:
@@ -228,18 +277,26 @@ class Study:
         for k in self.res:
             want = {f['id'] for f in req.get(k) or []}
             self.res[k] = {i: f for i, f in (prev.get(k) or {}).items() if i in want and 'error' not in f}
+        # التفريغ الرقيق يبقى في التقرير (تحليله نافع) ويُعاد حتى MAX_TRIES، فلا يضيع شيءٌ إن انقطع الشوط
+        self.redo = {i for i, f in self.res['الأفلام'].items() if thin(f) and f.get('_tries', 1) < MAX_TRIES}
 
     def todo(self, k: str) -> list:
         pk = self.prev.get(k) or {}
-        return [f for f in self.req.get(k) or [] if f['id'] not in self.res[k]
+        return [f for f in self.req.get(k) or [] if (f['id'] not in self.res[k] or (k == 'الأفلام' and f['id'] in self.redo))
                 and pk.get(f['id'], {}).get('_tries', 1 if f['id'] in pk else 0) < MAX_TRIES]
 
     def put(self, k: str, f: dict, r: dict) -> None:
-        if 'error' in r:
-            pk = self.prev.get(k) or {}
-            r['_tries'] = pk.get(f['id'], {}).get('_tries', 1 if f['id'] in pk else 0) + 1
+        pk = self.prev.get(k) or {}
+        tries = pk.get(f['id'], {}).get('_tries', 1 if f['id'] in pk else 0) + 1
+        bad = 'error' in r or (k == 'الأفلام' and thin(r))
+        if bad:
+            r['_tries'] = tries
         with self.lock:
-            self.res[k][f['id']] = {kk: v for kk, v in f.items()} | r
+            cur = self.res[k].get(f['id'])
+            if bad and cur and 'error' not in cur and n_lines(cur.get('transcript')) >= n_lines(r.get('transcript')):
+                cur['_tries'] = tries   # المحاولة لم تزد شيئاً: يبقى ما عندنا وتُحسب عليه
+            else:
+                self.res[k][f['id']] = {kk: v for kk, v in f.items()} | r
             self.save()
 
     def save(self) -> None:
@@ -258,13 +315,14 @@ class Study:
         local = f.get('ملف')            # المسوّدة المصوّرة قبل التحريك المدفوع: تُحلَّل بالمعيار الذي حُلّلت به أفلامهم
         part0 = media(local) if local else None
         r = self.g.call(lambda light: film_body(f['id'], light, dur, part0), f['id'], budget_s=1200, parse=parse_film, cap_s=900)
-        if local:
-            return r                    # لقطاتنا معلومةٌ من shots.json، ولا صفحة يوتيوب لمسوّدة
         if 'error' not in r:
             win = strongest_action(r, dur)
-            if win:
-                a = self.g.call(lambda light: clip_body(f['id'], light, ACTION_PROMPT, *win), f['id'] + '#أكشن', budget_s=300)
+            if win:              # والمسوّدة تُقاس نافذةُ أكشنها كما تُقاس نوافذهم (مراجعة الخطة §١٤)
+                a = self.g.call(lambda light: clip_body(f['id'], light, ACTION_PROMPT, *win, part0=part0), f['id'] + '#أكشن',
+                                budget_s=300)
                 r['action'] = a | {'from': win[0], 'to': win[1]}
+        if local:
+            return r                    # ولا صفحة يوتيوب لمسوّدة
         if with_page:
             r['page'] = page(f['id'])
         return r
@@ -330,6 +388,10 @@ def main() -> int:
     if a.resume and os.path.exists(a.resume):
         p = json.load(io.open(a.resume, encoding='utf-8'))
         prev = {k: {f['id']: f for f in p.get(k) or []} for k in ('الأفلام', 'الريلزات', 'المصغّرات')}
+        for f in prev['الأفلام'].values():
+            if f.get('transcript'):
+                f['transcript'] = norm_ts(f['transcript'])
+                f['_lines'] = n_lines(f['transcript'])
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     st = Study(req, prev, a.out, Gem(keys))
     print('مفاتيح: %d | للدراسة: أفلام %d، ريلزات %d، مصغّرات %d | محفوظ: %s' % (

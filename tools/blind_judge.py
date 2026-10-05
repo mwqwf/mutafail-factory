@@ -30,6 +30,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from openings import Gem, MODELS  # noqa: E402
 from voice_lab import keys_from  # noqa: E402
+from style_study import norm_ts  # noqa: E402  — [12:34] ⇒ [754]: نصف التفريغات بالدقائق
 
 HARAKAT = re.compile(r"[ً-ْٰـ]")
 LINE = re.compile(r"^\s*\[(\d+(?:\.\d+)?)\]\s*(?:\(([^)]*)\))?\s*(.+)$")
@@ -60,7 +61,7 @@ def plain(t: str) -> str:
 
 def lines(transcript: str) -> list[tuple[float, str]]:
     out = []
-    for ln in (transcript or "").splitlines():
+    for ln in norm_ts(transcript or "").splitlines():
         m = LINE.match(ln)
         if m:
             out.append((float(m.group(1)), m.group(3).strip()))

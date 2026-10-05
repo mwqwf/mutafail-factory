@@ -25,7 +25,8 @@ concurrency:
 jobs:
   stats:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # الشوط 37329810245: بلغت دراسةُ الأسلوب حدَّ الستّين دقيقة والحصّةُ مزدحمة ⇒ متّسعٌ لها وللمقارنة بعدها (العدّاء مجّانيّ هنا)
+    timeout-minutes: 170
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -82,7 +83,7 @@ jobs:
           S=$(flag ops/stats/style.json); SR=0
           if [ "$S" = 1 ] && python3 -c "import json,sys; sys.exit(0 if json.load(open('ops/stats/style.json',encoding='utf-8')).get('استئناف') else 1)"; then SR=1; fi
           if [ "$S" = 0 ] && [ -f ops/stats/style.json ] && mkdir -p /tmp/prevs && gh release download channel-stats -p style.json -D /tmp/prevs --clobber 2>/dev/null \
-             && python3 -c "import sys,json; sys.path.insert(0,'tools'); import openings as o; d=json.load(open('/tmp/prevs/style.json',encoding='utf-8')); sys.exit(0 if any('error' in f and f.get('_tries',1)<o.MAX_TRIES for k in ('الأفلام','الريلزات','المصغّرات') for f in d.get(k) or []) else 1)"; then
+             && python3 -c "import sys,json; sys.path.insert(0,'tools'); import style_study as s; sys.exit(0 if s.needs_more(json.load(open('/tmp/prevs/style.json',encoding='utf-8'))) else 1)"; then
             S=1; SR=1
           fi
           echo "style=$S" >> "$GITHUB_OUTPUT"; echo "style_resume=$SR" >> "$GITHUB_OUTPUT"
@@ -148,18 +149,19 @@ jobs:
       - name: دراسة الأسلوب
         id: style
         if: steps.changed.outputs.style == '1'
-        timeout-minutes: 60
+        timeout-minutes: 100
         env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: |
           set -euo pipefail
-          pip install -q yt-dlp || echo "⚠ لم يُثبَّت yt-dlp: تُدرس الأفلام بلا صفحاتها"
           printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
           ARGS=""
           if [ "${{ steps.changed.outputs.style_resume }}" = "1" ]; then
             mkdir -p /tmp/prevs && gh release download channel-stats -p style.json -D /tmp/prevs --clobber && ARGS="--resume /tmp/prevs/style.json"
           fi
-          python tools/style_study.py out/style.json --keys /tmp/keys.json --workers 4 $ARGS
+          # ⛔ صفحة يوتيوب (خريطة الأكثر إعادة والترجمة) محجوبةٌ عن عدّائي GitHub («Sign in to confirm you're not a bot»)
+          #    في كلّ أفلام الشوط 37329810245 ⇒ لا تُطلب هنا، ويبقى خيارها للتشغيل من جهازٍ آخر
+          python tools/style_study.py out/style.json --keys /tmp/keys.json --workers 4 --only films,reels,thumbs $ARGS
       - name: رفع دراسة الأسلوب
         if: always() && steps.changed.outputs.style == '1'
         run: |
@@ -175,7 +177,7 @@ jobs:
       - name: المقارنة العمياء
         id: judge
         if: steps.changed.outputs.judge == '1'
-        timeout-minutes: 30
+        timeout-minutes: 40
         env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: |
