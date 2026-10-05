@@ -128,12 +128,20 @@ def media(src: str) -> dict:
     return {'fileData': {'fileUri': YT + src}}
 
 
+# الفيلم الأطول من 45 د يُدرس أوّلُ 40 د منه: «الخندق» (lxahtim3fUk، 55.7 د) استنفد محاولاته بلا تحليل وسقط من التقرير،
+# والأسلوب يبين في أربعين دقيقة. والمقصوص يقول ذلك في حقل «_مقصوص» فلا يُحسب عليه ما بعده.
+LONG_S, CLIP_S = 2700, 2400
+
+
 def film_body(vid: str, light: bool, dur_s: float, part0: dict | None = None) -> bytes:
     """إطارٌ كلّ خمس ثوانٍ (وكلّ عشرٍ لما جاوز نصف الساعة) بدقّةٍ منخفضة، والصوت كلّه: نحو 45 رمزاً في الثانية بدل 98.
     light: بلا دقّة وسائط — لنموذجٍ يرفضها (400). ويبقى معدّل الإطارات: بدونه يقارب فيلمُ ساعةٍ حدَّ المليون رمز."""
     # المسوّدة المحلّية إطارٌ في الثانية: فيها نريد أن يُرى الإيقاع وعدد اللقطات (12 في أوّل 30 ث)، لا إطارٌ كلّ خمس
     fps = 1.0 if part0 else 0.2 if dur_s <= 1800 else 0.1
-    part = dict(part0 or {'fileData': {'fileUri': YT + vid}}, videoMetadata={'fps': fps})
+    meta = {'fps': fps}
+    if not part0 and dur_s > LONG_S:
+        meta['endOffset'] = '%ds' % CLIP_S
+    part = dict(part0 or {'fileData': {'fileUri': YT + vid}}, videoMetadata=meta)
     cfg = {'temperature': 0.1, 'maxOutputTokens': 60000}
     if not light:
         cfg['mediaResolution'] = 'MEDIA_RESOLUTION_LOW'
@@ -191,9 +199,13 @@ def parse_film(txt: str) -> dict:
     return out
 
 
-def needs_more(rep: dict) -> bool:
-    """في التقرير ما يستحقّ شوطاً آخر: إخفاقٌ أو تفريغٌ رقيق لم يستنفد محاولاته (للاستئناف الآليّ في سير العمل)."""
+def needs_more(rep: dict, req: dict | None = None) -> bool:
+    """في التقرير ما يستحقّ شوطاً آخر: إخفاقٌ أو تفريغٌ رقيق لم يستنفد محاولاته، أو مطلوبٌ غائبٌ عنه أصلاً
+    (للاستئناف الآليّ في سير العمل؛ والطلب يُمرَّر ليُعرف الغائب)."""
     for k in ('الأفلام', 'الريلزات', 'المصغّرات'):
+        have = {f.get('id') for f in rep.get(k) or []}
+        if req and any(f['id'] not in have for f in req.get(k) or []):
+            return True
         for f in rep.get(k) or []:
             bad = 'error' in f or (k == 'الأفلام' and thin(f))
             if bad and f.get('_tries', 1) < MAX_TRIES:
@@ -276,13 +288,15 @@ class Study:
         self.lock = threading.Lock()
         for k in self.res:
             want = {f['id'] for f in req.get(k) or []}
-            self.res[k] = {i: f for i, f in (prev.get(k) or {}).items() if i in want and 'error' not in f}
+            # والإخفاق يبقى في التقرير بعدد محاولاته (كان يُسقط فيغيب المطلوب بلا أثر)، ويُعاد ما لم يستنفدها
+            self.res[k] = {i: f for i, f in (prev.get(k) or {}).items() if i in want}
         # التفريغ الرقيق يبقى في التقرير (تحليله نافع) ويُعاد حتى MAX_TRIES، فلا يضيع شيءٌ إن انقطع الشوط
         self.redo = {i for i, f in self.res['الأفلام'].items() if thin(f) and f.get('_tries', 1) < MAX_TRIES}
 
     def todo(self, k: str) -> list:
         pk = self.prev.get(k) or {}
-        return [f for f in self.req.get(k) or [] if (f['id'] not in self.res[k] or (k == 'الأفلام' and f['id'] in self.redo))
+        return [f for f in self.req.get(k) or [] if (f['id'] not in self.res[k] or 'error' in self.res[k][f['id']]
+                                                    or (k == 'الأفلام' and f['id'] in self.redo))
                 and pk.get(f['id'], {}).get('_tries', 1 if f['id'] in pk else 0) < MAX_TRIES]
 
     def put(self, k: str, f: dict, r: dict) -> None:
@@ -315,6 +329,8 @@ class Study:
         local = f.get('ملف')            # المسوّدة المصوّرة قبل التحريك المدفوع: تُحلَّل بالمعيار الذي حُلّلت به أفلامهم
         part0 = media(local) if local else None
         r = self.g.call(lambda light: film_body(f['id'], light, dur, part0), f['id'], budget_s=1200, parse=parse_film, cap_s=900)
+        if not part0 and dur > LONG_S and 'error' not in r:
+            r['_مقصوص'] = CLIP_S
         if 'error' not in r:
             win = strongest_action(r, dur)
             if win:              # والمسوّدة تُقاس نافذةُ أكشنها كما تُقاس نوافذهم (مراجعة الخطة §١٤)

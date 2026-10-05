@@ -106,6 +106,29 @@ class RunTest(unittest.TestCase):
         self.assertEqual(rep['نجح'], {'الأفلام': 4, 'الريلزات': 0, 'المصغّرات': 6})   # 5 من الأولى + 1
 
 
+class ExhaustedTest(unittest.TestCase):
+    def test_exhausted_stays_visible_absent_is_resumed_long_is_clipped(self):
+        # «الخندق» (lxahtim3fUk، 55.7 د) استنفد محاولاته فسقط من التقرير فلم يُستأنف ولم يُرَ
+        req = {'الأفلام': [{'id': 'long', 'الطول_د': 55.7}, {'id': 'gone', 'الطول_د': 10}]}
+        prev = {'الأفلام': {'gone': {'id': 'gone', 'error': '504', '_tries': ss.MAX_TRIES}}}
+        self.assertTrue(ss.needs_more({'الأفلام': [prev['الأفلام']['gone']]}, req))     # «long» غائب ⇒ يُستأنف
+        self.assertFalse(ss.needs_more({'الأفلام': [prev['الأفلام']['gone']]}))
+        sent = []
+
+        def fake_call(self, mk, tag, budget_s=420, parse=None, cap_s=240):
+            sent.append((tag, json.loads(mk(False))['contents'][0]['parts'][0].get('videoMetadata')))
+            return {'error': '504'} if tag == 'gone' else {'duration_s': 3342, 'transcript': '[0] (راوٍ) أ'}
+        d = tempfile.mkdtemp()
+        with mock.patch.object(ss.Gem, 'call', fake_call), mock.patch.object(ss, 'page', lambda vid: {}):
+            st = ss.Study(req, prev, os.path.join(d, 'o.json'), ss.Gem(['k']))
+            st.run({'films'}, 1)
+        rep = json.load(io.open(os.path.join(d, 'o.json'), encoding='utf-8'))
+        self.assertEqual([f['id'] for f in rep['الأفلام']], ['long', 'gone'])          # المستنفد ظاهرٌ بإخفاقه
+        self.assertNotIn('gone', [t for t, _ in sent])                                  # ولا يُعاد
+        self.assertEqual(sent[0], ('long', {'fps': 0.1, 'endOffset': '%ds' % ss.CLIP_S}))
+        self.assertEqual(rep['الأفلام'][0]['_مقصوص'], ss.CLIP_S)
+
+
 class LocalTest(unittest.TestCase):
     def test_local_draft_inline_one_fps_with_action_window_no_page(self):
         d = tempfile.mkdtemp()

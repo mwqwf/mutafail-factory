@@ -36,11 +36,13 @@ from __future__ import annotations
 import argparse
 import concurrent.futures as cf
 import datetime as dt
+import hashlib
 import io
 import json
 import os
 import re
 import sys
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from openings import Gem  # noqa: E402
@@ -62,6 +64,13 @@ JUDGE_CHAINS = (['gemini-3.5-flash', 'gemini-3.5-pro', 'gemini-3.5-flash-lite'],
 WIN_MIN, OLD_MAX, GAP_MIN, VALID_MIN = 0.70, 0.40, 0.25, 0.90
 ACC_MIN, PAIRS_MIN, PAIRS_PER_FILM = 0.65, 8, 2
 MAX_ROUNDS, NGRAM, OVERLAP_MAX = 3, 5, 0.03
+# الشوطان 37342135465 و37344320201: نفدت حصّة جيميناي فبلغت الخطوة حدّها (40 د) ولم يُكتب تقريرٌ أصلاً ⇒ حفظٌ بعد كلّ مقارنة،
+# وموعدٌ يتوقّف قبله، والأهمّ أوّلاً، ونداءاتٌ أقلّ: خطّ الأساس بأربعة أفلامٍ لنا، والسقف بفيلمين.
+BASE_MAX, CEIL_MAX = 4, 2
+TIMEOUT = 'انتهى الوقت'
+# والاستئناف: ما صحّ حكماه من شوطٍ سابقٍ بالبصمة نفسها (الطلب، والمسوّدة المختومة، والإعدادات) لا يُعاد،
+# ويكمله أوّلُ شوطٍ بعد تجدّد الحصّة حتى MAX_PASSES (needs_more في سير العمل).
+MAX_PASSES = 4
 
 PROMPT = """أنت مشاهدٌ عربيٌّ عاديّ يتصفّح يوتيوب. أمامك نصّان مفرّغان من كلامٍ منطوق في فيلمٍ وثائقيٍّ تاريخيّ، بلا صورة،
 وكلاهما من الموضع نفسه: {where}. اقرأهما كأنّك تسمعهما.
@@ -162,12 +171,16 @@ def body(a: str, b: str, kind: str) -> bytes:
     return json.dumps({'contents': [{'parts': [{'text': txt}]}], 'generationConfig': cfg}).encode('utf-8')
 
 
-def unit(g, x: str, y: str, kind: str, tag: str, chain: list[str]) -> dict:
-    """حَكَمٌ واحد بالترتيبين. score لـx: 1 إن اختاره فيهما، و0 إن اختار y فيهما، و0.5 إن انقلب بالترتيب."""
+def unit(g, x: str, y: str, kind: str, tag: str, chain: list[str], t_end: float | None = None) -> dict:
+    """حَكَمٌ واحد بالترتيبين. score لـx: 1 إن اختاره فيهما، و0 إن اختار y فيهما، و0.5 إن انقلب بالترتيب.
+    ومهلة كلّ نداءٍ لا تتجاوز الموعد، فلا يُقطع التقرير بنداءٍ معلّق."""
     picks, models, why = [], [], []
     for x_first in (True, False):
         a, b = (x, y) if x_first else (y, x)
-        r = g.call(lambda light, a=a, b=b: body(a, b, kind), tag, budget_s=180, models=chain)
+        left = 180 if t_end is None else min(180, t_end - time.time())
+        if left <= 0:
+            return {'error': TIMEOUT}
+        r = g.call(lambda light, a=a, b=b: body(a, b, kind), tag, budget_s=left, models=chain)
         if 'error' in r:
             return {'error': str(r['error'])[:160]}
         w = str(r.get('winner', '')).strip().upper()[:1]
@@ -180,11 +193,12 @@ def unit(g, x: str, y: str, kind: str, tag: str, chain: list[str]) -> dict:
     return {'score': score, 'flip': score == 0.5, 'models': models, 'why': why}
 
 
-def duel(g, x: str, y: str, kind: str, tag: str, keep_why: bool = True) -> list[dict]:
-    """الحَكَمان على زوجٍ واحد. ويُبطَلان إن تطابق نموذجاهما (نفدت حصّةٌ فالتقت السلسلتان على اسمٍ واحد)."""
+def duel(g, x: str, y: str, kind: str, tag: str, keep_why: bool = True, t_end: float | None = None) -> list[dict]:
+    """الحَكَمان على زوجٍ واحد. ويُبطَلان إن تطابق نموذجاهما (نفدت حصّةٌ فالتقت السلسلتان على اسمٍ واحد).
+    وبعد الموعد لا نداء: «انتهى الوقت» فوراً، ليُكتب التقرير قبل أن تُقطع الخطوة."""
     n = min(len(plain(x).split()), len(plain(y).split()), MAX_WORDS[kind])
     x_, y_ = clip(x, n), clip(y, n)
-    res = [unit(g, x_, y_, kind, '%s#%d' % (tag, i), chain) for i, chain in enumerate(JUDGE_CHAINS)]
+    res = [unit(g, x_, y_, kind, '%s#%d' % (tag, i), chain, t_end) for i, chain in enumerate(JUDGE_CHAINS)]
     ok = [r for r in res if 'error' not in r]
     if len(ok) == 2 and set(ok[0]['models']) & set(ok[1]['models']):
         res = [{'error': 'الحَكَمان نموذجٌ واحد'} for _ in res]
@@ -217,41 +231,46 @@ def overlap(draft: str, texts: list[str]) -> float:
     return round(len(mine & theirs) / len(mine), 3)
 
 
-def run(req: dict, style: dict, stats: dict | None, g, workers: int = 6) -> dict:
+def plan(req: dict, style: dict, stats: dict | None) -> tuple[list, dict]:
+    """المقارنات بترتيب الأهمّيّة: صلاحية الحَكَم، ثم المسوّدة على نصف البوّابة، ثم خطّ الأساس، ثم التطوير، ثم السقف.
+    فإن ضاقت الحصّة كان ما أُنجز هو الأهمّ."""
     films = {f['id']: f for f in style.get('الأفلام') or [] if 'error' not in f}
     names = channel_names(style)
-    ref = [i for i in (req.get('المرجع') or [i for i, f in films.items() if f.get('الجهة') == 'منافس']) if i in films]
-    ref = sorted(ref)
+    ref = sorted(i for i in (req.get('المرجع') or [i for i, f in films.items() if f.get('الجهة') == 'منافس']) if i in films)
     dev, hold = ref[0::2], ref[1::2]
-    ceiling = [i for i in req.get('السقف') or [] if i in films]
+    ceiling = [i for i in req.get('السقف') or [] if i in films][:CEIL_MAX]
     seg = {i: {k: scrub(v, names) for k, v in segments(films[i]).items()} for i in set(ref) | set(ceiling)}
-    jobs = []                                           # (المجموعة، المعرّف، النوع، نصّنا، المقابل، احفظ السبب؟)
-    # ١. صلاحية الحَكَم
     curves = ((stats or {}).get('الحقيقة') or {}).get('منحنى_البقاء_الطبيعي') or {}
     lengths = {v['id']: v.get('الطول_ث') for v in ((stats or {}).get('الحقيقة') or {}).get('لكل_فيديو') or []}
-    for oid in req.get('المعايرة') or []:
-        if oid in films and isinstance(curves.get(oid), list):
-            for k, (h, d, th, td) in enumerate(calib_pairs(films[oid], curves[oid], lengths.get(oid) or 0)):
-                jobs.append(('الصلاحية', '%s@%d/%d' % (oid, th, td), 'calib', scrub(h, names), scrub(d, names), True))
-    # ٢. أفلامنا السابقة على نصف البوّابة: خطّ الأساس
-    for oid in req.get('المعايرة') or []:
-        for kind, text in segments(films.get(oid, {})).items():
+    ours = [o for o in req.get('المعايرة') or [] if o in films]
+    jobs = []                               # (المجموعة، المعرّف، المقابل، النوع، نصّنا، نصّ المقابل، احفظ السبب؟)
+    for oid in ours:                                    # ١. صلاحية الحَكَم
+        if isinstance(curves.get(oid), list):
+            for h, d, th, td in calib_pairs(films[oid], curves[oid], lengths.get(oid) or 0):
+                jobs.append(('الصلاحية', '%s@%d/%d' % (oid, th, td), '', 'calib', scrub(h, names), scrub(d, names), True))
+    drafts = req.get('المسوّدة') or []
+    groups = (('المسوّدة_بوّابة', hold, False), ('المسوّدة_تطوير', dev, True), ('المسوّدة_سقف', ceiling, False))
+
+    def draft_jobs(grp, ids, why):
+        for d in drafts:
+            for cid in ids:
+                if d['النوع'] in seg.get(cid, {}):
+                    jobs.append((grp, d['id'] + '/' + d['النوع'], cid, d['النوع'], d['النصّ'], seg[cid][d['النوع']], why))
+    draft_jobs(*groups[0])                              # ٢. المسوّدة على نصف البوّابة
+    for oid in ours[:BASE_MAX]:                         # ٣. أفلامنا على نصف البوّابة: خطّ الأساس
+        for kind, text in segments(films[oid]).items():
             for cid in hold:
                 if kind in seg.get(cid, {}):
-                    jobs.append(('أفلامنا', oid + '/' + kind, kind, scrub(text, names), seg[cid][kind], False))
-    # ٣. المسوّدة: نصف التطوير بأسبابه، ونصف البوّابة بنتيجته وحدها، والسقف للاطلاع
-    for d in req.get('المسوّدة') or []:
-        k = d['النوع']
-        for grp, ids, why in (('المسوّدة_تطوير', dev, True), ('المسوّدة_بوّابة', hold, False), ('المسوّدة_سقف', ceiling, False)):
-            for cid in ids:
-                if k in seg.get(cid, {}):
-                    jobs.append((grp, d['id'] + '/' + k, k, d['النصّ'], seg[cid][k], why))
-    rows = {}
-    with cf.ThreadPoolExecutor(max_workers=workers) as ex:
-        futs = {ex.submit(duel, g, x, y, k, '%s:%s' % (grp, sid), why): (grp, sid) for grp, sid, k, x, y, why in jobs}
-        for fu in cf.as_completed(futs):
-            grp, sid = futs[fu]
-            rows.setdefault(grp, {}).setdefault(sid, []).extend(fu.result())
+                    jobs.append(('أفلامنا', oid + '/' + kind, cid, kind, scrub(text, names), seg[cid][kind], False))
+    draft_jobs(*groups[1])                              # ٤. التطوير بأسبابه
+    draft_jobs(*groups[2])                              # ٥. السقف للاطلاع
+    ctx = {'req': req, 'dev': dev, 'hold': hold, 'ceiling': ceiling,
+           'comp_texts': [films[i].get('transcript', '') for i in ref + ceiling]}
+    return jobs, ctx
+
+
+def summarize(rows: dict, ctx: dict, planned: int) -> dict:
+    req = ctx['req']
     flat = lambda grp, pref=None: [r for sid, v in rows.get(grp, {}).items() if pref is None or sid.startswith(pref) for r in v]
     pairs = len(rows.get('الصلاحية', {}))
     acc, acc_valid = rate(flat('الصلاحية')), valid_share(flat('الصلاحية'))
@@ -260,12 +279,11 @@ def run(req: dict, style: dict, stats: dict | None, g, workers: int = 6) -> dict
     summary = {'الصلاحية': {'أزواج': pairs, 'دقّة_اختيار_الثبات': acc, 'الصالح': acc_valid, 'صالح': judge_ok},
                'أفلامنا': {'نسبة_الفوز': old, 'الصالح': valid_share(flat('أفلامنا'))}, 'المسوّدة': {}}
     gate = {}
-    comp_texts = [films[i].get('transcript', '') for i in ref + ceiling]
     for d in req.get('المسوّدة') or []:
         sid = d['id'] + '/' + d['النوع']
         h, dv, cl = flat('المسوّدة_بوّابة', sid), flat('المسوّدة_تطوير', sid), flat('المسوّدة_سقف', sid)
         win = rate(h)
-        ov = overlap(d['النصّ'], comp_texts)
+        ov = overlap(d['النصّ'], ctx['comp_texts'])
         why_not = []
         if not judge_ok:
             why_not.append('الحَكَم لم يجتز صلاحيته: الحكم للاطلاع')
@@ -284,13 +302,78 @@ def run(req: dict, style: dict, stats: dict | None, g, workers: int = 6) -> dict
         summary['المسوّدة'][sid] = {'الفوز_بوّابة': win, 'الفوز_تطوير': rate(dv), 'الفوز_سقف': rate(cl),
                                     'الصالح': valid_share(h), 'التداخل': ov, 'أسباب_الرفض': why_not}
         gate[sid] = not why_not
+    done = len(complete(rows))
+    late = sum(1 for g_ in rows.values() for v in g_.values() for r in v if r.get('error') == TIMEOUT)
     return {'تاريخ': dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%d %H:%M UTC'),
+            'بصمة': ctx.get('fp', ''),
             'الشروط': {'فوز': WIN_MIN, 'أفلامنا': OLD_MAX, 'فرق': GAP_MIN, 'صالح': VALID_MIN, 'صلاحية': ACC_MIN,
                        'أزواج': PAIRS_MIN, 'محاولات': MAX_ROUNDS, 'تداخل': OVERLAP_MAX},
-            'المرجع': {'تطوير': dev, 'بوّابة': hold, 'سقف': ceiling},
+            'المرجع': {'تطوير': ctx['dev'], 'بوّابة': ctx['hold'], 'سقف': ctx['ceiling']},
+            'التقدّم': {'المقارنات': planned, 'أُنجز': done, 'بعد_الموعد': late, 'مكتمل': done >= planned,
+                       'الأشواط': ctx.get('passes', 1)},
             'الخلاصة': summary, 'تجتاز': gate,
             # نصف البوّابة بلا أسبابٍ محفوظة (keep_why=False)، فلا يُكتب على مقاسه
             'التفصيل': rows}
+
+
+def complete(rows: dict) -> dict:
+    """المهامّ التي صحّ حكماها كلاهما: {(المجموعة، المعرّف، المقابل): الحكمان}."""
+    out = {}
+    for grp, d in (rows or {}).items():
+        for sid, rs in d.items():
+            by = {}
+            for r in rs:
+                by.setdefault(r.get('vs', ''), []).append(r)
+            for cid, v in by.items():
+                if len(v) == len(JUDGE_CHAINS) and all('error' not in r for r in v):
+                    out[(grp, sid, cid)] = v
+    return out
+
+
+def req_fp(req_path: str = os.path.join('ops', 'stats', 'judge.json'),
+           draft_enc: str = os.path.join('ops', 'stats', 'judge_draft', 'payload.enc')) -> str:
+    """بصمة الطلب بلا فضّ: الطلب بلا مفاتيحه المبدوءة بـ«_»، والمسوّدة المختومة كما هي، وإعدادات الحَكَم.
+    يحسبها سير العمل قبل الفضّ. ولإطلاق استئنافٍ بدفعةٍ لا تغيّر البصمة يُغيَّر مفتاحٌ مثل «_تشغيل»."""
+    h = hashlib.sha256()
+    if os.path.exists(req_path):
+        req = {k: v for k, v in json.load(io.open(req_path, encoding='utf-8')).items() if not k.startswith('_')}
+        h.update(json.dumps(req, ensure_ascii=False, sort_keys=True).encode('utf-8'))
+    if os.path.exists(draft_enc):
+        h.update(io.open(draft_enc, 'rb').read())
+    h.update(json.dumps([JUDGE_CHAINS, BASE_MAX, CEIL_MAX, MAX_WORDS, PROMPT], ensure_ascii=False).encode('utf-8'))
+    return h.hexdigest()[:16]
+
+
+def needs_more(rep: dict | None, fp: str) -> bool:
+    """تقريرٌ سابقٌ بالبصمة نفسها لم يكتمل ولم يستنفد أشواطه ⇒ يُستأنف."""
+    p = (rep or {}).get('التقدّم') or {}
+    return bool(rep) and rep.get('بصمة') == fp and not p.get('مكتمل') and p.get('الأشواط', 1) < MAX_PASSES
+
+
+def run(req: dict, style: dict, stats: dict | None, g, workers: int = 6, deadline_s: float | None = None,
+        save=None, prev: dict | None = None, fp: str = '') -> dict:
+    jobs, ctx = plan(req, style, stats)
+    same = bool(prev) and bool(fp) and prev.get('بصمة') == fp
+    keep = complete(prev.get('التفصيل')) if same else {}
+    ctx['fp'], ctx['passes'] = fp, ((prev.get('التقدّم') or {}).get('الأشواط', 1) + 1) if same else 1
+    t_end = time.time() + deadline_s if deadline_s else None
+    rows, todo = {}, []
+    for j in jobs:
+        if j[:3] in keep:                               # صحّ في شوطٍ سابق: لا يُعاد
+            rows.setdefault(j[0], {}).setdefault(j[1], []).extend(keep[j[:3]])
+        else:
+            todo.append(j)
+    if same:
+        print('الاستئناف: %d من %d صحّت من قبل، ويُحكَم الآن في %d' % (len(jobs) - len(todo), len(jobs), len(todo)))
+    with cf.ThreadPoolExecutor(max_workers=workers) as ex:
+        futs = {ex.submit(duel, g, x, y, k, '%s:%s' % (grp, sid), why, t_end): (grp, sid, cid)
+                for grp, sid, cid, k, x, y, why in todo}
+        for fu in cf.as_completed(futs):
+            grp, sid, cid = futs[fu]
+            rows.setdefault(grp, {}).setdefault(sid, []).extend(dict(r, vs=cid) for r in fu.result())
+            if save:
+                save(summarize(rows, ctx, len(jobs)))
+    return summarize(rows, ctx, len(jobs))
 
 
 def main() -> int:
@@ -301,6 +384,8 @@ def main() -> int:
     ap.add_argument('--stats', help='channel_stats.json: منحنيات أفلامنا لصلاحية الحَكَم')
     ap.add_argument('--workers', type=int, default=6)
     ap.add_argument('--draft', help='المسوّدة المفضوضة من الإصدار الخاصّ (لا تُودَع في المستودع العامّ)')
+    ap.add_argument('--deadline', type=float, default=0, help='ثوانٍ: لا نداء بعدها، ويُكتب ما أُنجز (أقلّ من حدّ الخطوة)')
+    ap.add_argument('--prev', help='تقريرٌ سابق من الإصدار الخاصّ: يُستأنف منه إن طابقت بصمته')
     a = ap.parse_args()
     keys = keys_from(a.keys)
     if not keys:
@@ -312,9 +397,18 @@ def main() -> int:
         req['المسوّدة'] = json.load(io.open(a.draft, encoding='utf-8')).get('المسوّدة') or []
     style = json.load(io.open(a.style, encoding='utf-8'))
     stats = json.load(io.open(a.stats, encoding='utf-8')) if a.stats and os.path.exists(a.stats) else None
-    rep = run(req, style, stats, Gem(keys), a.workers)
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
-    json.dump(rep, io.open(a.out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+
+    def save(r):                                        # بعد كلّ مقارنة: ما أُنجز محفوظٌ ولو قُطعت الخطوة
+        tmp = a.out + '.tmp'
+        json.dump(r, io.open(tmp, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+        os.replace(tmp, a.out)
+    prev = json.load(io.open(a.prev, encoding='utf-8')) if a.prev and os.path.exists(a.prev) else None
+    rep = run(req, style, stats, Gem(keys), a.workers, a.deadline or None, save, prev, req_fp())
+    save(rep)
+    p = rep.get('التقدّم') or {}
+    print('التقدّم:', p, '' if p.get('مكتمل', True) else '⏳ ناقص: يُستأنف في الشوط التالي (%d من %d)' % (
+        p.get('الأشواط', 1), MAX_PASSES))
     s = rep['الخلاصة']                                  # نسبٌ وحدها في السجلّ العامّ، لا نصوص
     print('صلاحية الحَكَم:', s['الصلاحية'])
     print('أفلامنا السابقة:', s['أفلامنا'])

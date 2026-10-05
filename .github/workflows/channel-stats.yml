@@ -83,11 +83,18 @@ jobs:
           S=$(flag ops/stats/style.json); SR=0
           if [ "$S" = 1 ] && python3 -c "import json,sys; sys.exit(0 if json.load(open('ops/stats/style.json',encoding='utf-8')).get('استئناف') else 1)"; then SR=1; fi
           if [ "$S" = 0 ] && [ -f ops/stats/style.json ] && mkdir -p /tmp/prevs && gh release download channel-stats -p style.json -D /tmp/prevs --clobber 2>/dev/null \
-             && python3 -c "import sys,json; sys.path.insert(0,'tools'); import style_study as s; sys.exit(0 if s.needs_more(json.load(open('/tmp/prevs/style.json',encoding='utf-8'))) else 1)"; then
+             && python3 -c "import sys,json; sys.path.insert(0,'tools'); import style_study as s; sys.exit(0 if s.needs_more(json.load(open('/tmp/prevs/style.json',encoding='utf-8')), json.load(open('ops/stats/style.json',encoding='utf-8'))) else 1)"; then
             S=1; SR=1
           fi
           echo "style=$S" >> "$GITHUB_OUTPUT"; echo "style_resume=$SR" >> "$GITHUB_OUTPUT"
-          J=$(flag ops/stats/judge.json); echo "judge=$J" >> "$GITHUB_OUTPUT"
+          J=$(flag ops/stats/judge.json)
+          # استئناف المقارنة العمياء (الشوطان 37342135465 و37344320201: نفدت حصّة جيميناي فقُطعت الخطوة): ما صحّ لا يُعاد،
+          # ويكمله شوطٌ لاحق بالبصمة نفسها (الطلب بلا مفاتيح «_»، والمسوّدة المختومة) حتى MAX_PASSES.
+          if [ "$J" = 0 ] && [ -f ops/stats/judge.json ] && mkdir -p /tmp/prevj && gh release download channel-stats -p judge.json -D /tmp/prevj --clobber 2>/dev/null \
+             && python3 -c "import sys,json; sys.path.insert(0,'tools'); import blind_judge as b; sys.exit(0 if b.needs_more(json.load(open('/tmp/prevj/judge.json',encoding='utf-8')), b.req_fp()) else 1)"; then
+            J=1
+          fi
+          echo "judge=$J" >> "$GITHUB_OUTPUT"
           echo "resume=$R" >> "$GITHUB_OUTPUT"
           echo "topics=$T" >> "$GITHUB_OUTPUT"; echo "comp=$C" >> "$GITHUB_OUTPUT"; echo "open=$O" >> "$GITHUB_OUTPUT"
           echo "البحث: $T | المنافسون: $C | الافتتاحيات: $O | الأسلوب: $S | المقارنة العمياء: $J"
@@ -194,7 +201,11 @@ jobs:
             mkdir -p /tmp/jds && cp ops/stats/judge_draft/payload.enc ops/stats/judge_draft/key.enc /tmp/jds/
             bash tools/unseal.sh /tmp/jds /tmp/jd && DRAFT="--draft /tmp/jd/draft.json"
           fi
-          python tools/blind_judge.py out/judge.json --keys /tmp/keys.json --style /tmp/sj/style.json --stats out/channel_stats.json $DRAFT
+          # ما أُنجز يُحفظ بعد كلّ مقارنة، ولا نداء بعد 35 د (حدّ الخطوة 40)، ويُستأنف من تقريرٍ سابقٍ إن طابقت بصمته
+          PREV=""
+          mkdir -p /tmp/prevj
+          if gh release download channel-stats -p judge.json -D /tmp/prevj --clobber 2>/dev/null; then PREV="--prev /tmp/prevj/judge.json"; fi
+          python tools/blind_judge.py out/judge.json --keys /tmp/keys.json --style /tmp/sj/style.json --stats out/channel_stats.json $DRAFT --deadline 2100 $PREV
       - name: رفع المقارنة العمياء
         if: always() && steps.changed.outputs.judge == '1'
         run: |
@@ -202,8 +213,11 @@ jobs:
           [ -s out/judge.json ] || { echo "⛔ لا تقرير"; exit 1; }
           gh release upload channel-stats out/judge.json --clobber
           echo "✅ رُفعت المقارنة العمياء إلى الإصدار المسوّد channel-stats"
-          if [ "${{ steps.judge.outcome }}" = "success" ]; then
+          # لا تُسجَّل منجزةً إلا مكتملة: الناقصة يكملها الاستئناف (needs_more) في شوطٍ لاحق
+          if python3 -c "import json,sys; sys.exit(0 if (json.load(open('out/judge.json',encoding='utf-8')).get('التقدّم') or {}).get('مكتمل') else 1)"; then
             echo "ops/stats/judge.json:$(sha256sum ops/stats/judge.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
+          else
+            echo "⏳ المقارنة ناقصة: تُستأنف في الشوط التالي بلا إعادة ما صحّ"
           fi
       - name: دفتر الحصص إلى master
         if: steps.changed.outputs.topics == '1' || steps.changed.outputs.comp == '1'
