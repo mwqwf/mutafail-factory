@@ -49,7 +49,7 @@ def rank(rows: list, today: dt.date) -> list:
     return sorted(shorts, key=lambda r: (r['early'], r['score']))
 
 
-def insights(ya, rows: list, today: dt.date) -> dict:
+def insights(ya, rows: list, today: dt.date, yt=None) -> dict:
     """من أين جاء المشاهدون؟ — طلب المالك 2026-10-05: «اقترح فلماً عليه طلبٌ حقيقيّ».
     مشاهداتٌ كثيرة بنسبة بقاءٍ 3٪ (اليرموك) نمطُ إعلانٍ أو تجربةِ تصفّح لا طلب؛ فالفيصل مصادر الزيارات لكلّ فيديو بارز،
     وكلماتُ البحث التي جاءت بالمشاهدين (الطلب الحقيقيّ)، والفيديوهات التي تقترحنا، والبلدان. كلّ استعلامٍ مستقلّ:
@@ -78,6 +78,24 @@ def insights(ya, rows: list, today: dt.date) -> dict:
     out['البلدان_90_يوماً'] = q(startDate=start90, dimensions='country', sort='-views', maxResults=15,
                                 metrics='views,estimatedMinutesWatched,averageViewDuration')
     out['العمر_والجنس_90_يوماً'] = q(startDate=start90, dimensions='ageGroup,gender', metrics='viewerPercentage')
+    # بجوار أيّ فيديوهاتٍ يقترحنا يوتيوب؟ (عين جالوت: 70٪ من المقترحات) — عناوينها وقنواتها ومشاهداتها تكشف الطلب المجاور
+    ain = [r for r in rows if r['id'] == 'ns76edypTgg']
+    if ain:
+        out['ما_يقترح_عين_جالوت'] = q(startDate=ain[0]['published'][:10], filters='video==ns76edypTgg;insightTrafficSourceType==RELATED_VIDEO',
+                                       **{k: v for k, v in detail.items() if k != 'startDate'})
+    if yt is not None:
+        ids = []
+        for k in ('فيديوهات_تقترحنا_90_يوماً', 'ما_يقترح_عين_جالوت'):
+            if isinstance(out.get(k), list):
+                ids += [r['insightTrafficSourceDetail'] for r in out[k]]
+        ids = list(dict.fromkeys(ids))[:50]
+        try:
+            got = yt.videos().list(part='snippet,statistics', id=','.join(ids)).execute().get('items', []) if ids else []
+            out['عناوين_المقترِحين'] = {v['id']: {'العنوان': v['snippet']['title'][:100], 'القناة': v['snippet']['channelTitle'],
+                                                  'المشاهدات': int(v.get('statistics', {}).get('viewCount', 0)),
+                                                  'النشر': v['snippet']['publishedAt'][:10]} for v in got}
+        except Exception as e:
+            out['عناوين_المقترِحين'] = {'خطأ': str(e)[:200]}
     return out
 
 
@@ -129,7 +147,7 @@ def main(out: str) -> None:
         for r in rows:
             r.update(got.get(r['id'], {}))
         analytics = 'متاحة (%d فيديو)' % len(got)
-        ins = insights(ya, rows, dt.date.today())
+        ins = insights(ya, rows, dt.date.today(), yt)
     except HttpError as e:
         analytics = 'غير متاحة: %s' % str(e)[:200]
     except Exception as e:                       # نطاق التحليلات غير ممنوح أو المكتبة غير مثبّتة
