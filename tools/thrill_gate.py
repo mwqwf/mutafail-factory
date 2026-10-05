@@ -330,8 +330,16 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
         errs.append(f"لا سؤالَ مركزيّاً بين الثانية {COLD_MIN:.0f} و60: حلقةٌ مفتوحة بعد الافتتاح البارد")
     elif loops > 3:
         warns.append(f"{loops} أسئلة متتابعة في الدقيقة الأولى: سلسلة أسئلةٍ تشويقٌ طويل — سؤالٌ مركزيّ واحد ثم القصّة")
-    if not any(PROMISE.search(plain(b["text"])) for b in film[:12]):
-        warns.append("لا وعدَ صريحاً في الافتتاح بالقصّة («سترى كيف…»)، ولا يكون وعداً بكشفٍ أو تصحيح")
+    # الوعد في الدقيقة الأولى زمناً لا في أوّل 12 كتلة: الجمل القصيرة التي تطلبها البوّابة (لقطةٌ لكلّ جملة) تدفعه عدداً
+    # لا زمناً (مؤتة 2026-10-05: الوعد عند الثانية 45 في الكتلة الخامسة عشرة)
+    t, opening = 0.0, []
+    for b in film:
+        if t >= 60.0:
+            break
+        opening.append(b)
+        t += words(b["text"]) * SEC_PER_WORD
+    if not any(PROMISE.search(plain(b["text"])) for b in opening):
+        warns.append("لا وعدَ صريحاً في الدقيقة الأولى بالقصّة («سترى كيف…»)، ولا يكون وعداً بكشفٍ أو تصحيح")
 
     # ٢. الفصول: كلّ فصلٍ يُختم بمعلّقة ويفتح بخطّافٍ قصير
     sections = load(proj, "sections.json") or []

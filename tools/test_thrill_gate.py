@@ -150,6 +150,18 @@ class ThrillGateTests(unittest.TestCase):
         text = "\n".join(g.owner_1005(good, good, json.loads((d2 / "shots.json").read_text(encoding="utf-8")), pub)[0])
         self.assertEqual(text, "")
 
+    def test_story_promise_is_timed_not_counted(self):
+        # مؤتة 2026-10-05: جملٌ قصيرةٌ كثيرة في الافتتاح تدفع الوعد إلى الكتلة الخامسة عشرة وهو عند الثانية 45
+        short = [B("s%02d" % i, "سُيُوفٌ تَنْقَطِعُ.") for i in range(1, 15)]                   # 14 × 2 كلمة ≈ 13 ث
+        promise = B("p1", "سَتَرَى كَيْفَ صَارَ رَجُلٌ بِلَا إِمْرَةٍ سَيْفاً.")
+        _, warns = g.check(proj(short + [promise] + GOOD + RB, [{"id": "s01", "title": "أ"}, {"id": "d5", "title": "ب"}],
+                                REELS), None)
+        self.assertFalse(any("لا وعدَ صريحاً" in w for w in warns))
+        late = [B("l%d" % i, " ".join(["سُيُوفٌ"] * 30) + ".") for i in range(1, 6)]           # 5 × 30 كلمة ≈ 69 ث
+        _, warns = g.check(proj(late + [promise] + GOOD + RB, [{"id": "l1", "title": "أ"}, {"id": "d5", "title": "ب"}],
+                                REELS), None)
+        self.assertTrue(any("لا وعدَ صريحاً" in w for w in warns))
+
     def test_debunk_promise_loops_and_citations(self):
         w = lambda n, tail=".": " ".join(["كَلِمَةٌ"] * n) + tail
         pub = {"series": "سيف الله"}
