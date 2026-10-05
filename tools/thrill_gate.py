@@ -5,7 +5,7 @@
 مستنفراً يريد معرفة القادم». والقاعدةُ المكتوبة تُنسى، فهذه البوّابة تقيس البنية آلياً قبل الصوت:
 
   ✗ خطأ يوقف: الريلزات ثلاثة (الافتتاحية + اثنان) · لكلّ ريلز سؤالٌ معلّق في ختامه · الفيلم يفتح بخطّافٍ
-    قصير لا بتحيّةٍ أو مقدّمةٍ باردة · ≥ سؤالان (حلقتان مفتوحتان) في أوّل 12 كتلة · ≥ 70٪ من الفصول
+    قصير لا بتحيّةٍ أو مقدّمةٍ باردة · سؤالٌ مركزيّ بعد الافتتاح البارد وقبل الدقيقة · ≥ 70٪ من الفصول
     تُختم بمعلّقةٍ (سؤالٌ أو «…») · نصّ المصغّرة قصيرٌ (≤ 3 كلمات للسطر) وبلا تشكيل.
   ⚠️ تنبيه: وعدٌ صريحٌ في الافتتاحية · افتتاحيات الفصول قصيرة · عنوانٌ فيه سؤالٌ أو تعليق.
 
@@ -18,6 +18,12 @@
   ✗ الافتتاحية (الفصل الأوّل) ≤ 60 ث تقديراً، وكلام الراوي فيها ≤ 45 كلمة: الخطّاف ثم القصّة.
   ✗ لا ذكرَ للمصادر في الفيلم (المصادر في الوصف) · كلفةُ التحريك المخطّط ≤ 90٪ من budget_total_usd.
   ✗ لا تفضيلَ مطلقاً بلا «من» في العنوان ونصّ المصغّرات وعناوين الريلزات (أعظم/أكبر/الوحيد/لم يسبق) — تنبيهٌ في المتن.
+
+⭐⭐ حكم المالك 2026-10-05 بعد «بحث الاحتفاظ بالمشاهد» (ops/research/mutah/00-retention-plan.md §١٠) — موانع لا تنبيهات:
+  ✗ لا منهج ولا مصادر ولا طلب اشتراكٍ أو تعليقٍ قبل الدقيقة الرابعة · لا سؤال ولا تحيّة قبل الثانية 25 (الافتتاح البارد)
+  ✗ رقمٌ واحد على الأكثر ولا تاريخ في أوّل 30 ث · 12 لقطةً فأكثر تبدأ في أوّل 30 ث
+  ✗ إعادة شدٍّ كلّ ≤ 45 ث في الدقائق 1–6 (موضع النزيف في منحنياتنا) · خطّاف الحلقة التالية في آخر دقيقةٍ من فيلمٍ في سلسلة
+  ✗ الكلمات المأثورة (كتلةٌ فيها speaker) لا تُقبل بلا رقم دعواها في السجلّ (claim).
 
 لا تقيس البوّابة الصدق — ذاك للتفنيد وسجلّ الدعاوى. والحماسة لا تُسقط التوثيق.
 
@@ -38,7 +44,7 @@ SMIRK = ("smirk", "half-smile", "half smile", "knowing", "sly", "wink", "playful
 HOOK_FIRST_MAX = 16      # كلماتُ أوّل جملة
 CHAPTER_OPEN_MAX = 22    # كلماتُ أوّل كتلة في الفصل
 CLIFF_MIN = 0.70         # نسبةُ الفصول المختومة بمعلّقة
-OPEN_LOOPS_MIN = 2       # أسئلةٌ في أوّل 12 كتلة
+OPEN_LOOPS_MIN = 1       # سؤالٌ مركزيّ بعد الافتتاح البارد وقبل الدقيقة (حكم المالك 2026-10-05؛ كان سؤالين في أوّل 12 كتلة)
 SEC_PER_WORD = 0.46      # تقديرُ زمن الكلمة المشكولة بصوت القناة (≈ 130 كلمة/د) — قبل وجود الصوت
 SHOT_MEAN_MAX = 6.0      # متوسّط بقاء اللقطة على الشاشة (ث)
 SHOT_MAX = 10.0          # أطولُ لقطة (ث)
@@ -54,6 +60,21 @@ CITATION = re.compile(r"(رواه|رَوَاهُ|أخرجه|حسّنه|حسنه|
 PRICE_LIVE, PRICE_AUDIO, PRICE_AVATAR, PRICE_FLF = 0.07, 0.14, 0.16, 0.112   # $/ث (tools/fal_animate.py)
 CLIP_SEC = 5              # مدّة مقطع Kling المدفوع (DUR في tools/fal_animate.py)
 BUDGET_SHARE = 0.90      # المخطّط ≤ 90٪ من السقف (هامشُ إعادات)، والفيلم كلّه حيّ إلا ما وُسم kb3d صراحةً
+# ⭐⭐ حكم المالك 2026-10-05 بعد «بحث الاحتفاظ بالمشاهد» (ops/research/mutah/00-retention-plan.md §١ و§١٠): موانع لا تنبيهات
+NO_ASK_BEFORE = 240.0    # لا منهج ولا مصادر ولا طلب اشتراكٍ أو تعليقٍ قبل الدقيقة الرابعة
+COLD_MIN = 25.0          # الافتتاح البارد مشهدٌ متّصل: لا سؤال ولا تحيّة قبل هذه الثانية
+OPEN_CUTS_MIN = 12       # لقطاتٌ تبدأ في أوّل 30 ث (لقطةٌ كلّ ثانيتين تقريباً)
+OPEN_NUMBERS_MAX = 1     # رقمٌ واحد في أوّل 30 ث على الأكثر (الخطّاف نفسه) ولا تاريخ
+DANGER = (60.0, 360.0)   # الدقائق 1–6: موضع النزيف في منحنياتنا
+REHOOK_GAP_MAX = 45.0    # أطول فجوةٍ بين إعادتَي شدٍّ في الدقائق 1–6
+NEXT_TAIL = 60.0         # خطّاف الحلقة التالية في آخر دقيقة من فيلمٍ في سلسلة
+ASK = re.compile(r"(اشتركوا|اشترك |الجرس|اكتب في التعليقات|اكتبوا|علّقوا|في التعليقات|المنهج|منهجنا|مصادرنا|"
+                 r"المصادر في الوصف|نوثّق|نوثق|سنحكيها|نترككم)")
+NUMBER = re.compile(r"[0-9٠-٩]+|\b[وفبل]?(واحد|اثنان|اثنين|ثلاث|ثلاثة|أربع|أربعة|خمس|خمسة|ست|ستة|سبع|سبعة|ثمان|ثمانية|تسع|تسعة|عشر|عشرة|"
+                    r"عشرون|عشرين|ثلاثون|ثلاثين|أربعون|أربعين|خمسون|خمسين|مئة|مائة|مئتي|مئتا|ألف|آلاف|ألفا|ألفي|مليون)\b")
+DATE = re.compile(r"[0-9٠-٩]+\s*(هـ|م\b)|\b(سنة|عام)\s+([0-9٠-٩]|ثمان|سبع|ست|خمس|أربع|ثلاث|اثنت|إحدى|عشر)|للهجرة|للميلاد")
+REHOOK = re.compile(r"(؟|…|\.\.\.|لكنّ|لكن |غير أنّ|إلا أنّ|فجأة|لم يكن يعلم|لم يكونوا يعلمون|وهنا|ثم حدث|ولم يبق)")
+NEXT = re.compile(r"(الحلقة القادمة|الحلقة التالية|الحلقة المقبلة|في الحلقة|الحلقة الثانية|الحلقة الثالثة)")
 
 
 def plain(t: str) -> str:
@@ -187,6 +208,63 @@ def pacing(proj: Path, blocks: list[dict], film: list[dict], sections: list[dict
     return errs, warns
 
 
+def owner_1005(blocks: list[dict], film: list[dict], shots: list[dict], pub: dict) -> tuple[list[str], list[str]]:
+    """قواعد المالك 2026-10-05 موانع: الافتتاح البارد، والطلب بعد الدقيقة الرابعة، وأوّل 30 ث، والدقائق 1–6، وخطّاف الحلقة
+    التالية، وكلمات الصحابة بأرقام دعاواها. الزمن تقديرٌ من الكلمات قبل الصوت (SEC_PER_WORD) كبقيّة البوّابة."""
+    errs, warns = [], []
+    by_id = {b["id"]: b for b in blocks}
+    t, start = 0.0, {}
+    for b in film:
+        start[b["id"]] = t
+        t += words(b["text"]) * SEC_PER_WORD
+    total = t
+    early = lambda lim: [b for b in film if start[b["id"]] < lim]
+
+    asks = [b["id"] for b in early(NO_ASK_BEFORE) if ASK.search(plain(b["text"]))]
+    if asks:
+        errs.append(f"منهجٌ أو طلبٌ قبل الدقيقة الرابعة في {', '.join(asks[:5])} (حكم المالك 2026-10-05): بعد أوّل وفاءٍ بوعد")
+    cold = early(COLD_MIN)
+    broke = [b["id"] for b in cold if "؟" in plain(b["text"]) or GREETING.search(plain(b["text"]))]
+    if broke:
+        errs.append(f"الافتتاح البارد يُقطع قبل الثانية {COLD_MIN:.0f} بسؤالٍ أو تحيّة ({', '.join(broke[:4])}): مشهدٌ متّصلٌ واحد أوّلاً")
+    first30 = " ".join(plain(b["text"]) for b in early(30.0))
+    nums = NUMBER.findall(first30)
+    if len(nums) > OPEN_NUMBERS_MAX:
+        errs.append(f"{len(nums)} أرقام في أوّل 30 ث (≤ {OPEN_NUMBERS_MAX}): رقمٌ واحد هو الخطّاف، والباقي بعد أن يهتمّ المشاهد")
+    if DATE.search(first30):
+        errs.append("تاريخٌ في أوّل 30 ث: التاريخ الهجريّ والميلاديّ بعد أن يهتمّ المشاهد")
+    warns.append("راجع أسماء الأعلام في أوّل 30 ث بالعين: اسم البطل وحده (لا تكشفه الآلة)")
+
+    if shots:
+        sec = lambda s: (sum(words(by_id[i]["text"]) for i in s.get("blocks", []) if i in by_id and not by_id[i].get("reel_only"))
+                         * SEC_PER_WORD) or float(s.get("hold") or 0)
+        t, cuts = 0.0, 0
+        for s in shots:
+            if t < 30.0:
+                cuts += 1
+            t += sec(s)
+        if cuts < OPEN_CUTS_MIN:
+            errs.append(f"{cuts} لقطةً في أوّل 30 ث (≥ {OPEN_CUTS_MIN}): لقطةٌ كلّ ثانيتين — جملٌ أقصر أو لقطاتٌ صامتة (hold) للأكشن")
+
+    a, b = DANGER
+    zone = [x for x in film if a <= start[x["id"]] < min(b, total)]
+    if zone:
+        marks = [a] + [start[x["id"]] for x in zone if REHOOK.search(plain(x["text"]))] + [min(b, total)]
+        gap = max(q - p for p, q in zip(marks, marks[1:]))
+        if gap > REHOOK_GAP_MAX:
+            errs.append(f"فجوةٌ {gap:.0f} ث بلا إعادة شدٍّ في الدقائق 1–6 (≤ {REHOOK_GAP_MAX:.0f}): موضع النزيف في منحنياتنا")
+
+    if pub.get("series"):
+        tail = [x for x in film if start[x["id"]] >= total - NEXT_TAIL]
+        if not any(NEXT.search(plain(x["text"])) for x in tail):
+            errs.append("فيلمٌ في سلسلة بلا خطّافٍ للحلقة التالية في دقيقته الأخيرة")
+
+    quoted = [x["id"] for x in film if x.get("speaker") and not x.get("claim")]
+    if quoted:
+        errs.append(f"كلماتٌ مأثورة بلا رقم دعوى في السجلّ ({', '.join(quoted[:5])}): النصّ حرفيّاً من مصدره وحده (حكم المالك 2026-10-05)")
+    return errs, warns
+
+
 def load(p: Path, name: str):
     f = p / name
     return json.loads(f.read_text(encoding="utf-8")) if f.exists() else None
@@ -206,11 +284,21 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
         errs.append(f"الفيلم يفتح بتحيّة «{plain(first)[:30]}» — الخطّافُ أوّلاً ثم التحيّة")
     elif words(first) > HOOK_FIRST_MAX:
         errs.append(f"أوّل جملة {words(first)} كلمة (> {HOOK_FIRST_MAX}): الخطّاف صدمةٌ قصيرة لا شرح")
-    head = film[:12]
+    # ⭐ حكم المالك 2026-10-05: الافتتاح البارد مشهدٌ متّصل بلا سؤال، ثم السؤال المركزيّ قبل الدقيقة. والأسئلة المتراكمة
+    #    («فأين… ولماذا… وكيف…») تشويقٌ طويل وافق مواضع المغادرة في منحنياتنا ⇒ سؤالٌ مركزيّ واحد يكفي، وأكثر من ثلاثة تنبيه.
+    t, head = 0.0, []
+    for b in film:
+        if t >= 60.0:
+            break
+        if t >= COLD_MIN:
+            head.append(b)
+        t += words(b["text"]) * SEC_PER_WORD
     loops = sum("؟" in plain(b["text"]) for b in head)
     if loops < OPEN_LOOPS_MIN:
-        errs.append(f"{loops} سؤالٌ فقط في أوّل 12 كتلة (≥ {OPEN_LOOPS_MIN}): حلقاتٌ مفتوحة تُغلق متأخّرة")
-    if not any(PROMISE.search(plain(b["text"])) for b in head):
+        errs.append(f"لا سؤالَ مركزيّاً بين الثانية {COLD_MIN:.0f} و60: حلقةٌ مفتوحة بعد الافتتاح البارد")
+    elif loops > 3:
+        warns.append(f"{loops} أسئلة متتابعة في الدقيقة الأولى: سلسلة أسئلةٍ تشويقٌ طويل — سؤالٌ مركزيّ واحد ثم القصّة")
+    if not any(PROMISE.search(plain(b["text"])) for b in film[:12]):
         warns.append("لا وعدَ صريحاً في الافتتاح («سنحكي…» / «سنكشف…»)")
 
     # ٢. الفصول: كلّ فصلٍ يُختم بمعلّقة ويفتح بخطّافٍ قصير
@@ -290,7 +378,8 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
                 warns.append(f"{t.get('file')}: نصّ المصغّرة يكرّر العنوان — المصغّرة تكمله ولا تعيده")
 
     e2, w2 = pacing(proj, blocks, film, sections, pub)
-    return errs + e2, warns + w2
+    e3, w3 = owner_1005(blocks, film, load(proj, "shots.json") or [], pub)
+    return errs + e2 + e3, warns + w2 + w3
 
 
 def main() -> int:

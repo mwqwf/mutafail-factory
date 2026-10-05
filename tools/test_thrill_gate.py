@@ -28,11 +28,14 @@ GOOD = [B("d1", "سُفُنٌ تَمْشِي عَلَى ظُهُورِ الْإ�
 REELS = [{"id": f"r{i}", "blocks": [f"x{i}a", f"x{i}b"]} for i in (1, 2, 3)]
 RB = [b for i in (1, 2, 3) for b in (B(f"x{i}a", "صَدْمَةٌ قَصِيرَةٌ.", reel_only=True), B(f"x{i}b", "فَمَنْ؟ الْجَوَابُ فِي الْفِيلْمْ.", reel_only=True))]
 SECS = [{"id": "d1", "title": "أ"}, {"id": "d5", "title": "ب"}]
+# ⭐ حكم المالك 2026-10-05: الافتتاح البارد مشهدٌ متّصل ≥ 25 ث بلا سؤال (4 × 14 كلمة × 0.46 ث ≈ 26 ث)
+COLD = [B(f"k{i}", " ".join(["سُيُوفٌ"] * 14) + ".") for i in range(1, 5)]
+SECS_C = [{"id": "k1", "title": "أ"}, {"id": "d5", "title": "ب"}]
 
 
 class ThrillGateTests(unittest.TestCase):
     def test_good_structure_passes(self):
-        errs, _ = g.check(proj(GOOD + RB, SECS, REELS), None)
+        errs, _ = g.check(proj(COLD + GOOD + RB, SECS_C, REELS), None)
         self.assertEqual(errs, [])
 
     def test_greeting_first_flat_chapter_and_two_reels_fail(self):
@@ -62,8 +65,8 @@ class ThrillGateTests(unittest.TestCase):
     # ⭐ الإيقاع والتركيز على المعركة (أمر المالك 2026-10-03)
     def battle(self, phases, words_per=(4, 4, 4, 4)):
         w = lambda n, tail="": " ".join(["كَلِمَةٌ"] * n) + tail
-        blocks = [B("d1", "سُيُوفٌ فِي اللَّيْلِ"), B("d2", "فَمَنْ؟"), B("d3", "وَلِمَاذَا؟")]
-        secs = [{"id": "d1", "title": "افتتاح"}]
+        blocks = COLD + [B("d1", "سُيُوفٌ فِي اللَّيْلِ"), B("d2", "فَمَنْ؟"), B("d3", "وَلِمَاذَا؟")]
+        secs = [{"id": "k1", "title": "افتتاح"}]
         for k, (ph, n) in enumerate(zip(phases, words_per)):
             i = f"c{k}"
             blocks.append(B(i, w(n, "؟")))
@@ -97,8 +100,8 @@ class ThrillGateTests(unittest.TestCase):
     def test_absolute_superlative_in_title_fails_but_qualified_and_takbir_pass(self):
         errs, _ = g.check(proj(GOOD + RB, SECS, REELS, title="أعظم معركة في التاريخ؟"), None)
         self.assertTrue(any("تفضيلٌ مطلق" in e for e in errs))
-        ok = GOOD[:4] + [B("d5", "اللَّهُ أَكْبَرُ")] + GOOD[5:] + RB
-        errs, warns = g.check(proj(ok, SECS, REELS, title="من أعظم معارك التاريخ؟"), None)
+        ok = COLD + GOOD[:4] + [B("d5", "اللَّهُ أَكْبَرُ")] + GOOD[5:] + RB
+        errs, warns = g.check(proj(ok, SECS_C, REELS, title="من أعظم معارك التاريخ؟"), None)
         self.assertEqual(errs, [])
         self.assertFalse(any("تفضيلٌ مطلق" in w for w in warns))
 
@@ -121,6 +124,31 @@ class ThrillGateTests(unittest.TestCase):
         (d / "publish.json").write_text(json.dumps(pub, ensure_ascii=False), encoding="utf-8")
         errs, _ = g.check(d, None)
         self.assertFalse(any("قصّر الفيلم" in e for e in errs))
+
+
+    # ⭐⭐ حكم المالك 2026-10-05: موانع الافتتاح البارد والطلب والأرقام واللقطات والدقائق 1–6 والسلسلة والمأثور
+    def test_owner_1005_rules_fail_and_pass(self):
+        w = lambda n, tail=".": " ".join(["كَلِمَةٌ"] * n) + tail
+        bad = [B("a1", "فَمَنْ هَذَا الرَّجُلُ؟"), B("a2", "ثَلَاثَةُ آلَافٍ أَمَامَ مِئَتَيْ أَلْفٍ سَنَةَ ثَمَانٍ لِلْهِجْرَةِ.")]
+        bad += [B("a3", w(14)), B("a4", "اشْتَرِكُوا فِي الْقَنَاةِ وَفَعِّلُوا الْجَرَسَ؟")]
+        bad += [B(f"z{i}", w(14)) for i in range(20)] + [B("q1", "قَالَ:", speaker="ابن رواحة")]
+        d = proj(bad + RB, [{"id": "a1", "title": "أ"}, {"id": "z0", "title": "ب"}], REELS)
+        pub = json.loads((d / "publish.json").read_text(encoding="utf-8")); pub["series"] = "سيف الله"
+        (d / "publish.json").write_text(json.dumps(pub, ensure_ascii=False), encoding="utf-8")
+        (d / "shots.json").write_text(json.dumps([{"id": "S1", "blocks": ["a1", "a2", "a3", "a4"]}]), encoding="utf-8")
+        text = "\n".join(g.check(d, None)[0])
+        for k in ("قبل الدقيقة الرابعة", "الافتتاح البارد يُقطع", "أرقام في أوّل 30", "تاريخٌ في أوّل 30", "لقطةً في أوّل 30",
+                  "بلا إعادة شدٍّ", "خطّافٍ للحلقة التالية", "بلا رقم دعوى"):
+            self.assertIn(k, text)
+        good = COLD + [B("g1", "فَمَنْ يَرْفَعُ الرَّايَةَ؟")] + [B(f"y{i}", w(14, "…")) for i in range(30)]
+        good += [B("n1", "وَفِي الْحَلْقَةِ الْقَادِمَةِ… حَدِيقَةُ الْمَوْتِ؟"), B("q2", "قَالَ:", speaker="ابن رواحة", claim="م-12")]
+        d2 = proj(good + RB, [{"id": "k1", "title": "أ"}, {"id": "y0", "title": "ب"}], REELS)
+        pub["film"] = {"title": "سؤال؟"}
+        (d2 / "publish.json").write_text(json.dumps(pub, ensure_ascii=False), encoding="utf-8")
+        (d2 / "shots.json").write_text(json.dumps([{"id": f"H{i}", "blocks": [], "hold": 2} for i in range(13)] +
+                                                   [{"id": "S", "blocks": [b["id"] for b in good]}]), encoding="utf-8")
+        text = "\n".join(g.owner_1005(good, good, json.loads((d2 / "shots.json").read_text(encoding="utf-8")), pub)[0])
+        self.assertEqual(text, "")
 
 
 if __name__ == "__main__":

@@ -208,7 +208,8 @@ def reach(ya, rows: list, today: dt.date) -> dict:
 
 
 # أهداف خطّة القياس في وثيقة «بحث الاحتفاظ بالمشاهد» (2026-10-05) — أعلى قليلاً من أفضل ما حقّقناه، لا أرقامٌ مستوردة
-TARGETS = {'بقاء_30ث': 70, 'بقاء_150ث': 40, 'متوسط_المشاهدة_ث': 240, 'طبيعية_يومياً': 300, 'حصة_المقترحات': 50}
+TARGETS = {'بقاء_30ث': 70, 'بقاء_150ث': 40, 'متوسط_المشاهدة_ث': 240, 'طبيعية_يومياً': 300, 'حصة_المقترحات': 50,
+           'نسبي_عشر': 50, 'نسبي_تسعة_أعشار': 50}      # 50 = وسط يوتيوب لما في طول الفيلم (دراسة مؤتة §١)
 SUGGESTED = ('RELATED_VIDEO', 'SUBSCRIBER')     # المقترحات وميزات التصفّح: محرّك الانتشار الطبيعيّ
 
 
@@ -223,9 +224,9 @@ def fresh(ya, per: list, today: dt.date) -> dict:
         curve = []
         try:
             r = ya.reports().query(ids='channel==MINE', startDate=p['النشر'], endDate=today.isoformat(),
-                                   dimensions='elapsedVideoTimeRatio', metrics='audienceWatchRatio',
+                                   dimensions='elapsedVideoTimeRatio', metrics='audienceWatchRatio,relativeRetentionPerformance',
                                    filters='video==%s;audienceType==ORGANIC' % p['id']).execute()
-            curve = [(row[0] * p['الطول_ث'], row[1]) for row in r.get('rows', [])]
+            curve = [(row[0] * p['الطول_ث'], row[1], row[2] if len(row) > 2 else None, row[0]) for row in r.get('rows', [])]
         except Exception:
             pass
 
@@ -234,14 +235,21 @@ def fresh(ya, per: list, today: dt.date) -> dict:
             # 30 هي نقطة الثانية 17 (102٪ لبدر في أوّل تشغيل 2026-10-05). وتُذكر ثانيتها الفعلية مع القيمة.
             if not curve:
                 return None, None
-            t, v = min(curve, key=lambda c: abs(c[0] - sec))
+            t, v = min(curve, key=lambda c: abs(c[0] - sec))[:2]
             return round(100 * v), round(t)
+
+        def rel(ratio):
+            # الأداء النسبيّ (relativeRetentionPerformance): يقارن يوتيوب البقاء في كلّ لحظةٍ بأفلامٍ في طوله، و50 وسطها.
+            # بحث الاحتفاظ 2026-10-05: عند عُشر الفيلم (موضع النزيف بعد الخطّاف) وعند تسعة أعشاره (الخاتمة) كنّا دون الوسط.
+            got = [c for c in curve if c[2] is not None]
+            return round(100 * min(got, key=lambda c: abs(c[3] - ratio))[2]) if got else None
         org = {k: v for k, v in (p.get('المصادر') or {}).items() if k not in PAID}
         tot = sum(v[0] for v in org.values())
         (b30, t30), (b150, t150) = at(30), at(150)
         k = {'بقاء_30ث': b30, 'بقاء_150ث': b150, 'متوسط_المشاهدة_ث': p.get('بقاء_الطبيعية_ث'),
              'طبيعية_يومياً': p.get('طبيعية_يومياً'),
-             'حصة_المقترحات': round(100 * sum(org.get(s, [0])[0] for s in SUGGESTED) / tot) if tot else None}
+             'حصة_المقترحات': round(100 * sum(org.get(s, [0])[0] for s in SUGGESTED) / tot) if tot else None,
+             'نسبي_عشر': rel(0.10), 'نسبي_نصف': rel(0.50), 'نسبي_تسعة_أعشار': rel(0.90)}
         out[p['id']] = {'العنوان': p.get('العنوان'), 'الأيام': p['الأيام'], **k, 'عند_ث': [t30, t150],
                         'تحت_الحدّ': [n for n, t in TARGETS.items() if k[n] is not None and k[n] < t]}
     return out
