@@ -111,6 +111,20 @@ jobs:
       - name: حالةُ النشر من master
         run: git fetch -q origin master && git checkout origin/master -- ops/state/ && cat ops/state/last_publish.json 2>/dev/null | head -40 || true
 
+      # ⭐ بوّابة الافتتاحية قبل النشر (خطّة مؤتة §١٢، وحكم المالك 2026-10-05 بإلغاء طقوس الافتتاحية القديمة دائماً):
+      #    يشاهد جيميناي أوّل أربع دقائق من الفيلم النهائيّ بمعيار تشريح الافتتاحيات (tools/opening_gate.py).
+      #    القصّة دون ثلث أوّل 150 ث، أو منهجٌ أو طلبٌ أو تعريفٌ بالقناة قبل الدقيقة الرابعة، أو تحيّةٌ في الافتتاح البارد ⇒ لا نشر.
+      #    والتعذّر (حصّةٌ أو خطأ) ليس نجاحاً. ولا بوّابة لحمولة ريلزاتٍ وحدها ولا لاستئنافٍ رُفع فيلمه سلفاً.
+      #    والتقرير في العدّاء وحده (فيه تفريغ ما لم يُنشر)، والسجلّ أرقامٌ وأسباب.
+      - name: بوّابة الافتتاحية
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          rc=0; python tools/opening_gate.py proj --keys /tmp/keys.json --out /tmp/opening_gate.json || rc=$?
+          rm -f /tmp/keys.json /tmp/opening_gate.json proj/*.gate.mp4
+          exit $rc
+
       - name: النشر (الفيلم ثم المصغّرة ثم القائمة ثم الريلزان)
         env:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
