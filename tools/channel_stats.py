@@ -161,6 +161,15 @@ def truth(ya, rows: list, today: dt.date) -> dict:
             dd.setdefault(x['day'], {'مدفوعة': 0, 'طبيعية': 0})[k] += x['views']
         daily[p['id']] = dd
     out['يومي_للمموَّلة'] = daily
+    # منحنى البقاء الطبيعيّ (audienceType==ORGANIC) لأعلى الأفلام طبيعيّاً: أين يغادر المشاهد الحقيقيّ بالضبط؟
+    films = sorted([p for p in per if not p.get('ريلز') and p.get('طبيعية', 0) >= 100], key=lambda p: -p['طبيعية_يومياً'])[:8]
+    curves = {}
+    for p in films:
+        got = q(startDate=p['النشر'], dimensions='elapsedVideoTimeRatio', metrics='audienceWatchRatio,relativeRetentionPerformance',
+                filters='video==%s;audienceType==ORGANIC' % p['id'])
+        curves[p['id']] = got if not isinstance(got, list) else [[x['elapsedVideoTimeRatio'], round(x['audienceWatchRatio'], 3),
+                                                                  round(x.get('relativeRetentionPerformance', 0), 3)] for x in got]
+    out['منحنى_البقاء_الطبيعي'] = curves
     return out
 
 
