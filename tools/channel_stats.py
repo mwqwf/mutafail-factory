@@ -206,6 +206,41 @@ def reach(ya, rows: list, today: dt.date) -> dict:
     return {'أخطاء': errs}
 
 
+# أهداف خطّة القياس في وثيقة «بحث الاحتفاظ بالمشاهد» (2026-10-05) — أعلى قليلاً من أفضل ما حقّقناه، لا أرقامٌ مستوردة
+TARGETS = {'بقاء_30ث': 70, 'بقاء_150ث': 40, 'متوسط_المشاهدة_ث': 240, 'طبيعية_يومياً': 300, 'حصة_المقترحات': 50}
+SUGGESTED = ('RELATED_VIDEO', 'SUBSCRIBER')     # المقترحات وميزات التصفّح: محرّك الانتشار الطبيعيّ
+
+
+def fresh(ya, per: list, today: dt.date) -> dict:
+    """مؤشّرات كلّ فيلمٍ جديد (3–14 يوماً) على خطّة القياس: البقاء الطبيعيّ عند 30 ث و150 ث، ومتوسط المشاهدة، والمشاهدات
+    الطبيعية يومياً، وحصّة المقترحات والتصفّح — وما سقط منها دون الحدّ. تحليلات يوتيوب تتأخّر يومين إلى ثلاثة.
+    ⛔ خاصّة: إلى الإصدار المسوّد وحده، لا إلى سجلّ التشغيل العامّ."""
+    out = {}
+    for p in per:
+        if p.get('ريلز') or 'خطأ' in p or not 3 <= p.get('الأيام', 0) <= 14:
+            continue
+        curve = []
+        try:
+            r = ya.reports().query(ids='channel==MINE', startDate=p['النشر'], endDate=today.isoformat(),
+                                   dimensions='elapsedVideoTimeRatio', metrics='audienceWatchRatio',
+                                   filters='video==%s;audienceType==ORGANIC' % p['id']).execute()
+            curve = [(row[0] * p['الطول_ث'], row[1]) for row in r.get('rows', [])]
+        except Exception:
+            pass
+
+        def at(sec):
+            pts = [c for c in curve if c[0] <= sec]
+            return round(100 * pts[-1][1]) if pts else None
+        org = {k: v for k, v in (p.get('المصادر') or {}).items() if k not in PAID}
+        tot = sum(v[0] for v in org.values())
+        k = {'بقاء_30ث': at(30), 'بقاء_150ث': at(150), 'متوسط_المشاهدة_ث': p.get('بقاء_الطبيعية_ث'),
+             'طبيعية_يومياً': p.get('طبيعية_يومياً'),
+             'حصة_المقترحات': round(100 * sum(org.get(s, [0])[0] for s in SUGGESTED) / tot) if tot else None}
+        out[p['id']] = {'العنوان': p.get('العنوان'), 'الأيام': p['الأيام'], **k,
+                        'تحت_الحدّ': [n for n, t in TARGETS.items() if k[n] is not None and k[n] < t]}
+    return out
+
+
 def main(out: str) -> None:
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
@@ -238,7 +273,7 @@ def main(out: str) -> None:
                          'description': (v['snippet'].get('description') or '')[:300]})
     rows = [r for r in rows if r['privacy'] == 'public']
     analytics = 'غير متاحة'
-    ins, tr, rc = {}, {}, {}
+    ins, tr, rc, fk = {}, {}, {}, {}
     try:
         ya = build('youtubeAnalytics', 'v2', credentials=cred, cache_discovery=False)
         start = min(r['published'][:10] for r in rows) if rows else dt.date.today().isoformat()
@@ -257,6 +292,7 @@ def main(out: str) -> None:
         ins = insights(ya, rows, dt.date.today(), yt)
         tr = truth(ya, rows, dt.date.today())
         rc = reach(ya, rows, dt.date.today())
+        fk = fresh(ya, tr.get('لكل_فيديو', []), dt.date.today())
     except HttpError as e:
         analytics = 'غير متاحة: %s' % str(e)[:200]
     except Exception as e:                       # نطاق التحليلات غير ممنوح أو المكتبة غير مثبّتة
@@ -265,7 +301,7 @@ def main(out: str) -> None:
     rep = {'القناة': ch['snippet']['title'], 'تاريخ': dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
            'التحليلات': analytics, 'عدد_العام': len(rows), 'عدد_الريلزات': len(ranked),
            'الريلزات_من_الأضعف': ranked,
-           'رؤى': ins, 'الحقيقة': tr, 'الظهور_والنقر': rc,
+           'رؤى': ins, 'الحقيقة': tr, 'الظهور_والنقر': rc, 'مؤشرات_الأفلام_الجديدة': fk,
            'الأفلام': sorted([r for r in rows if r['seconds'] > SHORT_MAX], key=lambda r: r['published'], reverse=True)}
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     json.dump(rep, io.open(out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)

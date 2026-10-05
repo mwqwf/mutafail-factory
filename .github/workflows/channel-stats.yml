@@ -11,6 +11,9 @@ on:
   push:
     paths: ["ops/stats/*.json"]
   workflow_dispatch:
+  # خطّة القياس (بحث الاحتفاظ بالمشاهد 2026-10-05): مؤشّرات كلّ فيلمٍ جديد يومياً بلا تدخّل، بعد تجدّد حصّة يوتيوب
+  schedule:
+    - cron: "17 7 * * *"
 
 permissions:
   contents: write
@@ -54,9 +57,19 @@ jobs:
         run: |
           set -euo pipefail
           F=$(git show --pretty= --name-only "$GITHUB_SHA")
-          T=$(echo "$F" | grep -qx 'ops/stats/topics.json' && echo 1 || echo 0)
-          C=$(echo "$F" | grep -qx 'ops/stats/competitors.json' && echo 1 || echo 0)
-          O=$(echo "$F" | grep -qx 'ops/stats/openings.json' && echo 1 || echo 0)
+          # ⛔ ما عولج محتواه من قبل لا يُعاد ولو ظهر ملفُّه في إيداعٍ جديد (دمجٌ مضغوط إلى master يحمل الملفّات كلّها،
+          #    والبحث وحده 3000 وحدة): بصمةُ كلّ طلبٍ عولج في done.txt بالإصدار الخاصّ. وإن غاب الدفتر يُبذر بما لم يتغيّر هنا.
+          if ! gh release download channel-stats -p done.txt -D /tmp --clobber 2>/dev/null; then
+            : > /tmp/done.txt
+            for f in ops/stats/topics.json ops/stats/competitors.json ops/stats/openings.json; do
+              [ -f "$f" ] && ! echo "$F" | grep -qxF "$f" && echo "$f:$(sha256sum "$f" | cut -c1-16)" >> /tmp/done.txt || true
+            done
+            gh release upload channel-stats /tmp/done.txt --clobber
+          fi
+          flag() { f="$1"; [ -f "$f" ] || { echo 0; return; }
+                   if grep -qxF "$f:$(sha256sum "$f" | cut -c1-16)" /tmp/done.txt; then echo 0
+                   elif echo "$F" | grep -qxF "$f"; then echo 1; else echo 0; fi; }
+          T=$(flag ops/stats/topics.json); C=$(flag ops/stats/competitors.json); O=$(flag ops/stats/openings.json)
           echo "topics=$T" >> "$GITHUB_OUTPUT"; echo "comp=$C" >> "$GITHUB_OUTPUT"; echo "open=$O" >> "$GITHUB_OUTPUT"
           echo "البحث: $T | المنافسون: $C | الافتتاحيات: $O"
           # الدفتر من master لا من الفرع: هو مصدر الحقيقة لحصّة اليوم (والإنفاق يُحسب عليه)
@@ -73,6 +86,7 @@ jobs:
           python tools/topic_demand.py out/topic_demand.json
           gh release upload channel-stats out/topic_demand.json --clobber
           echo "✅ رُفع تقرير الطلب الخارجيّ إلى الإصدار المسوّد channel-stats"
+          echo "ops/stats/topics.json:$(sha256sum ops/stats/topics.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
       - name: تحليل المنافسين
         if: steps.changed.outputs.comp == '1'
         env:
@@ -82,6 +96,7 @@ jobs:
           python tools/competitors.py out/competitors.json
           gh release upload channel-stats out/competitors.json --clobber
           echo "✅ رُفع تحليل المنافسين إلى الإصدار المسوّد channel-stats"
+          echo "ops/stats/competitors.json:$(sha256sum ops/stats/competitors.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
       # ⭐ تشريح الافتتاحيات: نصفُ مشاهدينا الطبيعيّين يغادرون في أوّل 30 ث ⇒ جيميناي يشاهد أوّل 150 ث من أفلامنا وأفلام
       #    المنافسين الناجحة بمعيارٍ واحد (لا يُخبَر أيُّها لنا). يجلب الفيديو من يوتيوب بنفسه، فلا حصّة يوتيوب ولا تنزيل.
       - name: تشريح الافتتاحيات
@@ -95,6 +110,7 @@ jobs:
           rm -f /tmp/keys.json
           gh release upload channel-stats out/openings.json --clobber
           echo "✅ رُفع تشريح الافتتاحيات إلى الإصدار المسوّد channel-stats"
+          echo "ops/stats/openings.json:$(sha256sum ops/stats/openings.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
       - name: دفتر الحصص إلى master
         if: steps.changed.outputs.topics == '1' || steps.changed.outputs.comp == '1'
         run: |
