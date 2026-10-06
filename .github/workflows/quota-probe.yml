@@ -26,4 +26,7 @@ jobs:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
       - name: الفحص
-        run: node tools/quota_probe.js --keys /tmp/keys.json --model gemini-3.8-flash-tts
+        run: |
+          # «الكلّ»: true في ملفّ الطلب ⇒ يُسأل كلّ مفتاح ويُقرأ مشروعه من ردّ الرفض (توليدةٌ لكلّ مفتاحٍ متاح)
+          ALL=$(python3 -c "import json;print('--all' if json.load(open('ops/probe/tts.json',encoding='utf-8')).get('الكلّ') else '')")
+          node tools/quota_probe.js --keys /tmp/keys.json --model gemini-3.8-flash-tts $ALL

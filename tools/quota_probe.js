@@ -8,6 +8,12 @@ const fs = require('fs');
 
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const MODEL = arg('--model', 'gemini-3.8-flash-tts');
+// --all (مؤتة 2026-10-06، أمر المالك «هناك تسرّب فجد موضعه»): يسأل المفاتيح كلّها ولا يقف عند أوّل نجاح، ويقرأ من ردّ الرفض
+//   المشروعَ الذي يتبعه المفتاح (ErrorInfo.metadata.consumer) فيُعرف كم مشروعاً حقيقياً خلف المفاتيح — والمشروع يُطبع بوسمٍ مموَّه لا برقمه.
+//   كلفته توليدةٌ لكلّ مفتاحٍ متاح، فيُشغَّل والحصّة نافدة (فلا يكلّف شيئاً) أو حين تُقصد الكلفة.
+const ALL = process.argv.includes('--all');
+const crypto = require('crypto');
+const tag = s => 'م' + crypto.createHash('sha256').update(String(s)).digest('hex').slice(0, 4);
 
 function loadKeys(file) {
   const t = fs.readFileSync(file, 'utf8');
@@ -31,7 +37,10 @@ async function ask(key) {
     try { det = JSON.parse(txt)?.error?.details || []; } catch (e) {}
     const v = det.flatMap(d => d.violations || []);
     const retry = det.find(d => /RetryInfo/.test(d['@type'] || ''))?.retryDelay;
-    return { ok: false, status: r.status, ids: v.map(x => x.quotaId), limits: v.map(x => x.quotaValue).filter(Boolean), retry };
+    const md = det.find(d => /ErrorInfo/.test(d['@type'] || ''))?.metadata || {};
+    const consumer = md.consumer || md.consumer_project || md.project || '';
+    return { ok: false, status: r.status, ids: v.map(x => x.quotaId), limits: v.map(x => x.quotaValue).filter(Boolean), retry,
+             consumer, types: det.map(d => String(d['@type'] || '').split('.').pop()) };
   } catch (e) {
     return { ok: false, status: 'net', ids: [], limits: [] };
   }
@@ -41,19 +50,31 @@ async function ask(key) {
   const keys = loadKeys(arg('--keys'));
   const now = new Date();
   console.log(`فحص الحصّة ${now.toISOString()} · النموذج ${MODEL} · المفاتيح ${keys.length}`);
-  const tally = {};
+  const tally = {}, proj = {}, okKeys = [], types = new Set();
   for (let i = 0; i < keys.length; i++) {
     const r = await ask(keys[i]);
     if (r.ok) {
-      console.log(`✅ المفتاح #${i} ولّد: الحصّة متاحة الآن — وقف الفحص بتوليدةٍ واحدة (سبقه ${i} مفتاحاً بلا إنتاج)`);
-      break;
+      if (!ALL) {
+        console.log(`✅ المفتاح #${i} ولّد: الحصّة متاحة الآن — وقف الفحص بتوليدةٍ واحدة (سبقه ${i} مفتاحاً بلا إنتاج)`);
+        break;
+      }
+      okKeys.push(i); await new Promise(z => setTimeout(z, 300)); continue;
     }
+    (r.types || []).forEach(t => types.add(t));
+    if (r.consumer) (proj[tag(r.consumer)] = proj[tag(r.consumer)] || []).push(i);
     const id = (r.ids[0] || ('حالة ' + r.status));
     const t = tally[id] || (tally[id] = { n: 0, limits: new Set(), retries: [] });
     t.n++; r.limits.forEach(x => t.limits.add(x));
     const s = seconds(r.retry); if (s !== null) t.retries.push(s);
-    if (i === keys.length - 1) console.log('⛔ لم يولّد مفتاحٌ واحد');
+    if (i === keys.length - 1 && !okKeys.length) console.log('⛔ لم يولّد مفتاحٌ واحد');
     await new Promise(z => setTimeout(z, 300));
+  }
+  if (ALL) {
+    console.log(`المفاتيح المتاحة الآن (ولّد كلٌّ منها توليدةً واحدة): ${okKeys.length ? okKeys.map(i => '#' + i).join(' ') : 'لا شيء'}`);
+    console.log(`أنواع التفاصيل في ردّ الرفض: ${[...types].join(' ') || '—'}`);
+    const ps = Object.entries(proj).sort((a, b) => b[1].length - a[1].length);
+    console.log(ps.length ? `المشاريع المتمايزة خلف المفاتيح المرفوضة: ${ps.length} — ` + ps.map(([p, ks]) => `${p}: ${ks.map(i => '#' + i).join(' ')}`).join(' | ')
+                          : '⚠️ لا يذكر ردّ الرفض المشروعَ (لا ErrorInfo.consumer)');
   }
   for (const [id, t] of Object.entries(tally)) {
     const rs = t.retries.sort((a, b) => a - b);
