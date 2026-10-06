@@ -1,135 +1,369 @@
 {
  "slug": "mutah-voices",
- "stage1": {
-  "Q1": {
-   "order": [
-    "Iapetus·recitation",
-    "Iapetus·quote",
-    "Enceladus·quote"
+ "styles": {
+  "quote": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+  "recitation": "# AUDIO PROFILE: a classical Arabic poetry reciter.\n## THE SCENE: verses spoken before battle in a historical documentary.\n### DIRECTOR'S NOTES\nStyle: eloquent spoken recitation with firm resolve; NO singing, NO melody, NO chanting rhythm; pause at the half-verse.\nPace: measured.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+ },
+ "pos_styles": {},
+ "roles": {
+  "quote": {
+   "stage1": {
+    "Q1": {
+     "order": [
+      "Algieba·quote",
+      "Enceladus·quote",
+      "Rasalgethi·quote",
+      "Charon·quote",
+      "Umbriel·quote",
+      "Iapetus·quote"
+     ],
+     "leaked": [],
+     "notes": {
+      "Algieba·quote": "أداء ممتاز يجمع بين الهيبة والوضوح المخارجي، مع إيقاع ملحمي متزن ومقنع للغاية دون تكلف.",
+      "Enceladus·quote": "صوت قوي ذو حضور مميز ونقاء عالٍ، النطق الفصيح سليم جداً والوقوف مريح.",
+      "Rasalgethi·quote": "نبرة حماسية جيدة ومناسبة للتشويق، لكن الإيقاع كان سريعاً نسبياً في الشطر الثاني.",
+      "Charon·quote": "الوضوح والنقاء ممتازان، لكن الأداء يميل إلى الرتابة ويفتقر إلى الهيبة والعمق المطلوب للشخصية.",
+      "Umbriel·quote": "أداء مقبول، لكن هناك ضعف طفيف في نبرة الصوت عند نهاية الجملة (شهادة) مما قلل من هيبة الإلقاء.",
+      "Iapetus·quote": "الصوت جهوري ومميز، لكن الإلقاء احتوى على تمثيل مصطنع وتكلف زائد يخرج عن الطبيعية."
+     }
+    }
+   },
+   "metrics": {
+    "Iapetus·quote": {
+     "Q1": {
+      "dur": 8.44,
+      "lufs": -14.2,
+      "lra": 2.5,
+      "f0": 142.9,
+      "pitch_sd_st": 3.37,
+      "cps": 5.3
+     }
+    },
+    "Enceladus·quote": {
+     "Q1": {
+      "dur": 9.48,
+      "lufs": -18.9,
+      "lra": 2.8,
+      "f0": 102.6,
+      "pitch_sd_st": 2.75,
+      "cps": 4.7
+     },
+     "Q2": {
+      "dur": 9.68,
+      "lufs": -16.9,
+      "lra": 4.7,
+      "f0": 115.9,
+      "pitch_sd_st": 2.62,
+      "cps": 5.8
+     },
+     "ALL": {
+      "dur": 20.06,
+      "lufs": -17.7,
+      "lra": 6.3,
+      "f0": 111.1,
+      "pitch_sd_st": 3.05,
+      "cps": 5.0
+     }
+    },
+    "Rasalgethi·quote": {
+     "Q1": {
+      "dur": 8.84,
+      "lufs": -18.7,
+      "lra": 4.1,
+      "f0": 112.7,
+      "pitch_sd_st": 2.43,
+      "cps": 5.1
+     },
+     "Q2": {
+      "dur": 10.52,
+      "lufs": -21.4,
+      "lra": 4.6,
+      "f0": 100.6,
+      "pitch_sd_st": 2.78,
+      "cps": 5.3
+     },
+     "ALL": {
+      "dur": 20.26,
+      "lufs": -20.0,
+      "lra": 7.0,
+      "f0": 108.1,
+      "pitch_sd_st": 2.84,
+      "cps": 5.0
+     }
+    },
+    "Umbriel·quote": {
+     "Q1": {
+      "dur": 8.08,
+      "lufs": -13.7,
+      "lra": 2.9,
+      "f0": 100.6,
+      "pitch_sd_st": 2.79,
+      "cps": 5.6
+     }
+    },
+    "Algieba·quote": {
+     "Q1": {
+      "dur": 9.6,
+      "lufs": -17.1,
+      "lra": 2.8,
+      "f0": 103.2,
+      "pitch_sd_st": 2.96,
+      "cps": 4.7
+     },
+     "Q2": {
+      "dur": 9.2,
+      "lufs": -17.7,
+      "lra": 2.3,
+      "f0": 89.4,
+      "pitch_sd_st": 3.03,
+      "cps": 6.1
+     },
+     "ALL": {
+      "dur": 19.7,
+      "lufs": -17.4,
+      "lra": 3.7,
+      "f0": 97.6,
+      "pitch_sd_st": 3.17,
+      "cps": 5.1
+     }
+    },
+    "Charon·quote": {
+     "Q1": {
+      "dur": 8.08,
+      "lufs": -16.9,
+      "lra": 4.7,
+      "f0": 108.8,
+      "pitch_sd_st": 2.75,
+      "cps": 5.6
+     }
+    }
+   },
+   "generated": 9,
+   "suspect_duration": [],
+   "finalists": [
+    "Algieba·quote",
+    "Enceladus·quote",
+    "Rasalgethi·quote"
    ],
    "leaked": [],
-   "notes": {}
+   "final": {
+    "order": [
+     "Algieba·quote",
+     "Enceladus·quote",
+     "Rasalgethi·quote"
+    ],
+    "leaked": [],
+    "notes": {
+     "Algieba·quote": "أداء رصين وقوي يتميز بالهيبة والوقار، ومخارج الحروف واضحة وسليمة تماماً مع إيقاع مشوق وطبيعي.",
+     "Enceladus·quote": "صوت عميق وحضور جيد، لكنه يفتقر قليلاً إلى رنين وفخامة العينة الأولى مع نبرة أقل حيوية.",
+     "Rasalgethi·quote": "الأداء يميل إلى التكلف والتمثيل المسرحي الزائد، مما يقلل من واقعية وصدق الاقتباس التاريخي."
+    },
+    "model": "gemini-3.5-flash"
+   },
+   "winner": {
+    "voice": "Algieba",
+    "style": "quote",
+    "director": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "order": [
+     "Algieba·quote",
+     "Enceladus·quote",
+     "Rasalgethi·quote"
+    ]
+   }
   },
-  "Q2": {
-   "order": [
-    "Charon·quote",
-    "Iapetus·recitation",
-    "Enceladus·recitation"
+  "poetry": {
+   "stage1": {
+    "P1": {
+     "order": [
+      "Enceladus·recitation",
+      "Rasalgethi·recitation",
+      "Algieba·recitation",
+      "Iapetus·recitation",
+      "Umbriel·recitation"
+     ],
+     "leaked": [
+      "Charon·recitation"
+     ],
+     "notes": {
+      "Enceladus·recitation": "أداء ممتاز، صوت جهوري فخم ومليء بالهيبة، نطق سليم تماماً ومناسب جداً للمشاهد الملحمية.",
+      "Rasalgethi·recitation": "إلقاء قوي وواضح، مخارج الحروف صحيحة والتشكيل دقيق، الإيقاع ممتاز ومناسب للتشويق.",
+      "Algieba·recitation": "صوت نقي وحضور جيد، لكن الإيقاع كان سريعاً نوعاً ما مما قلل من هيبة الإلقاء.",
+      "Iapetus·recitation": "الأداء جيد ولكن الصوت يفتقر إلى العمق والرخامة المطلوبة في الأفلام الوثائقية التاريخية.",
+      "Umbriel·recitation": "وقع القارئ في خطأ في التشكيل حيث نطق 'طيبةٌ' بالرفع بدلاً من النصب 'طيبةً'.",
+      "Charon·recitation": "تحتوي العينة على توجيهات باللغة الإنجليزية في البداية (تم استبعادها إلى ذيل الترتيب)."
+     }
+    }
+   },
+   "metrics": {
+    "Iapetus·recitation": {
+     "P1": {
+      "dur": 8.0,
+      "lufs": -15.8,
+      "lra": 2.7,
+      "f0": 122.6,
+      "pitch_sd_st": 2.5,
+      "cps": 4.5
+     }
+    },
+    "Enceladus·recitation": {
+     "P1": {
+      "dur": 7.96,
+      "lufs": -16.7,
+      "lra": 4.1,
+      "f0": 110.3,
+      "pitch_sd_st": 3.56,
+      "cps": 4.5
+     },
+     "P2": {
+      "dur": 8.68,
+      "lufs": -15.7,
+      "lra": 1.0,
+      "f0": 125.0,
+      "pitch_sd_st": 3.18,
+      "cps": 4.1
+     },
+     "P3": {
+      "dur": 7.72,
+      "lufs": -17.4,
+      "lra": 4.2,
+      "f0": 119.0,
+      "pitch_sd_st": 4.96,
+      "cps": 4.1
+     },
+     "ALL": {
+      "dur": 25.71,
+      "lufs": -16.5,
+      "lra": 4.1,
+      "f0": 120.3,
+      "pitch_sd_st": 4.08,
+      "cps": 4.0
+     }
+    },
+    "Rasalgethi·recitation": {
+     "P1": {
+      "dur": 8.04,
+      "lufs": -15.2,
+      "lra": 1.8,
+      "f0": 132.2,
+      "pitch_sd_st": 1.11,
+      "cps": 4.5
+     },
+     "P2": {
+      "dur": 7.64,
+      "lufs": -18.6,
+      "lra": 4.3,
+      "f0": 117.6,
+      "pitch_sd_st": 1.74,
+      "cps": 4.7
+     },
+     "P3": {
+      "dur": 7.76,
+      "lufs": -15.2,
+      "lra": 2.6,
+      "f0": 149.5,
+      "pitch_sd_st": 2.4,
+      "cps": 4.1
+     },
+     "ALL": {
+      "dur": 24.79,
+      "lufs": -16.0,
+      "lra": 6.3,
+      "f0": 131.1,
+      "pitch_sd_st": 2.27,
+      "cps": 4.2
+     }
+    },
+    "Umbriel·recitation": {
+     "P1": {
+      "dur": 7.36,
+      "lufs": -16.8,
+      "lra": 2.0,
+      "f0": 110.3,
+      "pitch_sd_st": 2.7,
+      "cps": 4.9
+     }
+    },
+    "Algieba·recitation": {
+     "P1": {
+      "dur": 7.52,
+      "lufs": -17.2,
+      "lra": 2.6,
+      "f0": 79.2,
+      "pitch_sd_st": 2.28,
+      "cps": 4.8
+     },
+     "P2": {
+      "dur": 9.72,
+      "lufs": -16.0,
+      "lra": 3.4,
+      "f0": 92.0,
+      "pitch_sd_st": 1.96,
+      "cps": 3.7
+     },
+     "P3": {
+      "dur": 7.16,
+      "lufs": -16.5,
+      "lra": 1.4,
+      "f0": 96.4,
+      "pitch_sd_st": 2.14,
+      "cps": 4.5
+     },
+     "ALL": {
+      "dur": 25.75,
+      "lufs": -16.5,
+      "lra": 3.7,
+      "f0": 90.4,
+      "pitch_sd_st": 2.48,
+      "cps": 4.0
+     }
+    },
+    "Charon·recitation": {
+     "P1": {
+      "dur": 7.2,
+      "lufs": -16.6,
+      "lra": 1.7,
+      "f0": 115.1,
+      "pitch_sd_st": 3.35,
+      "cps": 5.0
+     }
+    }
+   },
+   "generated": 12,
+   "suspect_duration": [],
+   "finalists": [
+    "Enceladus·recitation",
+    "Rasalgethi·recitation",
+    "Algieba·recitation"
    ],
-   "leaked": [],
-   "notes": {}
-  },
-  "P1": {
-   "order": [
-    "Rasalgethi·quote",
-    "Enceladus·recitation"
+   "leaked": [
+    "Charon·recitation"
    ],
-   "leaked": [],
-   "notes": {}
-  },
-  "P2": {
-   "order": [
-    "Enceladus·recitation"
-   ],
-   "leaked": [],
-   "notes": {
-    "Enceladus·recitation": "أداء ملحمي فخم ومهيب بنبرة رخيمة ونطق فصيح وسليم، ملائم تماماً للأفلام الوثائقية التاريخية."
+   "final": {
+    "order": [
+     "Rasalgethi·recitation",
+     "Enceladus·recitation",
+     "Algieba·recitation"
+    ],
+    "leaked": [],
+    "notes": {
+     "Rasalgethi·recitation": "أداء ملحمي رائع، حضور قوي وصوت جهوري يناسب تماماً أجواء المعارك الوثائقية، مع التزام ممتاز بالتشكيل والوقفات.",
+     "Enceladus·recitation": "نبرة قوية ومخارج حروف واضحة، لكن الأداء يميل قليلاً إلى التكلف والتمثيل المسرحي الزائد.",
+     "Algieba·recitation": "الصوت رخيم ولكنه بطيء ورتيب، يفتقر إلى الحماسة والعزم المطلوبين لإلقاء الرجز قبل القتال."
+    },
+    "model": "gemini-3.5-flash"
+   },
+   "winner": {
+    "voice": "Rasalgethi",
+    "style": "recitation",
+    "director": "# AUDIO PROFILE: a classical Arabic poetry reciter.\n## THE SCENE: verses spoken before battle in a historical documentary.\n### DIRECTOR'S NOTES\nStyle: eloquent spoken recitation with firm resolve; NO singing, NO melody, NO chanting rhythm; pause at the half-verse.\nPace: measured.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "order": [
+     "Rasalgethi·recitation",
+     "Enceladus·recitation",
+     "Algieba·recitation"
+    ]
    }
   }
  },
- "metrics": {
-  "Enceladus·quote": {
-   "Q1": {
-    "dur": 8.64,
-    "lufs": -18.2,
-    "lra": 2.1,
-    "f0": 103.2,
-    "pitch_sd_st": 1.8,
-    "cps": 5.2
-   }
-  },
-  "Enceladus·recitation": {
-   "Q2": {
-    "dur": 8.72,
-    "lufs": -16.9,
-    "lra": 2.2,
-    "f0": 117.6,
-    "pitch_sd_st": 1.89,
-    "cps": 6.4
-   },
-   "P1": {
-    "dur": 7.8,
-    "lufs": -15.6,
-    "lra": 3.5,
-    "f0": 125.0,
-    "pitch_sd_st": 2.43,
-    "cps": 4.6
-   },
-   "P2": {
-    "dur": 8.76,
-    "lufs": -14.7,
-    "lra": 4.5,
-    "f0": 107.4,
-    "pitch_sd_st": 2.33,
-    "cps": 4.1
-   }
-  },
-  "Iapetus·quote": {
-   "Q1": {
-    "dur": 9.2,
-    "lufs": -15.3,
-    "lra": 1.9,
-    "f0": 130.1,
-    "pitch_sd_st": 4.3,
-    "cps": 4.9
-   }
-  },
-  "Iapetus·recitation": {
-   "Q1": {
-    "dur": 9.32,
-    "lufs": -16.2,
-    "lra": 1.8,
-    "f0": 116.8,
-    "pitch_sd_st": 2.86,
-    "cps": 4.8
-   },
-   "Q2": {
-    "dur": 9.88,
-    "lufs": -15.5,
-    "lra": 2.6,
-    "f0": 112.7,
-    "pitch_sd_st": 2.85,
-    "cps": 5.7
-   }
-  },
-  "Rasalgethi·quote": {
-   "P1": {
-    "dur": 7.6,
-    "lufs": -21.6,
-    "lra": 6.8,
-    "f0": 91.4,
-    "pitch_sd_st": 3.55,
-    "cps": 4.7
-   }
-  },
-  "Charon·quote": {
-   "Q2": {
-    "dur": 8.84,
-    "lufs": -19.6,
-    "lra": 2.8,
-    "f0": 95.2,
-    "pitch_sd_st": 3.01,
-    "cps": 6.3
-   }
-  }
- },
- "generated": 9,
- "suspect_duration": [],
- "finalists": [
-  "Iapetus·recitation",
-  "Charon·quote",
-  "Enceladus·recitation"
- ],
- "leaked": [],
- "judge_calls": 1
+ "generated": 21,
+ "judge_calls": 4
 }
