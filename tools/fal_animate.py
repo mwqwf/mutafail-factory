@@ -64,6 +64,12 @@ ledger = json.load(io.open(LEDGER, encoding='utf-8')) if os.path.exists(LEDGER) 
 pend = json.load(io.open(PEND, encoding='utf-8')) if os.path.exists(PEND) else {}
 spent = lambda: sum(x['cost_usd'] for x in ledger) + sum(v.get('cost_usd', 0) for v in pend.values())
 save = lambda f, d: io.open(f, 'w', encoding='utf-8').write(json.dumps(d, ensure_ascii=False, indent=1))
+# ⭐ تجربةٌ محدودة قبل الإنفاق كلّه (مؤتة 2026-10-06: «تجربة Kling على 6–8 لقطات» قبل الموجتين):
+#    FAL_TRIAL_USD سقفُ ما يُنفق في هذا الشوط وحده فوق ما أُنفق قبله، ولا يرفع السقف المشترك بحال.
+#    والسجلّ والمقاطع تعبر بين الأشواط، فالشوط التالي يكمل بما بقي ولا يعيد ما حُرِّك.
+if os.environ.get('FAL_TRIAL_USD'):
+    BUDGET = min(BUDGET, spent() + float(os.environ['FAL_TRIAL_USD']))
+    print('تجربة: سقف هذا الشوط %.2f$ (أُنفق قبله %.2f$)' % (BUDGET, spent()), flush=True)
 
 
 FILE = {s['id']: s['file'] for s in shots if s.get('file')}   # لقطتان قد تتشاركان صورةً بحركتين (الدليل §٣) ⇒ الصورة باسم file لا بمعرّف اللقطة

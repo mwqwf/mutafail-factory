@@ -284,6 +284,9 @@ jobs:
         run: |
           # preview (مؤتة 2026-10-06): عيّنةٌ قبل أيّ إنفاق — لا fal، والمونتاج يملأ كلّ لقطةٍ حيّة بالمجسّم (mont_hybrid)
           if [ "$STAGE" != preview ]; then
+            # trial_usd في ملفّ الأمر = تجربةٌ محدودة: سقف إنفاق هذا الشوط وحده (مؤتة 2026-10-06)، ثم شوطٌ بلا الحقل يكمل بما بقي
+            T=$(python3 -c "import json,sys;v=json.load(open(sys.argv[1],encoding='utf-8')).get('trial_usd');print(float(v) if v else '')" "ops/run/$SLUG.json" 2>/dev/null || true)
+            [ -n "$T" ] && export FAL_TRIAL_USD="$T" && echo "تجربة تحريكٍ محدودة: $T\$"
             python tools/fal_animate.py proj
             python tools/sfx_gate.py proj || true
           fi
