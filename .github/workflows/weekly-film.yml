@@ -333,7 +333,14 @@ jobs:
           fi
           gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
             gh release create "$SLUG-out" -R "$GITHUB_REPOSITORY" --draft --title "مخرجات $SLUG (مراجعة)" --notes "خاص — مسوّدة."
-          gh release upload "$SLUG-out" out/* -R "$GITHUB_REPOSITORY" --clobber
+          # ⛔ مؤتة 2026-10-06 (الشوط 96): ردّ GitHub بـ502 أثناء استبدال أصلٍ فسقطت الخطوة. ولو وقع على الحالة بعد حذف القديمة
+          #    (--clobber يحذف ثم يرفع) لضاع صوت اليوم كلّه ⇒ إعادة الرفع حتى ثلاث مرّات، والملفّات ما زالت على العدّاء فالإعادة تستردّ ما حُذف
+          up=0
+          for i in 1 2 3; do
+            gh release upload "$SLUG-out" out/* -R "$GITHUB_REPOSITORY" --clobber && { up=1; break; }
+            echo "::warning::أخفق رفع المخرجات (المحاولة $i) — إعادةٌ بعد $((i * 20)) ث"; sleep $((i * 20))
+          done
+          [ "$up" = 1 ] || { echo "::error::لم تُرفع المخرجات بعد ثلاث محاولات"; exit 1; }
           # بعد نجاح الرفع فقط: يُحذف ملفّ الحالة القديم الواحد وما زاد من أجزاءٍ قديمة
           for a in $(gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -E '^state\.tgz(\.part_[0-9]+)?$'); do
             [ -f "out/$a" ] || gh release delete-asset "$SLUG-out" "$a" -R "$GITHUB_REPOSITORY" -y
