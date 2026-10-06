@@ -43,8 +43,51 @@ async function find(key) {
   return { project: null, seen };
 }
 
+// الطريق الثاني (حين لا تقبل المفاتيحُ واجهاتٍ غير جيميناي — مقصورةٌ عليه): ملفّات Files API تُحفظ لكلّ مشروع،
+// فيُرفع بكلّ مفتاحٍ ملفٌّ صغير، ثم يُسأل كلّ مفتاحٍ أيّ الملفّات يرى: من يرى ملفّ غيره فهما في مشروعٍ واحد.
+// لا توليد ولا صرف من حصّة الصوت، والملفّات تُحذف بعد الفحص (وتنتهي وحدها بعد 48 ساعة).
+const GL = 'https://generativelanguage.googleapis.com';
+async function viaFiles(keys) {
+  const mine = {};
+  for (let i = 0; i < keys.length; i++) {
+    try {
+      const r = await fetch(`${GL}/upload/v1beta/files?uploadType=media&key=${keys[i]}`, {
+        method: 'POST', headers: { 'content-type': 'text/plain' }, body: 'probe ' + i });
+      const j = await r.json();
+      const name = j?.file?.name || j?.name;
+      if (name) mine[name] = i; else console.log(`  #${i}: تعذّر الرفع (${r.status} ${(j?.error?.status || '')})`);
+    } catch (e) { console.log(`  #${i}: تعذّر الرفع (شبكة)`); }
+    await new Promise(z => setTimeout(z, 150));
+  }
+  const parent = keys.map((_, i) => i);
+  const root = x => (parent[x] === x ? x : (parent[x] = root(parent[x])));
+  for (let i = 0; i < keys.length; i++) {
+    try {
+      const r = await fetch(`${GL}/v1beta/files?pageSize=100&key=${keys[i]}`);
+      const j = await r.json();
+      for (const f of j.files || []) if (f.name in mine) parent[root(mine[f.name])] = root(i);
+    } catch (e) {}
+    await new Promise(z => setTimeout(z, 150));
+  }
+  for (const [name, i] of Object.entries(mine)) {
+    try { await fetch(`${GL}/v1beta/${name}?key=${keys[i]}`, { method: 'DELETE' }); } catch (e) {}
+  }
+  const groups = {};
+  for (const i of Object.values(mine)) (groups['م' + root(i)] = groups['م' + root(i)] || []).push(i);
+  return { groups, uploaded: Object.keys(mine).length };
+}
+
 (async () => {
   const keys = loadKeys(arg('--keys'));
+  if (process.argv.includes('--files')) {
+    console.log(`خريطة المشاريع بالملفّات ${new Date().toISOString()} · المفاتيح ${keys.length} · بلا توليد`);
+    const { groups, uploaded } = await viaFiles(keys);
+    const gs = Object.values(groups).sort((a, b) => b.length - a.length);
+    console.log(`رُفع ${uploaded} ملفّاً · المشاريع المتمايزة: ${gs.length} · السعة اليومية لنموذج الصوت ≈ ${gs.length} × 10 = ${gs.length * 10}`);
+    const shared = gs.filter(g => g.length > 1);
+    console.log(shared.length ? `مشاريع تحمل أكثر من مفتاح: ${shared.map(g => g.map(i => '#' + i).join(' ')).join(' | ')}` : 'كلّ مفتاحٍ في مشروعٍ مستقلّ');
+    return;
+  }
   console.log(`خريطة المشاريع ${new Date().toISOString()} · المفاتيح ${keys.length} · بلا نداءٍ لجيميناي`);
   const groups = {}, unknown = [];
   for (let i = 0; i < keys.length; i++) {
