@@ -3,6 +3,7 @@
 وتصييرٌ قصيرٌ بأصولٍ اصطناعيةٍ للاختبار وحده (لا صورة محتوى)."""
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -68,6 +69,10 @@ class CardsTest(unittest.TestCase):
         self.assertFalse([c for c in specs if c['role'] == 'label'])    # ولا يرسمها kinetic مرّةً ثانية بلا ميل
 
 
+HAS_FF = shutil.which('ffmpeg') is not None
+
+
+@unittest.skipUnless(HAS_FF, 'ffmpeg غير مثبّت (يُثبَّت في quality-tests.yml فيعمل هناك)')
 class RenderTest(unittest.TestCase):
     def test_short_clip_reveals_arrow_and_pops_unit(self):
         d = tempfile.mkdtemp()
