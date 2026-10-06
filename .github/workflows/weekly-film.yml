@@ -7,7 +7,7 @@ run-name: 🎬 ${{ inputs.slug || github.event.head_commit.message }} · ${{ inp
 # المخرج: إصدار مسوّدة <slug>-out (معاينة 480p + لوحات إطارات + تقارير الصوت والإصغاء + الفيلم والشورتات)
 #         وإصدار <slug>-payload مختوم جاهز لـ sealed-publish.yml بعد مراجعة الجلسة.
 # المستودع عامّ والعدّاء قياسي ⇒ مجاني. والإصدارات المسوّدة لا يراها إلا صاحب المستودع.
-# ⛔ الصوت: gemini-3.8-flash-tts وحده، بلا توجيه أداء (درسا اليرموك). ⛔ fal لا يتجاوز budget_usd.
+# ⛔ الصوت: نموذجٌ واحد في الفيلم — gemini-3.8-flash-tts افتراضاً، وغيرُه بحقل model في ملفّ الأمر (أمر المالك 2026-10-06) — بلا توجيه أداء (درسا اليرموك). ⛔ fal لا يتجاوز budget_usd.
 on:
   workflow_dispatch:
     inputs:
@@ -40,6 +40,7 @@ jobs:
     outputs:
       slug: ${{ steps.r.outputs.slug }}
       stage: ${{ steps.r.outputs.stage }}
+      model: ${{ steps.r.outputs.model }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 2 }
@@ -59,8 +60,11 @@ jobs:
           import json,sys,re
           d=json.load(open(sys.argv[1],encoding='utf-8'))
           slug=d['slug']; stage=d.get('stage','all')
+          # نموذج الصوت (أمر المالك 2026-10-06: «حاول توليد الصوت بنموذج 3.8 الذي يليه مباشرة»): الأحدث افتراضاً
+          model=d.get('model','gemini-3.8-flash-tts')
           assert re.fullmatch(r'[a-z0-9-]+',slug) and stage in ('all','audio','animate','clips','visuals','preview')
-          print('slug='+slug); print('stage='+stage)
+          assert model in ('gemini-3.8-flash-tts','gemini-3.8-flash-lite-tts','gemini-3.1-flash-tts-preview')
+          print('slug='+slug); print('stage='+stage); print('model='+model)
           PY
 
   film:
@@ -71,6 +75,7 @@ jobs:
     env:
       SLUG: ${{ needs.resolve.outputs.slug }}
       STAGE: ${{ needs.resolve.outputs.stage }}
+      TTS_MODEL: ${{ needs.resolve.outputs.model || 'gemini-3.8-flash-tts' }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -130,7 +135,7 @@ jobs:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
 
-      - name: ① الصوت (gemini-3.8-flash-tts) + الفحوص الآلية — حتى ست جولات
+      - name: ① الصوت (${{ env.TTS_MODEL }}) + الفحوص الآلية — حتى ست جولات
         # visuals (الأرك 2026-10-04): لا توليد صوت — حين تنفد حصّته يُحرَّك ما لا يحتاجه وتُصنع عيّنةٌ مما اكتمل صوته
         if: env.STAGE != 'animate' && env.STAGE != 'visuals' && env.STAGE != 'preview'
         run: |
@@ -150,6 +155,21 @@ jobs:
           }
           ( while sleep 180; do beat pending || true; done ) & BEAT=$!
           trap 'kill $BEAT 2>/dev/null; beat done || true' EXIT
+          # ⭐ نموذجٌ واحد في الفيلم الواحد (أمر المالك 2026-10-06: «حاول توليد الصوت بنموذج 3.8 الذي يليه مباشرة»):
+          #    صوتٌ محفوظ من نموذجٍ آخر يُنقل إلى audio_prev_<نموذجه> ويُحفظ مع الحالة للمقارنة، ولا يُتبنّى منه شيء.
+          #    والرجوع إلى نموذجٍ سبق يستعيد صوته. وما لا وسم له فهو من الأحدث (كلّ ما قبل هذا الأمر).
+          if [ -d proj/audio ]; then
+            cur=$(cat proj/audio/.model 2>/dev/null || echo gemini-3.8-flash-tts)
+            if [ "$cur" != "$TTS_MODEL" ]; then
+              mkdir -p "proj/audio_prev_$cur" && cp -a proj/audio/. "proj/audio_prev_$cur/" && rm -rf proj/audio
+              [ -d "proj/audio_prev_$TTS_MODEL" ] && mv "proj/audio_prev_$TTS_MODEL" proj/audio
+              echo "↻ صوت هذا الشوط بـ$TTS_MODEL؛ وحُفظ صوت $cur ($(ls proj/audio_prev_$cur/*.wav 2>/dev/null | wc -l) كتلة) في audio_prev_$cur ولا يُخلط"
+            fi
+          fi
+          mkdir -p proj/audio && echo "$TTS_MODEL" > proj/audio/.model
+          # ⭐ خريطة المشاريع (مجّانيّة، بلا توليد): 43 مفتاحاً في 31 مشروعاً، فالإيقاع والاستراحة لكلّ مشروع (tools/gen25.js)
+          node tools/key_projects.js --keys /tmp/keys.json --files --out /tmp/groups.json || true
+          [ -s /tmp/groups.json ] && echo "GEN_GROUPS=/tmp/groups.json" >> "$GITHUB_ENV" && export GEN_GROUPS=/tmp/groups.json
           # regen.txt في الحمولة = كتلٌ تغيّر نصُّها بعد التوليد (تحكيم الإصغاء) ⇒ يُحذف صوتُها ليُعاد
           # ⛔ مرّةً واحدة لكلّ حمولةٍ مختومة (الأرك 2026-10-04): شوطٌ ثانٍ بالحمولة نفسها — بعد نفاد الحصّة مثلاً — كان يحذف
           #    من جديد ما وُلّد في الشوط الأوّل. البصمة: بصمة الحمولة (لكلّ ختمٍ مفتاحٌ جديد)، وإلا فالنصوص وقائمة الإعادة معاً.
@@ -164,11 +184,12 @@ jobs:
           fi
           # قصُّ ما نُطق من توجيهٍ إنجليزي في أول الكتلة (lead_cut) صوتاً ومقطعَ راوٍ، قبل الفحص والإصغاء ليُتحقَّق منه
           # audio_fix/ في الحمولة: صوتٌ مصحَّح يغلب ما في حالة الشوط السابق (مثلاً صوتٌ أُعيد توليده خطأً وله مقطع راوٍ مدفوع)
-          [ -d proj/audio_fix ] && cp proj/audio_fix/*.wav proj/audio/ || true
+          #    وصوت audio_fix كلّه من النموذج الأحدث، فلا يُنسخ في شوطٍ بغيره (لا خلط)
+          [ -d proj/audio_fix ] && [ "$TTS_MODEL" = gemini-3.8-flash-tts ] && cp proj/audio_fix/*.wav proj/audio/ || true
           python tools/trim_lead.py proj
           # ست جولات: النقرات المعزولة عشوائية في بعض الأصوات (Schedar)، فتنجح غالباً بالإعادة (الزلاقة 2026-09-28)
           for i in 1 2 3 4 5 6; do
-            node tools/gen25.js proj 12 --keys /tmp/keys.json --model gemini-3.8-flash-tts || true
+            node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$TTS_MODEL" || true
             python tools/audio_checks.py proj && break
           done
           # ⭐ التقطير (الأرك 2026-10-04): بعد «حدّ اليوم» (PerDay) مرّ في كلّ شوطٍ جديد نحو 15 توليدة (الأشواط 79–81: 25 ثم 16 ثم 15)،
@@ -180,13 +201,14 @@ jobs:
           for j in $(seq 1 8); do
             m0=$(miss); [ "$m0" -eq 0 ] && break
             echo "↻ تقطير $j: الناقص $m0"; sleep 300
-            node tools/gen25.js proj 12 --keys /tmp/keys.json --model gemini-3.8-flash-tts || true
+            node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$TTS_MODEL" || true
             python tools/audio_checks.py proj || true
             m1=$(miss); echo "   بعدها: $m1"; [ "$m1" -lt "$m0" ] || break
           done
           # ⛔ لا رجوع إلى نماذج 2.5 حين تنفد حصّة 3.8 (الدليل §٦ «لا رجوع للنماذج القديمة» — تدقيق كوديكس MF-02):
           #    كانت تُخلط في الفيلم الواحد كتلٌ من نموذجين. ما نقص يبقى ناقصاً، والحالة تُحفظ (⑤ always)،
-          #    والشوطُ التالي بعد تجدّد الحصّة يكمل من حيث وقف: منتصف الليل UTC (مقيس 2026-10-06 بمهلة الرفع)، فالاستئناف 00:05Z.
+          #    والشوطُ التالي بعد تجدّد الحصّة يكمل من حيث وقف. ووقت التجدّد غير محسوم: توثيق جوجل يقول منتصف ليل المحيط الهادئ
+          #    (07:00Z صيفاً)، وهو ما وجده المالك بالتجربة، ومهلة الرفع في ردود 429 تشير إلى 00:00Z.
           REEL_SOFT=1 python tools/audio_checks.py proj
 
       - name: ② الإصغاء المشكول (كتلة كتلة) — تقريرٌ للتحكيم
@@ -217,7 +239,7 @@ jobs:
           for i in 1 2 3; do
             python tools/style_leak.py proj && break
             # حين تنفد حصّة النموذج الأساسي تُعاد الكتلة بالنماذج الاحتياطية (القسطنطينية 2026-09-28: d_003 بقي «nokeys»)
-            node tools/gen25.js proj 12 --keys /tmp/keys.json --model gemini-3.8-flash-tts || true   # النموذج المعتمد وحده (MF-02)
+            node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$TTS_MODEL" || true   # النموذج المعتمد وحده (MF-02)
             python tools/audio_checks.py proj || true
             for m in "" gemini-flash-latest gemini-3.8-flash gemini-3.5-flash-lite; do
               node tools/listen.js proj 12 --keys /tmp/keys.json --batch 1 ${m:+--model "$m"} || true
@@ -284,7 +306,7 @@ jobs:
           set -euo pipefail
           mkdir -p out
           # ⛔ حدّ الأصل في GitHub 2 غ.ب ⇒ أجزاءٌ من 1.9 غ.ب (tools/state_fetch.sh يجمعها)
-          tar czf - -C proj $(cd proj && ls -d audio listen_results.json audio_checks.json fal_ledger.json fal_pending.json clips 2>/dev/null) | split -b 1900m -d - out/state.tgz.part_
+          tar czf - -C proj $(cd proj && ls -d audio audio_prev_* listen_results.json audio_checks.json fal_ledger.json fal_pending.json clips 2>/dev/null) | split -b 1900m -d - out/state.tgz.part_
           cp proj/listen_report.json proj/audio_checks.json out/ 2>/dev/null || true
           if [ -f proj/film.mp4 ]; then
             ffmpeg -v error -y -i proj/film.mp4 -vf scale=-2:480 -c:v libx264 -crf 30 -preset veryfast -c:a aac -b:a 64k out/preview480.mp4

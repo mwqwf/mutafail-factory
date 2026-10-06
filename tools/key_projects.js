@@ -86,6 +86,8 @@ async function viaFiles(keys) {
     console.log(`رُفع ${uploaded} ملفّاً · المشاريع المتمايزة: ${gs.length} · السعة اليومية لنموذج الصوت ≈ ${gs.length} × 10 = ${gs.length * 10}`);
     const shared = gs.filter(g => g.length > 1);
     console.log(shared.length ? `مشاريع تحمل أكثر من مفتاح: ${shared.map(g => g.map(i => '#' + i).join(' ')).join(' | ')}` : 'كلّ مفتاحٍ في مشروعٍ مستقلّ');
+    // الخريطة لمولّد الصوت (GEN_GROUPS): أرقام المفاتيح وحدها، فلا مفتاح في الملفّ
+    if (arg('--out')) fs.writeFileSync(arg('--out'), JSON.stringify({ at: new Date().toISOString(), groups: gs.map(g => g.sort((a, b) => a - b)) }));
     return;
   }
   console.log(`خريطة المشاريع ${new Date().toISOString()} · المفاتيح ${keys.length} · بلا نداءٍ لجيميناي`);

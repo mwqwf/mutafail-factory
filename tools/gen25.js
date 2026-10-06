@@ -103,11 +103,15 @@ function note429(txt, key) {
   if (retry && /PerDay/i.test(txt)) state.dayRetry = retry;
   if (key) { const k = keyStat(key); if (/PerDay/i.test(txt)) k.day++; else k.min++; }
 }
-// ⭐ إحياء المفاتيح بعد تجديد الحصّة اليوميّ: منتصف الليل UTC (01:00 الجزائر) — مقيس 2026-10-06 بمهلة الرفع في جسم 429
-//    (retryDelay ≈ 54064 ث عند 08:58:46Z ⇒ 23:59:50Z، للمفاتيح الـ43 كلّها). وكان 07:00 UTC في قياسٍ قديم.
+// ⭐ إحياء المفاتيح بعد تجدّد الحصّة. توثيق جوجل: «منتصف ليل المحيط الهادئ»، أي 07:00Z صيفاً، وهو ما وجده المالك بالتجربة.
+//    ومهلة الرفع في ردود 429 تشير إلى 00:00Z (retryDelay ≈ 54064 ث عند 08:58:46Z يوم 2026-10-06).
+//    فالأمر غير محسوم، ولذلك يُحيا الدفتر عند الحدّين معاً.
 {
   const now = new Date();
-  const qd = now.toISOString().slice(0, 10);
+  let pt;
+  try { pt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(now); }
+  catch (e) { pt = new Date(now.getTime() - 7 * 3600 * 1000).toISOString().slice(0, 10); }
+  const qd = now.toISOString().slice(0, 10) + '|' + pt;
   if (state.quotaDay !== qd) {
     const n = Object.keys(state.dead).length;
     state.dead = {}; state.strikes = {}; state.quotaDay = qd;
@@ -140,11 +144,26 @@ const RUN_END = Date.now() + (+(process.env.GEN_MAX_MIN || 150)) * 60 * 1000;
 let pace = {};
 try { pace = JSON.parse(fs.readFileSync(PACE_FILE, 'utf8')); } catch (e) { pace = {}; }
 const kid = k => require('crypto').createHash('sha256').update(k).digest('hex').slice(0, 12);   // لا مفتاح في الملفّ
+// ⭐⭐ الحصّة لكلّ مشروعٍ لا لكلّ مفتاح (خريطة الملفّات 2026-10-06: 43 مفتاحاً في 31 مشروعاً، 16 منها في 4 مشاريع مشتركة):
+//    كان المشروع ذو المفاتيح الخمسة يُطرق خمسة أضعاف غيره، ويُرفض مفتاحٌ فيُطرق أخوه في المشروع نفسه بعده بثوانٍ.
+//    ⇒ GEN_GROUPS = ملفّ tools/key_projects.js --files --out: الإيقاع والاستراحة وضربات «حدّ اليوم» لكلّ مشروع.
+//    وبلا الملفّ يبقى كلّ مفتاحٍ مشروعاً وحده كما كان.
+const GROUP = {};   // رقم المفتاح ⇐ رقم أوّل مفتاحٍ في مشروعه
+try {
+  const g = JSON.parse(fs.readFileSync(process.env.GEN_GROUPS || '', 'utf8'));
+  for (const grp of (g.groups || g)) for (const i of grp) GROUP[i] = Math.min(...grp);
+} catch (e) {}
+const gidx = k => { const i = keys.indexOf(k); return GROUP[i] ?? i; };
+const mates = k => { const g = gidx(k); return keys.filter(x => gidx(x) === g); };
+const pid = k => kid(keys[gidx(k)]);   // وسم المشروع في ملفّ الإيقاع: بصمة أوّل مفاتيحه، لا مفتاح
+function rest(model, k, until) {       // الاستراحة تعمّ المشروع كلّه
+  for (const m of mates(k)) { const d = deadOf(model)[m]; if (d !== 'daily') deadOf(model)[m] = until === 'daily' ? 'daily' : Math.max(typeof d === 'number' ? d : 0, until); }
+}
 function savePace() { try { fs.writeFileSync(PACE_FILE, JSON.stringify(pace)); } catch (e) {} }
 function readyAt(model, k) {
   const d = deadOf(model)[k];
   if (d === 'daily') return Infinity;
-  return Math.max(typeof d === 'number' ? d : 0, (pace[kid(k)] || 0) + PACE_MS);
+  return Math.max(typeof d === 'number' ? d : 0, (pace[pid(k)] || 0) + PACE_MS);
 }
 function soonest(model) {
   const now = Date.now();
@@ -156,7 +175,7 @@ function nextKey(model) {
   const now = Date.now();
   for (let n = 0; n < keys.length; n++) {
     const k = keys[(ki + n) % keys.length];
-    if (readyAt(model, k) <= now) { ki = (ki + n + 1) % keys.length; pace[kid(k)] = now; savePace(); return k; }
+    if (readyAt(model, k) <= now) { ki = (ki + n + 1) % keys.length; pace[pid(k)] = now; savePace(); return k; }
   }
   return null;
 }
@@ -219,16 +238,15 @@ async function genWith(model, blk) {
           // ردٌّ واحدٌ يصل من مسارين حملا المفتاح نفسه معاً: لا يُعدّ ضربتين (وإلا مات المفتاح قبل استراحتيه)
           const dk = deadOf(model)[key];
           if (dk !== 'daily' && !(typeof dk === 'number' && dk > Date.now())) {
-            const sk = model + '#' + keys.indexOf(key);
+            const sk = model + '#' + gidx(key);
             const s = (state.strikes[sk] = (state.strikes[sk] || 0) + 1);
-            deadOf(model)[key] = s >= DAY_STRIKES ? 'daily' : Date.now() + COOL_MS * s;
+            rest(model, key, s >= DAY_STRIKES ? 'daily' : Date.now() + COOL_MS * s);
           }
           save(); continue;
         }
-        // حدّ الدقيقة أو «المورد مستنفد» بلا معرّف: المفتاح يستريح دقيقةً أو مهلة جوجل، والمسار يأخذ مفتاحاً جاهزاً بإيقاعه
+        // حدّ الدقيقة أو «المورد مستنفد» بلا معرّف: المشروع يستريح دقيقةً أو مهلة جوجل، والمسار يأخذ مفتاحاً جاهزاً بإيقاعه
         if (/PerMinute/i.test(txt)) state.out.min++; else state.out.other429++;
-        const dk = deadOf(model)[key];
-        if (dk !== 'daily') deadOf(model)[key] = Math.max(typeof dk === 'number' ? dk : 0, Date.now() + Math.max(MIN_COOL_MS, retrySec(txt) * 1000));
+        rest(model, key, Date.now() + Math.max(MIN_COOL_MS, retrySec(txt) * 1000));
         save(); continue;
       }
       if (r.status === 404 || r.status === 400) {
@@ -254,7 +272,7 @@ async function genWith(model, blk) {
       fs.writeFileSync(outFile, isWav ? pcm : Buffer.concat([wavHeader(pcm.length), pcm]));
       state.out.ok++;
       state.done[blk.id] = true; state.model_of[blk.id] = model; keyStat(key).ok++;
-      { const sk = model + '#' + keys.indexOf(key); if (state.strikes[sk]) { state.revived++; delete state.strikes[sk]; } }
+      { const sk = model + '#' + gidx(key); if (state.strikes[sk]) { state.revived++; delete state.strikes[sk]; } }
       save();
       return 'ok';
     } catch (e) { state.out.net++; await new Promise(z => setTimeout(z, 2000 + Math.random() * 3000)); }
@@ -280,6 +298,7 @@ async function genOne(blk) {
 
 (async () => {
   console.log(`مفاتيح: ${keys.length} | كتل الحمولة: ${allBlocks.length} | حصّة السهم ${SHARD}/${SHARDS}: ${blocks.length} | نماذج: ${MODELS.join(' ← ')}`);
+  if (Object.keys(GROUP).length) console.log(`مشاريع: ${new Set(keys.map(gidx)).size} (خريطة الملفّات) — الإيقاع والاستراحة لكلّ مشروع`);
   if (!keys.length) {
     console.error('⛔⛔ لا مفاتيح البتّة. في السحاب: تحقّق من سرّ GEMINI_KEYS_JSON و--keys.');
     process.exit(1);            // ⛔ لا تنجح صامتاً كما وقع في الشوط الثامن
