@@ -13,11 +13,11 @@ on:
     inputs:
       slug: { description: "اسم الحلقة (مثل qadisiyya)", required: true, type: string }
       stage:
-        description: "all = كل شيء · audio = الصوت والفحص فقط · animate = التحريك والمونتاج (بعد صوتٍ سليم) · visuals = التحريك وعيّنةٌ من أوّل الفيلم بلا توليد صوت"
+        description: "all = كل شيء · audio = الصوت والفحص فقط · animate = التحريك والمونتاج (بعد صوتٍ سليم) · visuals = التحريك وعيّنةٌ من أوّل الفيلم بلا توليد صوت · preview = عيّنةٌ مجّانيّة من أوّل الفيلم بالمجسّم وحده (بلا fal ولا توليد صوت)"
         required: true
         default: all
         type: choice
-        options: [all, audio, animate, clips, visuals]
+        options: [all, audio, animate, clips, visuals, preview]
   # ⭐ الزناد الجذري (2026-09-27): الجلسة السحابية لا تملك تشغيل workflow_dispatch،
   #    لكنها تملك الدفع. فدفعُ ملفٍّ ops/run/<slug>.json = {"slug":"…","stage":"audio|animate|all"}
   #    على أيّ فرعٍ يُطلق هذا الشوط بنفسه، بلا يد المالك.
@@ -58,7 +58,7 @@ jobs:
           import json,sys,re
           d=json.load(open(sys.argv[1],encoding='utf-8'))
           slug=d['slug']; stage=d.get('stage','all')
-          assert re.fullmatch(r'[a-z0-9-]+',slug) and stage in ('all','audio','animate','clips','visuals')
+          assert re.fullmatch(r'[a-z0-9-]+',slug) and stage in ('all','audio','animate','clips','visuals','preview')
           print('slug='+slug); print('stage='+stage)
           PY
 
@@ -131,7 +131,7 @@ jobs:
 
       - name: ① الصوت (gemini-3.8-flash-tts) + الفحوص الآلية — حتى ست جولات
         # visuals (الأرك 2026-10-04): لا توليد صوت — حين تنفد حصّته يُحرَّك ما لا يحتاجه وتُصنع عيّنةٌ مما اكتمل صوته
-        if: env.STAGE != 'animate' && env.STAGE != 'visuals'
+        if: env.STAGE != 'animate' && env.STAGE != 'visuals' && env.STAGE != 'preview'
         run: |
           # ⛔ كتلٌ لها دورٌ (N/Q/P) بلا ملاحظات الفائز، أو بـ«style» خامٍ يُرسل قبل النصّ ⇒ لا توليد (مؤتة 2026-10-06:
           #    كانت 14 كتلة سترسل «medina:» قبل نصّها) — tools/apply_voices.py يطبّق نتيجة المختبر قبل الختم
@@ -175,7 +175,7 @@ jobs:
 
       - name: ② الإصغاء المشكول (كتلة كتلة) — تقريرٌ للتحكيم
         # ⛔ لا إصغاءَ في شوطٍ «[موازٍ]»: شوطان يصغيان معاً يستنفدان الحصّة مرّتين (عين جالوت 2026-09-29) — يُصغي الشوطُ الرئيسيّ وحده
-        if: env.STAGE != 'animate' && env.STAGE != 'visuals' && !contains(github.event.head_commit.message, '[موازٍ]')
+        if: env.STAGE != 'animate' && env.STAGE != 'visuals' && env.STAGE != 'preview' && !contains(github.event.head_commit.message, '[موازٍ]')
         run: |
           # ⭐ أحدثُ نتائج الإصغاء قبل البدء (أمر المالك 2026-09-29): ما حفظه شوطٌ انتهى بعد بدء هذا الشوط،
           #    وما سُمع من مقاطع الراوي في شوط الافتتاحية — فلا يُعاد فحصُ ما فُحص (البصمةُ تُسقط ما تغيّر صوتُه)
@@ -196,7 +196,7 @@ jobs:
 
       - name: ②ب حارس نطق التعليمات الإنجليزية (يعيد التوليد بلا توجيه، ويمنع التحريك إن بقي)
         # درس الزلاقة 2026-09-28: قال الراوي «Say quickly…» بصوته ثم حُرِّكت شفاهه عليه — أفسد المشهد
-        if: env.STAGE != 'animate' && env.STAGE != 'visuals' && !contains(github.event.head_commit.message, '[موازٍ]')
+        if: env.STAGE != 'animate' && env.STAGE != 'visuals' && env.STAGE != 'preview' && !contains(github.event.head_commit.message, '[موازٍ]')
         run: |
           for i in 1 2 3; do
             python tools/style_leak.py proj && break
@@ -218,8 +218,11 @@ jobs:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
           FAL_PAR: "10"   # كان 6: الفيلم كلّه حيّ صار ≈ 110 مقطعاً (طلب المالك التسريع 2026-10-03)
         run: |
-          python tools/fal_animate.py proj
-          python tools/sfx_gate.py proj || true
+          # preview (مؤتة 2026-10-06): عيّنةٌ قبل أيّ إنفاق — لا fal، والمونتاج يملأ كلّ لقطةٍ حيّة بالمجسّم (mont_hybrid)
+          if [ "$STAGE" != preview ]; then
+            python tools/fal_animate.py proj
+            python tools/sfx_gate.py proj || true
+          fi
           mkdir -p proj/img && cp proj/images/*.jpg proj/img/ 2>/dev/null || true
           # صورتا الشورتين العموديتان (كوديكس) تدخلان img/ باسم v_<id> ليُحسب عمقهما ويستعملهما reels.json
           for f in proj/shorts/*.jpg; do [ -f "$f" ] && cp "$f" "proj/img/v_$(basename "$f")"; done; true
@@ -227,7 +230,7 @@ jobs:
 
       - name: ④ المونتاج الهجين والمؤثّرات والشورتات
         # clips = تحريكٌ فقط ثم حفظُ المقاطع لفحصها قبل المونتاج (أمر المالك 2026-09-27)
-        if: env.STAGE != 'audio' && env.STAGE != 'clips' && env.STAGE != 'visuals'
+        if: env.STAGE != 'audio' && env.STAGE != 'clips' && env.STAGE != 'visuals' && env.STAGE != 'preview'
         run: |
           python tools/mont_hybrid.py proj 0.30
           # فصول يوتيوب من مدد الصوت (publish_youtube يرفض {CHAPTERS} بلا الفصول.txt)
@@ -247,7 +250,7 @@ jobs:
       - name: ④ب عيّنةٌ من أوّل الفيلم للمالك (visuals)
         # أمر المالك 2026-10-04: «أرسل لي عيّنةً عمّا سيكون عليه الفيلم، مقطعاً قصيراً حتى أراه» — اللقطات من أوّل الفيلم ما دام
         # صوتها كاملاً، تُمنتَج بالأداة نفسها (الصوت، المقاطع الحيّة، المجسّمة بعمقها، البطاقات، الانتقالات)، ويُصغى إلى كتلها
-        if: env.STAGE == 'visuals'
+        if: env.STAGE == 'visuals' || env.STAGE == 'preview'
         run: |
           python tools/sample_cut.py proj sample --max 90
           python tools/mont_hybrid.py sample 0.30
