@@ -32,6 +32,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 2 }
+      - name: 🔑 تفويض يوتيوب (المجدَّد المختوم أوّلاً)
+        uses: ./.github/actions/yt-oauth
+        with:
+          private_key: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - name: المكتبات
@@ -39,7 +44,7 @@ jobs:
       - name: قراءة القناة وترتيب الريلزات
         id: ch
         env:
-          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
         run: |
           set -euo pipefail
           # ⭐ تفويض يوتيوب المنتهي لا يحجب ما لا يحتاجه (مؤتة 2026-10-06: «invalid_grant» أسقط المقارنة العمياء قبل أن تبدأ،
@@ -116,7 +121,7 @@ jobs:
       - name: الطلب الخارجيّ على الموضوعات المرشّحة
         if: steps.changed.outputs.topics == '1'
         env:
-          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
         run: |
           set -euo pipefail
           python tools/topic_demand.py out/topic_demand.json
@@ -126,7 +131,7 @@ jobs:
       - name: تحليل المنافسين
         if: steps.changed.outputs.comp == '1'
         env:
-          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
         run: |
           set -euo pipefail
           python tools/competitors.py out/competitors.json

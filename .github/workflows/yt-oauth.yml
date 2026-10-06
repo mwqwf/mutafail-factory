@@ -1,0 +1,74 @@
+name: تجديد تفويض يوتيوب من الهاتف
+
+run-name: 🔑 ${{ github.event.head_commit.message || 'تجديد تفويض يوتيوب' }}
+
+# مؤتة 2026-10-06: «invalid_grant: Token has been expired or revoked» أسقط الإحصاءات، وكان سيُسقط النشر.
+# لا يُجدَّد الإذن إلا بموافقة صاحب الحساب، فهذا السير يجعلها نقرةً من الهاتف بلا حاسوبه (tools/yt_oauth_cloud.py):
+#   ① دفعُ ops/oauth/request.json ⇒ رابط إذنٍ في السجلّ، وجلسةٌ مختومة (المتحقّق والحالة) في الإصدار الخاصّ yt-oauth.
+#   ② المالك يأذن بحساب القناة وينسخ عنوان الصفحة الأخيرة (http://localhost:8822/?…code=…).
+#   ③ دفعُ ops/oauth/code.json بذلك العنوان ⇒ تبادلٌ وتجربةٌ على القناة، ورمزٌ مختوم في الإصدار نفسه
+#      يقدّمه الإجراء .github/actions/yt-oauth على السرّ في سير النشر والإحصاءات.
+# الرمز في المستودع العامّ لا ينفع وحده: التبادل يحتاج سرّ العميل والمتحقّق المختوم. المستودع عامّ والعدّاء قياسيّ ⇒ مجّانيّ.
+on:
+  push:
+    paths: ["ops/oauth/*.json"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: yt-oauth
+  cancel-in-progress: false
+
+jobs:
+  oauth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - name: أيّ خطوة؟
+        id: m
+        run: |
+          F=$(git show --pretty= --name-only "$GITHUB_SHA")
+          if echo "$F" | grep -qx 'ops/oauth/code.json'; then echo "mode=exchange" >> "$GITHUB_OUTPUT"
+          elif echo "$F" | grep -qx 'ops/oauth/request.json'; then echo "mode=url" >> "$GITHUB_OUTPUT"
+          else echo "::notice::لا أمر تفويضٍ في هذا الإيداع"; echo "mode=none" >> "$GITHUB_OUTPUT"; fi
+      - name: ① رابط الإذن
+        if: steps.m.outputs.mode == 'url'
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+        run: |
+          set -euo pipefail
+          python3 tools/yt_oauth_cloud.py url /tmp/sess > /tmp/url.txt
+          bash tools/seal.sh /tmp/sess /tmp/sealed_sess
+          gh release view yt-oauth >/dev/null 2>&1 || \
+            gh release create yt-oauth --draft --title "تفويض يوتيوب — خاصّ" --notes "جلسة الإذن ورمز التجديد مختومان بالمفتاح العامّ (tools/yt_oauth_cloud.py)."
+          mv /tmp/sealed_sess/payload.enc /tmp/sealed_sess/session.payload.enc
+          mv /tmp/sealed_sess/key.enc /tmp/sealed_sess/session.key.enc
+          gh release upload yt-oauth /tmp/sealed_sess/session.payload.enc /tmp/sealed_sess/session.key.enc --clobber
+          echo "افتح الرابط من الهاتف، وأذن بحساب القناة، ثم انسخ عنوان الصفحة الأخيرة كاملاً (تبدأ بـ http://localhost:8822/):"
+          cat /tmp/url.txt
+      - name: ③ تبادل الرمز وختم رمز التجديد
+        if: steps.m.outputs.mode == 'exchange'
+        env:
+          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ss
+          gh release download yt-oauth -p 'session.*' -D /tmp/ss --clobber
+          mv /tmp/ss/session.payload.enc /tmp/ss/payload.enc && mv /tmp/ss/session.key.enc /tmp/ss/key.enc
+          bash tools/unseal.sh /tmp/ss /tmp/sess >/dev/null
+          RAW=$(python3 -c "import json;print(json.load(open('ops/oauth/code.json',encoding='utf-8'))['العنوان'])")
+          python3 tools/yt_oauth_cloud.py exchange "$RAW" /tmp/sess /tmp/tok/yt_oauth.json
+          bash tools/seal.sh /tmp/tok /tmp/sealed_tok
+          mv /tmp/sealed_tok/payload.enc /tmp/sealed_tok/token.payload.enc
+          mv /tmp/sealed_tok/key.enc /tmp/sealed_tok/token.key.enc
+          gh release upload yt-oauth /tmp/sealed_tok/token.payload.enc /tmp/sealed_tok/token.key.enc --clobber
+          # الجلسة لا تصلح لرمزٍ ثانٍ: تُحذف بعد نجاح التبادل
+          gh release delete-asset yt-oauth session.payload.enc -y; gh release delete-asset yt-oauth session.key.enc -y
+          rm -rf /tmp/tok /tmp/sess
+          echo "✅ خُتم رمز التجديد الجديد في الإصدار الخاصّ yt-oauth — سير النشر والإحصاءات يقدّمه على السرّ"

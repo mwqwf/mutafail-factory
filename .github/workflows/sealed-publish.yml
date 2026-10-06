@@ -53,6 +53,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 2 }
+      - name: 🔑 تفويض يوتيوب (المجدَّد المختوم أوّلاً)
+        uses: ./.github/actions/yt-oauth
+        with:
+          private_key: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
       - name: وسمُ الإصدار
         env:
           IN_TAG: ${{ inputs.release_tag }}
@@ -102,7 +107,7 @@ jobs:
 
       - name: ⛔ إن غاب سرُّ النشر فلا شوطَ كاذب
         env:
-          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
         run: '[ -n "$YT_OAUTH_JSON" ] || { echo "⛔⛔ سرُّ YT_OAUTH_JSON غيرُ مضبوط"; exit 1; }'
 
       # ⛔ درس عين جالوت 2026-09-29: الحالةُ الحقّة على master (يكتبها «تسجيلُ الحالة»)، لا على الفرع.
@@ -127,12 +132,12 @@ jobs:
 
       - name: النشر (الفيلم ثم المصغّرة ثم القائمة ثم الريلزان)
         env:
-          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
         run: python tools/publish_youtube.py proj
 
       - name: تصحيحُ عناوين منشورة ("retitle" في ops/publish/<slug>.json)
         env:
-          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
         run: |
           F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/publish/.*\.json$' | head -1 || true)
           if [ -n "$F" ]; then python tools/retitle.py "$F"; else echo "لا عناوين للتصحيح"; fi
@@ -140,7 +145,7 @@ jobs:
       - name: مصغّراتُ أفلامٍ منشورة (ops/thumbs_pending/<videoId>.jpg)
         if: always()
         env:
-          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
         run: |
           ls ops/thumbs_pending/*.jpg >/dev/null 2>&1 || { echo "لا مصغّرات معلّقة"; exit 0; }
           python tools/set_thumbs.py

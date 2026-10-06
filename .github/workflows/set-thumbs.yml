@@ -22,6 +22,11 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - name: 🔑 تفويض يوتيوب (المجدَّد المختوم أوّلاً)
+        uses: ./.github/actions/yt-oauth
+        with:
+          private_key: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
@@ -31,7 +36,7 @@ jobs:
         run: git fetch -q origin master && rm -rf ops/state && git checkout origin/master -- ops/state/
       - name: ضبطُ المصغّرات المعلّقة
         env:
-          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
         run: |
           ls ops/thumbs_pending/*.jpg >/dev/null 2>&1 || { echo "لا مصغّرات معلّقة"; exit 0; }
           python tools/set_thumbs.py
