@@ -1,0 +1,78 @@
+name: بوّابات ما قبل النشر — فحصٌ بلا نشر
+
+run-name: 🔎 ${{ github.event.head_commit.message }}
+
+# أمر المالك 2026-10-06: «لا تنشر قبل أمري، وتأكّد من أنّ كلّ شيءٍ سليم، واعمل كأنّني لن أطّلع عليه».
+# بوّابة الافتتاحية (tools/opening_gate.py) كانت تجري داخل sealed-publish وحده، أي ساعة النشر. وهذا السير يجريها على
+# حمولة النشر المختومة (<slug>-payload من الخطوة ⑥ في weekly-film) قبل مراجعة المالك، ثم يقف.
+# ⛔ لا يقرأ سرّ يوتيوب ولا يستدعي أداة النشر بحال، فلا ينشر ولو أخطأ. والتقرير (وفيه تفريغ ما لم يُنشر) يبقى في العدّاء،
+#    والسجلّ العامّ أرقامٌ وأسباب كما تطبعها الأداة.
+# الزناد: دفعُ ops/gate/<slug>.json = {"release_tag": "<slug>-payload"}.
+on:
+  push:
+    paths: ["ops/gate/**"]
+
+permissions:
+  contents: write   # رؤية الإصدارات المسوّدة؛ ولا دفع من هذا السير
+
+concurrency:
+  group: prepublish-gates-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - name: وسمُ الإصدار
+        run: |
+          set -euo pipefail
+          F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/gate/.*\.json$' | head -1 || true)
+          [ -n "$F" ] || { echo "::notice::لا ملفّ بوّابةٍ في هذا الإيداع"; exit 0; }
+          T=$(python3 -c "import json,sys,re;t=json.load(open(sys.argv[1],encoding='utf-8'))['release_tag'];assert re.fullmatch(r'[a-z0-9-]+',t);print(t)" "$F")
+          echo "TAG=$T" >> "$GITHUB_ENV"
+      - uses: actions/setup-python@v5
+        if: env.TAG != ''
+        with: { python-version: "3.11" }
+      - name: الأدوات
+        if: env.TAG != ''
+        run: command -v ffmpeg || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
+      - name: جلبُ الأجزاء والتحقّق من بصماتها
+        if: env.TAG != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p sealed && cd sealed
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" --clobber
+          sed -i 's/ \*/  /' SHA256SUMS
+          sha256sum -c SHA256SUMS
+          cat part_* > payload.enc && rm part_*
+      - name: فضُّ الختم
+        if: env.TAG != ''
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: bash tools/unseal.sh sealed "$PWD/proj" && rm -rf sealed && ls -la proj proj/reels
+      - name: الريلزات عموديّة ودون 175 ث (حارس reel_shape نفسه)
+        if: env.TAG != ''
+        run: |
+          set -euo pipefail
+          for f in proj/reels/*.mp4; do
+            wh=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x "$f")
+            d=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f")
+            echo "$(basename "$f"): $wh · ${d} ث"
+            python3 -c "import sys;w,h=map(int,sys.argv[1].split('x'));d=float(sys.argv[2]);sys.exit(0 if h>w and d<=175 else 1)" "$wh" "$d" \
+              || { echo "::error::$(basename "$f") ليس ريلزاً عموديّاً دون 175 ث"; exit 1; }
+          done
+      - name: بوّابة الافتتاحية
+        if: env.TAG != ''
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          rc=0; python tools/opening_gate.py proj --keys /tmp/keys.json --out /tmp/opening_gate.json || rc=$?
+          rm -f /tmp/keys.json /tmp/opening_gate.json proj/*.gate.mp4
+          case $rc in 0) echo "✅ تجتاز بوّابة الافتتاحية";; 1) echo "::error::لا تجتاز بوّابة الافتتاحية";; *) echo "::error::تعذّر التشريح (ليس نجاحاً)";; esac
+          exit $rc
