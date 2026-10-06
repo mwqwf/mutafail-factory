@@ -135,6 +135,8 @@ const DAY_STRIKES = +(process.env.GEN_DAY_STRIKES || 3);
 const PACE_MS = +(process.env.GEN_PACE_MS || 31000);
 const MIN_COOL_MS = +(process.env.GEN_MIN_COOL_MS || 60000);
 const PACE_FILE = process.env.GEN_PACE_FILE || path.join(os.tmpdir(), 'gen25_pace.json');
+// ميزانية الشوط: إلى متى يُنتظر عودة المفاتيح المستريحة قبل «nokeys» (حدّ مهمّة الفيلم 350 د)
+const RUN_END = Date.now() + (+(process.env.GEN_MAX_MIN || 150)) * 60 * 1000;
 let pace = {};
 try { pace = JSON.parse(fs.readFileSync(PACE_FILE, 'utf8')); } catch (e) { pace = {}; }
 const kid = k => require('crypto').createHash('sha256').update(k).digest('hex').slice(0, 12);   // لا مفتاح في الملفّ
@@ -179,13 +181,16 @@ function wavHeader(dataLen, rate = 24000, ch = 1, bits = 16) {
 async function genWith(model, blk) {
   const outFile = path.join(OUT, blk.id + '.wav');
   // ⭐ 3.8 بطيء والنتّ ضعيف ⇒ مهلة أطول (SKILL §٢: 600 ث للطلب)
-  const deadline = Date.now() + 15 * 60 * 1000;
+  // المهلة تحدّ محاولات الكتلة لا انتظارَ عودة المفاتيح: كانت 15 د أقصر من استراحة «حدّ اليوم» (20 د) فاستسلمت الأداة
+  // والمفاتيح على وشك العودة (الشوط 92، مؤتة 2026-10-06). الانتظار يمدّها، وحدُّه ميزانية الشوط كلّه RUN_END.
+  let deadline = Date.now() + (+(process.env.GEN_BLOCK_MS || 15 * 60 * 1000));
   while (Date.now() < deadline) {
     const key = nextKey(model);
     if (!key) {
       const w = soonest(model);
-      if (!isFinite(w) || Date.now() + w > deadline) return 'nokeys';
+      if (!isFinite(w) || Date.now() + w > RUN_END) return 'nokeys';
       await new Promise(z => setTimeout(z, w + 200 + Math.random() * 800));
+      deadline = Math.max(deadline, Date.now() + (+(process.env.GEN_BLOCK_MS || 15 * 60 * 1000)));
       continue;
     }
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
