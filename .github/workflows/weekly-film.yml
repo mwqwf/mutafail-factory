@@ -295,3 +295,28 @@ jobs:
             gh release create "$SLUG-payload" -R "$GITHUB_REPOSITORY" --draft --title "حمولة نشر $SLUG" --notes "مختومة."
           gh release upload "$SLUG-payload" key.enc SHA256SUMS part_* -R "$GITHUB_REPOSITORY" --clobber
           echo "✅ جاهز للنشر: gh workflow run sealed-publish.yml -f release_tag=$SLUG-payload"
+
+      - name: ⑥ب حمولة ريلز «قريباً» وحده (يُنشر قبل الفيلم بـ48 ساعة)
+        # حكم المالك 2026-10-05 (مؤتة): ريلزٌ يوحي بأنّ الفيلم قادم، مختلفٌ عن ريلزات النشر، يُنشر وحده قبله ثم يُربط به.
+        # publish.json: teaser ⇒ حمولةٌ reels_only بمعرّفٍ مستقلّ (<slug>-teaser) فلا تختلط حالة نشرها بحالة الفيلم.
+        # نشرُه: دفع ops/publish/<slug>-teaser.json = {"release_tag":"<slug>-teaser-payload"}
+        if: env.STAGE != 'audio' && hashFiles('proj/film.mp4') != ''
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' || { echo "لا ريلز «قريباً» في هذه الحمولة"; exit 0; }
+          import json, os, shutil, sys
+          p = json.load(open('proj/publish.json', encoding='utf-8'))
+          t = [r for r in p.get('teaser') or [] if os.path.exists('proj/reels/' + r['file'])]
+          if not t:
+              sys.exit(1)
+          os.makedirs('pub_t/reels', exist_ok=True)
+          for r in t:
+              shutil.copy('proj/reels/' + r['file'], 'pub_t/reels/')
+          json.dump({'slug': p['slug'] + '-teaser', 'reels_only': True, 'reels': t},
+                    open('pub_t/publish.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+          PY
+          bash tools/seal.sh pub_t sealed_t && cd sealed_t && split -b 90m -d payload.enc part_ && rm payload.enc && sha256sum part_* key.enc > SHA256SUMS
+          gh release view "$SLUG-teaser-payload" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$SLUG-teaser-payload" -R "$GITHUB_REPOSITORY" --draft --title "حمولة ريلز «قريباً» $SLUG" --notes "مختومة."
+          gh release upload "$SLUG-teaser-payload" key.enc SHA256SUMS part_* -R "$GITHUB_REPOSITORY" --clobber
+          echo "✅ جاهز: ops/publish/$SLUG-teaser.json = {\"release_tag\":\"$SLUG-teaser-payload\"}"
