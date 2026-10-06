@@ -58,9 +58,9 @@ STYLE = {
     'clabel': f'A short label in bold {GOLDC} Kufi-style Arabic with a thin dark outline',
     'chapter': f'A chapter title in {GOLDC} Kufi-style Arabic display lettering with a thin ornamental gold line underneath it',
     'rtitle': f'A headline for the top of a vertical video, up to three centred lines in bold white {DISPLAY} with a thick black outline; the last line in golden yellow',
-    'rhook': f'A shocking hook headline for the first second of a vertical video: bold white {DISPLAY} with a thick black outline on a bright red rounded band, up to three centred lines',
+    'rhook': f'A shocking hook headline for the first second of a vertical video: bold white {DISPLAY} with a thick black outline on a bright red rounded strip, up to three centred lines',
     'rend': f'A cliff-hanger question for the end of a vertical video: up to three centred lines in bold {GOLDC} {DISPLAY} with a thick dark outline',
-    'rcta1': f'Bold white {DISPLAY} text on a bright red rounded band',
+    'rcta1': f'Bold white {DISPLAY} text on a bright red rounded strip',
     'rcta2': f'Bold white {DISPLAY} text with a thick black outline',
 }
 PARCHMENT = ('An empty sheet of aged parchment seen straight on, warm beige with darker brown edges and soft paper texture, '
@@ -183,6 +183,9 @@ def shot_cards(s: dict, texts: dict, chapter: str | None = None) -> list[dict]:
         out.append(_spec('date', 'date', plain(dt['text']), WIDE, sub=plain(dt.get('sub') or '') or None))
     for lb in s.get('labels') or []:
         out.append(_spec('label', 'label', plain(lb['text']), [1024, 256], x=lb['x'], y=lb['y'], word=lb.get('word')))
+    # أسماء المواضع على خريطة المعركة الحيّة (tools/battlemap.py يُسقطها على مواضعها بعد الميل؛ ولا يرسمها kinetic)
+    for lb in (s.get('map') or {}).get('labels') or []:
+        out.append(_spec('label', 'maplabel', plain(lb['text']), [1024, 256], x=lb['x'], y=lb['y'], word=lb.get('word')))
     for i, c in enumerate(s.get('cards') or []):
         out.append(_spec('clabel', 'clabel', plain(c['label']), [1024, 256], n=i))
     ti = s.get('title')

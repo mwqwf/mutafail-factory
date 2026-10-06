@@ -150,6 +150,16 @@ class ThrillGateTests(unittest.TestCase):
         text = "\n".join(g.owner_1005(good, good, json.loads((d2 / "shots.json").read_text(encoding="utf-8")), pub)[0])
         self.assertEqual(text, "")
 
+    def test_teaser_reel_outside_count_with_owner_conditions(self):
+        tz = {"id": "r4", "teaser": True, "blocks": ["t1", "t2"]}
+        ok = [B("t1", "ثَلَاثَةُ آلَافٍ."), B("t2", "الْحَلْقَةُ الْأُولَى… قَرِيباً.", reel_only=True)]
+        errs, _ = g.check(proj(COLD + GOOD + RB + ok, SECS_C, REELS + [tz]), None)
+        self.assertEqual(errs, [])                                      # خارج العدد، وبلا سؤالٍ في ختامه
+        bad = [B("t1", "ثَلَاثَةُ آلَافٍ."), B("t2", "فَمَاذَا جَرَى؟", reel_only=True)]
+        errs, _ = g.check(proj(COLD + GOOD + RB + bad, SECS_C, REELS + [dict(tz, blocks=["t1", "t2", "x1a"])]), None)
+        self.assertTrue(any("قادم" in e for e in errs))
+        self.assertTrue(any("يشارك ريلزات النشر" in e for e in errs))
+
     def test_story_promise_is_timed_not_counted(self):
         # مؤتة 2026-10-05: جملٌ قصيرةٌ كثيرة في الافتتاح تدفع الوعد إلى الكتلة الخامسة عشرة وهو عند الثانية 45
         short = [B("s%02d" % i, "سُيُوفٌ تَنْقَطِعُ.") for i in range(1, 15)]                   # 14 × 2 كلمة ≈ 13 ث

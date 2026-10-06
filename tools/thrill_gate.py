@@ -69,6 +69,7 @@ COLD_MIN = 25.0          # الافتتاح البارد مشهدٌ متّصل: 
 OPEN_CUTS_MIN = 12       # لقطاتٌ تبدأ في أوّل 30 ث (لقطةٌ كلّ ثانيتين تقريباً)
 OPEN_NUMBERS_MAX = 1     # رقمٌ واحد في أوّل 30 ث على الأكثر (الخطّاف نفسه) ولا تاريخ
 DANGER = (60.0, 360.0)   # الدقائق 1–6: موضع النزيف في منحنياتنا
+COMING = re.compile(r"(قريبا|قريباً|انتظروا|انتظروه|ترقّبوا|ترقبوا|قادم)")   # ريلز «قريباً» يقول إنّ الفيلم قادم
 REHOOK_GAP_MAX = 45.0    # أطول فجوةٍ بين إعادتَي شدٍّ في الدقائق 1–6
 NEXT_TAIL = 60.0         # خطّاف الحلقة التالية في آخر دقيقة من فيلمٍ في سلسلة
 # دراسة الأسلوب 2026-10-05: وعد الكشف والتصحيح في الافتتاحية («سنكشف لكم حقائق كنتم تحسبونها مسلّمات») في 5 من أفلامنا
@@ -359,7 +360,19 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
 
     # ٣. الريلزات: ثلاثة، ولكلٍّ سؤالٌ معلّق — إلا ما أمر به المالك لفيلمٍ بعينه (publish.json: reels_required؛
     #    الأرك 2026-10-04: «الريلزات يكفي اثنان فقط لهذا الفيلم فاخترهما بعناية»)
-    reels = load(proj, "reels.json") or []
+    # ريلز «قريباً» (teaser) خارج العدد، وله شرطا المالك (2026-10-05): «يوحي بأنّ الفلم قادم فانتظروه، ويكون مختلفاً عن ريلز النشر»
+    allr = load(proj, "reels.json") or []
+    reels = [r for r in allr if not r.get("teaser")]
+    pub_blocks = {b for r in reels for b in r.get("blocks", [])}
+    for r in (r for r in allr if r.get("teaser")):
+        rb = [by_id[i]["text"] for i in r.get("blocks", []) if i in by_id]
+        if not COMING.search(" ".join(plain(x) for x in rb) + " " + plain(r.get("end_q", ""))):
+            errs.append(f"الريلز التشويقيّ {r.get('id')} لا يقول إنّ الفيلم قادم («قريباً»…): شرط المالك")
+        shared = sorted(set(r.get("blocks", [])) & pub_blocks)
+        if shared:
+            errs.append(f"الريلز التشويقيّ {r.get('id')} يشارك ريلزات النشر كتلها ({', '.join(shared[:4])}): شرط المالك أن يختلف عنها")
+        if rb and words(rb[0]) > HOOK_FIRST_MAX:
+            errs.append(f"الريلز التشويقيّ {r.get('id')} يفتح بـ{words(rb[0])} كلمة (> {HOOK_FIRST_MAX}): الصدمة في أوّل ثانيتين")
     need = int((load(proj, "publish.json") or {}).get("reels_required", 3))
     if len(reels) != need:
         errs.append(f"{len(reels)} ريلز (المطلوب {need}" + (": الافتتاحية + اثنان)" if need == 3 else " بأمر المالك)"))

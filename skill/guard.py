@@ -4,8 +4,8 @@
    الاستعمال:  python guard.py <path/to/script.md>   أو   python guard.py <yarmouk-media/<slug>/codex_job.json>
    يعود بـ exit code 1 عند أي مخالفة، فيوقف خطّ الإنتاج.
    ⛔⛔ ثغرةٌ ثانية أُغلقت 2026-10-05 (مؤتة): صار كوديكس مصدرَ الصور كلّها (أمر المالك 2026-09-29)، وأوامره في
-   codex_job.json لا في script.md، فكانت تمرّ بلا فحص ⇒ يُفحص كلّ وصفٍ فيه كسطر IMG. والمصغّرات (thumbs/) فيها نصٌّ
-   مقصود، فتُعفى من الجملة الواقية وحدها لا من المحظورات."""
+   codex_job.json لا في script.md، فكانت تمرّ بلا فحص ⇒ يُفحص كلّ وصفٍ فيه كسطر IMG. والمصغّرات (thumbs/) وبطاقات الكتابة
+   (cards/، tools/cards.py) فيها نصٌّ مقصود، فتُعفى من الجملة الواقية وقاعدة الكتابة وحدهما لا من المحظورات."""
 import io, re, sys, os
 # طرفية وندوز (cp1252) تُسقط الطباعة العربية والرموز — يُفرض UTF-8 أيّاً كانت البيئة.
 for _s in (sys.stdout, sys.stderr):
@@ -27,7 +27,7 @@ def codex_lines(path):
     import json
     job = json.load(io.open(path, encoding='utf-8'))
     return [(it.get('file', '?'), 'IMG:%s|%s' % (it.get('file', '?'), it.get('prompt', '').replace('\n', ' ')),
-             str(it.get('file', '')).startswith('thumbs/')) for it in job.get('items') or []]
+             str(it.get('file', '')).startswith(('thumbs/', 'cards/'))) for it in job.get('items') or []]
 
 
 def main(path):

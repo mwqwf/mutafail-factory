@@ -11,7 +11,7 @@ W="$(mktemp -d)"; trap 'rm -rf "$W"' EXIT
 mkdir -p "$W/proj"
 cp "$TXT"/*.json "$W/proj/"; cp "$TXT"/*.md "$W/proj/" 2>/dev/null || true; cp "$TXT"/*.txt "$W/proj/" 2>/dev/null || true
 if [ -n "$MED" ]; then
-  for d in images thumbs shorts ui audio_fix cards; do [ -d "$MED/$d" ] && cp -r "$MED/$d" "$W/proj/$d"; done
+  for d in images thumbs shorts ui audio_fix cards map; do [ -d "$MED/$d" ] && cp -r "$MED/$d" "$W/proj/$d"; done   # map: أصول الخريطة الحيّة
   python3 - "$W/proj" <<'PY'
 import sys,os,json
 from PIL import Image

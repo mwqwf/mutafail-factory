@@ -48,6 +48,13 @@ class GuardTest(unittest.TestCase):
         self.assertEqual(rc, 1)
         self.assertIn('آلات موسيقية', out)
 
+    def test_text_cards_allowed_but_bans_remain(self):
+        c = {'file': 'cards/slam_1.png', 'prompt': 'Huge Arabic display lettering: «سيف الله». Output a PNG with transparency.'}
+        self.assertEqual(run(self.job([c]))[0], 0)
+        rc, out = run(self.job([dict(c, prompt=c['prompt'] + ' A woman holds it.')]))
+        self.assertEqual(rc, 1)
+        self.assertIn('نساء', out)
+
     def test_script_md_still_checked(self):
         p = os.path.join(self.d, 'script.md')
         io.open(p, 'w', encoding='utf-8').write('n_001|S|نصّ\nIMG:A01|1920|Riders at dawn, a girl watching. ' + TAIL + '\n')

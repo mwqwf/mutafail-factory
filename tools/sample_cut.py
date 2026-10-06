@@ -15,7 +15,7 @@ import os
 import sys
 import wave
 
-LINKS = ('images', 'img', 'cards', 'audio', 'clips', 'anim')
+LINKS = ('images', 'img', 'cards', 'map', 'audio', 'clips', 'anim')   # map: أصول خريطة المعركة الحيّة
 
 
 def wav_seconds(f: str) -> float:

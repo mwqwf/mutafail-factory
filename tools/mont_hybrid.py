@@ -6,6 +6,7 @@
 import json, os, sys, glob, random, subprocess as sp
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cards, envpaths, kb3d, kinetic, look, sfx_synth, transitions   # kinetic: الكتابة المتحرّكة (أمر المالك 2026-10-04)
+import battlemap   # خريطة المعركة الحيّة: حقل map في اللقطة (أمر المالك 2026-10-04، بحث الإبهار §١)
 from sfx_verdict import ok as sfx_ok   # صوت Kling يدخل بحكمٍ مطابقٍ لبصمة المقطع الحاليّ (MF-07)
 from envpaths import FF, FP
 from PIL import Image, ImageDraw, ImageFilter
@@ -131,7 +132,7 @@ def _pre(job):
 jobs = []
 os.makedirs(P('anim'), exist_ok=True)
 for n, s in enumerate(shots):
-    if clip(s['id']):
+    if clip(s['id']) or s.get('map'):              # الخريطة الحيّة تُصيَّر في موضعها بأزمنة كلماتها (battlemap)
         continue
     an = ANIM(s)
     if os.path.exists(an) and dur(an) >= LEN(n) - 0.02 and not need_matte(s):
@@ -291,6 +292,13 @@ for n, s in enumerate(shots):
                 open(lst, 'w', encoding='utf-8').write("file '%s'\nfile '%s'\n" % (a.replace('\\', '/'), b2.replace('\\', '/')))
                 sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', lst, '-vf', 'fps=25,tpad=stop_mode=clone:stop=4',
                         '-frames:v', str(NT)] + ENC + [out], check=True)
+        elif s.get('map'):
+            # ⭐ خريطة المعركة الحيّة: لوحٌ مائل، وكاميرا نحو الالتحام، وسهمٌ يُكشف مع فعله المنطوق، ورمزٌ ينبض عند ذكره
+            an = P('anim', '%s.map%d.mp4' % (s['id'], battlemap.VERSION))
+            if not (os.path.exists(an) and dur(an) >= L - 0.02):
+                battlemap.render(PROJ, s, an, L + 0.04, HEAD, kinetic.shot_word_times(PROJ, s, TEXTS, durs, GAP))
+            sp.run([FF, '-v', 'error', '-y', '-i', an, '-vf', 'tpad=stop_mode=clone:stop=4,fps=25',
+                    '-frames:v', str(NT)] + ENC + [out], check=True)
         else:
             an = ANIM(s)
             if not (os.path.exists(an) and dur(an) >= L - 0.02) or need_matte(s):
