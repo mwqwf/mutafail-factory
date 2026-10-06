@@ -191,9 +191,13 @@ async function genWith(model, blk) {
         note429(txt, key);
         // ⭐ اقرأ جسم الخطأ: ميّز حدّ اليوم من حدّ الدقيقة
         if (/PerDay/i.test(txt)) {
-          const sk = model + '#' + keys.indexOf(key);
-          const s = (state.strikes[sk] = (state.strikes[sk] || 0) + 1);
-          deadOf(model)[key] = s >= DAY_STRIKES ? 'daily' : Date.now() + COOL_MS * s;
+          // ردٌّ واحدٌ يصل من مسارين حملا المفتاح نفسه معاً: لا يُعدّ ضربتين (وإلا مات المفتاح قبل استراحتيه)
+          const dk = deadOf(model)[key];
+          if (dk !== 'daily' && !(typeof dk === 'number' && dk > Date.now())) {
+            const sk = model + '#' + keys.indexOf(key);
+            const s = (state.strikes[sk] = (state.strikes[sk] || 0) + 1);
+            deadOf(model)[key] = s >= DAY_STRIKES ? 'daily' : Date.now() + COOL_MS * s;
+          }
           save(); continue;
         }
         await new Promise(z => setTimeout(z, 3000 + Math.random() * 4000)); continue;
