@@ -101,10 +101,11 @@ function note429(txt, key) {
   if (retry && /PerDay/i.test(txt)) state.dayRetry = retry;
   if (key) { const k = keyStat(key); if (/PerDay/i.test(txt)) k.day++; else k.min++; }
 }
-// ⭐ إحياء المفاتيح بعد تجديد الحصّة اليوميّ (07:00 UTC / 08:00 الجزائر).
+// ⭐ إحياء المفاتيح بعد تجديد الحصّة اليوميّ: منتصف الليل UTC (01:00 الجزائر) — مقيس 2026-10-06 بمهلة الرفع في جسم 429
+//    (retryDelay ≈ 54064 ث عند 08:58:46Z ⇒ 23:59:50Z، للمفاتيح الـ43 كلّها). وكان 07:00 UTC في قياسٍ قديم.
 {
   const now = new Date();
-  const qd = new Date(now.getTime() - 7 * 3600 * 1000).toISOString().slice(0, 10);
+  const qd = now.toISOString().slice(0, 10);
   if (state.quotaDay !== qd) {
     const n = Object.keys(state.dead).length;
     state.dead = {}; state.strikes = {}; state.quotaDay = qd;
@@ -121,10 +122,9 @@ const keys = loadKeys();
 let ki = 0;
 // ⭐ الموتى لكلّ نموذجٍ على حدة: `dead[model][key]`
 function deadOf(m) { state.dead[m] = state.dead[m] || {}; return state.dead[m]; }
-// ⭐⭐ «حدّ اليوم» استراحةٌ لا موت (مؤتة 2026-10-06): ردّت المفاتيح الـ43 كلّها بحدّ اليوم 07:37 و07:39Z فانتهى الشوط بـnokeys،
-//    ثم ولّد المفتاح الأوّل من محاولته الأولى 07:51Z (فحص quota_probe). فالحدّ المعلن هنا قد يُرفع بعد دقائق، وكان إسقاطُ المفتاح
-//    نهائياً عند أوّل ردٍّ يُنهي الشوط وهو قادرٌ على المتابعة — ويوافق ما رُصد في الأرك: كلّ شوطٍ جديد يولّد 15–25 بعد «النفاد».
-//    ⇒ المفتاح يستريح COOL_MS ثم ضعفها، ولا يُسقط نهائياً إلا بعد DAY_STRIKES ردودٍ متتالية؛ وإن استراحت المفاتيح كلّها انتُظر أقربُها.
+// ⭐ «حدّ اليوم» استراحةٌ قبل الإسقاط (مؤتة 2026-10-06): الحدّ حقيقيّ (10 لكلّ مشروعٍ في اليوم، يُرفع عند منتصف الليل UTC)،
+//    لكن تمرّ بعده نجاحاتٌ متفرّقة: ولّد المفتاح الأوّل 07:51Z بعد ردّ المفاتيح كلّها 07:37Z، وولّدت جولات التقطير في الأرك 3 ثم 2 ثم 0.
+//    ⇒ المفتاح يستريح COOL_MS ثم ضعفها فيُلتقط ما يمرّ بلا طحن، ولا يُسقط نهائياً إلا بعد DAY_STRIKES ردودٍ متتالية.
 const COOL_MS = +(process.env.GEN_COOL_MS || 8 * 60 * 1000);
 const DAY_STRIKES = +(process.env.GEN_DAY_STRIKES || 3);
 function soonest(model) {

@@ -26,6 +26,7 @@ on:
 
 permissions:
   contents: write
+  statuses: write   # نبض «تقدّم الصوت» في الخطوة ①: عددٌ وحده يُقرأ أثناء الشوط
 
 concurrency:
   # «[موازٍ]» في رسالة الإيداع ⇒ مجموعةٌ منفصلة تعمل بجوار الشوط الجاري (صوتُ الفيلم أثناء تحريك الافتتاحية — عين جالوت 2026-09-29)
@@ -136,6 +137,19 @@ jobs:
           # ⛔ كتلٌ لها دورٌ (N/Q/P) بلا ملاحظات الفائز، أو بـ«style» خامٍ يُرسل قبل النصّ ⇒ لا توليد (مؤتة 2026-10-06:
           #    كانت 14 كتلة سترسل «medina:» قبل نصّها) — tools/apply_voices.py يطبّق نتيجة المختبر قبل الختم
           python tools/apply_voices.py --check proj
+          # ⭐ نبض التقدّم (مؤتة 2026-10-06: بقي الشوط 91 ساعةً في هذه الخطوة بلا سجلٍّ يُقرأ قبل انتهائها ولا صلاحيةٍ لإيقافه):
+          #    كلّ 3 دقائق حالةٌ على الإيداع باسم «تقدّم الصوت» بالأعداد وحدها، تُقرأ من واجهة GitHub العامة بلا مصادقة:
+          #    GET repos/<المستودع>/commits/<الإيداع>/statuses
+          beat() {
+            n=$(find proj/audio -name '*.wav' -size +8k 2>/dev/null | wc -l)
+            t=$(python3 -c "import json;print(len(json.load(open('proj/blocks.json',encoding='utf-8'))))")
+            x=$(python3 -c "import json;d=json.load(open('proj/gen_state.json'));print('· عاد بعد الاستراحة %d · ردود حدّ اليوم %d'%(d.get('revived',0),sum(v.get('day',0) for v in d.get('keys',{}).values())))" 2>/dev/null || true)
+            st=$1; [ "$st" = done ] && { [ "$n" -ge "$t" ] && st=success || st=failure; }
+            gh api -X POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state="$st" -f context="تقدّم الصوت ($SLUG)" \
+              -f description="$(date -u +%H:%M)Z · $n/$t كتلة $x" >/dev/null 2>&1 || true
+          }
+          ( while sleep 180; do beat pending || true; done ) & BEAT=$!
+          trap 'kill $BEAT 2>/dev/null; beat done || true' EXIT
           # regen.txt في الحمولة = كتلٌ تغيّر نصُّها بعد التوليد (تحكيم الإصغاء) ⇒ يُحذف صوتُها ليُعاد
           # ⛔ مرّةً واحدة لكلّ حمولةٍ مختومة (الأرك 2026-10-04): شوطٌ ثانٍ بالحمولة نفسها — بعد نفاد الحصّة مثلاً — كان يحذف
           #    من جديد ما وُلّد في الشوط الأوّل. البصمة: بصمة الحمولة (لكلّ ختمٍ مفتاحٌ جديد)، وإلا فالنصوص وقائمة الإعادة معاً.
@@ -170,7 +184,7 @@ jobs:
           done
           # ⛔ لا رجوع إلى نماذج 2.5 حين تنفد حصّة 3.8 (الدليل §٦ «لا رجوع للنماذج القديمة» — تدقيق كوديكس MF-02):
           #    كانت تُخلط في الفيلم الواحد كتلٌ من نموذجين. ما نقص يبقى ناقصاً، والحالة تُحفظ (⑤ always)،
-          #    والشوطُ التالي بعد تجدّد الحصّة (07:05Z) يكمل من حيث وقف.
+          #    والشوطُ التالي بعد تجدّد الحصّة يكمل من حيث وقف: منتصف الليل UTC (مقيس 2026-10-06 بمهلة الرفع)، فالاستئناف 00:05Z.
           REEL_SOFT=1 python tools/audio_checks.py proj
 
       - name: ② الإصغاء المشكول (كتلة كتلة) — تقريرٌ للتحكيم
