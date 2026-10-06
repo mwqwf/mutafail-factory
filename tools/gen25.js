@@ -74,10 +74,11 @@ let state = {};
 try { state = JSON.parse(fs.readFileSync(STATE, 'utf8')); } catch (e) { state = {}; }
 state.done = state.done || {}; state.dead = state.dead || {}; state.calls = state.calls || 0;
 state.model_of = state.model_of || {};
+state.strikes = state.strikes || {}; state.revived = state.revived || 0;   // استراحات «حدّ اليوم» ومن عاد بعدها فولّد
 // تشخيص الحصّة (الأرك 2026-10-04): أعلنت المفاتيح كلّها «حدّ اليوم» ثم ولّد الشوط التالي بعد دقيقتين 16 كتلة
 // ⇒ تُعدّ معرّفات الحدود (quotaId) في أجسام 429 مع عيّنةٍ مقنّعة من رسالتها، لنعرف أيّ حدٍّ يُضرب فعلاً. لا مفاتيح في السجلّ.
 state.q429 = state.q429 || {};
-// ⭐ سعة الحصّة الحقيقية (مؤتة 2026-10-06: نفدت المفاتيح الـ43 كلّها بعد نحو 60 توليدة، وكانت تكفي أفلاماً فوق الساعة):
+// ⭐ سعة الحصّة الحقيقية (مؤتة 2026-10-06: ردّت المفاتيح الـ43 كلّها بحدّ اليوم بعد نحو 60 توليدة، وكانت تكفي أفلاماً فوق الساعة):
 //    الحدّ المعلن لكلّ مشروع (quotaValue في جسم 429)، ونتاجُ كلّ مفتاحٍ برقمه لا بقيمته — فيُعرف كم مشروعاً خلف المفاتيح فعلاً.
 state.keys = state.keys || {};
 function keyStat(key) { const i = keys.indexOf(key); return state.keys[i] || (state.keys[i] = { ok: 0, day: 0, min: 0 }); }
@@ -106,7 +107,7 @@ function note429(txt, key) {
   const qd = new Date(now.getTime() - 7 * 3600 * 1000).toISOString().slice(0, 10);
   if (state.quotaDay !== qd) {
     const n = Object.keys(state.dead).length;
-    state.dead = {}; state.quotaDay = qd;
+    state.dead = {}; state.strikes = {}; state.quotaDay = qd;
     if (n) console.log(`♻️ يومُ حصّةٍ جديد (${qd}) — أُحييت ${n} مفتاحًا`);
   }
 }
@@ -120,11 +121,28 @@ const keys = loadKeys();
 let ki = 0;
 // ⭐ الموتى لكلّ نموذجٍ على حدة: `dead[model][key]`
 function deadOf(m) { state.dead[m] = state.dead[m] || {}; return state.dead[m]; }
+// ⭐⭐ «حدّ اليوم» استراحةٌ لا موت (مؤتة 2026-10-06): ردّت المفاتيح الـ43 كلّها بحدّ اليوم 07:37 و07:39Z فانتهى الشوط بـnokeys،
+//    ثم ولّد المفتاح الأوّل من محاولته الأولى 07:51Z (فحص quota_probe). فالحدّ المعلن هنا قد يُرفع بعد دقائق، وكان إسقاطُ المفتاح
+//    نهائياً عند أوّل ردٍّ يُنهي الشوط وهو قادرٌ على المتابعة — ويوافق ما رُصد في الأرك: كلّ شوطٍ جديد يولّد 15–25 بعد «النفاد».
+//    ⇒ المفتاح يستريح COOL_MS ثم ضعفها، ولا يُسقط نهائياً إلا بعد DAY_STRIKES ردودٍ متتالية؛ وإن استراحت المفاتيح كلّها انتُظر أقربُها.
+const COOL_MS = +(process.env.GEN_COOL_MS || 8 * 60 * 1000);
+const DAY_STRIKES = +(process.env.GEN_DAY_STRIKES || 3);
+function soonest(model) {
+  const dead = deadOf(model), now = Date.now();
+  let m = Infinity;
+  for (const k of keys) {
+    const d = dead[k];
+    if (!d) return 0;
+    if (typeof d === 'number') m = Math.min(m, Math.max(0, d - now));
+  }
+  return m;
+}
 function nextKey(model) {
-  const dead = deadOf(model);
+  const dead = deadOf(model), now = Date.now();
   for (let n = 0; n < keys.length; n++) {
     const k = keys[(ki + n) % keys.length];
-    if (!dead[k]) { ki = (ki + n + 1) % keys.length; return k; }
+    const d = dead[k];
+    if (!d || (typeof d === 'number' && d <= now)) { ki = (ki + n + 1) % keys.length; return k; }
   }
   return null;
 }
@@ -145,7 +163,12 @@ async function genWith(model, blk) {
   const deadline = Date.now() + 15 * 60 * 1000;
   while (Date.now() < deadline) {
     const key = nextKey(model);
-    if (!key) return 'nokeys';
+    if (!key) {
+      const w = soonest(model);
+      if (!isFinite(w) || Date.now() + w > deadline) return 'nokeys';
+      await new Promise(z => setTimeout(z, w + 1000 + Math.random() * 3000));
+      continue;
+    }
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
     const body = {
       // توجيه الأداء (style) يسبق النصّ بصيغة «Say …: نص» الموثّقة؛ والفاحص السمعي يمسك أيّ نطقٍ له
@@ -167,8 +190,13 @@ async function genWith(model, blk) {
         const txt = await r.text();
         note429(txt, key);
         // ⭐ اقرأ جسم الخطأ: ميّز حدّ اليوم من حدّ الدقيقة
-        if (/PerDay/i.test(txt)) { deadOf(model)[key] = 'daily'; save(); continue; }
-        await new Promise(z => setTimeout(z, 3000)); continue;
+        if (/PerDay/i.test(txt)) {
+          const sk = model + '#' + keys.indexOf(key);
+          const s = (state.strikes[sk] = (state.strikes[sk] || 0) + 1);
+          deadOf(model)[key] = s >= DAY_STRIKES ? 'daily' : Date.now() + COOL_MS * s;
+          save(); continue;
+        }
+        await new Promise(z => setTimeout(z, 3000 + Math.random() * 4000)); continue;
       }
       if (r.status === 404 || r.status === 400) {
         // النموذج غير متاحٍ لهذا المفتاح أصلاً — لا تطحن عليه
@@ -185,7 +213,9 @@ async function genWith(model, blk) {
       //    (وقع في «اليرموك» 2026-09-27: 175 كتلة). ⇒ إن كان المُرجَع RIFF يُحفظ كما هو.
       const isWav = pcm.length > 12 && pcm.toString('ascii', 0, 4) === 'RIFF';
       fs.writeFileSync(outFile, isWav ? pcm : Buffer.concat([wavHeader(pcm.length), pcm]));
-      state.done[blk.id] = true; state.model_of[blk.id] = model; keyStat(key).ok++; save();
+      state.done[blk.id] = true; state.model_of[blk.id] = model; keyStat(key).ok++;
+      { const sk = model + '#' + keys.indexOf(key); if (state.strikes[sk]) { state.revived++; delete state.strikes[sk]; } }
+      save();
       return 'ok';
     } catch (e) { await new Promise(z => setTimeout(z, 2000)); }
   }
@@ -254,7 +284,7 @@ async function genOne(blk) {
     const ks = Object.entries(state.keys);
     const prod = ks.filter(([, v]) => v.ok > 0).sort((a, b) => b[1].ok - a[1].ok);
     const dry = ks.filter(([, v]) => !v.ok && v.day).length;
-    if (ks.length) console.log(`نتاج المفاتيح: أنتج ${prod.length} من ${keys.length} (${prod.map(([i, v]) => '#' + i + '×' + v.ok).join(' ')}) · ردّ ${dry} بحدّ اليوم بلا إنتاجٍ في هذا الشوط${state.dayRetry ? ' · مهلة حدّ اليوم ' + state.dayRetry : ''}`);
+    if (ks.length) console.log(`نتاج المفاتيح: أنتج ${prod.length} من ${keys.length} (${prod.map(([i, v]) => '#' + i + '×' + v.ok).join(' ')}) · ردّ ${dry} بحدّ اليوم بلا إنتاجٍ في هذا الشوط${state.dayRetry ? ' · مهلة حدّ اليوم ' + state.dayRetry : ''} · عاد بعد الاستراحة فولّد ${state.revived} مرّة`);
   }
   if (fail) {
     console.log(`⛔ الكتل المتعذّرة: ${failed.join(' · ')}`);
