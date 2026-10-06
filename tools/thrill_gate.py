@@ -316,6 +316,7 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
     if GREETING.search(plain(first)):
         errs.append(f"الفيلم يفتح بتحيّة «{plain(first)[:30]}» — الخطّافُ أوّلاً ثم التحيّة")
     # ⛔ حكم المالك 2026-10-06 بعد عيّنة مؤتة: «حتى السلام الذي يلقيه لا أرى داعياً له» ⇒ لا تحيّة من الراوي في أيّ موضع.
+    #    وهو مؤقّتٌ بحكمه: «حتى نعرف هل المسار الجديد وفيلم مؤتة سينجحان»، فإن عاد الراوي رُفعت هذه القاعدة بأمره.
     #    وما يقوله صاحبٌ في القصّة (speaker أو دور Q/P) نصٌّ مسندٌ لا تحيّة، فلا يُمنع.
     greet = [b["id"] for b in film if GREETING.search(plain(b["text"])) and not b.get("speaker") and b.get("role", "N") == "N"]
     if greet:
