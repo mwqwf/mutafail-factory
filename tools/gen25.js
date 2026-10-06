@@ -77,16 +77,28 @@ state.model_of = state.model_of || {};
 // تشخيص الحصّة (الأرك 2026-10-04): أعلنت المفاتيح كلّها «حدّ اليوم» ثم ولّد الشوط التالي بعد دقيقتين 16 كتلة
 // ⇒ تُعدّ معرّفات الحدود (quotaId) في أجسام 429 مع عيّنةٍ مقنّعة من رسالتها، لنعرف أيّ حدٍّ يُضرب فعلاً. لا مفاتيح في السجلّ.
 state.q429 = state.q429 || {};
-function note429(txt) {
+// ⭐ سعة الحصّة الحقيقية (مؤتة 2026-10-06: نفدت المفاتيح الـ43 كلّها بعد نحو 60 توليدة، وكانت تكفي أفلاماً فوق الساعة):
+//    الحدّ المعلن لكلّ مشروع (quotaValue في جسم 429)، ونتاجُ كلّ مفتاحٍ برقمه لا بقيمته — فيُعرف كم مشروعاً خلف المفاتيح فعلاً.
+state.keys = state.keys || {};
+function keyStat(key) { const i = keys.indexOf(key); return state.keys[i] || (state.keys[i] = { ok: 0, day: 0, min: 0 }); }
+function note429(txt, key) {
   const ids = [...new Set((txt.match(/"quotaId"\s*:\s*"[^"]+"/g) || []).map(x => x.replace(/^.*"([^"]+)"$/, '$1')))];
+  let det = [];
+  try { det = JSON.parse(txt)?.error?.details || []; } catch (err) {}
+  const viol = det.flatMap(d => d.violations || []);
   for (const q of (ids.length ? ids : ['بلا_معرّف'])) {
     const e = state.q429[q] || (state.q429[q] = { n: 0, sample: '' });
     e.n++;
+    const v = viol.find(x => x.quotaId === q);
+    if (v && v.quotaValue) e.limit = v.quotaValue;
     if (!e.sample) {
       let m = txt; try { m = JSON.parse(txt)?.error?.message || txt; } catch (err) {}
       e.sample = String(m).replace(/AIza[0-9A-Za-z_\-]{10,}|AQ\.[0-9A-Za-z_\-]{10,}/g, '***').replace(/\s+/g, ' ').slice(0, 220);
     }
   }
+  const retry = det.find(d => /RetryInfo/.test(d['@type'] || ''))?.retryDelay;
+  if (retry && /PerDay/i.test(txt)) state.dayRetry = retry;
+  if (key) { const k = keyStat(key); if (/PerDay/i.test(txt)) k.day++; else k.min++; }
 }
 // ⭐ إحياء المفاتيح بعد تجديد الحصّة اليوميّ (07:00 UTC / 08:00 الجزائر).
 {
@@ -153,7 +165,7 @@ async function genWith(model, blk) {
       state.calls++;
       if (r.status === 429) {
         const txt = await r.text();
-        note429(txt);
+        note429(txt, key);
         // ⭐ اقرأ جسم الخطأ: ميّز حدّ اليوم من حدّ الدقيقة
         if (/PerDay/i.test(txt)) { deadOf(model)[key] = 'daily'; save(); continue; }
         await new Promise(z => setTimeout(z, 3000)); continue;
@@ -173,7 +185,7 @@ async function genWith(model, blk) {
       //    (وقع في «اليرموك» 2026-09-27: 175 كتلة). ⇒ إن كان المُرجَع RIFF يُحفظ كما هو.
       const isWav = pcm.length > 12 && pcm.toString('ascii', 0, 4) === 'RIFF';
       fs.writeFileSync(outFile, isWav ? pcm : Buffer.concat([wavHeader(pcm.length), pcm]));
-      state.done[blk.id] = true; state.model_of[blk.id] = model; save();
+      state.done[blk.id] = true; state.model_of[blk.id] = model; keyStat(key).ok++; save();
       return 'ok';
     } catch (e) { await new Promise(z => setTimeout(z, 2000)); }
   }
@@ -238,6 +250,12 @@ async function genOne(blk) {
   console.log(`انتهى: نجح ${ok} | فشل ${fail} | إجمالي النداءات ${state.calls}`);
   console.log(`النماذج المستعمَلة: ${JSON.stringify(models)}`);
   if (Object.keys(state.q429).length) console.log(`حدود 429 المضروبة: ${JSON.stringify(state.q429)}`);
+  {
+    const ks = Object.entries(state.keys);
+    const prod = ks.filter(([, v]) => v.ok > 0).sort((a, b) => b[1].ok - a[1].ok);
+    const dry = ks.filter(([, v]) => !v.ok && v.day).length;
+    if (ks.length) console.log(`نتاج المفاتيح: أنتج ${prod.length} من ${keys.length} (${prod.map(([i, v]) => '#' + i + '×' + v.ok).join(' ')}) · ردّ ${dry} بحدّ اليوم بلا إنتاجٍ في هذا الشوط${state.dayRetry ? ' · مهلة حدّ اليوم ' + state.dayRetry : ''}`);
+  }
   if (fail) {
     console.log(`⛔ الكتل المتعذّرة: ${failed.join(' · ')}`);
     process.exit(2);            // ⛔ الفشل يُعلَن ولا يُبتلع
