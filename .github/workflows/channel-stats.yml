@@ -37,13 +37,23 @@ jobs:
       - name: المكتبات
         run: pip install -q google-auth google-auth-oauthlib google-api-python-client
       - name: قراءة القناة وترتيب الريلزات
+        id: ch
         env:
           YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
         run: |
           set -euo pipefail
-          python tools/channel_stats.py out/channel_stats.json
+          # ⭐ تفويض يوتيوب المنتهي لا يحجب ما لا يحتاجه (مؤتة 2026-10-06: «invalid_grant» أسقط المقارنة العمياء قبل أن تبدأ،
+          #    وهي لا تحتاج من يوتيوب إلا منحنيات أفلامنا): يُكمل الشوط بآخر تقريرٍ محفوظ، ويبقى أحمرَ في آخره ليظهر العطل.
+          if ! python tools/channel_stats.py out/channel_stats.json 2> /tmp/cs_err.txt; then
+            tail -n 3 /tmp/cs_err.txt
+            grep -q "invalid_grant" /tmp/cs_err.txt || exit 1
+            echo "::error::تفويض يوتيوب منتهٍ أو مُلغى (invalid_grant): السرّ YT_OAUTH_JSON يحتاج تجديداً بيد المالك — يكمل الشوط بآخر تقريرٍ محفوظ"
+            mkdir -p out && gh release download channel-stats -p channel_stats.json -D out --clobber
+            echo "stale=1" >> "$GITHUB_OUTPUT"
+          fi
           test -s out/channel_stats.json
       - name: رفع التقرير إلى الإصدار المسوّد الخاصّ
+        if: steps.ch.outputs.stale != '1'
         run: |
           set -euo pipefail
           gh release view channel-stats >/dev/null 2>&1 || gh release create channel-stats --draft --title "إحصاءات القناة — خاصّ" --notes "تقرير tools/channel_stats.py: مشاهدات الفيديوهات العامّة ونسبة المشاهدة وترتيب الريلزات من الأضعف. خاصٌّ: لا يُودَع في المستودع العامّ."
@@ -236,3 +246,8 @@ jobs:
             sleep $(( i * 3 ))
           done
           echo "⛔ تعذّر دفع دفتر الحصص"; exit 1
+      - name: ⛔ تفويض يوتيوب يحتاج تجديداً
+        if: always() && steps.ch.outputs.stale == '1'
+        run: |
+          echo "::error::اكتمل ما لا يحتاج يوتيوب بآخر تقريرٍ محفوظ، لكنّ تفويض يوتيوب (YT_OAUTH_JSON) منتهٍ: لا نشر ولا إحصاء جديد قبل تجديده"
+          exit 1
