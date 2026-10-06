@@ -1,0 +1,29 @@
+name: فحص حصّة الصوت — بلا توليدٍ يُذكر
+
+run-name: 🔎 ${{ github.event.head_commit.message || 'فحص حصّة الصوت' }}
+
+# افتراض المالك (مؤتة 2026-10-06): «ما استُهلك اليوم جزءٌ من حصّة الأمس، وحصّة اليوم لم تتجدّد».
+# يسأل كلّ مفتاحٍ طلباً قصيراً واحداً ويقف عند أوّل نجاح (توليدةٌ واحدة على الأكثر)، ويطبع الحدّ المعلن ومهلة الرفع
+# ووقت التجدّد المتوقّع (tools/quota_probe.js). يُطلق بدفع ops/probe/*.json. المستودع عامّ والعدّاء قياسيّ ⇒ مجّانيّ.
+on:
+  push:
+    paths: ["ops/probe/*.json"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: المفاتيح
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+      - name: الفحص
+        run: node tools/quota_probe.js --keys /tmp/keys.json --model gemini-3.8-flash-tts
