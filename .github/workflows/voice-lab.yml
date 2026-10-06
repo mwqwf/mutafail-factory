@@ -45,6 +45,9 @@ jobs:
           [ -n "$F" ] || { echo "::notice::لا مواصفة مختبرٍ في هذا الإيداع"; exit 0; }
           SLUG=$(python3 -c "import json,sys,re;s=json.load(open(sys.argv[1]))['slug'];assert re.fullmatch(r'[a-z0-9-]+',s);print(s)" "$F")
           echo "SLUG=$SLUG" >> "$GITHUB_ENV"
+          # خريطة المشاريع (مجّانيّة، بلا توليد): الإيقاع والاستراحة لكلّ مشروعٍ في المولّد (مؤتة 2026-10-06)
+          node tools/key_projects.js --keys /tmp/keys.json --files --out /tmp/groups.json || true
+          [ -s /tmp/groups.json ] && export GEN_GROUPS=/tmp/groups.json
           python3 tools/voice_lab.py "$F" --keys /tmp/keys.json --out out || true
           ls -la out
           test -f "out/$SLUG-results.json"

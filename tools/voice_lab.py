@@ -77,14 +77,30 @@ def dur(f: str) -> float:
 
 
 # ═════════════ التوليد ═════════════
+# ⛔ مؤتة 2026-10-06 (تشخيص الحصّة): كانت مخرجات المولّد مكتومةً، فحاول المختبر مساء 2026-10-05 مئةً وثماني عيّنات
+#    بعد نفاد الحصّة ونجح منها 34، ولم يظهر في أيّ سجلٍّ ما صرفه. وكلُّ تركيبةٍ فاشلة طرقت المفاتيح كلّها من جديد.
+#    ثم صار المولّد ينتظر عودة المفاتيح حتى 150 دقيقة (443c35c)، فكان المختبر سيعلق ذلك في كلّ تركيبة.
+#    ⇒ مهلة المولّد هنا قصيرة، وسطور خلاصته تُطبع، وأوّل «nokeys» (جدار الحصّة) يوقف التوليد في بقيّة المختبر.
+#    والنموذج من المواصفة («model»)، والأحدث افتراضاً.
+GEN = {'model': 'gemini-3.8-flash-tts', 'wall': False}
+
+
 def generate(vdir: Path, blocks: list[dict], keys_file: str) -> dict[str, str]:
     """يولّد الكتل في مجلّد تركيبةٍ واحدة بأداة الفيلم نفسها (gen25.js) ويعيد {المعرّف: المسار}."""
     vdir.mkdir(parents=True, exist_ok=True)
     (vdir / 'blocks.json').write_text(json.dumps(blocks, ensure_ascii=False), encoding='utf-8')
-    for _ in range(3):
-        sp.run(['node', str(ROOT / 'gen25.js'), str(vdir), '4', '--keys', keys_file, '--model', 'gemini-3.8-flash-tts'],
-               stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+    env = dict(os.environ, GEN_MAX_MIN=os.environ.get('LAB_GEN_MAX_MIN', '3'), GEN_BLOCK_MS='180000')
+    for _ in range(3 if not GEN['wall'] else 0):
+        p = sp.run(['node', str(ROOT / 'gen25.js'), str(vdir), '4', '--keys', keys_file, '--model', GEN['model']],
+                   capture_output=True, text=True, env=env)
+        for ln in (p.stdout + '\n' + p.stderr).splitlines():
+            if ln.startswith(('انتهى:', 'حدود 429', 'نتائج النداءات', '⛔')):
+                log('   ', ln[:300])
         if all((vdir / 'audio' / (b['id'] + '.wav')).exists() for b in blocks):
+            break
+        if 'nokeys' in p.stdout:
+            GEN['wall'] = True
+            log('⛔ جدار الحصّة (nokeys): لا توليد بعد الآن في هذا المختبر — يُعاد بعد تجدّد الحصّة')
             break
     return {b['id']: str(vdir / 'audio' / (b['id'] + '.wav')) for b in blocks if (vdir / 'audio' / (b['id'] + '.wav')).exists()}
 
@@ -403,10 +419,11 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     spec = json.loads(Path(a.spec).read_text(encoding='utf-8'))
     slug = spec['slug']
+    GEN['model'] = spec.get('model', GEN['model'])
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     work = Path('lab_work'); work.mkdir(exist_ok=True)
     judge = Judge(keys_from(a.keys))
-    res: dict = {'slug': slug, 'styles': spec['styles'], 'pos_styles': spec.get('pos_styles', {}), 'roles': {}, 'generated': 0}
+    res: dict = {'slug': slug, 'model': GEN['model'], 'styles': spec['styles'], 'pos_styles': spec.get('pos_styles', {}), 'roles': {}, 'generated': 0}
     for name, cfg in roles_of(spec).items():
         try:
             rr = lab_role(name, cfg, spec, judge, out, work, a.keys)
@@ -418,6 +435,7 @@ def main(argv=None) -> int:
     if list(res['roles']) == ['narrator']:          # الصيغة الأولى للنتيجة (الأرك) محفوظة في الأعلى
         res.update({k: v for k, v in res['roles']['narrator'].items() if k != 'generated'})
     res['judge_calls'] = judge.calls
+    res['quota_wall'] = GEN['wall']
     (out / f'{slug}-results.json').write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding='utf-8')
     return 0 if all(rr.get('winner') for rr in res['roles'].values()) else 1
 
