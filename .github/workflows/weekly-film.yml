@@ -175,9 +175,11 @@ jobs:
           #    لأنّ دفتر المفاتيح الميّتة يبدأ فارغاً. ⇒ جولاتٌ إضافية بدفترٍ جديد بعد استراحةٍ قصيرة ما دامت كلّ جولةٍ تأتي بجديد،
           #    وتقف عند أوّل جولةٍ بلا جديد أو بعد 20 جولة. النموذج نفسه والصوت نفسه، فلا خلط.
           miss() { python3 -c "import json,os;b=json.load(open('proj/blocks.json',encoding='utf-8'));print(sum(1 for x in b if not (os.path.exists('proj/audio/%s.wav'%x['id']) and os.path.getsize('proj/audio/%s.wav'%x['id'])>8000)))"; }
-          for j in $(seq 1 20); do
+          # ⛔ مؤتة 2026-10-06: كان كلّ جولةٍ يحذف الدفتر فيطرق المفاتيح الـ43 كلّها من جديد كلّ 90 ث — إغراقٌ يُطيل عقوبة «حدّ اليوم».
+          #    ⇒ الدفتر يبقى (الاستراحة والإيقاع في gen25 يعيدان المفتاح حين يصلح)، والاستراحة بين الجولات 5 د، وثماني جولاتٍ على الأكثر.
+          for j in $(seq 1 8); do
             m0=$(miss); [ "$m0" -eq 0 ] && break
-            echo "↻ تقطير $j: الناقص $m0"; rm -f proj/gen_state.json; sleep 90
+            echo "↻ تقطير $j: الناقص $m0"; sleep 300
             node tools/gen25.js proj 12 --keys /tmp/keys.json --model gemini-3.8-flash-tts || true
             python tools/audio_checks.py proj || true
             m1=$(miss); echo "   بعدها: $m1"; [ "$m1" -lt "$m0" ] || break

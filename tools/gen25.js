@@ -74,7 +74,9 @@ let state = {};
 try { state = JSON.parse(fs.readFileSync(STATE, 'utf8')); } catch (e) { state = {}; }
 state.done = state.done || {}; state.dead = state.dead || {}; state.calls = state.calls || 0;
 state.model_of = state.model_of || {};
-state.strikes = state.strikes || {}; state.revived = state.revived || 0;   // استراحات «حدّ اليوم» ومن عاد بعدها فولّد
+state.strikes = state.strikes || {}; state.revived = state.revived || 0;
+// أين تذهب النداءات: صوتٌ، أو ردٌّ بلا صوت (يُحسب على الحصّة)، أو رفضٌ بنوعه، أو خطأ خادمٍ أو شبكة
+state.out = Object.assign({ ok: 0, noaudio: 0, noaudio_why: {}, day: 0, min: 0, other429: 0, http5xx: 0, http4xx: 0, net: 0 }, state.out || {});   // استراحات «حدّ اليوم» ومن عاد بعدها فولّد
 // تشخيص الحصّة (الأرك 2026-10-04): أعلنت المفاتيح كلّها «حدّ اليوم» ثم ولّد الشوط التالي بعد دقيقتين 16 كتلة
 // ⇒ تُعدّ معرّفات الحدود (quotaId) في أجسام 429 مع عيّنةٍ مقنّعة من رسالتها، لنعرف أيّ حدٍّ يُضرب فعلاً. لا مفاتيح في السجلّ.
 state.q429 = state.q429 || {};
@@ -122,29 +124,46 @@ const keys = loadKeys();
 let ki = 0;
 // ⭐ الموتى لكلّ نموذجٍ على حدة: `dead[model][key]`
 function deadOf(m) { state.dead[m] = state.dead[m] || {}; return state.dead[m]; }
-// ⭐ «حدّ اليوم» استراحةٌ قبل الإسقاط (مؤتة 2026-10-06): الحدّ حقيقيّ (10 لكلّ مشروعٍ في اليوم، يُرفع عند منتصف الليل UTC)،
-//    لكن تمرّ بعده نجاحاتٌ متفرّقة: ولّد المفتاح الأوّل 07:51Z بعد ردّ المفاتيح كلّها 07:37Z، وولّدت جولات التقطير في الأرك 3 ثم 2 ثم 0.
-//    ⇒ المفتاح يستريح COOL_MS ثم ضعفها فيُلتقط ما يمرّ بلا طحن، ولا يُسقط نهائياً إلا بعد DAY_STRIKES ردودٍ متتالية.
-const COOL_MS = +(process.env.GEN_COOL_MS || 8 * 60 * 1000);
+// ⭐⭐ لا إغراق (مؤتة 2026-10-06، والمالك: «المشكلة من جهتنا»): أرسل الشوط 90 في ثلاث دقائق 752 طلباً ليُخرج 16 صوتاً —
+//    409 ردّاً بحدّ الدقيقة و282 «المورد مستنفد» و45 بحدّ اليوم — لأنّ المسار يعود بعد 3–7 ث إلى المفتاح التالي، والرفض يرجع فوراً.
+//    ثم رُفضت المفاتيح كلّها بـ«حدّ اليوم» 07:37Z و08:58Z (والشوط 91 يطحن)، وولّد 34 منها 09:35Z: فالرفض عقوبة إغراقٍ تُرفع بعد دقائق، لا نفاد.
+//    ⇒ ① إيقاعٌ لكلّ مفتاح: طلبٌ كلّ PACE_MS على الأكثر (دون حدّ الدقيقة المجّانيّ)، محفوظٌ في ملفٍّ مشترك بين الأشواط المتتالية في العدّاء؛
+//      ② حدّ الدقيقة و«المورد مستنفد» يُريحان المفتاح دقيقةً أو مهلة جوجل أيّهما أطول، لا ثوانيَ؛
+//      ③ «حدّ اليوم» يُريح COOL_MS ثم ضعفها، ولا يُسقط المفتاح نهائياً إلا بعد DAY_STRIKES ردودٍ متتالية.
+const COOL_MS = +(process.env.GEN_COOL_MS || 20 * 60 * 1000);
 const DAY_STRIKES = +(process.env.GEN_DAY_STRIKES || 3);
+const PACE_MS = +(process.env.GEN_PACE_MS || 31000);
+const MIN_COOL_MS = +(process.env.GEN_MIN_COOL_MS || 60000);
+const PACE_FILE = process.env.GEN_PACE_FILE || path.join(os.tmpdir(), 'gen25_pace.json');
+let pace = {};
+try { pace = JSON.parse(fs.readFileSync(PACE_FILE, 'utf8')); } catch (e) { pace = {}; }
+const kid = k => require('crypto').createHash('sha256').update(k).digest('hex').slice(0, 12);   // لا مفتاح في الملفّ
+function savePace() { try { fs.writeFileSync(PACE_FILE, JSON.stringify(pace)); } catch (e) {} }
+function readyAt(model, k) {
+  const d = deadOf(model)[k];
+  if (d === 'daily') return Infinity;
+  return Math.max(typeof d === 'number' ? d : 0, (pace[kid(k)] || 0) + PACE_MS);
+}
 function soonest(model) {
-  const dead = deadOf(model), now = Date.now();
+  const now = Date.now();
   let m = Infinity;
-  for (const k of keys) {
-    const d = dead[k];
-    if (!d) return 0;
-    if (typeof d === 'number') m = Math.min(m, Math.max(0, d - now));
-  }
-  return m;
+  for (const k of keys) m = Math.min(m, readyAt(model, k) - now);
+  return Math.max(0, m);
 }
 function nextKey(model) {
-  const dead = deadOf(model), now = Date.now();
+  const now = Date.now();
   for (let n = 0; n < keys.length; n++) {
     const k = keys[(ki + n) % keys.length];
-    const d = dead[k];
-    if (!d || (typeof d === 'number' && d <= now)) { ki = (ki + n + 1) % keys.length; return k; }
+    if (readyAt(model, k) <= now) { ki = (ki + n + 1) % keys.length; pace[kid(k)] = now; savePace(); return k; }
   }
   return null;
+}
+function retrySec(txt) {
+  try {
+    const det = JSON.parse(txt)?.error?.details || [];
+    const m = /^(\d+(?:\.\d+)?)s$/.exec(det.find(d => /RetryInfo/.test(d['@type'] || ''))?.retryDelay || '');
+    return m ? +m[1] : 0;
+  } catch (e) { return 0; }
 }
 
 function wavHeader(dataLen, rate = 24000, ch = 1, bits = 16) {
@@ -166,7 +185,7 @@ async function genWith(model, blk) {
     if (!key) {
       const w = soonest(model);
       if (!isFinite(w) || Date.now() + w > deadline) return 'nokeys';
-      await new Promise(z => setTimeout(z, w + 1000 + Math.random() * 3000));
+      await new Promise(z => setTimeout(z, w + 200 + Math.random() * 800));
       continue;
     }
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
@@ -191,6 +210,7 @@ async function genWith(model, blk) {
         note429(txt, key);
         // ⭐ اقرأ جسم الخطأ: ميّز حدّ اليوم من حدّ الدقيقة
         if (/PerDay/i.test(txt)) {
+          state.out.day++;
           // ردٌّ واحدٌ يصل من مسارين حملا المفتاح نفسه معاً: لا يُعدّ ضربتين (وإلا مات المفتاح قبل استراحتيه)
           const dk = deadOf(model)[key];
           if (dk !== 'daily' && !(typeof dk === 'number' && dk > Date.now())) {
@@ -200,7 +220,11 @@ async function genWith(model, blk) {
           }
           save(); continue;
         }
-        await new Promise(z => setTimeout(z, 3000 + Math.random() * 4000)); continue;
+        // حدّ الدقيقة أو «المورد مستنفد» بلا معرّف: المفتاح يستريح دقيقةً أو مهلة جوجل، والمسار يأخذ مفتاحاً جاهزاً بإيقاعه
+        if (/PerMinute/i.test(txt)) state.out.min++; else state.out.other429++;
+        const dk = deadOf(model)[key];
+        if (dk !== 'daily') deadOf(model)[key] = Math.max(typeof dk === 'number' ? dk : 0, Date.now() + Math.max(MIN_COOL_MS, retrySec(txt) * 1000));
+        save(); continue;
       }
       if (r.status === 404 || r.status === 400) {
         // النموذج غير متاحٍ لهذا المفتاح أصلاً — لا تطحن عليه
@@ -208,20 +232,27 @@ async function genWith(model, blk) {
         console.log(`  ⚠ ${model}: ${r.status} — ${txt.slice(0, 160).replace(/\s+/g, ' ')}`);
         return 'nomodel';
       }
-      if (!r.ok) { await new Promise(z => setTimeout(z, 2000)); continue; }
+      if (!r.ok) { state.out[r.status >= 500 ? 'http5xx' : 'http4xx']++; await new Promise(z => setTimeout(z, 2000 + Math.random() * 3000)); continue; }
       const j = await r.json();
       const p = j?.candidates?.[0]?.content?.parts?.find(x => x.inlineData);
-      if (!p) { await new Promise(z => setTimeout(z, 1500)); continue; }
+      if (!p) {
+        // ⛔ ردٌّ ناجح بلا صوت يُحسب على الحصّة ولا يُخرج شيئاً: يُعدّ ويُسمّى سببه
+        state.out.noaudio++;
+        const fr = j?.candidates?.[0]?.finishReason || (j?.promptFeedback?.blockReason ? 'حجب:' + j.promptFeedback.blockReason : 'بلا_سبب');
+        state.out.noaudio_why[fr] = (state.out.noaudio_why[fr] || 0) + 1;
+        save(); await new Promise(z => setTimeout(z, 1500)); continue;
+      }
       const pcm = Buffer.from(p.inlineData.data, 'base64');
       // ⛔⛔ gemini-3.8 يُرجع WAV كاملاً بترويسته؛ فإضافةُ ترويسةٍ فوقه تُسمَع طقطقةً في أوّل كل كتلة
       //    (وقع في «اليرموك» 2026-09-27: 175 كتلة). ⇒ إن كان المُرجَع RIFF يُحفظ كما هو.
       const isWav = pcm.length > 12 && pcm.toString('ascii', 0, 4) === 'RIFF';
       fs.writeFileSync(outFile, isWav ? pcm : Buffer.concat([wavHeader(pcm.length), pcm]));
+      state.out.ok++;
       state.done[blk.id] = true; state.model_of[blk.id] = model; keyStat(key).ok++;
       { const sk = model + '#' + keys.indexOf(key); if (state.strikes[sk]) { state.revived++; delete state.strikes[sk]; } }
       save();
       return 'ok';
-    } catch (e) { await new Promise(z => setTimeout(z, 2000)); }
+    } catch (e) { state.out.net++; await new Promise(z => setTimeout(z, 2000 + Math.random() * 3000)); }
   }
   return 'timeout';
 }
@@ -284,6 +315,8 @@ async function genOne(blk) {
   console.log(`انتهى: نجح ${ok} | فشل ${fail} | إجمالي النداءات ${state.calls}`);
   console.log(`النماذج المستعمَلة: ${JSON.stringify(models)}`);
   if (Object.keys(state.q429).length) console.log(`حدود 429 المضروبة: ${JSON.stringify(state.q429)}`);
+  { const o = state.out;
+    console.log(`نتائج النداءات: صوت ${o.ok} · بلا صوت ${o.noaudio}${o.noaudio ? ' ' + JSON.stringify(o.noaudio_why) : ''} · حدّ اليوم ${o.day} · حدّ الدقيقة ${o.min} · مستنفدٌ بلا معرّف ${o.other429} · خادم ${o.http5xx} · طلبٌ مرفوض ${o.http4xx} · شبكة ${o.net} · الإيقاع ${PACE_MS / 1000} ث لكلّ مفتاح`); }
   {
     const ks = Object.entries(state.keys);
     const prod = ks.filter(([, v]) => v.ok > 0).sort((a, b) => b[1].ok - a[1].ok);
