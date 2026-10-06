@@ -29,4 +29,7 @@ jobs:
         run: |
           # «الكلّ»: true في ملفّ الطلب ⇒ يُسأل كلّ مفتاح ويُقرأ مشروعه من ردّ الرفض (توليدةٌ لكلّ مفتاحٍ متاح)
           ALL=$(python3 -c "import json;print('--all' if json.load(open('ops/probe/tts.json',encoding='utf-8')).get('الكلّ') else '')")
+          PROJ=$(python3 -c "import json;print(1 if json.load(open('ops/probe/tts.json',encoding='utf-8')).get('المشاريع') else '')")
+          # «المشاريع»: true ⇒ خريطة المشاريع خلف المفاتيح وحدها، بلا أيّ نداءٍ لجيميناي (tools/key_projects.js)
+          if [ -n "$PROJ" ]; then node tools/key_projects.js --keys /tmp/keys.json; exit 0; fi
           node tools/quota_probe.js --keys /tmp/keys.json --model gemini-3.8-flash-tts $ALL
