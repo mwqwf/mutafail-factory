@@ -140,7 +140,8 @@ const PACE_MS = +(process.env.GEN_PACE_MS || 31000);
 const MIN_COOL_MS = +(process.env.GEN_MIN_COOL_MS || 60000);
 const PACE_FILE = process.env.GEN_PACE_FILE || path.join(os.tmpdir(), 'gen25_pace.json');
 // ميزانية الشوط: إلى متى يُنتظر عودة المفاتيح المستريحة قبل «nokeys» (حدّ مهمّة الفيلم 350 د)
-const RUN_END = Date.now() + (+(process.env.GEN_MAX_MIN || 150)) * 60 * 1000;
+// وGEN_DEADLINE (ملّي ثانية منذ 1970) موعدٌ واحد للخطوة كلّها، فلا تتراكم مهل الاستدعاءات المتتالية فوق حدّ المهمّة
+const RUN_END = Math.min(Date.now() + (+(process.env.GEN_MAX_MIN || 150)) * 60 * 1000, +(process.env.GEN_DEADLINE || Infinity));
 let pace = {};
 try { pace = JSON.parse(fs.readFileSync(PACE_FILE, 'utf8')); } catch (e) { pace = {}; }
 const kid = k => require('crypto').createHash('sha256').update(k).digest('hex').slice(0, 12);   // لا مفتاح في الملفّ
