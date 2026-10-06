@@ -127,6 +127,24 @@ class LabTest(unittest.TestCase):
              mock.patch.object(vl, 'Judge', lambda keys: FakeJudge(fail_on={'إلقاء'})):
             self.assertEqual(vl.main([str(spec), '--keys', 'k.json', '--out', str(out)]), 1)
 
+    def test_crash_in_one_role_still_writes_results(self):
+        spec = self.d / 'spec.json'
+        spec.write_text(json.dumps(ROLES, ensure_ascii=False), encoding='utf-8')
+        cwd = os.getcwd()
+        os.chdir(self.d)
+        self.addCleanup(os.chdir, cwd)
+
+        def boom(files, out):
+            if 'recitation' in str(out):
+                raise RuntimeError('ffmpeg')
+            return str(out)
+        with mock.patch.object(vl, 'generate', fake_generate()), mock.patch.object(vl, 'Judge', lambda keys: FakeJudge()), \
+             mock.patch.object(vl, 'join_lines', boom):
+            self.assertEqual(vl.main([str(spec), '--keys', 'k.json', '--out', str(self.d / 'o2')]), 1)
+        res = json.loads((self.d / 'o2' / 't-voices-results.json').read_text(encoding='utf-8'))
+        self.assertIn('winner', res['roles']['quote'])
+        self.assertIn('استثناء', res['roles']['poetry']['error'])
+
     def test_single_narrator_keeps_first_result_format(self):
         spec = self.d / 'n.json'
         spec.write_text(json.dumps(dict(NARR, pos_styles={'medina': 'epic'}), ensure_ascii=False), encoding='utf-8')

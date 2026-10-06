@@ -408,7 +408,10 @@ def main(argv=None) -> int:
     judge = Judge(keys_from(a.keys))
     res: dict = {'slug': slug, 'styles': spec['styles'], 'pos_styles': spec.get('pos_styles', {}), 'roles': {}, 'generated': 0}
     for name, cfg in roles_of(spec).items():
-        rr = lab_role(name, cfg, spec, judge, out, work, a.keys)
+        try:
+            rr = lab_role(name, cfg, spec, judge, out, work, a.keys)
+        except Exception as e:                      # عطلٌ في دورٍ لا يُسقط نتيجة الأدوار الأخرى ولا ملفّ النتيجة
+            rr = {'error': 'استثناء: %s' % str(e)[:300], 'generated': 0}
         res['roles'][name] = rr
         res['generated'] += rr['generated']
         log(name, '— الفائز:', json.dumps(rr.get('winner'), ensure_ascii=False) if rr.get('winner') else 'لا أحد', rr.get('error', ''))
