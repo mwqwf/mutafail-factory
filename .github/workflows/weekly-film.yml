@@ -198,6 +198,16 @@ jobs:
               mkdir -p proj/audio && echo "$RID" > proj/audio/.regen_applied
             fi
           fi
+          # redo في ملفّ الأمر = كتلٌ يُعاد صوتها بعد تحكيمٍ سمعيّ بلا تغيير النصّ، فلا حاجة إلى ختمٍ جديد
+          #    (مؤتة 2026-10-06: n_027 «ولم يُقتَلْ لِرسولِ الله ﷺ» — لم يسمع التفريغ المستقلّ اللام، ورفع الإصغاء الكتلة).
+          #    مرّةً واحدة لكلّ قيمة _تشغيل، فلا يحذف شوطٌ ثانٍ بالأمر نفسه ما أُعيد قبله.
+          RUNID=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1],encoding='utf-8')).get('_تشغيل',''))" "ops/run/$SLUG.json" 2>/dev/null || true)
+          REDO=$(python3 -c "import json,sys,re;print(' '.join(i for i in json.load(open(sys.argv[1],encoding='utf-8')).get('redo',[]) if re.fullmatch(r'[a-z0-9_]+',i)))" "ops/run/$SLUG.json" 2>/dev/null || true)
+          if [ -n "$REDO" ] && [ "$(cat proj/audio/.redo_applied 2>/dev/null)" != "redo:$RUNID" ]; then
+            for id in $REDO; do rm -f "proj/audio/$id.wav" "proj/audio/$id.wav.dc"; done
+            mkdir -p proj/audio && echo "redo:$RUNID" > proj/audio/.redo_applied
+            echo "↻ إعادةٌ بأمر ملفّ الأمر: $REDO"
+          fi
           # قصُّ ما نُطق من توجيهٍ إنجليزي في أول الكتلة (lead_cut) صوتاً ومقطعَ راوٍ، قبل الفحص والإصغاء ليُتحقَّق منه
           # audio_fix/ في الحمولة: صوتٌ مصحَّح يغلب ما في حالة الشوط السابق (مثلاً صوتٌ أُعيد توليده خطأً وله مقطع راوٍ مدفوع)
           #    وصوت audio_fix كلّه من النموذج الأحدث، فلا يُنسخ في شوطٍ بغيره (لا خلط)
