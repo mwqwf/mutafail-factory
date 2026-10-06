@@ -1,0 +1,37 @@
+name: إيقاف شوطٍ عالق
+
+run-name: ⏹ ${{ github.event.head_commit.message || 'إيقاف شوط' }}
+
+# مؤتة 2026-10-06 (أمر المالك: «هذه المشكلة غير مقبولة ويجب حلّها فوراً»): بقي الشوط 91 يطرق المفاتيح بالأداة القديمة
+# ساعتين ويحجز طابور الفيلم عن الشوط 92 الموقَّع، وصلاحية الجلسة لا تملك الإيقاف (403). وإيقاف أشواط المستودع من صلاحيات
+# سيره نفسه: دفعُ ops/cancel/<اسم>.json = {"run_id": <رقم>} يوقف ذلك الشوط من هذا المستودع وحده، والحالة تُحفظ بخطوة ⑤ (always).
+on:
+  push:
+    paths: ["ops/cancel/*.json"]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - name: الإيقاف
+        run: |
+          set -euo pipefail
+          for f in $(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/cancel/.*\.json$' || true); do
+            [ -f "$f" ] || continue
+            ID=$(python3 -c "import json,sys;print(int(json.load(open(sys.argv[1],encoding='utf-8'))['run_id']))" "$f")
+            S=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$ID" -q '.status + " " + (.name|split("\n")[0])')
+            echo "الشوط $ID قبل الإيقاف: $S"
+            case "$S" in completed*) echo "انتهى أصلاً — لا شيء"; continue;; esac
+            gh api -X POST "repos/$GITHUB_REPOSITORY/actions/runs/$ID/cancel" >/dev/null && echo "⏹ طُلب إيقاف الشوط $ID"
+            sleep 20
+            echo "بعده: $(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$ID" -q '.status + " " + (.conclusion // "")')"
+          done
