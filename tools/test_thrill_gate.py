@@ -46,6 +46,15 @@ class ThrillGateTests(unittest.TestCase):
         self.assertIn("بمعلّقة", text)
         self.assertIn("2 ريلز", text)
 
+    def test_narrator_greeting_anywhere_fails_but_quoted_greeting_passes(self):
+        # حكم المالك 2026-10-06: لا تحيّة من الراوي في أيّ موضع، والتحيّة في قول صاحبٍ مسندٍ من القصّة
+        mid = B("g1", "السَّلَامُ عَلَيْكُمْ… نَحْنُ الْآنَ فِي قَلْبِ الْمَعْرَكَةْ.")
+        errs, _ = g.check(proj(COLD + GOOD[:3] + [mid] + GOOD[3:] + RB, SECS_C, REELS), None)
+        self.assertTrue(any("تحيّةٌ من الراوي" in e and "g1" in e for e in errs), errs)
+        quoted = B("g2", "السَّلَامُ عَلَيْكُمْ يَا قَوْمْ.", speaker="ابن عمر", role="Q")
+        errs, _ = g.check(proj(COLD + GOOD[:3] + [quoted] + GOOD[3:] + RB, SECS_C, REELS), None)
+        self.assertFalse(any("تحيّةٌ من الراوي" in e for e in errs), errs)
+
     def test_owner_reel_count_override(self):
         # الأرك 2026-10-04: «الريلزات يكفي اثنان فقط لهذا الفيلم» ⇒ publish.json: reels_required = 2
         d = proj(GOOD + RB, SECS, REELS[:2])

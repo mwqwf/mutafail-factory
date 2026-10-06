@@ -315,6 +315,11 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
     first = film[0]["text"]
     if GREETING.search(plain(first)):
         errs.append(f"الفيلم يفتح بتحيّة «{plain(first)[:30]}» — الخطّافُ أوّلاً ثم التحيّة")
+    # ⛔ حكم المالك 2026-10-06 بعد عيّنة مؤتة: «حتى السلام الذي يلقيه لا أرى داعياً له» ⇒ لا تحيّة من الراوي في أيّ موضع.
+    #    وما يقوله صاحبٌ في القصّة (speaker أو دور Q/P) نصٌّ مسندٌ لا تحيّة، فلا يُمنع.
+    greet = [b["id"] for b in film if GREETING.search(plain(b["text"])) and not b.get("speaker") and b.get("role", "N") == "N"]
+    if greet:
+        errs.append(f"تحيّةٌ من الراوي ({', '.join(greet[:4])}): لا سلام في أيّ موضعٍ من الفيلم (حكم المالك 2026-10-06)")
     elif words(first) > HOOK_FIRST_MAX:
         errs.append(f"أوّل جملة {words(first)} كلمة (> {HOOK_FIRST_MAX}): الخطّاف صدمةٌ قصيرة لا شرح")
     # ⭐ حكم المالك 2026-10-05: الافتتاح البارد مشهدٌ متّصل بلا سؤال، ثم السؤال المركزيّ قبل الدقيقة. والأسئلة المتراكمة
