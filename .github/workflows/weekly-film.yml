@@ -167,6 +167,15 @@ jobs:
             fi
           fi
           mkdir -p proj/audio && echo "$TTS_MODEL" > proj/audio/.model
+          # 🗑 صوت نماذج تخلّى عنها المالك يُحذف من الحالة بحقل drop في ملفّ الأمر (أمره 2026-10-06: «إن لم ينجح 3.1 في
+          #    توليده كاملاً فاحذف صوته هو والخفيف واستمرّ على الأحدث حتى يتولّد الفيلم كاملاً به»). ولا يُحذف صوت نموذج الشوط.
+          for m in $(python3 -c "import json,sys;print(' '.join(json.load(open(sys.argv[1],encoding='utf-8')).get('drop',[])))" "ops/run/$SLUG.json" 2>/dev/null); do
+            case "$m" in gemini-3.8-flash-tts|gemini-3.8-flash-lite-tts|gemini-3.1-flash-tts-preview) ;; *) continue;; esac
+            [ "$m" = "$TTS_MODEL" ] && continue
+            if [ -d "proj/audio_prev_$m" ]; then
+              echo "🗑 حُذف صوت $m ($(ls proj/audio_prev_$m/*.wav 2>/dev/null | wc -l) كتلة) بأمر المالك"; rm -rf "proj/audio_prev_$m"
+            fi
+          done
           # ⭐ خريطة المشاريع (مجّانيّة، بلا توليد): 43 مفتاحاً في 31 مشروعاً، فالإيقاع والاستراحة لكلّ مشروع (tools/gen25.js)
           node tools/key_projects.js --keys /tmp/keys.json --files --out /tmp/groups.json || true
           [ -s /tmp/groups.json ] && echo "GEN_GROUPS=/tmp/groups.json" >> "$GITHUB_ENV" && export GEN_GROUPS=/tmp/groups.json
