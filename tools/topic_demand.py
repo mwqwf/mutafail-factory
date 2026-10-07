@@ -5,7 +5,8 @@
 لكلّ موضوعٍ في ops/stats/topics.json: أعلى الفيديوهات مشاهدةً منذ «منذ» (search.list بترتيب المشاهدات، لغةً عربية)،
 ثم مشاهداتها وتواريخها وأطوالها وقنواتها (videos.list) ⇒ مؤشّرات الطلب: وسيط أعلى عشرة، وعدد ما تجاوز مئة ألف ومليوناً،
 ونسبة الطويل (> 8 د)، وأكبر القنوات. ومعها اقتراحات البحث الشائعة في يوتيوب لبذورٍ عامّة ولكلّ موضوع (بلا حصّة).
-⛔ حصّة يوتيوب: البحث 100 وحدة. يُحسب المسموح من دفتر الحصص (tools/quota.py) مع حجز رفعٍ واحد، ويُسجَّل كلّ إنفاق.
+⛔ حصّة يوتيوب: للبحث حصّةٌ مستقلّة منذ 2026-06-01 (مئة بحثٍ في اليوم)، وقراءة نتائجه وحدةٌ من الحصّة العامّة.
+   يُحسب المسموح من دفتر الحصص (tools/quota.py) مع حجز ما يحتاجه نشر فيلم من الحصّة العامّة، ويُسجَّل كلّ إنفاق.
 الاستعمال: python tools/topic_demand.py <out.json>   (يحتاج YT_OAUTH_JSON)
 ⛔ التقرير إلى الإصدار المسوّد الخاصّ channel-stats، لا إلى المستودع العامّ."""
 from __future__ import annotations
@@ -23,7 +24,7 @@ import urllib.request
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import quota  # noqa: E402
 
-RESERVE = 1650   # رفعٌ واحد ومصغّرة لا يمسّهما البحث
+RESERVE = 150    # مصغّرةٌ وإضافةٌ إلى قائمة وتحديثٌ لا يمسّها البحث (الرفع في حصّته المستقلّة)
 
 
 def secs(iso: str) -> int:
@@ -46,9 +47,8 @@ def suggest(q: str) -> list:
 
 
 def allowance() -> int:
-    d = quota.load()
-    used = d.get('يوتيوب', {}).get('وحدات', 0)
-    return max(0, (quota.CAP - quota.MARGIN - RESERVE - used) // quota.COST['search'])
+    # كلّ موضوع: بحثٌ من حصّته المستقلّة، ثم قراءةٌ بوحدةٍ من الحصّة العامّة
+    return max(0, min(quota.remaining('search'), quota.remaining() - RESERVE))
 
 
 def main(out: str) -> None:

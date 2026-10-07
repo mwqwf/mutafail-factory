@@ -8,7 +8,7 @@
    فيُكتب رابطُ الفيلم في الوصف، **ويُسجَّل الريلز في `ops/state/pending_links.json`**
    ليُربط لاحقاً بنقرةٍ واحدة من الهاتف — ولا يُدَّعى أنه رُبط.
 
-الحصّة: رفعُ فيديو = 1600 وحدة من 10000 يومياً ⇒ ستّ رفعات. وفيلمٌ بريلزيه = ثلاث.
+الحصّة: للرفع حصّةٌ مستقلّة منذ 2026-06-01، مئة رفعةٍ في اليوم، وسائر الطرق من العشرة آلاف (tools/quota.py).
 """
 import json, io, os, sys, datetime
 
@@ -81,7 +81,7 @@ def upload(svc, path, meta, publish_at=None, public_now=False):
     vid = res["id"]
     quota.spend("upload", meta["title"][:40])
     print("✅ رُفع:", vid, "·", meta["title"][:50],
-          "| بقي من حصّة يوتيوب:", quota.remaining(), flush=True)
+          "| بقي من رفعات اليوم:", quota.remaining("upload"), flush=True)
     return vid
 
 
@@ -369,13 +369,13 @@ def defer(slug, film_id, what, used, left):
     cur.update({"runId": os.environ.get("GITHUB_RUN_ID", cur.get("runId", "")),
                 "videoId": film_id, "command": slug,
                 "مؤجَّل": True,
-                "ملاحظة": "حصّةُ رفع يوتيوب لا تحتمل المزيد اليوم (مستهلَك %d، متبقٍّ %d). "
+                "ملاحظة": "حصّةُ رفع يوتيوب لا تحتمل المزيد اليوم (رفعات اليوم %d، المتبقّي %d). "
                           "يُتمّ في نافذة التجدّد القادمة." % (used, left)})
     pend = cur.setdefault("المتبقّي", [])
     if what not in pend:
         pend.append(what)
     io.open(f, "w", encoding="utf-8").write(json.dumps(cur, ensure_ascii=False, indent=1))
-    print("⏳ جُدوِل إلى نافذة التجدّد: %s (متبقٍّ من الحصّة %d وحدة)" % (what, left),
+    print("⏳ جُدوِل إلى نافذة التجدّد: %s (المتبقّي من رفعات اليوم %d)" % (what, left),
           flush=True)
 
 
@@ -400,6 +400,9 @@ def main():
     if reels_for_film:
         reels_only = True
     when = None; film_id = None; env_at = os.environ.get("PUBLISH_AT", "").strip()
+    # ⭐ الأرك r1 (2026-10-07، أمر المالك «انشرها الآن الجدولة لغد»): ريلزاتٌ لفيلمٍ منشور على موعدٍ مطلق.
+    #    PUBLISH_AT أساسُ مواعيدها، ومعه REEL_OFFSETS دقائق. والفيلم لا يُمسّ، وموعده في السجلّ يبقى فارغاً.
+    reel_base = env_at if reels_for_film and env_at and env_at != "now" else None
     if not reels_only:
 
         # ─── الفيلم ───
@@ -489,13 +492,13 @@ def main():
             r = dict(r, title=titles[r["file"]])
         if r["file"] in done:                      # ↻ استئناف: لا يُرفع مرّتين
             print("↻ الريلز مرفوعٌ سلفاً", r["file"], flush=True)
-            if env_at: reschedule(svc, done[r["file"]]["id"], reel_at(when, len(reels)))
+            if env_at: reschedule(svc, done[r["file"]]["id"], reel_at(when or reel_base, len(reels)))
             reels.append(done[r["file"]]); continue
         t = r["title"].strip()[:100]
         if t in onchannel:                         # ↻ رُفع في محاولةٍ سابقةٍ سقطت
             print("↻ عنوانٌ مرفوعٌ على القناة سلفاً — لا نسخةَ ثانية:",
                   onchannel[t], flush=True)
-            if env_at: reschedule(svc, onchannel[t], reel_at(when, len(reels)))
+            if env_at: reschedule(svc, onchannel[t], reel_at(when or reel_base, len(reels)))
             reels.append({"id": onchannel[t], "title": r["title"], "file": r["file"]})
             save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
             continue
@@ -513,7 +516,7 @@ def main():
         rm["description"] = r["description"].replace("{FILM_URL}", link)
         if "#Shorts" not in rm["description"]:
             rm["description"] = rm["description"].rstrip() + "\n\n#Shorts"
-        rat = reel_at(when, len(reels))
+        rat = reel_at(when or reel_base, len(reels))
         rid = upload(svc, P("reels", r["file"]), rm, publish_at=rat, public_now=not rat)
         # ⛔ يُسجَّل **قبل** التحقّق: سقوطُ التحقّق بعد رفعٍ واقعٍ كان يُنتج نسخةً ثانية.
         reels.append({"id": rid, "title": r["title"], "file": r["file"]})
