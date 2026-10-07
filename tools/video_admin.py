@@ -27,7 +27,16 @@ svc = build("youtube", "v3", credentials=Credentials(
 vid = CMD["videoId"]
 r = svc.videos().list(part="snippet,status", id=vid).execute()
 if not r.get("items"):
-    raise SystemExit("⛔ لا فيديو بهذا المعرّف: " + vid)
+    # ⛔ الأرك r1 2026-10-07: رُفع xdrXYPb_Wjs وتحقّق منه سكربت النشر، ثم لم يُرجعه videos.list بعد دقيقتين.
+    #    ⇒ قبل الحكم بغيابه تُقرأ آخر خمسين رفعةً للقناة: إن ظهر فيها فهو تأخّرٌ في القراءة، وإلا فقد أُزيل.
+    ch = svc.channels().list(part="contentDetails", mine=True).execute()["items"][0]
+    up = ch["contentDetails"]["relatedPlaylists"]["uploads"]
+    its = svc.playlistItems().list(part="snippet,status", playlistId=up, maxResults=50).execute().get("items", [])
+    hit = [i for i in its if i["snippet"]["resourceId"]["videoId"] == vid]
+    if hit:
+        print("⚠ في رفعات القناة ولا يُرجعه videos.list بعد:", hit[0]["snippet"]["title"][:60],
+              "| الخصوصيّة:", (hit[0].get("status") or {}).get("privacyStatus"), flush=True)
+    raise SystemExit("⛔ لا فيديو بهذا المعرّف: " + vid + ("" if hit else " — وليس في آخر خمسين رفعةً للقناة"))
 item = r["items"][0]
 sn, st = item["snippet"], item["status"]
 print("الفيديو:", sn["title"][:60], "| الخصوصيّة:", st.get("privacyStatus"),
