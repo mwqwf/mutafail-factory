@@ -2,7 +2,8 @@
 """حارس «نطق التعليمات»: يمسك كل كتلةٍ نطق فيها النموذجُ توجيهَ الأداء الإنجليزي أو أيَّ كلامٍ إنجليزي
 (درس الزلاقة 2026-09-28: قال الراوي «Say quickly…» بصوتٍ مسموع ثم حُرِّك على صوته).
 الاستعمال: python style_leak.py <proj>
-لكل كتلةٍ ممسوكة: يحذف style منها في blocks.json، ويحذف صوتها ليُعاد توليده بلا توجيه.
+لكل كتلةٍ ممسوكة: يحذف style وdirector منها في blocks.json، ويحذف صوتها ليُعاد توليده بلا توجيه.
+(الأرك 2026-10-04: صار التوجيه في director «ملاحظاتٌ ثم TRANSCRIPT»، وكان الحارس يحذف style وحده فيُعاد التوجيه نفسه.)
 رمز الخروج 1 إن أُمسك شيء (ليعاد التوليد والإصغاء قبل أي تحريك)، و0 إن كان الصوت نظيفاً."""
 import json, os, re, sys
 
@@ -19,7 +20,8 @@ if not leak:
     print('لا نطقَ لتعليماتٍ إنجليزية'); sys.exit(0)
 blocks = json.load(open(P('blocks.json'), encoding='utf-8'))
 for b in blocks:
-    if b['id'] in leak: b.pop('style', None)
+    if b['id'] in leak:
+        b.pop('style', None); b.pop('director', None)
 json.dump(blocks, open(P('blocks.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 shots = json.load(open(P('shots.json'), encoding='utf-8')) if os.path.exists(P('shots.json')) else []
 for k in leak:

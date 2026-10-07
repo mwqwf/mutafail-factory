@@ -1,0 +1,59 @@
+name: مصنع المتفائل — استبدالُ مصغّراتِ أفلامٍ منشورة
+
+run-name: 🖼️ ${{ github.event.head_commit.message }}
+
+# ⭐ لماذا (ملاذكرد 2026-10-03): خطوةُ المصغّرات المعلّقة كانت داخل sealed-publish وحده،
+#    وإعادةُ شوط النشر لأجل مصغّرةٍ تعيد ضبط مصغّرة الحمولة القديمة أولاً.
+#    ⇒ دفعُ ops/thumbs_pending/<videoId>.jpg يضبطها وحدها بلا لمسٍ للفيلم أو الريلزات.
+on:
+  push:
+    paths: ["ops/thumbs_pending/**"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mutafail-sealed-publish
+  cancel-in-progress: false
+
+jobs:
+  thumbs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: 🔑 تفويض يوتيوب (المجدَّد المختوم أوّلاً)
+        uses: ./.github/actions/yt-oauth
+        with:
+          private_key: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
+      - name: حالةُ النشر من master
+        # ⛔ الشوط 37377637752 (set-privacy) حمل ops/state/films/mutah.json من فرع الجلسة إلى master: التسجيلُ ينسخ ops/state كلّها،
+        #    والفرعُ يُبقي فيها ما ليس في master. ⇒ تُمحى أوّلاً فتصير نسخةَ master تماماً، ولا يُسجَّل إلا ما غيّرته الأداة.
+        run: git fetch -q origin master && rm -rf ops/state && git checkout origin/master -- ops/state/
+      - name: ضبطُ المصغّرات المعلّقة
+        env:
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
+        run: |
+          ls ops/thumbs_pending/*.jpg >/dev/null 2>&1 || { echo "لا مصغّرات معلّقة"; exit 0; }
+          python tools/set_thumbs.py
+          ls ops/thumbs_pending/*.jpg 2>/dev/null && { echo "⛔ بقيت مصغّراتٌ لم تُضبط"; exit 1; } || echo "✅ ضُبطت كلّها"
+      - name: تسجيلُ الحالة
+        if: always()
+        run: |
+          git config user.name  "مصنع المتفائل"
+          git config user.email "factory@mutafail.local"
+          [ -n "$(git status --porcelain ops/state)" ] || { echo "لا جديد"; exit 0; }
+          rm -rf /tmp/state_keep && mkdir -p /tmp/state_keep && cp -a ops/state/. /tmp/state_keep/
+          for i in 1 2 3 4; do
+            if git fetch -q origin master && git reset -q --hard origin/master; then
+              cp -a /tmp/state_keep/. ops/state/ && git add -A ops/state
+              if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
+              git commit -qm "🖼️ ضُبطت مصغّراتٌ معلّقة" && git push -q origin HEAD:master && exit 0
+            fi
+            sleep $(( i * 3 ))
+          done
+          echo "⛔ تعذّر دفعُ الحالة"; exit 1

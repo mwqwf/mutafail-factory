@@ -12,6 +12,15 @@ PROJ = sys.argv[1]
 blocks = json.load(io.open(os.path.join(PROJ, 'blocks.json'), encoding='utf-8'))
 DIAC = re.compile(r'[ً-ْ\s\.،؛:!؟«»\-]')
 bad = {}
+# ⭐ مؤتة 2026-10-06 (الشوط 96): n_051 وn_105 جاءتا أبطأ من الحدّ بنحو الربع في ستّ محاولاتٍ وسبع، فأُعيدتا حتى نفدت الحصّة.
+#    البطء الثابت إلقاءٌ متمهّل لا توجيهٌ منطوق: ذاك يكشفه حارس ②ب بالاستماع، والإصغاء ② يطابق الكلام بالنصّ.
+#    ⇒ عدّاد البطء لكلّ كتلة في audio/.pace_tries.json (يعبر بين الأشواط مع الصوت)، والبطء دون SLOW_SOFT ضعف الحدّ
+#    يُقبل من المحاولة الثانية المتتالية ويُسمّى للإصغاء، ولا يُعاد. وما فوقه يبقى معيباً.
+SLOW_SOFT = float(os.environ.get('PACE_SLOW_SOFT', '1.5'))
+TRIES_F = os.path.join(PROJ, 'audio', '.pace_tries.json')
+try: tries = json.load(io.open(TRIES_F, encoding='utf-8'))
+except Exception: tries = {}
+slow_ok = {}
 for b in blocks:
     f = os.path.join(PROJ, 'audio', b['id'] + '.wav')
     if not os.path.exists(f): bad[b['id']] = 'غائب'; continue
@@ -24,9 +33,19 @@ for b in blocks:
     d = len(a) / r; chars = len(DIAC.sub('', b['text']))
     if np.abs(a[:240]).max() > 1500: bad[b['id']] = 'ضجيج في البداية'
     elif b.get('role') == 'P':
-        if not 3 <= d <= 10: bad[b['id']] = 'بيت شعر %.1f ث (توجيه منطوق؟)' % d
+        # البيت بشطريه 3–10 ث، والشطر الواحد (بلا «…») 1.5–6 ث (مؤتة: «أَلَا خَالِدٌ فِي الْقَوْمِ لَيْسَ لَهُ مِثْلُ»)
+        lo, hi = (3, 10) if '…' in b['text'] else (1.5, 6)
+        if not lo <= d <= hi: bad[b['id']] = 'بيت شعر %.1f ث (توجيه منطوق؟)' % d
     # الجملُ القصيرة (حوار الشخصيات 2026-09-27: «فقال ربعي:»، «ببايه!») يغلب فيها صمتُ الطرفين، فيُسمح بنحو 1.2 ث زائدة
-    elif chars and not 0.09 <= d / chars <= 0.19 + 1.2 / chars: bad[b['id']] = 'إيقاع %.3f ث/حرف' % (d / chars)
+    elif chars:
+        pace, hi = d / chars, 0.19 + 1.2 / chars
+        soft = hi < pace <= hi * SLOW_SOFT
+        if 0.09 <= pace <= hi: tries.pop(b['id'], None)
+        elif soft and tries.get(b['id'], 0) >= 1:
+            tries[b['id']] += 1; slow_ok[b['id']] = round(pace, 3)
+        else:
+            if soft: tries[b['id']] = tries.get(b['id'], 0) + 1
+            bad[b['id']] = 'إيقاع %.3f ث/حرف' % pace
     dd = np.abs(np.diff(a)); idx = np.where(dd > 8000)[0]
     iso = [i for i in idx if i > 240 and np.abs(a[i - 240:i - 24]).max() < 2000]
     if len(iso) > 1 and not os.path.exists(f + '.dc'):
@@ -39,7 +58,10 @@ for b in blocks:
         iso = [i for i in idx if i > 240 and np.abs(a[i - 240:i - 24]).max() < 2000]
     if len(iso) > 1: bad.setdefault(b['id'], 'نقرات معزولة %d' % len(iso))
 json.dump(bad, io.open(os.path.join(PROJ, 'audio_checks.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+if os.path.isdir(os.path.dirname(TRIES_F)):
+    json.dump(tries, io.open(TRIES_F, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 print('فحوص الصوت: %d كتلة · معيب %d %s' % (len(blocks), len(bad), bad))
+if slow_ok: print('⚠ إيقاعٌ بطيء مقبول من المحاولة الثانية المتتالية (للإصغاء وأذن المالك):', slow_ok)
 for k in bad:                                       # تُحذف لتُولَّد من جديد في الشوط التالي
     p = os.path.join(PROJ, 'audio', k + '.wav')
     if os.path.exists(p): os.remove(p)

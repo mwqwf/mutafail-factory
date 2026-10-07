@@ -1,0 +1,50 @@
+{
+ "slug": "alarcos",
+ "_ملاحظة": "أمر المالك 2026-10-04: أولويةٌ قصوى لتحسين الصوت، والأفضل والأقوى يبدأ به أولاً. الجمل من الأرك: افتتاحيتان ثمّ سردٌ ثمّ معركة.",
+ "voices": [
+  "Charon",
+  "Orus",
+  "Fenrir",
+  "Alnilam",
+  "Algieba",
+  "Iapetus",
+  "Sadaltager",
+  "Schedar",
+  "Algenib",
+  "Rasalgethi",
+  "Enceladus",
+  "Sadachbia"
+ ],
+ "styles": {
+  "plain": null,
+  "epic": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: an epic battle documentary.\n### DIRECTOR'S NOTES\nStyle: powerful, commanding and epic, with weight and suspense; full chest voice.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+  "energetic": "# AUDIO PROFILE: a captivating Arabic history storyteller.\n## THE SCENE: the gripping opening of a battle documentary.\n### DIRECTOR'S NOTES\nStyle: gripping, energetic and passionate; rising intensity on the key words.\nPace: brisk and lively, never rushed.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+ },
+ "lines": [
+  {
+   "id": "L1",
+   "text": "آلَافُ الْفُرْسَانِ الْمُدَجَّجِينَ بِالْحَدِيدِ… يَنْقَضُّونَ عَلَى رَجُلٍ وَاحِدْ.",
+   "purpose": "أوّل ثلاث ثوانٍ في الفيلم: خطّافٌ يشدّ المشاهد فوراً"
+  },
+  {
+   "id": "L2",
+   "text": "لَكِنَّهُ… لَمْ يَكُنِ الْخَلِيفَةْ!",
+   "purpose": "مفاجأة الافتتاحية الكبرى"
+  },
+  {
+   "id": "L3",
+   "text": "أَمَّا الْخَلِيفَةُ… فَعَلَى مَسَافَةٍ لَا يَرَاهُ مِنْهَا الْعَدُوّْ.",
+   "purpose": "سردٌ تشويقيّ في متن الفيلم"
+  },
+  {
+   "id": "L4",
+   "text": "يُقَاتِلُ أَبُو يَحْيَى قِتَالًا شَدِيدًا… وَيُحْسِنُ الْبَلَاءْ.",
+   "purpose": "ذروة المعركة"
+  }
+ ],
+ "stage1_lines": [
+  "L1",
+  "L2"
+ ],
+ "finalists": 4
+}

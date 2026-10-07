@@ -45,6 +45,11 @@ BUDGET = float(meta.get('budget_usd', 9))
 # ما أنفقه المشروع الشقيق يُقرأ من fal_ledger_*.json (ينزّلها weekly-film.yml من إصدار الشقيق)، ويُخصم من السقف؛
 # فما وفّرته الافتتاحية يصير للفيلم تلقائياً، وما أنفقته يُقتطع منه. وbudget_usd يبقى سقفاً فرعياً للمشروع إن وُجد.
 HARD_CAP = 45.0   # ⛔ أمر المالك 2026-10-01: لا يتجاوز فيلمٌ (افتتاحيةً وفيلماً) 45$ ولو نُسي الحقل أو كُتب أكبر منه
+# سقوفٌ أقرّها المالك لفيلمٍ بعينه (بالاسم، لا بحقلٍ في publish.json يُكتب خطأً): ملاذكرد 65$ — بطاقة القرار 2026-10-03
+#   «ما سقف كلفة التحريك لفيلم ملاذكرد؟» ⇒ 65$، لتكون المعركة متحرّكةً كلّها (ops/RETENTION_PLAYBOOK_2026-10-03.md §٩).
+# والأرك 9$ — أمر المالك 2026-10-04: «الميزانية يجب ألّا تتجاوز 9 دولارات فقط اليوم للتحريك» (سقفٌ أدنى من المعتاد لا أعلى).
+OWNER_CAPS = {'manzikert': 65.0, 'alarcos': 9.0}
+HARD_CAP = OWNER_CAPS.get(str(meta.get('slug', '')).replace('-intro', ''), HARD_CAP)
 TOTAL = min(float(meta.get('budget_total_usd', HARD_CAP)), HARD_CAP)
 OTHER = 0.0
 for f in sorted(os.listdir(PROJ)):
@@ -59,10 +64,21 @@ ledger = json.load(io.open(LEDGER, encoding='utf-8')) if os.path.exists(LEDGER) 
 pend = json.load(io.open(PEND, encoding='utf-8')) if os.path.exists(PEND) else {}
 spent = lambda: sum(x['cost_usd'] for x in ledger) + sum(v.get('cost_usd', 0) for v in pend.values())
 save = lambda f, d: io.open(f, 'w', encoding='utf-8').write(json.dumps(d, ensure_ascii=False, indent=1))
+# FAL_TRIAL_USD (حقل trial_usd في ملفّ الأمر): سقفُ ما يُنفق في هذا الشوط وحده فوق ما أُنفق قبله، ولا يرفع السقف المشترك بحال.
+#    ⛔ لا لتجربةٍ منفصلة (أمر المالك 2026-10-06: «الإنفاق حصراً للإنتاج أو لتصحيح خطأ»): ما يُحرَّك تحته لقطاتُ الفيلم نفسها.
+#    والسجلّ والمقاطع تعبر بين الأشواط، فالشوط التالي يكمل بما بقي ولا يعيد ما حُرِّك.
+if os.environ.get('FAL_TRIAL_USD'):
+    BUDGET = min(BUDGET, spent() + float(os.environ['FAL_TRIAL_USD']))
+    print('تجربة: سقف هذا الشوط %.2f$ (أُنفق قبله %.2f$)' % (BUDGET, spent()), flush=True)
+
+
+FILE = {s['id']: s['file'] for s in shots if s.get('file')}   # لقطتان قد تتشاركان صورةً بحركتين (الدليل §٣) ⇒ الصورة باسم file لا بمعرّف اللقطة
 
 
 def img_path(sid):
-    # images/<id>.jpg أو images/<بادئة>_<id>.jpg (كما يسمّيها كوديكس في shots.json)
+    # images/<file> أوّلاً، ثم images/<id>.jpg أو images/<بادئة>_<id>.jpg (كما يسمّيها كوديكس في shots.json)
+    for d in ('images', 'img'):
+        if FILE.get(sid) and os.path.exists(P(d, FILE[sid])): return P(d, FILE[sid])
     for d in ('images', 'img'):
         for ext in ('jpg', 'png'):
             p = P(d, '%s.%s' % (sid, ext))

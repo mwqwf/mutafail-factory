@@ -53,6 +53,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 2 }
+      - name: 🔑 تفويض يوتيوب (المجدَّد المختوم أوّلاً)
+        uses: ./.github/actions/yt-oauth
+        with:
+          private_key: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
       - name: وسمُ الإصدار
         env:
           IN_TAG: ${{ inputs.release_tag }}
@@ -76,6 +81,16 @@ jobs:
           off = d.get('reel_offsets', '')
           if off:
               assert off == 'now' or re.fullmatch(r'\d+(,\d+)*', off); print('REEL_OFFSETS=' + off)
+          # الأرك 2026-10-07: ريلزاتٌ لفيلمٍ منشور (film_video_id + reels_for_film) بعناوين معدّلة (reel_titles)، بلا مسّ الفيلم
+          fv = d.get('film_video_id', '')
+          if fv:
+              assert re.fullmatch(r'[A-Za-z0-9_-]{11}', fv); print('FILM_VIDEO_ID=' + fv)
+          if d.get('reels_for_film'):
+              assert fv, 'reels_for_film يحتاج film_video_id'; print('REELS_FOR_FILM=1')
+          rt = d.get('reel_titles')
+          if rt:
+              assert isinstance(rt, dict) and all(isinstance(k, str) and isinstance(v, str) and 0 < len(v.strip()) <= 100 for k, v in rt.items())
+              print('REEL_TITLES=' + json.dumps(rt, ensure_ascii=False))
           PY
           fi
       - uses: actions/setup-python@v5
@@ -102,7 +117,7 @@ jobs:
 
       - name: ⛔ إن غاب سرُّ النشر فلا شوطَ كاذب
         env:
-          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
         run: '[ -n "$YT_OAUTH_JSON" ] || { echo "⛔⛔ سرُّ YT_OAUTH_JSON غيرُ مضبوط"; exit 1; }'
 
       # ⛔ درس عين جالوت 2026-09-29: الحالةُ الحقّة على master (يكتبها «تسجيلُ الحالة»)، لا على الفرع.
@@ -111,14 +126,28 @@ jobs:
       - name: حالةُ النشر من master
         run: git fetch -q origin master && git checkout origin/master -- ops/state/ && cat ops/state/last_publish.json 2>/dev/null | head -40 || true
 
+      # ⭐ بوّابة الافتتاحية قبل النشر (خطّة مؤتة §١٢، وحكم المالك 2026-10-05 بإلغاء طقوس الافتتاحية القديمة دائماً):
+      #    يشاهد جيميناي أوّل أربع دقائق من الفيلم النهائيّ بمعيار تشريح الافتتاحيات (tools/opening_gate.py).
+      #    القصّة دون ثلث أوّل 150 ث، أو منهجٌ أو طلبٌ أو تعريفٌ بالقناة قبل الدقيقة الرابعة، أو تحيّةٌ في الافتتاح البارد ⇒ لا نشر.
+      #    والتعذّر (حصّةٌ أو خطأ) ليس نجاحاً. ولا بوّابة لحمولة ريلزاتٍ وحدها ولا لاستئنافٍ رُفع فيلمه سلفاً.
+      #    والتقرير في العدّاء وحده (فيه تفريغ ما لم يُنشر)، والسجلّ أرقامٌ وأسباب.
+      - name: بوّابة الافتتاحية
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          rc=0; python tools/opening_gate.py proj --keys /tmp/keys.json --out /tmp/opening_gate.json || rc=$?
+          rm -f /tmp/keys.json /tmp/opening_gate.json proj/*.gate.mp4
+          exit $rc
+
       - name: النشر (الفيلم ثم المصغّرة ثم القائمة ثم الريلزان)
         env:
-          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
         run: python tools/publish_youtube.py proj
 
       - name: تصحيحُ عناوين منشورة ("retitle" في ops/publish/<slug>.json)
         env:
-          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
         run: |
           F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/publish/.*\.json$' | head -1 || true)
           if [ -n "$F" ]; then python tools/retitle.py "$F"; else echo "لا عناوين للتصحيح"; fi
@@ -126,7 +155,7 @@ jobs:
       - name: مصغّراتُ أفلامٍ منشورة (ops/thumbs_pending/<videoId>.jpg)
         if: always()
         env:
-          YT_OAUTH_JSON: ${{ secrets.YT_OAUTH_JSON }}
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
         run: |
           ls ops/thumbs_pending/*.jpg >/dev/null 2>&1 || { echo "لا مصغّرات معلّقة"; exit 0; }
           python tools/set_thumbs.py

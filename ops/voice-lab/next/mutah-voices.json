@@ -1,0 +1,74 @@
+{
+ "slug": "mutah-voices",
+ "_ملاحظة": "مختبر صوتَي مؤتة الآخرين: صوت الاقتباس لنثر الصحابة المأثور (حكم المالك 2026-10-05: حرفيّاً من المصادر بصوتٍ مستقلّ بلا تمثيل)، والملقي للشعر (العقد الأسبوعيّ §٧: إلقاءٌ بلا لحنٍ ولا إيقاعٍ موسيقيّ). الجمل من ابن هشام والبخاري. — الإعادة (ليلة 2026-10-05): ولّد الشوط الأوّل 9 عيّناتٍ من 48 ولم يُحكم منها شيء ذو بال (حكمٌ واحد على عيّنةٍ منفردة)، فكان «المتأهّلون» خلطاً عشوائيّاً؛ وكان الدوران يُحكَّمان معاً بغرض الراوي فيخرج فائزٌ واحد لهما. فصار لكلّ دورٍ فائزه بغرضه (roles): الاقتباس بأسلوب quote على Q1 ثم Q2، والإلقاء بأسلوب recitation على P1 ثم P2 وP3 («أقسمتُ يا نفسُ» بأمر المالك)، بالمرشّحين الستّة كلّهم: 21 عيّنة. وصوتاهما غيرُ صوت الراوي (tools/apply_voices.py يأخذ التالي المحكَّم إن فاز صوت الراوي).",
+ "voices": [
+  "Iapetus",
+  "Enceladus",
+  "Rasalgethi",
+  "Umbriel",
+  "Algieba",
+  "Charon"
+ ],
+ "styles": {
+  "quote": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+  "recitation": "# AUDIO PROFILE: a classical Arabic poetry reciter.\n## THE SCENE: verses spoken before battle in a historical documentary.\n### DIRECTOR'S NOTES\nStyle: eloquent spoken recitation with firm resolve; NO singing, NO melody, NO chanting rhythm; pause at the half-verse.\nPace: measured.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+ },
+ "lines": [
+  {
+   "id": "Q1",
+   "text": "فَانْطَلِقُوا، فَإِنَّمَا هِيَ إِحْدَى الْحُسْنَيَيْنِ: إِمَّا ظُهُورٌ، وَإِمَّا شَهَادَةْ.",
+   "purpose": "كلمة صحابيٍّ مأثورة (خطبة ابن رواحة): حرفيّاً بلا تمثيل"
+  },
+  {
+   "id": "Q2",
+   "text": "لَقَدِ انْقَطَعَتْ فِي يَدِي يَوْمَ مُؤْتَةَ تِسْعَةُ أَسْيَافٍ، فَمَا بَقِيَ فِي يَدِي إِلَّا صَفِيحَةٌ يَمَانِيَةْ.",
+   "purpose": "قول خالد المأثور (البخاري): حرفيّاً بلا تمثيل"
+  },
+  {
+   "id": "P1",
+   "text": "يَا حَبَّذَا الْجَنَّةُ وَاقْتِرَابُهَا… طَيِّبَةً وَبَارِداً شَرَابُهَا",
+   "purpose": "رجز جعفر: إلقاءٌ فصيحٌ بلا لحن"
+  },
+  {
+   "id": "P2",
+   "text": "يَا نَفْسُ إِلَّا تُقْتَلِي تَمُوتِي… هَذَا حِمَامُ الْمَوْتِ قَدْ صَلِيتِ",
+   "purpose": "رجز ابن رواحة: إلقاءٌ فصيحٌ بلا لحن"
+  },
+  {
+   "id": "P3",
+   "text": "أَقْسَمْتُ يَا نَفْسُ لَتَنْزِلِنَّهْ… لَتَنْزِلِنَّ أَوْ لَتُكْرَهِنَّهْ",
+   "purpose": "رجز ابن رواحة: إلقاءٌ فصيحٌ بلا لحن"
+  }
+ ],
+ "roles": {
+  "quote": {
+   "styles": [
+    "quote"
+   ],
+   "lines": [
+    "Q1",
+    "Q2"
+   ],
+   "stage1_lines": [
+    "Q1"
+   ],
+   "finalists": 3,
+   "purpose": "صوت الاقتباس لكلمات الصحابة المأثورة نثراً في فيلمٍ وثائقيّ تاريخيّ: حرفيّاً بلا تمثيلٍ ولا انفعالٍ مسرحيّ، رصينٌ صادق، ومستقلٌّ عن صوت الراوي"
+  },
+  "poetry": {
+   "styles": [
+    "recitation"
+   ],
+   "lines": [
+    "P1",
+    "P2",
+    "P3"
+   ],
+   "stage1_lines": [
+    "P1"
+   ],
+   "finalists": 3,
+   "purpose": "إلقاء الرجز والشعر قبل القتال في فيلمٍ وثائقيّ تاريخيّ: فصيحٌ عازمٌ بلا غناءٍ ولا لحنٍ ولا إيقاعٍ موسيقيّ، ووقفةٌ عند نصف البيت"
+  }
+ }
+}

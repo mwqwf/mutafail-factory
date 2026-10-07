@@ -15,7 +15,10 @@ jobs:
         with: {python-version: "3.11"}
       - uses: actions/setup-node@v4
         with: {node-version: "22"}
-      - run: pip install pillow
+      - run: pip install pillow numpy opencv-python-headless   # محرّك الكتابة والانتقالات والمجسّم (الأرك 2026-10-04)
+      # ffmpeg كما في weekly-film (والخطّ من assets/): اختبارات التصيير (الخريطة الحيّة والكتابة والانتقالات والمؤثّرات) تعمل هنا
+      # لا تُتخطّى — سقط الشوط 37391655125 لأنّ اختبار الخريطة احتاج ffmpeg، وكانت ستّةٌ غيره تُتخطّى بصمت
+      - run: sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg >/dev/null
       - run: python -m unittest discover -s tools -p 'test_*.py'
       - run: node tools/test_listen_cache.js
       - run: node tools/test_listen_batch.js
