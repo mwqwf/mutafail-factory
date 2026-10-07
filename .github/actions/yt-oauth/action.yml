@@ -1,0 +1,37 @@
+name: تفويض يوتيوب — الرمز المجدَّد المختوم أوّلاً
+description: >
+  إن وُجد في الإصدار الخاصّ yt-oauth رمزٌ مجدَّد مختوم (سير yt-oauth.yml) فُضّ وصُدِّر في YT_OAUTH_SEALED_JSON مقنّعاً،
+  فتقرؤه الخطوات قبل السرّ (env.YT_OAUTH_SEALED_JSON ثم secrets.YT_OAUTH_JSON)؛ وإلا بقي السرّ كما هو.
+  (مؤتة 2026-10-06: انتهى السرّ بـ«invalid_grant»، ولا يكتب سرَّ أكشنز إلا صاحب المستودع.)
+inputs:
+  private_key:
+    description: CONTENT_PRIVATE_KEY
+    required: true
+  gh_token:
+    description: GITHUB_TOKEN
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        CONTENT_PRIVATE_KEY: ${{ inputs.private_key }}
+        GH_TOKEN: ${{ inputs.gh_token }}
+      run: |
+        set -euo pipefail
+        d=$(mktemp -d)
+        if gh release download yt-oauth -p 'token.*' -D "$d" -R "$GITHUB_REPOSITORY" 2>/dev/null \
+           && [ -s "$d/token.payload.enc" ] && [ -s "$d/token.key.enc" ]; then
+          mv "$d/token.payload.enc" "$d/payload.enc"; mv "$d/token.key.enc" "$d/key.enc"
+          bash "$GITHUB_WORKSPACE/tools/unseal.sh" "$d" "$d/out" >/dev/null
+          v=$(tr -d '\r\n' < "$d/out/yt_oauth.json")
+          echo "::add-mask::$v"
+          for k in refresh_token client_secret; do
+            echo "::add-mask::$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])" "$d/out/yt_oauth.json" "$k")"
+          done
+          echo "YT_OAUTH_SEALED_JSON=$v" >> "$GITHUB_ENV"
+          echo "🔑 تفويض يوتيوب: الرمز المجدَّد المختوم (الإصدار الخاصّ yt-oauth)"
+        else
+          echo "🔑 تفويض يوتيوب: السرّ YT_OAUTH_JSON"
+        fi
+        rm -rf "$d"

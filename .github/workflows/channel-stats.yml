@@ -1,0 +1,258 @@
+name: إحصاءات القناة — أضعف الريلزات بالأرقام
+
+run-name: 📊 ${{ github.event.head_commit.message || 'تشغيلٌ يدويّ' }}
+
+# أمر المالك 2026-10-04: «إذا كان يوتيوب يتيح معرفة ذلك اعرف لنا أضعف الريلزات الأخرى وأضفها للطابور لكي يستبدلها كوديكس».
+# دفعُ ملفّ أمرٍ صغيرٍ في ops/stats/*.json (أو التشغيل اليدويّ) يشغّل tools/channel_stats.py بتفويض يوتيوب،
+# فيقرأ مشاهدات كلّ فيديوٍ عامٍّ وإعجاباته وتعليقاته، ونسبةَ المشاهدة إن أتاحها التفويض، ويرتّب الريلزات من الأضعف.
+# ⛔ المستودع عامّ والتحليلات خاصّة ⇒ لا يُودَع التقرير في git، بل يُرفع إلى إصدارٍ مسوّد خاصّ باسم channel-stats.
+# الكلفة: العدّاء القياسيّ مجّانيّ في المستودع العامّ، ومن حصّة يوتيوب بضعُ وحداتٍ لا تمسّ النشر.
+on:
+  push:
+    paths: ["ops/stats/*.json"]
+  workflow_dispatch:
+  # خطّة القياس (بحث الاحتفاظ بالمشاهد 2026-10-05): مؤشّرات كلّ فيلمٍ جديد يومياً بلا تدخّل، بعد تجدّد حصّة يوتيوب
+  schedule:
+    - cron: "17 7 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: channel-stats
+  cancel-in-progress: false
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    # الشوط 37329810245: بلغت دراسةُ الأسلوب حدَّ الستّين دقيقة والحصّةُ مزدحمة ⇒ متّسعٌ لها وللمقارنة بعدها (العدّاء مجّانيّ هنا)
+    timeout-minutes: 170
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - name: 🔑 تفويض يوتيوب (المجدَّد المختوم أوّلاً)
+        uses: ./.github/actions/yt-oauth
+        with:
+          private_key: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: المكتبات
+        run: pip install -q google-auth google-auth-oauthlib google-api-python-client
+      - name: قراءة القناة وترتيب الريلزات
+        id: ch
+        env:
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
+        run: |
+          set -euo pipefail
+          # ⭐ تفويض يوتيوب المنتهي لا يحجب ما لا يحتاجه (مؤتة 2026-10-06: «invalid_grant» أسقط المقارنة العمياء قبل أن تبدأ،
+          #    وهي لا تحتاج من يوتيوب إلا منحنيات أفلامنا): يُكمل الشوط بآخر تقريرٍ محفوظ، ويبقى أحمرَ في آخره ليظهر العطل.
+          if ! python tools/channel_stats.py out/channel_stats.json 2> /tmp/cs_err.txt; then
+            tail -n 3 /tmp/cs_err.txt
+            grep -q "invalid_grant" /tmp/cs_err.txt || exit 1
+            echo "::error::تفويض يوتيوب منتهٍ أو مُلغى (invalid_grant): السرّ YT_OAUTH_JSON يحتاج تجديداً بيد المالك — يكمل الشوط بآخر تقريرٍ محفوظ"
+            mkdir -p out && gh release download channel-stats -p channel_stats.json -D out --clobber
+            echo "stale=1" >> "$GITHUB_OUTPUT"
+          fi
+          test -s out/channel_stats.json
+      - name: رفع التقرير إلى الإصدار المسوّد الخاصّ
+        if: steps.ch.outputs.stale != '1'
+        run: |
+          set -euo pipefail
+          gh release view channel-stats >/dev/null 2>&1 || gh release create channel-stats --draft --title "إحصاءات القناة — خاصّ" --notes "تقرير tools/channel_stats.py: مشاهدات الفيديوهات العامّة ونسبة المشاهدة وترتيب الريلزات من الأضعف. خاصٌّ: لا يُودَع في المستودع العامّ."
+          gh release upload channel-stats out/channel_stats.json --clobber
+          echo "✅ رُفع التقرير إلى الإصدار المسوّد channel-stats"
+      # ⭐ الطلب الخارجيّ المقيس (طلب المالك 2026-10-05: «بحثٌ حقيقيّ جادّ… وأهمّ هدفٍ الاحتفاظ بالمشاهد»)،
+      #    وتحليل المنافسين (سؤاله: «لماذا قنواتٌ أقلّ جودةً تحتفظ بالمشاهد أكثر؟»). كلٌّ منهما لا يعمل إلا إذا تغيّر ملفّه
+      #    في الإيداع نفسه: البحث 100 وحدة، فلا يُعاد إنفاقه حين يتغيّر ملفٌّ آخر في ops/stats.
+      # ⛔ الشوط 37311286244: النسخة ضحلة فلم يكن origin/master معروفاً ⇒ فشل دفع الدفتر. الجلبُ الآن بمرجعٍ صريح.
+      - name: ما الذي تغيّر في هذا الإيداع؟
+        id: changed
+        run: |
+          set -euo pipefail
+          F=$(git show --pretty= --name-only "$GITHUB_SHA")
+          # ⛔ ما عولج محتواه من قبل لا يُعاد ولو ظهر ملفُّه في إيداعٍ جديد (دمجٌ مضغوط إلى master يحمل الملفّات كلّها،
+          #    والبحث وحده 3000 وحدة): بصمةُ كلّ طلبٍ عولج في done.txt بالإصدار الخاصّ. وإن غاب الدفتر يُبذر بما لم يتغيّر هنا.
+          if ! gh release download channel-stats -p done.txt -D /tmp --clobber 2>/dev/null; then
+            : > /tmp/done.txt
+            for f in ops/stats/topics.json ops/stats/competitors.json ops/stats/openings.json ops/stats/style.json ops/stats/judge.json; do
+              [ -f "$f" ] && ! echo "$F" | grep -qxF "$f" && echo "$f:$(sha256sum "$f" | cut -c1-16)" >> /tmp/done.txt || true
+            done
+            gh release upload channel-stats /tmp/done.txt --clobber
+          fi
+          flag() { f="$1"; [ -f "$f" ] || { echo 0; return; }
+                   if grep -qxF "$f:$(sha256sum "$f" | cut -c1-16)" /tmp/done.txt; then echo 0
+                   elif echo "$F" | grep -qxF "$f"; then echo 1; else echo 0; fi; }
+          T=$(flag ops/stats/topics.json); C=$(flag ops/stats/competitors.json); O=$(flag ops/stats/openings.json)
+          # استئناف تشريحٍ ناقص (الشوط 37313830497: نفدت حصّة جيميناي بعد 13 فيلماً من 28): يُبقى ما نجح ويُعاد ما فشل.
+          # يطلبه الطلب نفسه بـ«استئناف»، أو يكمله وحده أوّلُ تشغيلٍ بعد تجدّد الحصّة (المجدول يومياً) حتى MAX_TRIES.
+          R=0
+          if [ "$O" = 1 ] && python3 -c "import json,sys; sys.exit(0 if json.load(open('ops/stats/openings.json',encoding='utf-8')).get('استئناف') else 1)"; then R=1; fi
+          if [ "$O" = 0 ] && mkdir -p /tmp/prev && gh release download channel-stats -p openings.json -D /tmp/prev --clobber 2>/dev/null \
+             && python3 -c "import sys,json; sys.path.insert(0,'tools'); import openings as o; d=json.load(open('/tmp/prev/openings.json',encoding='utf-8')); sys.exit(0 if any('error' in f and f.get('_tries',1)<o.MAX_TRIES for f in d['الأفلام']) else 1)"; then
+            O=1; R=1
+          fi
+          # دراسة الأسلوب: الاستئناف نفسه (حصّة جيميناي اليومية تنفد في الأفلام الكاملة) — يطلبه الطلب أو يكمله المجدول
+          S=$(flag ops/stats/style.json); SR=0
+          if [ "$S" = 1 ] && python3 -c "import json,sys; sys.exit(0 if json.load(open('ops/stats/style.json',encoding='utf-8')).get('استئناف') else 1)"; then SR=1; fi
+          if [ "$S" = 0 ] && [ -f ops/stats/style.json ] && mkdir -p /tmp/prevs && gh release download channel-stats -p style.json -D /tmp/prevs --clobber 2>/dev/null \
+             && python3 -c "import sys,json; sys.path.insert(0,'tools'); import style_study as s; sys.exit(0 if s.needs_more(json.load(open('/tmp/prevs/style.json',encoding='utf-8')), json.load(open('ops/stats/style.json',encoding='utf-8'))) else 1)"; then
+            S=1; SR=1
+          fi
+          echo "style=$S" >> "$GITHUB_OUTPUT"; echo "style_resume=$SR" >> "$GITHUB_OUTPUT"
+          J=$(flag ops/stats/judge.json)
+          # استئناف المقارنة العمياء (الشوطان 37342135465 و37344320201: نفدت حصّة جيميناي فقُطعت الخطوة): ما صحّ لا يُعاد،
+          # ويكمله شوطٌ لاحق بالبصمة نفسها (الطلب بلا مفاتيح «_»، والمسوّدة المختومة) حتى MAX_PASSES.
+          if [ "$J" = 0 ] && [ -f ops/stats/judge.json ] && mkdir -p /tmp/prevj && gh release download channel-stats -p judge.json -D /tmp/prevj --clobber 2>/dev/null \
+             && python3 -c "import sys,json; sys.path.insert(0,'tools'); import blind_judge as b; sys.exit(0 if b.needs_more(json.load(open('/tmp/prevj/judge.json',encoding='utf-8')), b.req_fp()) else 1)"; then
+            J=1
+          fi
+          echo "judge=$J" >> "$GITHUB_OUTPUT"
+          echo "resume=$R" >> "$GITHUB_OUTPUT"
+          echo "topics=$T" >> "$GITHUB_OUTPUT"; echo "comp=$C" >> "$GITHUB_OUTPUT"; echo "open=$O" >> "$GITHUB_OUTPUT"
+          echo "البحث: $T | المنافسون: $C | الافتتاحيات: $O | الأسلوب: $S | المقارنة العمياء: $J"
+          # الدفتر من master لا من الفرع: هو مصدر الحقيقة لحصّة اليوم (والإنفاق يُحسب عليه)
+          if [ "$T$C" != "00" ]; then
+            git fetch -q origin master:refs/remotes/origin/master
+            git show origin/master:ops/state/quota_usage.json > ops/state/quota_usage.json
+          fi
+      - name: الطلب الخارجيّ على الموضوعات المرشّحة
+        if: steps.changed.outputs.topics == '1'
+        env:
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
+        run: |
+          set -euo pipefail
+          python tools/topic_demand.py out/topic_demand.json
+          gh release upload channel-stats out/topic_demand.json --clobber
+          echo "✅ رُفع تقرير الطلب الخارجيّ إلى الإصدار المسوّد channel-stats"
+          echo "ops/stats/topics.json:$(sha256sum ops/stats/topics.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
+      - name: تحليل المنافسين
+        if: steps.changed.outputs.comp == '1'
+        env:
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
+        run: |
+          set -euo pipefail
+          python tools/competitors.py out/competitors.json
+          gh release upload channel-stats out/competitors.json --clobber
+          echo "✅ رُفع تحليل المنافسين إلى الإصدار المسوّد channel-stats"
+          echo "ops/stats/competitors.json:$(sha256sum ops/stats/competitors.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
+      # ⭐ تشريح الافتتاحيات: نصفُ مشاهدينا الطبيعيّين يغادرون في أوّل 30 ث ⇒ جيميناي يشاهد أوّل 150 ث من أفلامنا وأفلام
+      #    المنافسين الناجحة بمعيارٍ واحد (لا يُخبَر أيُّها لنا). يجلب الفيديو من يوتيوب بنفسه، فلا حصّة يوتيوب ولا تنزيل.
+      - name: تشريح الافتتاحيات
+        id: openings
+        if: steps.changed.outputs.open == '1'
+        timeout-minutes: 30
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          ARGS=""
+          if [ "${{ steps.changed.outputs.resume }}" = "1" ]; then
+            mkdir -p /tmp/prev && gh release download channel-stats -p openings.json -D /tmp/prev --clobber && ARGS="--resume /tmp/prev/openings.json"
+          fi
+          python tools/openings.py out/openings.json --keys /tmp/keys.json --workers 6 $ARGS
+      # ⛔ الشوط 37313830497: تجاوز التشريح عشرين دقيقة ⇒ للخطوة مهلتها، والأداة تكتب بعد كلّ فيلم، ويُرفع ما اكتمل في كلّ حال
+      - name: رفع تشريح الافتتاحيات
+        if: always() && steps.changed.outputs.open == '1'
+        run: |
+          rm -f /tmp/keys.json
+          [ -s out/openings.json ] || { echo "⛔ لا تقرير"; exit 1; }
+          gh release upload channel-stats out/openings.json --clobber
+          echo "✅ رُفع تشريح الافتتاحيات إلى الإصدار المسوّد channel-stats"
+          if [ "${{ steps.openings.outcome }}" = "success" ]; then
+            echo "ops/stats/openings.json:$(sha256sum ops/stats/openings.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
+          fi
+      # ⭐ دراسة الأسلوب (أمر المالك 2026-10-05: «اعرف أسلوب من نجحوا وطبّقه أو طبّق أفضل منه… الحماسة والأكشن»):
+      #    الأفلام كاملةً (التحليل والتفريغ ونافذة الأكشن) والريلزات والمصغّرات، وصفحة الفيديو عبر yt-dlp أفضلَ جهد.
+      #    ⛔ تفريغ أفلام المنافسين نصٌّ محميّ ⇒ التقرير إلى الإصدار الخاصّ وحده، ولا يُطبع منه شيءٌ في السجلّ العامّ.
+      - name: دراسة الأسلوب
+        id: style
+        if: steps.changed.outputs.style == '1'
+        timeout-minutes: 100
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          ARGS=""
+          if [ "${{ steps.changed.outputs.style_resume }}" = "1" ]; then
+            mkdir -p /tmp/prevs && gh release download channel-stats -p style.json -D /tmp/prevs --clobber && ARGS="--resume /tmp/prevs/style.json"
+          fi
+          # ⛔ صفحة يوتيوب (خريطة الأكثر إعادة والترجمة) محجوبةٌ عن عدّائي GitHub («Sign in to confirm you're not a bot»)
+          #    في كلّ أفلام الشوط 37329810245 ⇒ لا تُطلب هنا، ويبقى خيارها للتشغيل من جهازٍ آخر
+          python tools/style_study.py out/style.json --keys /tmp/keys.json --workers 4 --only films,reels,thumbs $ARGS
+      - name: رفع دراسة الأسلوب
+        if: always() && steps.changed.outputs.style == '1'
+        run: |
+          rm -f /tmp/keys.json
+          [ -s out/style.json ] || { echo "⛔ لا تقرير"; exit 1; }
+          gh release upload channel-stats out/style.json --clobber
+          echo "✅ رُفعت دراسة الأسلوب إلى الإصدار المسوّد channel-stats"
+          if [ "${{ steps.style.outcome }}" = "success" ]; then
+            echo "ops/stats/style.json:$(sha256sum ops/stats/style.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
+          fi
+      # ⭐ المقارنة العمياء، الإصدار الثاني (دراسة مؤتة §١٠): صلاحية الحَكَم أوّلاً على منحنيات أفلامنا (out/channel_stats.json
+      #    من الخطوة الأولى)، ثم خطّ أساسٍ بأفلامنا، ثم المسوّدة على نصف بوّابةٍ لا تُحفظ أسبابه. والشرط مركّبٌ في الشيفرة.
+      #    النسب وحدها في السجلّ، والتفصيل في الإصدار الخاصّ.
+      - name: المقارنة العمياء
+        id: judge
+        if: steps.changed.outputs.judge == '1'
+        timeout-minutes: 40
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          mkdir -p /tmp/sj
+          if [ -s out/style.json ]; then cp out/style.json /tmp/sj/style.json; else gh release download channel-stats -p style.json -D /tmp/sj --clobber; fi
+          DRAFT=""
+          # المسوّدة نصٌّ لم يُنشر: مختومةٌ بالمفتاح العامّ في ops/stats/judge_draft/ (tools/seal.sh، كحمولات ops/commands)،
+          # ويفضّها العدّاء بالمفتاح الخاصّ وحده. (رفع الملفّات الثنائيّة إلى الإصدار محجوبٌ عن الجلسة السحابيّة.)
+          if python3 -c "import json,sys; sys.exit(0 if json.load(open('ops/stats/judge.json',encoding='utf-8')).get('المسوّدة_المختومة') else 1)"; then
+            mkdir -p /tmp/jds && cp ops/stats/judge_draft/payload.enc ops/stats/judge_draft/key.enc /tmp/jds/
+            bash tools/unseal.sh /tmp/jds /tmp/jd && DRAFT="--draft /tmp/jd/draft.json"
+          fi
+          # ما أُنجز يُحفظ بعد كلّ مقارنة، ولا نداء بعد 35 د (حدّ الخطوة 40)، ويُستأنف من تقريرٍ سابقٍ إن طابقت بصمته
+          PREV=""
+          mkdir -p /tmp/prevj
+          if gh release download channel-stats -p judge.json -D /tmp/prevj --clobber 2>/dev/null; then PREV="--prev /tmp/prevj/judge.json"; fi
+          python tools/blind_judge.py out/judge.json --keys /tmp/keys.json --style /tmp/sj/style.json --stats out/channel_stats.json $DRAFT --deadline 2100 $PREV
+      - name: رفع المقارنة العمياء
+        if: always() && steps.changed.outputs.judge == '1'
+        run: |
+          rm -f /tmp/keys.json; rm -rf /tmp/jd /tmp/jds
+          [ -s out/judge.json ] || { echo "⛔ لا تقرير"; exit 1; }
+          gh release upload channel-stats out/judge.json --clobber
+          echo "✅ رُفعت المقارنة العمياء إلى الإصدار المسوّد channel-stats"
+          # لا تُسجَّل منجزةً إلا مكتملة: الناقصة يكملها الاستئناف (needs_more) في شوطٍ لاحق
+          if python3 -c "import json,sys; sys.exit(0 if (json.load(open('out/judge.json',encoding='utf-8')).get('التقدّم') or {}).get('مكتمل') else 1)"; then
+            echo "ops/stats/judge.json:$(sha256sum ops/stats/judge.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
+          else
+            echo "⏳ المقارنة ناقصة: تُستأنف في الشوط التالي بلا إعادة ما صحّ"
+          fi
+      - name: دفتر الحصص إلى master
+        if: steps.changed.outputs.topics == '1' || steps.changed.outputs.comp == '1'
+        run: |
+          set -euo pipefail
+          git config user.name  "مصنع المتفائل"
+          git config user.email "factory@mutafail.local"
+          cp ops/state/quota_usage.json /tmp/quota_keep.json
+          for i in 1 2 3 4; do
+            if git fetch -q origin master:refs/remotes/origin/master && git checkout -f -q -B qsync origin/master; then
+              cp /tmp/quota_keep.json ops/state/quota_usage.json
+              git add ops/state/quota_usage.json
+              if git diff --cached --quiet; then echo "لا جديد"; exit 0; fi
+              git commit -qm "📊 دفتر حصّة يوتيوب بعد بحث الطلب وتحليل المنافسين" && git push -q origin HEAD:master && exit 0
+            fi
+            sleep $(( i * 3 ))
+          done
+          echo "⛔ تعذّر دفع دفتر الحصص"; exit 1
+      - name: ⛔ تفويض يوتيوب يحتاج تجديداً
+        if: always() && steps.ch.outputs.stale == '1'
+        run: |
+          echo "::error::اكتمل ما لا يحتاج يوتيوب بآخر تقريرٍ محفوظ، لكنّ تفويض يوتيوب (YT_OAUTH_JSON) منتهٍ: لا نشر ولا إحصاء جديد قبل تجديده"
+          exit 1
