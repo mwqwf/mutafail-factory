@@ -4,6 +4,7 @@
 الاستعمال: python tools/video_admin.py ops/admin/<ملف>.json
 والملفُّ: {"videoId": "...", "public": true,
            "descriptionPrepend": "سطرٌ يُضاف في أوّل الوصف",
+           "publishAt": "2026-10-07T13:00:00Z",   ← إعادةُ جدولة فيديو خاصّ (لا مع public)
            "playlists": ["PL..."]}
 
 ⛔ الكلفة من حصّة يوتيوب لا من حصّة التوليد: قراءةُ فيديو (١) + تعديلُه (٥٠)
@@ -40,6 +41,21 @@ if CMD.get("public") and st.get("privacyStatus") != "public":
     st["privacyStatus"] = "public"
     st.pop("publishAt", None)          # ⛔ الجدولةُ تمنع النشرَ الفوريّ فتُرفع
     changed = True
+# ⭐ إعادةُ جدولة فيديو خاصٍّ بمعرّفه (مؤتة 2026-10-07: «اجعل ساعة بينهما»): بلا إعادة شوط النشر، فلا رفعَ ثانٍ
+#    ولا عودةَ لمصغّرة الحمولة. والعامُّ لا يُعاد جدولته (يوتيوب لا يرجع بالمنشور إلى الخاصّ هنا).
+at = CMD.get("publishAt", "").strip()
+if at:
+    import re, datetime as dt
+    if not re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", at):
+        raise SystemExit("⛔ publishAt بصيغة 2026-10-07T13:00:00Z وحدها: " + at)
+    if dt.datetime.fromisoformat(at.replace("Z", "+00:00")) <= dt.datetime.now(dt.timezone.utc):
+        raise SystemExit("⛔ موعدٌ مضى: " + at)
+    if st.get("privacyStatus") == "public":
+        print("⚠ الفيديو عامٌّ سلفاً — لا تُعاد جدولته", flush=True); at = ""
+    elif st.get("publishAt", "").replace(".000", "") != at:
+        st["privacyStatus"] = "private"
+        st["publishAt"] = at
+        changed = True
 
 if changed:
     svc.videos().update(part="snippet,status", body={
@@ -51,14 +67,15 @@ if changed:
         g = svc.videos().list(part="snippet,status", id=vid).execute()["items"][0]
         ok_pub = (not CMD.get("public")) or g["status"]["privacyStatus"] == "public"
         ok_des = (not add) or add in g["snippet"].get("description", "")
-        if ok_pub and ok_des:
+        ok_at = (not at) or g["status"].get("publishAt", "").replace(".000", "") == at
+        if ok_pub and ok_des and ok_at:
             print("✅ تحقّق: الخصوصيّة =", g["status"]["privacyStatus"],
-                  "| الوصفُ مُحدَّث =", bool(ok_des), flush=True)
+                  "| الوصفُ مُحدَّث =", bool(ok_des), "| الموعد =", g["status"].get("publishAt", "—"), flush=True)
             break
     else:
         raise SystemExit("⛔ التعديلُ لم يثبت على الخادم")
 else:
-    print("↻ لا تغييرَ مطلوبٌ في الوصف ولا الخصوصيّة", flush=True)
+    print("↻ لا تغييرَ مطلوبٌ في الوصف ولا الخصوصيّة ولا الموعد", flush=True)
 
 
 def ids(pl):
