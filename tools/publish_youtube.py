@@ -84,6 +84,15 @@ def is_short(vid, tries=None, wait=None):
     return False if last and last[0] in (301, 302, 303, 307) and "/watch" in (last[1] or "") else None
 
 
+def exists(svc, vid):
+    """هل الفيديو على القناة؟ وإن تعذّرت القراءة فالجواب نعم: النسخة الثانية أسوأ من التأخير."""
+    try:
+        return bool(svc.videos().list(part="id", id=vid).execute().get("items"))
+    except Exception as e:
+        print("⚠ تعذّرت قراءة", vid, "— يُعدّ موجوداً:", str(e)[:120], flush=True)
+        return True
+
+
 def upload(svc, path, meta, publish_at=None, public_now=False):
     status = {
         "privacyStatus": "public" if public_now else "private",
@@ -525,8 +534,9 @@ def main():
     for r in meta.get("reels", []):
         if r.get("file") in titles:
             r = dict(r, title=titles[r["file"]])
-        if r["file"] in done and r["file"] in reupload:
-            print("↻ إعادة رفعٍ بأمر المالك:", r["file"], "— كان", done[r["file"]].get("id"), flush=True)
+        if r["file"] in done and r["file"] in reupload and not exists(svc, done[r["file"]]["id"]):
+            # والمسجَّل موجودٌ على القناة ⇒ لا إعادة ولو بقي الحقل في ملفّ النشر (إعادة الشوط لا تصنع نسخةً ثانية)
+            print("↻ إعادة رفعٍ بأمر المالك:", r["file"], "— حُذف", done[r["file"]].get("id"), flush=True)
         elif r["file"] in done:                    # ↻ استئناف: لا يُرفع مرّتين
             print("↻ الريلز مرفوعٌ سلفاً", r["file"], flush=True)
             if env_at: reschedule(svc, done[r["file"]]["id"], reel_at(when or reel_base, len(reels)))
