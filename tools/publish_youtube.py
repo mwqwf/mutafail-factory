@@ -394,6 +394,11 @@ def main():
     svc = yt()
     # ⭐ ريلزٌ دعائيٌّ وحده (ريلز السلسلة 2026-09-30): لا فيلم يُرفع ولا مصغّرة ولا قائمة؛ و{FILM_URL} يُحال إلى قائمة السلسلة
     reels_only = bool(meta.get("reels_only"))
+    # ⭐ ريلزاتٌ لفيلمٍ منشورٍ سلفاً (الأرك 2026-10-07: ريلزان أُعيدا بعد إصلاح تجمّد آخرهما): film_video_id وreels_for_film في
+    #    ملفّ النشر ⇒ لا يُمسّ الفيلم ولا مصغّرته ولا قائمته (والحصّة لا تتّسع إلا لرفع الريلزات)، ورابطه في وصف كلّ ريلز
+    reels_for_film = os.environ.get("FILM_VIDEO_ID", "").strip() if os.environ.get("REELS_FOR_FILM") == "1" else ""
+    if reels_for_film:
+        reels_only = True
     when = None; film_id = None; env_at = os.environ.get("PUBLISH_AT", "").strip()
     if not reels_only:
 
@@ -457,7 +462,11 @@ def main():
         add_to_playlist(svc, resolve_playlist(meta, svc), film_id)
 
         # ─── الريلزان: عامّان فوراً، ورابطُ الفيلم في الوصف ───
-    link = meta.get("link") or ("https://www.youtube.com/playlist?list=" + meta.get("playlistId", "")) if reels_only else "https://youtu.be/" + film_id
+    if reels_for_film:
+        film_id = reels_for_film
+        link = "https://youtu.be/" + film_id
+    else:
+        link = meta.get("link") or ("https://www.youtube.com/playlist?list=" + meta.get("playlistId", "")) if reels_only else "https://youtu.be/" + film_id
     prev = load_state()
     # ⛔⛔ درسٌ مقيسٌ 2026-09-14 (شوطا الموحّدين والخاتمة): حالةُ الاستئناف مفتاحُها
     #    اسمُ الملفّ (r1.mp4) وهو **واحدٌ في كلّ حلقة**. فقرأ المحرّكُ حالةَ حلقةٍ
@@ -473,7 +482,11 @@ def main():
     done = {x.get("file"): x for x in prev.get("reels", []) if x.get("file")}
     onchannel = recent_uploads(svc)            # ⛔ الحارسُ الثاني: القناةُ نفسُها
     reels = []
+    # ⭐ عنوانٌ مُعدَّل لريلزٍ بعينه من ملفّ النشر (reel_titles): حارس العنوان أعلاه يمنع رفع نسخةٍ مصحّحة بعنوان القديمة نفسه
+    titles = json.loads(os.environ.get("REEL_TITLES") or "{}")
     for r in meta.get("reels", []):
+        if r.get("file") in titles:
+            r = dict(r, title=titles[r["file"]])
         if r["file"] in done:                      # ↻ استئناف: لا يُرفع مرّتين
             print("↻ الريلز مرفوعٌ سلفاً", r["file"], flush=True)
             if env_at: reschedule(svc, done[r["file"]]["id"], reel_at(when, len(reels)))
