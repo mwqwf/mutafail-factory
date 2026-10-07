@@ -11,8 +11,10 @@ on:
     paths: ["ops/admin/**"]
   workflow_dispatch:
 
+# ⛔ مؤتة 2026-10-07: كانت read فلم يرَ الإصدارَ المسوّد yt-oauth (المسوّدات لا تُرى إلا بصلاحية الكتابة)، فعاد إلى السرّ
+#    المنتهي وسقط بـ«invalid_grant». ولا يدفع هذا السير شيئاً؛ الكتابة لقراءة الرمز المجدَّد المختوم وحدها (كسير النشر)
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: mutafail-admin
