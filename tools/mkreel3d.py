@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.expanduser("~"), "Desktop", "claude-media"))
 import kb3d
 import envpaths
+import loud
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 # ⛔ التهيئةُ والقلبُ وإلزامُ محرّك BASIC — كلُّها في envpaths، ولا تُكرَّر هنا
 # (القلبُ المزدوج مع RAQM على لينكس كان يعكس العناوين — انظر envpaths.py).
@@ -44,11 +45,14 @@ voice = os.path.join(WORK, "v.wav")
 sp.run([FF, "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", alist,
         "-filter:a", "atempo=1.05,dynaudnorm", "-ar", "48000", voice], check=True)
 VD = dur(voice)
-aud = os.path.join(WORK, "a.m4a")
+mix = os.path.join(WORK, "mix.wav")
 sp.run([FF, "-v", "error", "-y", "-i", voice, "-f", "lavfi", "-t", str(VD),
         "-i", "anoisesrc=c=pink:r=48000",
         "-filter_complex", "[1:a]lowpass=520,highpass=60,volume=0.13[w];[0:a][w]amix=inputs=2:duration=first[a]",
-        "-map", "[a]", "-c:a", "aac", "-b:a", "192k", aud], check=True)
+        "-map", "[a]", "-c:a", "pcm_s16le", mix], check=True)
+# ⛔ مؤتة 2026-10-07: بلا تسويةٍ خرج كلامٌ بجهارة −20 ريلزاً بـ−26 LUFS (amix ينصّف، وdynaudnorm لا يرفع المعدّل)،
+#    فيُسوّى المزيج إلى −14 على مرّتين ويبقى PCM حتى الترميز الأخير (لا ترميزَ AAC مرّتين)
+aud = loud.norm(mix, os.path.join(WORK, "a.wav"), FF)
 
 # العنوان طبقةً شفافة
 ov = Image.new("RGBA", (W, H), (0, 0, 0, 0))

@@ -14,6 +14,8 @@ mkdir -p "$W/proj"
 cp -r "$W/media/images" "$W/proj/images"
 [ -d "$W/media/thumbs" ] && cp -r "$W/media/thumbs" "$W/proj/thumbs"
 [ -d "$W/media/shorts" ] && cp -r "$W/media/shorts" "$W/proj/shorts"
+[ -d "$W/media/cards" ] && cp -r "$W/media/cards" "$W/proj/cards"
+[ -d "$W/media/map" ] && cp -r "$W/media/map" "$W/proj/map"   # أصول الخريطة الحيّة
 cp "$TXT"/*.json "$W/proj/"; cp "$TXT"/*.md "$W/proj/" 2>/dev/null || true; cp "$TXT"/*.txt "$W/proj/" 2>/dev/null || true
 python - "$W/proj" <<'PY'
 import sys,os,json

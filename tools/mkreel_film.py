@@ -41,66 +41,71 @@ with open(os.path.join(WORK, 'a.txt'), 'w', encoding='utf-8') as fh:
         times.append((b, t, d)); t += d + GAP / 1.05
         fh.write("file '%s'\nfile '%s'\n" % (a, sil))
 voice = os.path.join(WORK, 'v.wav')
-run(['-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'a.txt'), '-filter:a', 'atempo=1.05,adeclick,dynaudnorm', '-ar', '48000', voice])
+# معالجة الصوت نفسها التي اختارها مختبر الأصوات للفيلم (publish.json: voice_filter) — لا يختلف صوت الريلز عن صوت فيلمه
+try:
+    VF = json.load(open(P('publish.json'), encoding='utf-8')).get('voice_filter') or 'atempo=1.05,adeclick,dynaudnorm'
+except (OSError, ValueError):
+    VF = 'atempo=1.05,adeclick,dynaudnorm'
+run(['-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'a.txt'), '-filter:a', VF, '-ar', '48000', voice])
 VD = dur(voice) + 0.6                               # نَفَسٌ قصير بعد آخر كلمة تحت بطاقة الختام
 
 # ② الصورة: قطعٌ كلّ CUT ثانية يدور على اللقطات؛ وفي كلّ دورةٍ جزءٌ آخر من اللقطة نفسها (حركةٌ جديدة لا تكرار)
 n = max(1, math.ceil(VD / CUT)); per = VD / n; shots = R['shots']; segs = []
+# الفيلم بلا كتابته المحروقة (mont_hybrid: work/video_clean.mp4) — قصُّ الإطار العموديّ لا يبتر نصّاً (الأرك 2026-10-04)
+SRC = P('work', 'video_clean.mp4') if os.path.exists(P('work', 'video_clean.mp4')) else P('film.mp4')
+# ⛔ فحص مؤتة 2026-10-07: الفيلم 25 إطاراً/ث، وzoompan (d=1) يُخرج إطاراً لكلّ إطارٍ داخل ويَسِمه بـ30 ⇒ كلّ قطعةٍ 1.40 ث لا 1.65،
+#    ولم يمدّها tpad، فقصر fg.mp4 عن الصوت وتجمّدت الصورة في آخر كلّ ريلز 5–7 ث. الإصلاح: fps=30 قبل zoompan، وعددُ إطاراتٍ
+#    محسوبٌ لكلّ قطعة فمجموعها مدّةُ الصوت بالضبط، وفضلةٌ في المدخل وtpad احتياطاً إن نفد المصدر
+FPS = 30
 for k in range(n):
     sid = shots[k % len(shots)]; st, span = TL[sid]; rep = k // len(shots)
     s0 = st + min(max(0.0, span - per - 0.1), 0.3 + rep * per)
+    nf = round((k + 1) * per * FPS) - round(k * per * FPS)
     out = os.path.join(WORK, 's%03d.mp4' % k)
-    z = "zoompan=z='1.0+0.0022*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=%dx%d:fps=30" % (W, FG_H)
-    run(['-ss', '%.3f' % s0, '-t', '%.3f' % per, '-i', P('film.mp4'), '-an', '-vf',
-         'scale=-2:%d,crop=%d:%d,%s,fade=t=in:st=0:d=0.12:color=white,tpad=stop_mode=clone:stop_duration=%.2f' % (FG_H, W, FG_H, z, per),
-         '-t', '%.3f' % per, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p', out])
+    z = "zoompan=z='1.0+0.0022*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=%dx%d:fps=%d" % (W, FG_H, FPS)
+    run(['-ss', '%.3f' % s0, '-t', '%.3f' % (per + 0.5), '-i', SRC, '-an', '-vf',
+         'fps=%d,scale=-2:%d,crop=%d:%d,%s,fade=t=in:st=0:d=0.12:color=white,tpad=stop_mode=clone:stop_duration=%.2f'
+         % (FPS, FG_H, W, FG_H, z, per),
+         '-frames:v', str(nf), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p', out])
     segs.append(out)
 open(os.path.join(WORK, 'v.txt'), 'w').write(''.join("file '%s'\n" % s for s in segs))
 fg = os.path.join(WORK, 'fg.mp4')
 run(['-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'v.txt'), '-c', 'copy', fg])
 
 
-def lines(d, text, f, maxw):
-    out, cur = [], ''
-    for w in text.split():
-        c = (cur + ' ' + w).strip()
-        if d.textlength(ar(c), font=f) > maxw and cur: out.append(cur); cur = w
-        else: cur = c
-    return out + ([cur] if cur else [])
-
-
-def centered(d, y, text, f, fill, stroke=5, band=None):
-    t = ar(text); tw = d.textlength(t, font=f)
-    if band:
-        d.rounded_rectangle([(W - tw) / 2 - 50, y - 18, (W + tw) / 2 + 50, y + f.size + 34], radius=36, fill=band)
-    d.text(((W - tw) / 2, y), t, font=f, fill=fill, stroke_width=stroke, stroke_fill=(0, 0, 0, 255))
-
-
 # ③ الطبقات الثابتة: العنوان أعلى والشعار أسفل، والخطّاف، وبطاقة الختام
+# ⛔ أمر المالك 2026-10-04: «حتى البطاقات المكتوبة اتركها لكوديكس» — العنوان والخطّاف والسؤال وعبارتا الختام
+#    بطاقاتٌ من كوديكس (tools/cards.py: rtitle · rhook · rend · rcta1 · rcta2) تُقصّ وتُحجَّم هنا فقط، والغائبة تُترك.
+import cards, kinetic  # noqa: E402
+RC = {k: kinetic.card(PROJ, c['key']) for k, c in cards.reel_cards(R).items()}
+
+
+def put(canvas, im, cy, maxw, maxh):
+    if im is None:
+        return cy
+    im = kinetic.fit(im, maxw, maxh)
+    canvas.alpha_composite(im, ((W - im.width) // 2, int(cy)))
+    return cy + im.height
+
+
 top = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(top)
-# العنوان كاملاً بلا بتر (بُتر في عين جالوت عند سطرين): يصغر الخطّ حتى يسعه ثلاثة أسطر
-for sz in (62, 56, 50, 46):
-    ft = envpaths.arfont(sz, path=FB); tl = lines(d, R['title'], ft, W - 90)
-    if len(tl) <= 3: break
-y = 110
-for i, ln in enumerate(tl):
-    centered(d, y, ln, ft, GOLD if i else WHITE); y += int(sz * 1.3)
+put(top, RC['title'], 100, W - 80, 330)
 lg = Image.open(envpaths.logo()).convert('RGBA').resize((110, 110))
 m = Image.new('L', (110, 110), 0); ImageDraw.Draw(m).ellipse([2, 2, 108, 108], fill=255); top.paste(lg, ((W - 110) // 2, H - 150), m)
 top.save(os.path.join(WORK, 'top.png'))
 
-hook = Image.new('RGBA', (W, H), (0, 0, 0, 110)); d = ImageDraw.Draw(hook)
-fh_ = envpaths.arfont(96, path=FB); hl = lines(d, R.get('hook') or R['title'], fh_, W - 140)[:3]; y = (H - len(hl) * 130) / 2
-for ln in hl:
-    centered(d, y, ln, fh_, WHITE, 6, band=(200, 32, 34, 235)); y += 150
+# ⭐ الجيل الثالث (الأرك 2026-10-04 — «ريلزات بقوة لم يسبق لنا مثلها»): الخطّاف فوق الحركة نفسها بلا تعتيمٍ يحجبها،
+#    وارتجاجٌ في أوّل 0.7 ث يجعل الثانية الأولى ضربةً لا عنواناً ساكناً
+hook = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+if RC['hook'] is not None:
+    hi = kinetic.fit(RC['hook'], W - 100, 560)
+    hook.alpha_composite(hi, ((W - hi.width) // 2, (H - hi.height) // 2))
 hook.save(os.path.join(WORK, 'hook.png'))
 
-end = Image.new('RGBA', (W, H), (0, 0, 0, 150)); d = ImageDraw.Draw(end)
-fq = envpaths.arfont(74, path=FB); y = 660
-for ln in lines(d, R.get('end_q') or 'ماذا حدث بعد ذلك؟', fq, W - 120)[:3]:
-    centered(d, y, ln, fq, GOLD); y += 102
-centered(d, y + 60, 'الجواب في الفيلم الكامل', envpaths.arfont(66, path=FB), WHITE, 4, band=(200, 32, 34, 245))
-centered(d, y + 240, 'اشترك وفعّل الجرس', envpaths.arfont(54, path=FB), WHITE, 4)
+end = Image.new('RGBA', (W, H), (0, 0, 0, 150))
+y = put(end, RC['end'], 640, W - 100, 420)
+y = put(end, RC['cta1'], y + 50, W - 160, 150)
+put(end, RC['cta2'], y + 40, W - 240, 120)
 end.save(os.path.join(WORK, 'end.png'))
 
 # ④ الترجمة كلمةً بكلمة: ثلاث كلماتٍ في السطر، والكلمة المنطوقة ذهبيّة — صورٌ متتابعة بمُددها في مسارٍ واحد
@@ -132,15 +137,33 @@ with open(os.path.join(WORK, 'caps.txt'), 'w', encoding='utf-8') as fh:
     for f, dd_ in frames: fh.write("file '%s'\nduration %.3f\n" % (f, max(0.04, dd_)))
     fh.write("file '%s'\n" % frames[-1][0])
 
-# ⑤ المؤثّرات تحت الصوت (مكتبة CC0) — ⛔ لا موسيقى
+# ⑤ المؤثّرات تحت الصوت (مكتبة CC0) — ⛔ لا موسيقى؛ ثمّ تسوية الجهارة بمرحلتين إلى −14 LUFS كالفيلم (mont_hybrid: LN)
+#    فحص مؤتة 2026-10-07: كانت الريلزات بين −16.5 و−18.3 LUFS بلا تسوية، ويوتيوب لا يرفع الخافت فتُسمع أخفت من غيرها
 cands = sorted(glob.glob(os.path.join(SFX, R.get('sfx', 'battle') + '_*.ogg')))
-ain = ['-i', voice] + (['-stream_loop', '-1', '-i', cands[0]] if cands else [])
-amix = ('[1:a]volume=1.0[vo];[2:a]atrim=0:%.3f,volume=0.22,afade=t=out:st=%.3f:d=0.8[fx];[vo][fx]amix=inputs=2:duration=first:normalize=0,apad=whole_dur=%.3f[au]'
-        % (VD, VD - 0.8, VD)) if cands else '[1:a]apad=whole_dur=%.3f[au]' % VD
+mix = os.path.join(WORK, 'mix.wav')
+if cands:
+    run(['-i', voice, '-stream_loop', '-1', '-i', cands[0], '-filter_complex',
+         '[0:a]volume=1.0[vo];[1:a]atrim=0:%.3f,volume=0.22,afade=t=out:st=%.3f:d=0.8[fx];[vo][fx]amix=inputs=2:duration=first:normalize=0,apad=whole_dur=%.3f[au]'
+         % (VD, VD - 0.8, VD), '-map', '[au]', '-ar', '48000', '-c:a', 'pcm_s16le', mix])
+else:
+    run(['-i', voice, '-af', 'apad=whole_dur=%.3f' % VD, '-ar', '48000', '-c:a', 'pcm_s16le', mix])
+LN = 'loudnorm=I=-14:TP=-1.0:LRA=11'
+o = sp.run([FF, '-hide_banner', '-nostats', '-i', mix, '-af', LN + ':print_format=json', '-f', 'null', '-'],
+           capture_output=True, text=True).stderr
+try:
+    mj = json.loads(o[o.rindex('{'):o.rindex('}') + 1])
+    LN += (':measured_I=%s:measured_TP=%s:measured_LRA=%s:measured_thresh=%s:offset=%s:linear=true'
+           % (mj['input_i'], mj['input_tp'], mj['input_lra'], mj['input_thresh'], mj['target_offset']))
+except (ValueError, KeyError):
+    pass
+norm = os.path.join(WORK, 'mix_norm.wav')
+run(['-i', mix, '-af', LN + ',aresample=48000', '-c:a', 'pcm_s16le', norm])
+ain = ['-i', norm]
+amix = '[1:a]apad=whole_dur=%.3f[au]' % VD
 
 # ⑥ التجميع: خلفيةٌ مموّهة + الإطار المكبَّر + العنوان + الترجمة + شريط التقدّم + الخطّاف أوّلاً + بطاقة الختام آخراً
 HOOK_T, END_T = 1.6, 3.2
-k0 = 1 + (2 if cands else 1)
+k0 = 2
 inp = ['-i', fg] + ain + ['-loop', '1', '-i', os.path.join(WORK, 'top.png'), '-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'caps.txt'),
                           '-loop', '1', '-i', os.path.join(WORK, 'hook.png'), '-loop', '1', '-i', os.path.join(WORK, 'end.png')]
 iT, iC, iH, iE = k0, k0 + 1, k0 + 2, k0 + 3
@@ -151,7 +174,8 @@ flt = ['[0:v]split[a][b]', '[a]scale=%d:%d:force_original_aspect_ratio=increase,
        '[%d:v]format=rgba,fade=t=out:st=%.2f:d=0.25:alpha=1[hk]' % (iH, HOOK_T - 0.25),
        "[v3][hk]overlay=0:0:enable='lte(t,%.2f)'[v4]" % HOOK_T,
        '[%d:v]format=rgba,fade=t=in:st=%.2f:d=0.35:alpha=1[en]' % (iE, VD - END_T),
-       "[v4][en]overlay=0:0:enable='gte(t,%.2f)',fps=30,setsar=1,format=yuv420p[v]" % (VD - END_T), amix]
+       "[v4]crop=w=iw-48:h=ih-48:x='24+if(lt(t,0.7),22*sin(70*t)*exp(-5*t),0)':y='24+if(lt(t,0.7),16*cos(85*t)*exp(-5*t),0)',scale=%d:%d[v4s]" % (W, H),
+       "[v4s][en]overlay=0:0:enable='gte(t,%.2f)',fps=30,setsar=1,format=yuv420p[v]" % (VD - END_T), amix]
 out = P('reels', RID + '.mp4')
 run(inp + ['-filter_complex', ';'.join(flt), '-map', '[v]', '-map', '[au]', '-t', '%.3f' % VD,
            '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-c:a', 'aac', '-b:a', '192k', out])

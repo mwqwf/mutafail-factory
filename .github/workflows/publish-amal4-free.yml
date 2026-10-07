@@ -119,7 +119,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          pip install -q pillow numpy arabic-reshaper python-bidi google-auth google-auth-oauthlib google-api-python-client
+          pip install -q pillow numpy opencv-python-headless arabic-reshaper python-bidi google-auth google-auth-oauthlib google-api-python-client
           sudo apt-get -qq update
           sudo apt-get -qq install -y ffmpeg fonts-hosny-amiri fonts-noto-core
           python tools/turbo.py "$PWD/proj" 0 1

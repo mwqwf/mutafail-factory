@@ -7,17 +7,17 @@ run-name: 🎬 ${{ inputs.slug || github.event.head_commit.message }} · ${{ inp
 # المخرج: إصدار مسوّدة <slug>-out (معاينة 480p + لوحات إطارات + تقارير الصوت والإصغاء + الفيلم والشورتات)
 #         وإصدار <slug>-payload مختوم جاهز لـ sealed-publish.yml بعد مراجعة الجلسة.
 # المستودع عامّ والعدّاء قياسي ⇒ مجاني. والإصدارات المسوّدة لا يراها إلا صاحب المستودع.
-# ⛔ الصوت: gemini-3.8-flash-tts وحده، بلا توجيه أداء (درسا اليرموك). ⛔ fal لا يتجاوز budget_usd.
+# ⛔ الصوت: نموذجٌ واحد في الفيلم — gemini-3.8-flash-tts افتراضاً، وغيرُه بحقل model في ملفّ الأمر (أمر المالك 2026-10-06) — بلا توجيه أداء (درسا اليرموك). ⛔ fal لا يتجاوز budget_usd.
 on:
   workflow_dispatch:
     inputs:
       slug: { description: "اسم الحلقة (مثل qadisiyya)", required: true, type: string }
       stage:
-        description: "all = كل شيء · audio = الصوت والفحص فقط · animate = التحريك والمونتاج (بعد صوتٍ سليم)"
+        description: "all = كل شيء · audio = الصوت والفحص فقط · animate = التحريك والمونتاج (بعد صوتٍ سليم) · visuals = التحريك وعيّنةٌ من أوّل الفيلم بلا توليد صوت · preview = عيّنةٌ مجّانيّة من أوّل الفيلم بالمجسّم وحده (بلا fal ولا توليد صوت)"
         required: true
         default: all
         type: choice
-        options: [all, audio, animate, clips]
+        options: [all, audio, animate, clips, visuals, preview]
   # ⭐ الزناد الجذري (2026-09-27): الجلسة السحابية لا تملك تشغيل workflow_dispatch،
   #    لكنها تملك الدفع. فدفعُ ملفٍّ ops/run/<slug>.json = {"slug":"…","stage":"audio|animate|all"}
   #    على أيّ فرعٍ يُطلق هذا الشوط بنفسه، بلا يد المالك.
@@ -26,6 +26,7 @@ on:
 
 permissions:
   contents: write
+  statuses: write   # نبض «تقدّم الصوت» في الخطوة ①: عددٌ وحده يُقرأ أثناء الشوط
 
 concurrency:
   # «[موازٍ]» في رسالة الإيداع ⇒ مجموعةٌ منفصلة تعمل بجوار الشوط الجاري (صوتُ الفيلم أثناء تحريك الافتتاحية — عين جالوت 2026-09-29)
@@ -39,6 +40,7 @@ jobs:
     outputs:
       slug: ${{ steps.r.outputs.slug }}
       stage: ${{ steps.r.outputs.stage }}
+      model: ${{ steps.r.outputs.model }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 2 }
@@ -58,8 +60,11 @@ jobs:
           import json,sys,re
           d=json.load(open(sys.argv[1],encoding='utf-8'))
           slug=d['slug']; stage=d.get('stage','all')
-          assert re.fullmatch(r'[a-z0-9-]+',slug) and stage in ('all','audio','animate','clips')
-          print('slug='+slug); print('stage='+stage)
+          # نموذج الصوت (أمر المالك 2026-10-06: «حاول توليد الصوت بنموذج 3.8 الذي يليه مباشرة»): الأحدث افتراضاً
+          model=d.get('model','gemini-3.8-flash-tts')
+          assert re.fullmatch(r'[a-z0-9-]+',slug) and stage in ('all','audio','animate','clips','visuals','preview')
+          assert model in ('gemini-3.8-flash-tts','gemini-3.8-flash-lite-tts','gemini-3.1-flash-tts-preview')
+          print('slug='+slug); print('stage='+stage); print('model='+model)
           PY
 
   film:
@@ -70,6 +75,7 @@ jobs:
     env:
       SLUG: ${{ needs.resolve.outputs.slug }}
       STAGE: ${{ needs.resolve.outputs.stage }}
+      TTS_MODEL: ${{ needs.resolve.outputs.model || 'gemini-3.8-flash-tts' }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -80,7 +86,7 @@ jobs:
       - name: الأدوات
         run: |
           sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg fonts-hosny-amiri >/dev/null
-          pip install -q pillow numpy requests arabic-reshaper python-bidi google-auth google-api-python-client
+          pip install -q pillow numpy opencv-python-headless requests arabic-reshaper python-bidi google-auth google-api-python-client
           pip install -q torch --index-url https://download.pytorch.org/whl/cpu && pip install -q transformers
 
       - name: جلبُ المصدر المختوم وفكّه
@@ -101,20 +107,26 @@ jobs:
           cd .. && bash tools/unseal.sh sealed "$PWD/proj" && rm -rf sealed
           # مقاطعُ الافتتاحية المعتمدة (<slug>-intro-out) تدخل الفيلم كاملاً بلا دفعٍ ثانٍ لـfal
           if gh release view "$SLUG-intro-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release download "$SLUG-intro-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp/intro --clobber 2>/dev/null && \
+            bash tools/state_fetch.sh "$SLUG-intro-out" /tmp/intro && \
               mkdir -p proj/clips proj/audio && tar xzf /tmp/intro/state.tgz -C /tmp/intro clips audio && cp -n /tmp/intro/clips/*.mp4 /tmp/intro/clips/*.cut /tmp/intro/clips/*.redo_* proj/clips/ 2>/dev/null || true; cp -n /tmp/intro/audio/n_*.wav /tmp/intro/audio/n_*.cut proj/audio/ 2>/dev/null || true
             # صوتُ الراوي نفسه الذي طابقت عليه الشفاه — لا يُولَّد من جديد وإلا اختلّت المزامنة
             tar xzf /tmp/intro/state.tgz -C /tmp/intro fal_ledger.json 2>/dev/null && cp /tmp/intro/fal_ledger.json proj/fal_ledger_intro.json || true
           fi
           # ⭐ السقف المشترك (budget_total_usd): الافتتاحية تقرأ ما أنفقه فيلمُها أيضاً، فلا يتجاوز مجموعُهما السقف بحال
           case "$SLUG" in *-intro)
-            if gh release download "${SLUG%-intro}-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp/film --clobber 2>/dev/null; then
+            if bash tools/state_fetch.sh "${SLUG%-intro}-out" /tmp/film; then
               tar xzf /tmp/film/state.tgz -C /tmp/film fal_ledger.json 2>/dev/null && cp /tmp/film/fal_ledger.json proj/fal_ledger_film.json || true
             fi;;
           esac
           # إن وُجد ناتجُ شوطٍ سابق (صوتٌ مجتاز) يُستأنف منه
           if gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release download "$SLUG-out" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D /tmp --clobber 2>/dev/null && tar xzf /tmp/state.tgz -C proj || true
+            bash tools/state_fetch.sh "$SLUG-out" /tmp && tar xzf /tmp/state.tgz -C proj && rm -f /tmp/state.tgz || true
+          fi
+          # حالةٌ مختومة في فرع sealed/<slug>-state حين لا حالةَ في الإصدار (ملاذكرد 2026-10-03: ضاعت حالة الإصدار فاستُعيدت من الجلسة)
+          if [ ! -d proj/clips ] && git fetch -q --depth 1 origin "sealed/$SLUG-state" 2>/dev/null; then
+            rm -rf /tmp/sst && mkdir -p /tmp/sst && git archive FETCH_HEAD | tar x -C /tmp/sst
+            ( cd /tmp/sst && sed -i 's/ \*/  /' SHA256SUMS && sha256sum -c --quiet SHA256SUMS && cat part_* > payload.enc && rm part_* )
+            bash tools/unseal.sh /tmp/sst "$PWD/proj" && rm -rf /tmp/sst && echo "↻ استُعيدت الحالة من sealed/$SLUG-state"
           fi
           ls proj
 
@@ -123,36 +135,117 @@ jobs:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
 
-      - name: ① الصوت (gemini-3.8-flash-tts) + الفحوص الآلية — حتى ست جولات
-        if: env.STAGE != 'animate'
+      - name: ① الصوت (${{ env.TTS_MODEL }}) + الفحوص الآلية — حتى ست جولات
+        # visuals (الأرك 2026-10-04): لا توليد صوت — حين تنفد حصّته يُحرَّك ما لا يحتاجه وتُصنع عيّنةٌ مما اكتمل صوته
+        if: env.STAGE != 'animate' && env.STAGE != 'visuals' && env.STAGE != 'preview'
+        env:
+          # المفاتيح المرفوضة بحدّ اليوم تعود فتولّد بعد الاستراحة (مؤتة 2026-10-06: ردّت كلّها عند 70، ثم ولّد 3.1 عشرين بعد
+          # استراحة 20 دقيقة، والأحدث صباحاً نحو 80 في ثلاث ساعات) ⇒ خمس استراحاتٍ (20+40+60+80 د) في ميزانية 4 ساعات،
+          # وطلبٌ واحد لكلّ مشروعٍ في كلّ استراحة؛ ويبقى للإصغاء والحفظ ما بقي من حدّ المهمّة (350 د).
+          GEN_DAY_STRIKES: "5"
+          GEN_MAX_MIN: "240"
         run: |
+          # ⛔ كتلٌ لها دورٌ (N/Q/P) بلا ملاحظات الفائز، أو بـ«style» خامٍ يُرسل قبل النصّ ⇒ لا توليد (مؤتة 2026-10-06:
+          #    كانت 14 كتلة سترسل «medina:» قبل نصّها) — tools/apply_voices.py يطبّق نتيجة المختبر قبل الختم
+          python tools/apply_voices.py --check proj
+          # ⭐ نبض التقدّم (مؤتة 2026-10-06: بقي الشوط 91 ساعةً في هذه الخطوة بلا سجلٍّ يُقرأ قبل انتهائها ولا صلاحيةٍ لإيقافه):
+          #    كلّ 3 دقائق حالةٌ على الإيداع باسم «تقدّم الصوت» بالأعداد وحدها، تُقرأ من واجهة GitHub العامة بلا مصادقة:
+          #    GET repos/<المستودع>/commits/<الإيداع>/statuses
+          beat() {
+            n=$(find proj/audio -name '*.wav' -size +8k 2>/dev/null | wc -l)
+            t=$(python3 -c "import json;print(len(json.load(open('proj/blocks.json',encoding='utf-8'))))")
+            x=$(python3 -c "import json;d=json.load(open('proj/gen_state.json'));print('· عاد بعد الاستراحة %d · ردود حدّ اليوم %d'%(d.get('revived',0),sum(v.get('day',0) for v in d.get('keys',{}).values())))" 2>/dev/null || true)
+            st=$1; [ "$st" = done ] && { [ "$n" -ge "$t" ] && st=success || st=failure; }
+            gh api -X POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state="$st" -f context="تقدّم الصوت ($SLUG)" \
+              -f description="$(date -u +%H:%M)Z · $n/$t كتلة $x" >/dev/null 2>&1 || true
+          }
+          export GEN_DEADLINE=$(( ($(date +%s) + GEN_MAX_MIN * 60) * 1000 ))   # موعدٌ واحد لكلّ استدعاءات المولّد في الخطوة
+          ( while sleep 180; do beat pending || true; done ) & BEAT=$!
+          trap 'kill $BEAT 2>/dev/null; beat done || true' EXIT
+          # ⭐ نموذجٌ واحد في الفيلم الواحد (أمر المالك 2026-10-06: «حاول توليد الصوت بنموذج 3.8 الذي يليه مباشرة»):
+          #    صوتٌ محفوظ من نموذجٍ آخر يُنقل إلى audio_prev_<نموذجه> ويُحفظ مع الحالة للمقارنة، ولا يُتبنّى منه شيء.
+          #    والرجوع إلى نموذجٍ سبق يستعيد صوته. وما لا وسم له فهو من الأحدث (كلّ ما قبل هذا الأمر).
+          if [ -d proj/audio ]; then
+            cur=$(cat proj/audio/.model 2>/dev/null || echo gemini-3.8-flash-tts)
+            if [ "$cur" != "$TTS_MODEL" ]; then
+              mkdir -p "proj/audio_prev_$cur" && cp -a proj/audio/. "proj/audio_prev_$cur/" && rm -rf proj/audio
+              [ -d "proj/audio_prev_$TTS_MODEL" ] && mv "proj/audio_prev_$TTS_MODEL" proj/audio
+              echo "↻ صوت هذا الشوط بـ$TTS_MODEL؛ وحُفظ صوت $cur ($(ls proj/audio_prev_$cur/*.wav 2>/dev/null | wc -l) كتلة) في audio_prev_$cur ولا يُخلط"
+            fi
+          fi
+          mkdir -p proj/audio && echo "$TTS_MODEL" > proj/audio/.model
+          # 🗑 صوت نماذج تخلّى عنها المالك يُحذف من الحالة بحقل drop في ملفّ الأمر (أمره 2026-10-06: «إن لم ينجح 3.1 في
+          #    توليده كاملاً فاحذف صوته هو والخفيف واستمرّ على الأحدث حتى يتولّد الفيلم كاملاً به»). ولا يُحذف صوت نموذج الشوط.
+          for m in $(python3 -c "import json,sys;print(' '.join(json.load(open(sys.argv[1],encoding='utf-8')).get('drop',[])))" "ops/run/$SLUG.json" 2>/dev/null); do
+            case "$m" in gemini-3.8-flash-tts|gemini-3.8-flash-lite-tts|gemini-3.1-flash-tts-preview) ;; *) continue;; esac
+            [ "$m" = "$TTS_MODEL" ] && continue
+            if [ -d "proj/audio_prev_$m" ]; then
+              echo "🗑 حُذف صوت $m ($(ls proj/audio_prev_$m/*.wav 2>/dev/null | wc -l) كتلة) بأمر المالك"; rm -rf "proj/audio_prev_$m"
+            fi
+          done
+          # ⭐ خريطة المشاريع (مجّانيّة، بلا توليد): 43 مفتاحاً في 31 مشروعاً، فالإيقاع والاستراحة لكلّ مشروع (tools/gen25.js)
+          node tools/key_projects.js --keys /tmp/keys.json --files --out /tmp/groups.json || true
+          [ -s /tmp/groups.json ] && echo "GEN_GROUPS=/tmp/groups.json" >> "$GITHUB_ENV" && export GEN_GROUPS=/tmp/groups.json
           # regen.txt في الحمولة = كتلٌ تغيّر نصُّها بعد التوليد (تحكيم الإصغاء) ⇒ يُحذف صوتُها ليُعاد
-          [ -f proj/regen.txt ] && for id in $(cat proj/regen.txt); do rm -f "proj/audio/$id.wav"; done; true
+          # ⛔ مرّةً واحدة لكلّ حمولةٍ مختومة (الأرك 2026-10-04): شوطٌ ثانٍ بالحمولة نفسها — بعد نفاد الحصّة مثلاً — كان يحذف
+          #    من جديد ما وُلّد في الشوط الأوّل. البصمة: بصمة الحمولة (لكلّ ختمٍ مفتاحٌ جديد)، وإلا فالنصوص وقائمة الإعادة معاً.
+          if [ -f proj/regen.txt ]; then
+            RID=$( (cat "ops/sealed/$SLUG/SHA256SUMS" 2>/dev/null || cat proj/blocks.json proj/regen.txt) | sha256sum | cut -c1-16)
+            if [ "$(cat proj/audio/.regen_applied 2>/dev/null)" = "$RID" ]; then
+              echo "↻ قائمة الإعادة طُبّقت في شوطٍ سابقٍ بهذه الحمولة — لا يُحذف ما وُلّد بعدها"
+            else
+              for id in $(cat proj/regen.txt); do rm -f "proj/audio/$id.wav"; done
+              mkdir -p proj/audio && echo "$RID" > proj/audio/.regen_applied
+            fi
+          fi
+          # redo في ملفّ الأمر = كتلٌ يُعاد صوتها بعد تحكيمٍ سمعيّ بلا تغيير النصّ، فلا حاجة إلى ختمٍ جديد
+          #    (مؤتة 2026-10-06: n_027 «ولم يُقتَلْ لِرسولِ الله ﷺ» — لم يسمع التفريغ المستقلّ اللام، ورفع الإصغاء الكتلة).
+          #    مرّةً واحدة لكلّ قيمة _تشغيل، فلا يحذف شوطٌ ثانٍ بالأمر نفسه ما أُعيد قبله.
+          RUNID=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1],encoding='utf-8')).get('_تشغيل',''))" "ops/run/$SLUG.json" 2>/dev/null || true)
+          REDO=$(python3 -c "import json,sys,re;print(' '.join(i for i in json.load(open(sys.argv[1],encoding='utf-8')).get('redo',[]) if re.fullmatch(r'[a-z0-9_]+',i)))" "ops/run/$SLUG.json" 2>/dev/null || true)
+          if [ -n "$REDO" ] && [ "$(cat proj/audio/.redo_applied 2>/dev/null)" != "redo:$RUNID" ]; then
+            for id in $REDO; do rm -f "proj/audio/$id.wav" "proj/audio/$id.wav.dc"; done
+            mkdir -p proj/audio && echo "redo:$RUNID" > proj/audio/.redo_applied
+            echo "↻ إعادةٌ بأمر ملفّ الأمر: $REDO"
+          fi
           # قصُّ ما نُطق من توجيهٍ إنجليزي في أول الكتلة (lead_cut) صوتاً ومقطعَ راوٍ، قبل الفحص والإصغاء ليُتحقَّق منه
           # audio_fix/ في الحمولة: صوتٌ مصحَّح يغلب ما في حالة الشوط السابق (مثلاً صوتٌ أُعيد توليده خطأً وله مقطع راوٍ مدفوع)
-          [ -d proj/audio_fix ] && cp proj/audio_fix/*.wav proj/audio/ || true
+          #    وصوت audio_fix كلّه من النموذج الأحدث، فلا يُنسخ في شوطٍ بغيره (لا خلط)
+          [ -d proj/audio_fix ] && [ "$TTS_MODEL" = gemini-3.8-flash-tts ] && cp proj/audio_fix/*.wav proj/audio/ || true
           python tools/trim_lead.py proj
           # ست جولات: النقرات المعزولة عشوائية في بعض الأصوات (Schedar)، فتنجح غالباً بالإعادة (الزلاقة 2026-09-28)
           for i in 1 2 3 4 5 6; do
-            node tools/gen25.js proj 12 --keys /tmp/keys.json --model gemini-3.8-flash-tts || true
+            node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$TTS_MODEL" || true
             python tools/audio_checks.py proj && break
           done
-          # نفدت حصّة 3.8 اليومية (فتح القسطنطينية 2026-09-28: 12 كتلة «nokeys») ⇒ ما بقي بنموذجٍ ذي حصّةٍ منفصلة، بالصوت نفسه
-          python tools/audio_checks.py proj || for m in gemini-2.5-flash-preview-tts gemini-2.5-pro-preview-tts; do
-            node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$m" || true
-            python tools/audio_checks.py proj && break
+          # ⭐ التقطير (الأرك 2026-10-04): بعد «حدّ اليوم» (PerDay) مرّ في كلّ شوطٍ جديد نحو 15 توليدة (الأشواط 79–81: 25 ثم 16 ثم 15)،
+          #    لأنّ دفتر المفاتيح الميّتة يبدأ فارغاً. ⇒ جولاتٌ إضافية بدفترٍ جديد بعد استراحةٍ قصيرة ما دامت كلّ جولةٍ تأتي بجديد،
+          #    وتقف عند أوّل جولةٍ بلا جديد أو بعد 20 جولة. النموذج نفسه والصوت نفسه، فلا خلط.
+          miss() { python3 -c "import json,os;b=json.load(open('proj/blocks.json',encoding='utf-8'));print(sum(1 for x in b if not (os.path.exists('proj/audio/%s.wav'%x['id']) and os.path.getsize('proj/audio/%s.wav'%x['id'])>8000)))"; }
+          # ⛔ مؤتة 2026-10-06: كان كلّ جولةٍ يحذف الدفتر فيطرق المفاتيح الـ43 كلّها من جديد كلّ 90 ث — إغراقٌ يُطيل عقوبة «حدّ اليوم».
+          #    ⇒ الدفتر يبقى (الاستراحة والإيقاع في gen25 يعيدان المفتاح حين يصلح)، والاستراحة بين الجولات 5 د، وثماني جولاتٍ على الأكثر.
+          for j in $(seq 1 8); do
+            m0=$(miss); [ "$m0" -eq 0 ] && break
+            echo "↻ تقطير $j: الناقص $m0"; sleep 300
+            node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$TTS_MODEL" || true
+            python tools/audio_checks.py proj || true
+            m1=$(miss); echo "   بعدها: $m1"; [ "$m1" -lt "$m0" ] || break
           done
+          # ⛔ لا رجوع إلى نماذج 2.5 حين تنفد حصّة 3.8 (الدليل §٦ «لا رجوع للنماذج القديمة» — تدقيق كوديكس MF-02):
+          #    كانت تُخلط في الفيلم الواحد كتلٌ من نموذجين. ما نقص يبقى ناقصاً، والحالة تُحفظ (⑤ always)،
+          #    والشوطُ التالي بعد تجدّد الحصّة يكمل من حيث وقف. ووقت التجدّد غير محسوم: توثيق جوجل يقول منتصف ليل المحيط الهادئ
+          #    (07:00Z صيفاً)، وهو ما وجده المالك بالتجربة، ومهلة الرفع في ردود 429 تشير إلى 00:00Z.
           REEL_SOFT=1 python tools/audio_checks.py proj
 
       - name: ② الإصغاء المشكول (كتلة كتلة) — تقريرٌ للتحكيم
         # ⛔ لا إصغاءَ في شوطٍ «[موازٍ]»: شوطان يصغيان معاً يستنفدان الحصّة مرّتين (عين جالوت 2026-09-29) — يُصغي الشوطُ الرئيسيّ وحده
-        if: env.STAGE != 'animate' && !contains(github.event.head_commit.message, '[موازٍ]')
+        if: env.STAGE != 'animate' && env.STAGE != 'visuals' && env.STAGE != 'preview' && !contains(github.event.head_commit.message, '[موازٍ]')
         run: |
           # ⭐ أحدثُ نتائج الإصغاء قبل البدء (أمر المالك 2026-09-29): ما حفظه شوطٌ انتهى بعد بدء هذا الشوط،
           #    وما سُمع من مقاطع الراوي في شوط الافتتاحية — فلا يُعاد فحصُ ما فُحص (البصمةُ تُسقط ما تغيّر صوتُه)
           for tag in "$SLUG-out" "$SLUG-intro-out"; do
             rm -rf "/tmp/lr_$tag" && mkdir -p "/tmp/lr_$tag"
-            gh release download "$tag" -R "$GITHUB_REPOSITORY" -p 'state.tgz' -D "/tmp/lr_$tag" --clobber 2>/dev/null && \
+            bash tools/state_fetch.sh "$tag" "/tmp/lr_$tag" && \
               tar xzf "/tmp/lr_$tag/state.tgz" -C "/tmp/lr_$tag" listen_results.json 2>/dev/null || true
           done
           python tools/listen_merge.py proj "/tmp/lr_$SLUG-out/listen_results.json" "/tmp/lr_$SLUG-intro-out/listen_results.json"
@@ -162,48 +255,41 @@ jobs:
           for m in gemini-flash-latest gemini-3.8-flash gemini-3.5-flash-lite gemini-flash-lite-latest gemini-3.5-pro gemini-pro-latest; do
             node tools/listen.js proj 12 --keys /tmp/keys.json --batch 1 --model "$m" || true
           done
-          python - <<'PY'
-          import json
-          r=json.load(open('proj/listen_results.json',encoding='utf-8'))
-          flags={k:v for k,v in r.items() if isinstance(v,dict) and v.get('ok') is False}
-          todo=[k for k,v in r.items() if not isinstance(v,dict) or v.get('ok') is None]
-          open('proj/listen_report.json','w',encoding='utf-8').write(json.dumps({'flags':flags,'unchecked':todo},ensure_ascii=False,indent=1))
-          print('رايات:',len(flags),'| لم يُفحص:',len(todo))
-          PY
+          # ⛔ الشوط 87 (الأرك): كان التقرير يعدّ نتائج صوتٍ قديم مفحوصةً ⇒ لا يُحسب إلا ما طابقت بصمتُه الصوتَ الحاليّ
+          python tools/listen_report.py proj
 
       - name: ②ب حارس نطق التعليمات الإنجليزية (يعيد التوليد بلا توجيه، ويمنع التحريك إن بقي)
         # درس الزلاقة 2026-09-28: قال الراوي «Say quickly…» بصوته ثم حُرِّكت شفاهه عليه — أفسد المشهد
-        if: env.STAGE != 'animate' && !contains(github.event.head_commit.message, '[موازٍ]')
+        if: env.STAGE != 'animate' && env.STAGE != 'visuals' && env.STAGE != 'preview' && !contains(github.event.head_commit.message, '[موازٍ]')
         run: |
           for i in 1 2 3; do
             python tools/style_leak.py proj && break
             # حين تنفد حصّة النموذج الأساسي تُعاد الكتلة بالنماذج الاحتياطية (القسطنطينية 2026-09-28: d_003 بقي «nokeys»)
-            for tm in gemini-3.8-flash-tts gemini-2.5-flash-preview-tts gemini-2.5-pro-preview-tts; do
-              node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$tm" && break || true
-            done
+            node tools/gen25.js proj 12 --keys /tmp/keys.json --model "$TTS_MODEL" || true   # النموذج المعتمد وحده (MF-02)
             python tools/audio_checks.py proj || true
             for m in "" gemini-flash-latest gemini-3.8-flash gemini-3.5-flash-lite; do
               node tools/listen.js proj 12 --keys /tmp/keys.json --batch 1 ${m:+--model "$m"} || true
             done
           done
           python tools/style_leak.py proj
-          python - <<'PY'
-          import json
-          r=json.load(open('proj/listen_results.json',encoding='utf-8'))
-          flags={k:v for k,v in r.items() if isinstance(v,dict) and v.get('ok') is False}
-          todo=[k for k,v in r.items() if not isinstance(v,dict) or v.get('ok') is None]
-          open('proj/listen_report.json','w',encoding='utf-8').write(json.dumps({'flags':flags,'unchecked':todo},ensure_ascii=False,indent=1))
-          print('رايات:',len(flags),'| لم يُفحص:',len(todo))
-          PY
+          # ⛔ الشوط 87 (الأرك): كان التقرير يعدّ نتائج صوتٍ قديم مفحوصةً ⇒ لا يُحسب إلا ما طابقت بصمتُه الصوتَ الحاليّ
+          python tools/listen_report.py proj
 
       - name: ③ التحريك (Kling عبر fal بسقف الميزانية) + بوّابة صوته + العمق
         if: env.STAGE != 'audio'
         env:
           FAL_KEY: ${{ secrets.FAL_KEY }}
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+          FAL_PAR: "10"   # كان 6: الفيلم كلّه حيّ صار ≈ 110 مقطعاً (طلب المالك التسريع 2026-10-03)
         run: |
-          python tools/fal_animate.py proj
-          python tools/sfx_gate.py proj || true
+          # preview (مؤتة 2026-10-06): عيّنةٌ قبل أيّ إنفاق — لا fal، والمونتاج يملأ كلّ لقطةٍ حيّة بالمجسّم (mont_hybrid)
+          if [ "$STAGE" != preview ]; then
+            # trial_usd في ملفّ الأمر = تجربةٌ محدودة: سقف إنفاق هذا الشوط وحده (مؤتة 2026-10-06)، ثم شوطٌ بلا الحقل يكمل بما بقي
+            T=$(python3 -c "import json,sys;v=json.load(open(sys.argv[1],encoding='utf-8')).get('trial_usd');print(float(v) if v else '')" "ops/run/$SLUG.json" 2>/dev/null || true)
+            [ -n "$T" ] && export FAL_TRIAL_USD="$T" && echo "تجربة تحريكٍ محدودة: $T\$"
+            python tools/fal_animate.py proj
+            python tools/sfx_gate.py proj || true
+          fi
           mkdir -p proj/img && cp proj/images/*.jpg proj/img/ 2>/dev/null || true
           # صورتا الشورتين العموديتان (كوديكس) تدخلان img/ باسم v_<id> ليُحسب عمقهما ويستعملهما reels.json
           for f in proj/shorts/*.jpg; do [ -f "$f" ] && cp "$f" "proj/img/v_$(basename "$f")"; done; true
@@ -211,7 +297,7 @@ jobs:
 
       - name: ④ المونتاج الهجين والمؤثّرات والشورتات
         # clips = تحريكٌ فقط ثم حفظُ المقاطع لفحصها قبل المونتاج (أمر المالك 2026-09-27)
-        if: env.STAGE != 'audio' && env.STAGE != 'clips'
+        if: env.STAGE != 'audio' && env.STAGE != 'clips' && env.STAGE != 'visuals' && env.STAGE != 'preview'
         run: |
           python tools/mont_hybrid.py proj 0.30
           # فصول يوتيوب من مدد الصوت (publish_youtube يرفض {CHAPTERS} بلا الفصول.txt)
@@ -228,12 +314,28 @@ jobs:
             esac
           done
 
+      - name: ④ب عيّنةٌ من أوّل الفيلم للمالك (visuals)
+        # أمر المالك 2026-10-04: «أرسل لي عيّنةً عمّا سيكون عليه الفيلم، مقطعاً قصيراً حتى أراه» — اللقطات من أوّل الفيلم ما دام
+        # صوتها كاملاً، تُمنتَج بالأداة نفسها (الصوت، المقاطع الحيّة، المجسّمة بعمقها، البطاقات، الانتقالات)، ويُصغى إلى كتلها
+        if: env.STAGE == 'visuals' || env.STAGE == 'preview'
+        run: |
+          python tools/sample_cut.py proj sample --max 90
+          python tools/mont_hybrid.py sample 0.30
+          node tools/listen.js sample 12 --keys /tmp/keys.json --batch 1 || true
+          for m in gemini-flash-latest gemini-3.8-flash gemini-3.5-flash-lite gemini-flash-lite-latest; do
+            node tools/listen.js sample 12 --keys /tmp/keys.json --batch 1 --model "$m" || true
+          done
+          mkdir -p out && cp sample/film.mp4 out/sample_opening.mp4
+          ffmpeg -v error -y -i sample/film.mp4 -vf "fps=1/2,scale=320:-1,tile=6x5" -frames:v 1 out/sample_sheet.jpg || true
+          [ -f sample/listen_results.json ] && cp sample/listen_results.json out/sample_listen.json || true
+
       - name: ⑤ مخرجات المراجعة (إصدار مسوّدة خاص)
         if: always()
         run: |
           set -euo pipefail
           mkdir -p out
-          tar czf out/state.tgz -C proj $(cd proj && ls -d audio listen_results.json audio_checks.json fal_ledger.json fal_pending.json clips 2>/dev/null)
+          # ⛔ حدّ الأصل في GitHub 2 غ.ب ⇒ أجزاءٌ من 1.9 غ.ب (tools/state_fetch.sh يجمعها)
+          tar czf - -C proj $(cd proj && ls -d audio audio_prev_* listen_results.json audio_checks.json fal_ledger.json fal_pending.json clips 2>/dev/null) | split -b 1900m -d - out/state.tgz.part_
           cp proj/listen_report.json proj/audio_checks.json out/ 2>/dev/null || true
           if [ -f proj/film.mp4 ]; then
             ffmpeg -v error -y -i proj/film.mp4 -vf scale=-2:480 -c:v libx264 -crf 30 -preset veryfast -c:a aac -b:a 64k out/preview480.mp4
@@ -244,7 +346,18 @@ jobs:
           fi
           gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
             gh release create "$SLUG-out" -R "$GITHUB_REPOSITORY" --draft --title "مخرجات $SLUG (مراجعة)" --notes "خاص — مسوّدة."
-          gh release upload "$SLUG-out" out/* -R "$GITHUB_REPOSITORY" --clobber
+          # ⛔ مؤتة 2026-10-06 (الشوط 96): ردّ GitHub بـ502 أثناء استبدال أصلٍ فسقطت الخطوة. ولو وقع على الحالة بعد حذف القديمة
+          #    (--clobber يحذف ثم يرفع) لضاع صوت اليوم كلّه ⇒ إعادة الرفع حتى ثلاث مرّات، والملفّات ما زالت على العدّاء فالإعادة تستردّ ما حُذف
+          up=0
+          for i in 1 2 3; do
+            gh release upload "$SLUG-out" out/* -R "$GITHUB_REPOSITORY" --clobber && { up=1; break; }
+            echo "::warning::أخفق رفع المخرجات (المحاولة $i) — إعادةٌ بعد $((i * 20)) ث"; sleep $((i * 20))
+          done
+          [ "$up" = 1 ] || { echo "::error::لم تُرفع المخرجات بعد ثلاث محاولات"; exit 1; }
+          # بعد نجاح الرفع فقط: يُحذف ملفّ الحالة القديم الواحد وما زاد من أجزاءٍ قديمة
+          for a in $(gh release view "$SLUG-out" -R "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -E '^state\.tgz(\.part_[0-9]+)?$'); do
+            [ -f "out/$a" ] || gh release delete-asset "$SLUG-out" "$a" -R "$GITHUB_REPOSITORY" -y
+          done
 
       - name: ⑥ حمولة النشر المختومة (لـ sealed-publish.yml بعد المراجعة)
         if: env.STAGE != 'audio' && hashFiles('proj/film.mp4') != ''
@@ -259,3 +372,28 @@ jobs:
             gh release create "$SLUG-payload" -R "$GITHUB_REPOSITORY" --draft --title "حمولة نشر $SLUG" --notes "مختومة."
           gh release upload "$SLUG-payload" key.enc SHA256SUMS part_* -R "$GITHUB_REPOSITORY" --clobber
           echo "✅ جاهز للنشر: gh workflow run sealed-publish.yml -f release_tag=$SLUG-payload"
+
+      - name: ⑥ب حمولة ريلز «قريباً» وحده (يُنشر قبل الفيلم بـ48 ساعة)
+        # حكم المالك 2026-10-05 (مؤتة): ريلزٌ يوحي بأنّ الفيلم قادم، مختلفٌ عن ريلزات النشر، يُنشر وحده قبله ثم يُربط به.
+        # publish.json: teaser ⇒ حمولةٌ reels_only بمعرّفٍ مستقلّ (<slug>-teaser) فلا تختلط حالة نشرها بحالة الفيلم.
+        # نشرُه: دفع ops/publish/<slug>-teaser.json = {"release_tag":"<slug>-teaser-payload"}
+        if: env.STAGE != 'audio' && hashFiles('proj/film.mp4') != ''
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' || { echo "لا ريلز «قريباً» في هذه الحمولة"; exit 0; }
+          import json, os, shutil, sys
+          p = json.load(open('proj/publish.json', encoding='utf-8'))
+          t = [r for r in p.get('teaser') or [] if os.path.exists('proj/reels/' + r['file'])]
+          if not t:
+              sys.exit(1)
+          os.makedirs('pub_t/reels', exist_ok=True)
+          for r in t:
+              shutil.copy('proj/reels/' + r['file'], 'pub_t/reels/')
+          json.dump({'slug': p['slug'] + '-teaser', 'reels_only': True, 'reels': t},
+                    open('pub_t/publish.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+          PY
+          bash tools/seal.sh pub_t sealed_t && cd sealed_t && split -b 90m -d payload.enc part_ && rm payload.enc && sha256sum part_* key.enc > SHA256SUMS
+          gh release view "$SLUG-teaser-payload" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$SLUG-teaser-payload" -R "$GITHUB_REPOSITORY" --draft --title "حمولة ريلز «قريباً» $SLUG" --notes "مختومة."
+          gh release upload "$SLUG-teaser-payload" key.enc SHA256SUMS part_* -R "$GITHUB_REPOSITORY" --clobber
+          echo "✅ جاهز: ops/publish/$SLUG-teaser.json = {\"release_tag\":\"$SLUG-teaser-payload\"}"

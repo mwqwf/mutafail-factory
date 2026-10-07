@@ -310,7 +310,7 @@ jobs:
       - name: أعد فقط اللقطة المتأثرة ثم ركّب المخرجات
         if: steps.plan.outputs.rebuilt == 'true'
         run: |
-          pip install -q pillow numpy arabic-reshaper python-bidi
+          pip install -q pillow numpy opencv-python-headless arabic-reshaper python-bidi
           sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg fonts-hosny-amiri fonts-noto-core
           python tools/turbo.py "$PWD/proj" 0 1
           python tools/bidicheck.py

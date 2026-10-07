@@ -1,0 +1,26 @@
+name: فحص حصص النماذج
+
+# مؤتة 2026-10-06 (سؤال المالك: «هل رصيد النماذج الأخرى نفد أم النموذج الأحدث فقط؟»):
+# دفعُ ops/probe/models.json يسأل كلَّ نموذج صوتٍ متاحٍ ونماذجَ الإصغاء حتى أوّل نجاح، بتوليدةٍ واحدةٍ لكلّ نموذج.
+on:
+  push:
+    paths: ["ops/probe/models.json"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: الفحص
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          node tools/models_probe.js --keys /tmp/keys.json --max 5
+          rm -f /tmp/keys.json

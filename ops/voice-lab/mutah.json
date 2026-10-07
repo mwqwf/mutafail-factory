@@ -1,0 +1,44 @@
+{
+ "slug": "mutah",
+ "_ملاحظة": "مختبر راوي مؤتة (أمر المالك 2026-10-04: الصوت أولويةٌ قصوى، والأقوى يبدأ به). خريطة الأداء من خطّة مؤتة §٦ بحكم المراجعة الناقدة: عاجلٌ في الالتحام، ومنخفضٌ ثقيلٌ قبل السقوط، وهادئٌ موقّرٌ في المدينة بلا انفعالٍ ولا بكاء. كلّ جملةٍ تُحكَّم مستقلّةً بغرضها، فيُختار صوتٌ واحدٌ للسرد كلّه وأسلوبه لكلّ موضع. والجمل من المصادر المنشورة أو عامّة، لا من نصّ الفيلم غير المنشور. — الإعادة المضيّقة (ليلة 2026-10-05، أمر المالك: «لا تترك لحصّة الصوت إلا ما يتوقّف عليها»): الشوط الأوّل ولّد 25 عيّنةً من 60، ولم يُحكَم فيه إلا جملتان (L1 وL2) ثم نفدت حصّة الحَكَم، فكان ترتيب L3 وL4 والحكم الأخير خلطاً عشوائيّاً سجّلته الأداة فائزاً (أُصلحت: لا فائز بلا حكم). فالمرشّحون بما حُكم فعلاً هنا وفي مختبرَي الأرك: Charon وAlgenib (فائز الأرك مرّتين) وSadaltager (الثالث في L1 والرابع في L2، والثاني في نهائيّ الأرك)، بالأساليب الثلاثة، والمرحلة الأولى على الخطّاف والالتحام: 18 عيّنةً ثم 6 للمتأهّلين، وأكثر الحصّة لصوت الفيلم. وكتل المدينة بالصوت الفائز نفسه بأسلوب «reverent» (pos_styles) حكماً معنويّاً.",
+ "voices": [
+  "Charon",
+  "Algenib",
+  "Sadaltager"
+ ],
+ "styles": {
+  "epic": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: an epic battle documentary.\n### DIRECTOR'S NOTES\nStyle: powerful, commanding and epic, with weight and suspense; full chest voice.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+  "urgent": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: the clash of two armies: swords, horses and spears.\n### DIRECTOR'S NOTES\nStyle: urgent, tense and driving; punchy phrasing with rising intensity, never shouting.\nPace: fast but every word clear.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+  "reverent": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: in the city, news of the fallen is told to the people.\n### DIRECTOR'S NOTES\nStyle: calm, reverent and dignified; a soft, steady voice with no emotion, no crying and no drama.\nPace: measured and unhurried.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+ },
+ "lines": [
+  {
+   "id": "L1",
+   "text": "تِسْعَةُ أَسْيَافٍ انْقَطَعَتْ فِي يَدِهْ.",
+   "purpose": "أوّل ثلاث ثوانٍ في الفيلم: خطّافٌ يشدّ المشاهد فوراً"
+  },
+  {
+   "id": "L2",
+   "text": "وَالرِّمَاحُ تَأْتِيهِ مِنْ كُلِّ جِهَةٍ… حَتَّى شَاطَ فِي رِمَاحِ الْقَوْمْ.",
+   "purpose": "قلب الالتحام: عاجلٌ مشدود"
+  },
+  {
+   "id": "L3",
+   "text": "وَسَقَطَتِ الرَّايَةُ لِلْمَرَّةِ الثَّالِثَةْ… عَلَى الْأَرْضِ، بَيْنَ الصَّفَّيْنْ…",
+   "purpose": "اللحظة التي قبل السقوط وبعده: منخفضٌ ثقيلٌ بلا مبالغة"
+  },
+  {
+   "id": "L4",
+   "text": "حَتَّى أَخَذَ الرَّايَةَ سَيْفٌ مِنْ سُيُوفِ اللَّهْ.",
+   "purpose": "إخبار النبيّ صلّى الله عليه وسلّم في المدينة: هادئٌ موقّرٌ بلا انفعال، ولا تمثيلَ لصوته"
+  }
+ ],
+ "stage1_lines": [
+  "L1",
+  "L2"
+ ],
+ "finalists": 3,
+ "pos_styles": {
+  "medina": "reverent"
+ }
+}
