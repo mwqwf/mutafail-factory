@@ -30,7 +30,8 @@ if not r.get("items"):
     raise SystemExit("⛔ لا فيديو بهذا المعرّف: " + vid)
 item = r["items"][0]
 sn, st = item["snippet"], item["status"]
-print("الفيديو:", sn["title"][:60], "| الخصوصيّة:", st.get("privacyStatus"), flush=True)
+print("الفيديو:", sn["title"][:60], "| الخصوصيّة:", st.get("privacyStatus"),
+      "| الموعد:", st.get("publishAt") or "—", flush=True)
 
 changed = False
 add = CMD.get("descriptionPrepend", "").strip()
