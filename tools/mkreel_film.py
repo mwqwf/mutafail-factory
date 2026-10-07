@@ -53,14 +53,20 @@ VD = dur(voice) + 0.6                               # نَفَسٌ قصير بع
 n = max(1, math.ceil(VD / CUT)); per = VD / n; shots = R['shots']; segs = []
 # الفيلم بلا كتابته المحروقة (mont_hybrid: work/video_clean.mp4) — قصُّ الإطار العموديّ لا يبتر نصّاً (الأرك 2026-10-04)
 SRC = P('work', 'video_clean.mp4') if os.path.exists(P('work', 'video_clean.mp4')) else P('film.mp4')
+# ⛔ فحص مؤتة 2026-10-07: الفيلم 25 إطاراً/ث، وzoompan (d=1) يُخرج إطاراً لكلّ إطارٍ داخل ويَسِمه بـ30 ⇒ كلّ قطعةٍ 1.40 ث لا 1.65،
+#    ولم يمدّها tpad، فقصر fg.mp4 عن الصوت وتجمّدت الصورة في آخر كلّ ريلز 5–7 ث. الإصلاح: fps=30 قبل zoompan، وعددُ إطاراتٍ
+#    محسوبٌ لكلّ قطعة فمجموعها مدّةُ الصوت بالضبط، وفضلةٌ في المدخل وtpad احتياطاً إن نفد المصدر
+FPS = 30
 for k in range(n):
     sid = shots[k % len(shots)]; st, span = TL[sid]; rep = k // len(shots)
     s0 = st + min(max(0.0, span - per - 0.1), 0.3 + rep * per)
+    nf = round((k + 1) * per * FPS) - round(k * per * FPS)
     out = os.path.join(WORK, 's%03d.mp4' % k)
-    z = "zoompan=z='1.0+0.0022*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=%dx%d:fps=30" % (W, FG_H)
-    run(['-ss', '%.3f' % s0, '-t', '%.3f' % per, '-i', SRC, '-an', '-vf',
-         'scale=-2:%d,crop=%d:%d,%s,fade=t=in:st=0:d=0.12:color=white,tpad=stop_mode=clone:stop_duration=%.2f' % (FG_H, W, FG_H, z, per),
-         '-t', '%.3f' % per, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p', out])
+    z = "zoompan=z='1.0+0.0022*on':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=%dx%d:fps=%d" % (W, FG_H, FPS)
+    run(['-ss', '%.3f' % s0, '-t', '%.3f' % (per + 0.5), '-i', SRC, '-an', '-vf',
+         'fps=%d,scale=-2:%d,crop=%d:%d,%s,fade=t=in:st=0:d=0.12:color=white,tpad=stop_mode=clone:stop_duration=%.2f'
+         % (FPS, FG_H, W, FG_H, z, per),
+         '-frames:v', str(nf), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p', out])
     segs.append(out)
 open(os.path.join(WORK, 'v.txt'), 'w').write(''.join("file '%s'\n" % s for s in segs))
 fg = os.path.join(WORK, 'fg.mp4')
@@ -131,15 +137,33 @@ with open(os.path.join(WORK, 'caps.txt'), 'w', encoding='utf-8') as fh:
     for f, dd_ in frames: fh.write("file '%s'\nduration %.3f\n" % (f, max(0.04, dd_)))
     fh.write("file '%s'\n" % frames[-1][0])
 
-# ⑤ المؤثّرات تحت الصوت (مكتبة CC0) — ⛔ لا موسيقى
+# ⑤ المؤثّرات تحت الصوت (مكتبة CC0) — ⛔ لا موسيقى؛ ثمّ تسوية الجهارة بمرحلتين إلى −14 LUFS كالفيلم (mont_hybrid: LN)
+#    فحص مؤتة 2026-10-07: كانت الريلزات بين −16.5 و−18.3 LUFS بلا تسوية، ويوتيوب لا يرفع الخافت فتُسمع أخفت من غيرها
 cands = sorted(glob.glob(os.path.join(SFX, R.get('sfx', 'battle') + '_*.ogg')))
-ain = ['-i', voice] + (['-stream_loop', '-1', '-i', cands[0]] if cands else [])
-amix = ('[1:a]volume=1.0[vo];[2:a]atrim=0:%.3f,volume=0.22,afade=t=out:st=%.3f:d=0.8[fx];[vo][fx]amix=inputs=2:duration=first:normalize=0,apad=whole_dur=%.3f[au]'
-        % (VD, VD - 0.8, VD)) if cands else '[1:a]apad=whole_dur=%.3f[au]' % VD
+mix = os.path.join(WORK, 'mix.wav')
+if cands:
+    run(['-i', voice, '-stream_loop', '-1', '-i', cands[0], '-filter_complex',
+         '[0:a]volume=1.0[vo];[1:a]atrim=0:%.3f,volume=0.22,afade=t=out:st=%.3f:d=0.8[fx];[vo][fx]amix=inputs=2:duration=first:normalize=0,apad=whole_dur=%.3f[au]'
+         % (VD, VD - 0.8, VD), '-map', '[au]', '-ar', '48000', '-c:a', 'pcm_s16le', mix])
+else:
+    run(['-i', voice, '-af', 'apad=whole_dur=%.3f' % VD, '-ar', '48000', '-c:a', 'pcm_s16le', mix])
+LN = 'loudnorm=I=-14:TP=-1.0:LRA=11'
+o = sp.run([FF, '-hide_banner', '-nostats', '-i', mix, '-af', LN + ':print_format=json', '-f', 'null', '-'],
+           capture_output=True, text=True).stderr
+try:
+    mj = json.loads(o[o.rindex('{'):o.rindex('}') + 1])
+    LN += (':measured_I=%s:measured_TP=%s:measured_LRA=%s:measured_thresh=%s:offset=%s:linear=true'
+           % (mj['input_i'], mj['input_tp'], mj['input_lra'], mj['input_thresh'], mj['target_offset']))
+except (ValueError, KeyError):
+    pass
+norm = os.path.join(WORK, 'mix_norm.wav')
+run(['-i', mix, '-af', LN + ',aresample=48000', '-c:a', 'pcm_s16le', norm])
+ain = ['-i', norm]
+amix = '[1:a]apad=whole_dur=%.3f[au]' % VD
 
 # ⑥ التجميع: خلفيةٌ مموّهة + الإطار المكبَّر + العنوان + الترجمة + شريط التقدّم + الخطّاف أوّلاً + بطاقة الختام آخراً
 HOOK_T, END_T = 1.6, 3.2
-k0 = 1 + (2 if cands else 1)
+k0 = 2
 inp = ['-i', fg] + ain + ['-loop', '1', '-i', os.path.join(WORK, 'top.png'), '-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'caps.txt'),
                           '-loop', '1', '-i', os.path.join(WORK, 'hook.png'), '-loop', '1', '-i', os.path.join(WORK, 'end.png')]
 iT, iC, iH, iE = k0, k0 + 1, k0 + 2, k0 + 3
