@@ -47,6 +47,7 @@ All default-branch workflow jobs have a reversible `if: ${{ false }}` stop. This
 
 - التواصل والتوثيق بالعربية. اقرأ `skill/SKILL.md` و`skill/PLAN.md` ثم مراجع المرحلة كاملة قبل تنفيذها.
 - الحالة الفعلية في `ops/state/plan_state.json`؛ لا تستخدم `skill/PLAN_STATE.json` لتقرير الحلقة التالية.
+- السلسلة الجارية والحلقة التالية في `ops/series/sayf-allah.md`؛ والإحصاءات الخاصّة في `mwqwf/yarmouk-media` ← `stats/README.md` (أمر المالك 2026-10-07).
 - اقرأ `ops/CODEX_PRODUCTION_PLAN.md` لتعديلات 2026-09-16، و`ops/ENGINE.md` و`ops/CAPABILITIES.md` للتشغيل السحابي.
 - أحدث توجيه للمالك: لا اعتماد على حاسوبه. لا تنفّذ تعليمات Windows القديمة بوصفها مسار التشغيل المطلوب.
 - افحص وجود أداة الصور المدمجة فعلاً في الجلسة. إن وُجدت استخدمها للصور الإنتاجية، ولا تفترض حصة يومية أو وصولاً إليها من Actions. تبقى طريقة `imgdl3.py` الأصلية احتياطاً ولا تُحذف.
