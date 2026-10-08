@@ -82,6 +82,8 @@ jobs:
           if off:
               assert off == 'now' or re.fullmatch(r'\d+(,\d+)*', off); print('REEL_OFFSETS=' + off)
           # الأرك 2026-10-07: ريلزاتٌ لفيلمٍ منشور (film_video_id + reels_for_film) بعناوين معدّلة (reel_titles)، بلا مسّ الفيلم
+          if d.get('private_only'):   # أمر المالك 2026-10-08: خاصٌّ بلا جدولة
+              assert not at, 'private_only لا يجتمع مع publish_at'; print('PRIVATE_ONLY=1')
           fv = d.get('film_video_id', '')
           if fv:
               assert re.fullmatch(r'[A-Za-z0-9_-]{11}', fv); print('FILM_VIDEO_ID=' + fv)

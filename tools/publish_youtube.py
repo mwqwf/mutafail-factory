@@ -175,6 +175,10 @@ def reel_at(film_at, i):
     return (base + dt.timedelta(minutes=offs[min(i, len(offs) - 1)])).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+# ⭐ أمر المالك 2026-10-08: «انشرها جميعاً كخاصّة، لا تجعلها عامّة ولا مجدولة، وأنا سأختار بنفسي توقيت نشرها»
+#    ⇒ "private_only": true في ops/publish/<slug>.json: الفيلم والريلزات خاصّةٌ بلا publishAt، فلا يصير شيءٌ عامّاً تلقائياً.
+PRIVATE_ONLY = os.environ.get("PRIVATE_ONLY") == "1"
+
 STATE_FILE = os.path.join(STATE, "last_publish.json")
 
 
@@ -424,6 +428,8 @@ def main():
         elif env_at:
             when, public_now = env_at, False
         public_now = public_now and not when
+        if PRIVATE_ONLY:                               # أمر المالك 2026-10-08 (حديقة الموت): خاصٌّ بلا جدولة، والمالك يختار الموعد
+            when, public_now = None, False
         film_id = os.environ.get("FILM_VIDEO_ID", "").strip()
         if film_id:
             print("↻ استئناف: الفيلم مرفوعٌ سلفاً", film_id, flush=True)
@@ -516,8 +522,8 @@ def main():
         rm["description"] = r["description"].replace("{FILM_URL}", link)
         if "#Shorts" not in rm["description"]:
             rm["description"] = rm["description"].rstrip() + "\n\n#Shorts"
-        rat = reel_at(when or reel_base, len(reels))
-        rid = upload(svc, P("reels", r["file"]), rm, publish_at=rat, public_now=not rat)
+        rat = None if PRIVATE_ONLY else reel_at(when or reel_base, len(reels))
+        rid = upload(svc, P("reels", r["file"]), rm, publish_at=rat, public_now=not rat and not PRIVATE_ONLY)
         # ⛔ يُسجَّل **قبل** التحقّق: سقوطُ التحقّق بعد رفعٍ واقعٍ كان يُنتج نسخةً ثانية.
         reels.append({"id": rid, "title": r["title"], "file": r["file"]})
         save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
