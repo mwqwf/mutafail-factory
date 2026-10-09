@@ -92,6 +92,10 @@ jobs:
           if dr:
               assert isinstance(dr, dict) and all(k in (d.get('replace') or []) and re.fullmatch(r'r\d+\.mp4', k) and re.fullmatch(r'[A-Za-z0-9_-]{11}', v) for k, v in dr.items())
               print('DELETE_REPLACED=' + json.dumps(dr))
+          # تجاوز بوّابة الافتتاحية مرّةً واحدة بإذن المالك الصريح لذلك النشر بعينه، وفي الرفع الخاصّ وحده
+          #    (حديقة الموت 2026-10-09: رُفضت بـ29٪ و31٪ من الثلث، فاختار المالك «ارفعه خاصّاً»)
+          if d.get('owner_skip_opening_gate'):
+              assert not d.get('public'), 'التجاوز في الرفع الخاصّ وحده'; print('SKIP_OPENING_GATE=1')
           rp = d.get('replace') or []    # نسخٌ مصحّحة تُرفع من جديد (2026-10-09): "film" وأسماء ملفّات الريلزات
           if rp:
               assert all(x == 'film' or re.fullmatch(r'r\d+\.mp4', x) for x in rp); print('REPLACE=' + ','.join(rp))
@@ -149,6 +153,7 @@ jobs:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: |
           printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          if [ "${SKIP_OPENING_GATE:-}" = 1 ]; then echo "::warning::بوّابة الافتتاحية مُتجاوَزة بإذن المالك لهذا الرفع الخاصّ"; rm -f /tmp/keys.json; exit 0; fi
           rc=0; python tools/opening_gate.py proj --keys /tmp/keys.json --out /tmp/opening_gate.json || rc=$?
           rm -f /tmp/keys.json /tmp/opening_gate.json proj/*.gate.mp4
           exit $rc
