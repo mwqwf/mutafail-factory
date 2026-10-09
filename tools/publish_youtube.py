@@ -52,6 +52,47 @@ def reel_shape(path):
     return (h > w and d <= 175.0), '%dx%d · %.1f ث' % (w, h, d)
 
 
+def is_short(vid, tries=None, wait=None):
+    """⛔ أمر المالك 2026-10-07: حذف ريلزاً قال إنّه ظهر له «فيديو لا ريلز»، وكان الملفّ عموديّاً 31 ث.
+    ⇒ بعد الرفع يُسأل يوتيوب نفسه: رابط /shorts/<id> يجيب 200 للريلز، ويحوّل إلى /watch لغيره.
+       للعامّ وحده (الخاصّ لا يُفتح بلا دخول). يعيد True أو False أو None (تعذّر الحكم)."""
+    import time, urllib.request, urllib.error
+    tries = int(os.environ.get("SHORT_CHECK_TRIES", tries or 20))
+    wait = float(os.environ.get("SHORT_CHECK_WAIT", wait or 30))
+
+    class _Stay(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, *a, **k):
+            return None
+    op = urllib.request.build_opener(_Stay)
+    canon = 'href="https://www.youtube.com/shorts/%s"' % vid      # صفحة الريلز تسمّي نفسها ريلزاً
+    last = None
+    for i in range(tries):
+        try:
+            r = op.open(urllib.request.Request("https://www.youtube.com/shorts/" + vid,
+                        headers={"User-Agent": "Mozilla/5.0", "Accept-Language": "ar"}), timeout=20)
+            code, loc, body = r.getcode(), "", r.read(3_000_000).decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            code, loc, body = e.code, e.headers.get("Location", ""), ""
+        except Exception as e:
+            code, loc, body = None, str(e)[:80], ""
+        if code == 200 and canon in body:
+            return True
+        last = (code, loc, "200 بلا وسم الريلز" if code == 200 else "")
+        if i < tries - 1:
+            time.sleep(wait)                       # المعالجة قد تؤخّر التصنيف دقائق
+    print("  آخر جوابٍ لرابط الريلز:", last, flush=True)
+    return False if last and last[0] in (301, 302, 303, 307) and "/watch" in (last[1] or "") else None
+
+
+def exists(svc, vid):
+    """هل الفيديو على القناة؟ وإن تعذّرت القراءة فالجواب نعم: النسخة الثانية أسوأ من التأخير."""
+    try:
+        return bool(svc.videos().list(part="id", id=vid).execute().get("items"))
+    except Exception as e:
+        print("⚠ تعذّرت قراءة", vid, "— يُعدّ موجوداً:", str(e)[:120], flush=True)
+        return True
+
+
 def upload(svc, path, meta, publish_at=None, public_now=False):
     status = {
         "privacyStatus": "public" if public_now else "private",
@@ -487,10 +528,16 @@ def main():
     reels = []
     # ⭐ عنوانٌ مُعدَّل لريلزٍ بعينه من ملفّ النشر (reel_titles): حارس العنوان أعلاه يمنع رفع نسخةٍ مصحّحة بعنوان القديمة نفسه
     titles = json.loads(os.environ.get("REEL_TITLES") or "{}")
+    # ⭐ إعادة رفعٍ بأمر المالك الصريح وحده (reupload في ملفّ النشر): ريلزٌ في الحالة حذفه المالك فيُرفع من جديد.
+    #    (حذف r1 الأرك المجدول 2026-10-07 وأمر بنشره الآن). وحارس العنوان أدناه يبقى: لا نسخة ثانية لما على القناة.
+    reupload = set(json.loads(os.environ.get("REUPLOAD") or "[]"))
     for r in meta.get("reels", []):
         if r.get("file") in titles:
             r = dict(r, title=titles[r["file"]])
-        if r["file"] in done:                      # ↻ استئناف: لا يُرفع مرّتين
+        if r["file"] in done and r["file"] in reupload and not exists(svc, done[r["file"]]["id"]):
+            # والمسجَّل موجودٌ على القناة ⇒ لا إعادة ولو بقي الحقل في ملفّ النشر (إعادة الشوط لا تصنع نسخةً ثانية)
+            print("↻ إعادة رفعٍ بأمر المالك:", r["file"], "— حُذف", done[r["file"]].get("id"), flush=True)
+        elif r["file"] in done:                    # ↻ استئناف: لا يُرفع مرّتين
             print("↻ الريلز مرفوعٌ سلفاً", r["file"], flush=True)
             if env_at: reschedule(svc, done[r["file"]]["id"], reel_at(when or reel_base, len(reels)))
             reels.append(done[r["file"]]); continue
@@ -522,6 +569,11 @@ def main():
         reels.append({"id": rid, "title": r["title"], "file": r["file"]})
         save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
         verify(svc, rid)
+        if not rat:                                # عامٌّ الآن ⇒ يُسأل يوتيوب: ريلزٌ هو أم فيديو؟
+            ok_s = is_short(rid)
+            print({True: "✅ ريلزٌ على يوتيوب: https://youtube.com/shorts/" + rid,
+                   False: "⛔ نشره يوتيوب فيديو عاديّاً لا ريلزاً: " + rid,
+                   None: "⚠ تعذّر الحكم أريلزٌ هو: " + rid}[ok_s], flush=True)
 
     # ─── ما لا تبلغه الواجهة: يُسجَّل ولا يُدَّعى ───
     os.makedirs(STATE, exist_ok=True)
