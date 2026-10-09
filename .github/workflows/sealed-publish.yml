@@ -84,6 +84,9 @@ jobs:
           # الأرك 2026-10-07: ريلزاتٌ لفيلمٍ منشور (film_video_id + reels_for_film) بعناوين معدّلة (reel_titles)، بلا مسّ الفيلم
           if d.get('private_only'):   # أمر المالك 2026-10-08: خاصٌّ بلا جدولة
               assert not at, 'private_only لا يجتمع مع publish_at'; print('PRIVATE_ONLY=1')
+          rp = d.get('replace') or []    # نسخٌ مصحّحة تُرفع من جديد (2026-10-09): "film" وأسماء ملفّات الريلزات
+          if rp:
+              assert all(x == 'film' or re.fullmatch(r'r\d+\.mp4', x) for x in rp); print('REPLACE=' + ','.join(rp))
           fv = d.get('film_video_id', '')
           if fv:
               assert re.fullmatch(r'[A-Za-z0-9_-]{11}', fv); print('FILM_VIDEO_ID=' + fv)

@@ -179,6 +179,10 @@ def reel_at(film_at, i):
 #    ⇒ "private_only": true في ops/publish/<slug>.json: الفيلم والريلزات خاصّةٌ بلا publishAt، فلا يصير شيءٌ عامّاً تلقائياً.
 PRIVATE_ONLY = os.environ.get("PRIVATE_ONLY") == "1"
 
+# ⭐ نسخةٌ مصحّحة تحلّ محلّ مرفوعٍ خاصّ (حديقة الموت 2026-10-09: حذف صيغ «يُروى» وأعاد المالك طلب الرفع، وهو يحذف القديم بنفسه):
+#    "replace": ["film", "r1.mp4"] في ops/publish/<slug>.json ⇒ لا يُتبنّى المرفوع سلفاً بالحالة ولا بعنوانه على القناة لما سُمّي وحده،
+#    ويُرفع من جديد؛ وما لم يُسمَّ يبقى استئنافاً كما هو. ⛔ لا يحذف شيئاً من القناة.
+REPLACE = set(x for x in os.environ.get("REPLACE", "").split(",") if x)
 STATE_FILE = os.path.join(STATE, "last_publish.json")
 
 
@@ -431,11 +435,14 @@ def main():
         if PRIVATE_ONLY:                               # أمر المالك 2026-10-08 (حديقة الموت): خاصٌّ بلا جدولة، والمالك يختار الموعد
             when, public_now = None, False
         film_id = os.environ.get("FILM_VIDEO_ID", "").strip()
-        if film_id:
+        if "film" in REPLACE:
+            film_id = ""
+            print("♻ نسخةٌ مصحّحة من الفيلم تُرفع من جديد (replace)", flush=True)
+        elif film_id:
             print("↻ استئناف: الفيلم مرفوعٌ سلفاً", film_id, flush=True)
         else:
             ft = meta["film"]["title"].strip()[:100]
-            seen = recent_uploads(svc).get(ft)
+            seen = None if "film" in REPLACE else recent_uploads(svc).get(ft)
             if seen:                               # ↻ محاولةٌ سابقةٌ رفعته ثمّ سقطت
                 print("↻ الفيلم مرفوعٌ على القناة سلفاً بعنوانه:", seen, flush=True)
                 film_id = seen
@@ -496,12 +503,15 @@ def main():
     for r in meta.get("reels", []):
         if r.get("file") in titles:
             r = dict(r, title=titles[r["file"]])
-        if r["file"] in done:                      # ↻ استئناف: لا يُرفع مرّتين
+        fresh = r["file"] in REPLACE
+        if fresh:
+            print("♻ نسخةٌ مصحّحة من الريلز تُرفع من جديد (replace)", r["file"], flush=True)
+        if r["file"] in done and not fresh:        # ↻ استئناف: لا يُرفع مرّتين
             print("↻ الريلز مرفوعٌ سلفاً", r["file"], flush=True)
             if env_at: reschedule(svc, done[r["file"]]["id"], reel_at(when or reel_base, len(reels)))
             reels.append(done[r["file"]]); continue
         t = r["title"].strip()[:100]
-        if t in onchannel:                         # ↻ رُفع في محاولةٍ سابقةٍ سقطت
+        if t in onchannel and not fresh:           # ↻ رُفع في محاولةٍ سابقةٍ سقطت
             print("↻ عنوانٌ مرفوعٌ على القناة سلفاً — لا نسخةَ ثانية:",
                   onchannel[t], flush=True)
             if env_at: reschedule(svc, onchannel[t], reel_at(when or reel_base, len(reels)))

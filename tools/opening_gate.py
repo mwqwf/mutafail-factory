@@ -108,6 +108,8 @@ def verdict(a: dict) -> tuple[list[str], list[str], dict]:
 
 def already_up(proj: str, state: str = os.path.join('ops', 'state', 'last_publish.json')) -> str:
     """معرّف فيلم هذه الحمولة إن رُفع في شوطٍ سابق (استئناف): FILM_VIDEO_ID، أو حالة النشر من master بالمعرّف نفسه."""
+    if 'film' in os.environ.get('REPLACE', '').split(','):
+        return ''                          # نسخةٌ مصحّحة تُرفع من جديد: تمرّ بالبوّابة
     vid = os.environ.get('FILM_VIDEO_ID', '').strip()
     if vid:
         return vid
