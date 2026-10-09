@@ -136,6 +136,8 @@ def recent_uploads(svc, limit=50):
 def reschedule(svc, vid, at):
     """يعدّل موعدَ فيديو مرفوعٍ ما دام خاصّاً (تصحيحُ موعدٍ بعد رفعه، بلا نسخةٍ ثانية)؛
     وبلا موعدٍ (at=None) يجعله عامّاً الآن."""
+    if PRIVATE_ONLY:
+        print("⏸", vid, "النشر خاصٌّ بلا جدولة (قاعدة المالك) — لا يُجدوَل ولا يصير عامّاً", flush=True); return
     st = svc.videos().list(part="status", id=vid).execute()["items"][0]["status"]
     if st.get("privacyStatus") == "public":
         print("↻", vid, "عامٌّ سلفاً — لا يُعاد جدولته", flush=True); return
@@ -177,7 +179,13 @@ def reel_at(film_at, i):
 
 # ⭐ أمر المالك 2026-10-08: «انشرها جميعاً كخاصّة، لا تجعلها عامّة ولا مجدولة، وأنا سأختار بنفسي توقيت نشرها»
 #    ⇒ "private_only": true في ops/publish/<slug>.json: الفيلم والريلزات خاصّةٌ بلا publishAt، فلا يصير شيءٌ عامّاً تلقائياً.
-PRIVATE_ONLY = os.environ.get("PRIVATE_ONLY") == "1"
+# ⛔⛔ وقاعدةٌ عامّة بأمر المالك 2026-10-09: «النشر هنا يكون خاصّاً، وأنا أجعله عامّاً متى شئت».
+#    ⇒ الخاصّ بلا جدولة هو الأصل في كلّ رفع؛ ولا عامَّ ولا موعدَ إلا بـ"public": true في ملفّ النشر، ولا يُكتب إلا بأمرٍ صريحٍ منه.
+PRIVATE_ONLY = os.environ.get("ALLOW_PUBLIC") != "1" or os.environ.get("PRIVATE_ONLY") == "1"
+# ⭐ حذفُ نسخةٍ قديمة بعد رفع بديلها (أمر المالك 2026-10-09: «الريلزات التي ثبت أنّ فيها هذه الصيغة احذفها وارفع الجديدة بدلاً منها»):
+#    "delete_replaced": {"r1.mp4": "<معرّف القديم>"} ⇒ يُحذف المعرّف المسمّى وحده، وفقط إن رُفع بديله في هذا الشوط نفسه.
+#    ⛔ لا حذف لشيءٍ لم يأمر به المالك صراحةً، ولا حذف بلا بديلٍ مرفوع.
+DELETE_REPLACED = json.loads(os.environ.get("DELETE_REPLACED") or "{}")
 
 # ⭐ نسخةٌ مصحّحة تحلّ محلّ مرفوعٍ خاصّ (حديقة الموت 2026-10-09: حذف صيغ «يُروى» وأعاد المالك طلب الرفع، وهو يحذف القديم بنفسه):
 #    "replace": ["film", "r1.mp4"] في ops/publish/<slug>.json ⇒ لا يُتبنّى المرفوع سلفاً بالحالة ولا بعنوانه على القناة لما سُمّي وحده،
@@ -538,6 +546,10 @@ def main():
         reels.append({"id": rid, "title": r["title"], "file": r["file"]})
         save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
         verify(svc, rid)
+        old = DELETE_REPLACED.get(r["file"]) if fresh else None
+        if old and old != rid:
+            svc.videos().delete(id=old).execute()
+            print("🗑 حُذفت النسخة القديمة بأمر المالك:", r["file"], old, "← بديلها", rid, flush=True)
 
     # ─── ما لا تبلغه الواجهة: يُسجَّل ولا يُدَّعى ───
     os.makedirs(STATE, exist_ok=True)

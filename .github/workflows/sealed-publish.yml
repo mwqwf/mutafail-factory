@@ -82,8 +82,16 @@ jobs:
           if off:
               assert off == 'now' or re.fullmatch(r'\d+(,\d+)*', off); print('REEL_OFFSETS=' + off)
           # الأرك 2026-10-07: ريلزاتٌ لفيلمٍ منشور (film_video_id + reels_for_film) بعناوين معدّلة (reel_titles)، بلا مسّ الفيلم
-          if d.get('private_only'):   # أمر المالك 2026-10-08: خاصٌّ بلا جدولة
-              assert not at, 'private_only لا يجتمع مع publish_at'; print('PRIVATE_ONLY=1')
+          # ⛔⛔ قاعدة المالك 2026-10-09: الرفع خاصٌّ بلا جدولة دائماً، وهو يجعله عامّاً متى شاء.
+          #    "public": true وحدها تسمح بالعامّ أو بموعد، ولا تُكتب إلا بأمرٍ صريحٍ منه لهذا النشر بعينه.
+          if d.get('public'):
+              assert not d.get('private_only'); print('ALLOW_PUBLIC=1')
+          else:
+              assert not at and not off, 'publish_at وreel_offsets تحتاج "public": true بأمر المالك'
+          dr = d.get('delete_replaced') or {}
+          if dr:
+              assert isinstance(dr, dict) and all(k in (d.get('replace') or []) and re.fullmatch(r'r\d+\.mp4', k) and re.fullmatch(r'[A-Za-z0-9_-]{11}', v) for k, v in dr.items())
+              print('DELETE_REPLACED=' + json.dumps(dr))
           rp = d.get('replace') or []    # نسخٌ مصحّحة تُرفع من جديد (2026-10-09): "film" وأسماء ملفّات الريلزات
           if rp:
               assert all(x == 'film' or re.fullmatch(r'r\d+\.mp4', x) for x in rp); print('REPLACE=' + ','.join(rp))
