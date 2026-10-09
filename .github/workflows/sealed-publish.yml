@@ -168,7 +168,7 @@ jobs:
           YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
         run: |
           F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/publish/.*\.json$' | head -1 || true)
-          if [ -n "$F" ]; then python tools/retitle.py "$F"; else echo "لا عناوين للتصحيح"; fi
+          if [ -n "$F" ]; then python tools/retitle.py "$F" && python tools/relink.py "$F"; else echo "لا عناوين للتصحيح"; fi
 
       - name: مصغّراتُ أفلامٍ منشورة (ops/thumbs_pending/<videoId>.jpg)
         if: always()
