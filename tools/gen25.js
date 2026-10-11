@@ -241,7 +241,10 @@ async function genWith(model, blk) {
           if (dk !== 'daily' && !(typeof dk === 'number' && dk > Date.now())) {
             const sk = model + '#' + gidx(key);
             const s = (state.strikes[sk] = (state.strikes[sk] || 0) + 1);
-            rest(model, key, s >= DAY_STRIKES ? 'daily' : Date.now() + COOL_MS * s);
+            // ⭐ أمر المالك 2026-10-11 (وادي المخازن): «ليس نفاد رصيد، والحلّ إعطاء مهلٍ للطلبات باستمرار».
+            //    كانت الضربة الثالثة تُميت المشروع لبقيّة الشوط، والحصّة تعود متقطّعةً خلال اليوم (تشخيص 2026-10-06 §٩)،
+            //    فبقي الشوط ساعةً عند 137/154 والمشاريع كلّها «ميتة». الآن مهلةٌ متدرّجة سقفها DAY_STRIKES×20 د ثم يُطرق من جديد.
+            rest(model, key, Date.now() + COOL_MS * Math.min(s, DAY_STRIKES));
           }
           save(); continue;
         }
