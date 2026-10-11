@@ -1,0 +1,577 @@
+{
+ "slug": "makhazin",
+ "model": "gemini-3.8-flash-tts",
+ "styles": {
+  "epic": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: an epic battle documentary.\n### DIRECTOR'S NOTES\nStyle: powerful, commanding and epic, with weight and suspense; full chest voice.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+  "urgent": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: the clash of two armies: cannons, muskets, horses and lances.\n### DIRECTOR'S NOTES\nStyle: urgent, tense and driving; punchy phrasing with rising intensity, never shouting.\nPace: fast but every word clear.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+ },
+ "pos_styles": {},
+ "roles": {
+  "narrator": {
+   "stage1": {
+    "L1": {
+     "order": [
+      "Algenib·epic",
+      "Algenib·urgent",
+      "Sadaltager·epic",
+      "Charon·urgent",
+      "Sadaltager·urgent",
+      "Charon·epic"
+     ],
+     "leaked": [],
+     "notes": {
+      "Algenib·epic": "صوت ملحمي فخم ذو هيبة وحضور ممتاز وإيقاع مثالي يشد المشاهد فوراً.",
+      "Algenib·urgent": "أداء سينمائي قوي مع وقفة درامية ممتازة تعزز عنصر التشويق.",
+      "Sadaltager·epic": "نبرة عميقة وجادة تضفي غموضاً وثقلاً تاريخياً مناسباً.",
+      "Charon·urgent": "قراءة واضحة وسليمة لغوياً لكنها تقليدية وتفتقر للعمق الدرامي.",
+      "Sadaltager·urgent": "نطق نقي وواضح لكن الأداء اعتيادي يفتقر للهيبة والمهابة الملحمية.",
+      "Charon·epic": "إيقاع سريع وأداء عادي يفتقر إلى الحضور والتشويق المطلوب للخطّاف."
+     }
+    },
+    "L2": {
+     "order": [
+      "Sadaltager·epic",
+      "Charon·epic",
+      "Algenib·urgent",
+      "Charon·urgent",
+      "Sadaltager·urgent",
+      "Algenib·epic"
+     ],
+     "leaked": [],
+     "notes": {
+      "Sadaltager·epic": "أداء ملحمي مشدود ومقنع يجسد ذروة الالتحام وسخونة المعركة بإيقاع وحضور ممتازين.",
+      "Charon·epic": "نبرة حازمة وإيقاع متسارع مناسب لمشهد عاجل، مع وضوح ونقاء صوتي عاليين.",
+      "Algenib·urgent": "صوت جهوري فخم ومتمكن يعكس رهبة الموقف، مع إيقاع متزن.",
+      "Charon·urgent": "أداء سليم ومخارج حروف واضحة، ينقصه القليل من تصاعد التوتر والانفعال.",
+      "Sadaltager·urgent": "أداء درامي مبالغ فيه وتكلف واضح في التنفس والهمس أفقده الهيبة الطبيعية.",
+      "Algenib·epic": "إيقاع بطيء وممتد للغاية لا يتناسب مع طبيعة الموقف العاجل والمشدود."
+     }
+    }
+   },
+   "metrics": {
+    "Algenib·epic": {
+     "L1": {
+      "dur": 5.72,
+      "lufs": -15.7,
+      "lra": 4.1,
+      "f0": 121.2,
+      "pitch_sd_st": 3.27,
+      "cps": 5.8
+     },
+     "L2": {
+      "dur": 8.2,
+      "lufs": -15.1,
+      "lra": 3.3,
+      "f0": 108.8,
+      "pitch_sd_st": 2.69,
+      "cps": 5.0
+     },
+     "L3": {
+      "dur": 5.04,
+      "lufs": -17.6,
+      "lra": 1.6,
+      "f0": 126.0,
+      "pitch_sd_st": 3.95,
+      "cps": 6.0
+     },
+     "ALL": {
+      "dur": 20.31,
+      "lufs": -15.8,
+      "lra": 5.7,
+      "f0": 112.7,
+      "pitch_sd_st": 3.38,
+      "cps": 5.1
+     }
+    },
+    "Algenib·urgent": {
+     "L1": {
+      "dur": 6.48,
+      "lufs": -18.6,
+      "lra": 2.3,
+      "f0": 133.3,
+      "pitch_sd_st": 2.61,
+      "cps": 5.1
+     },
+     "L2": {
+      "dur": 6.56,
+      "lufs": -18.1,
+      "lra": 2.3,
+      "f0": 139.1,
+      "pitch_sd_st": 3.12,
+      "cps": 6.2
+     },
+     "L3": {
+      "dur": 5.44,
+      "lufs": -17.2,
+      "lra": 1.1,
+      "f0": 140.4,
+      "pitch_sd_st": 2.57,
+      "cps": 5.5
+     },
+     "ALL": {
+      "dur": 19.83,
+      "lufs": -18.0,
+      "lra": 5.5,
+      "f0": 135.6,
+      "pitch_sd_st": 2.87,
+      "cps": 5.2
+     }
+    },
+    "Sadaltager·epic": {
+     "L1": {
+      "dur": 6.12,
+      "lufs": -18.2,
+      "lra": 7.7,
+      "f0": 106.7,
+      "pitch_sd_st": 2.83,
+      "cps": 5.4
+     },
+     "L2": {
+      "dur": 6.96,
+      "lufs": -17.1,
+      "lra": 2.4,
+      "f0": 112.7,
+      "pitch_sd_st": 2.72,
+      "cps": 5.9
+     },
+     "L3": {
+      "dur": 5.36,
+      "lufs": -18.5,
+      "lra": 0.8,
+      "f0": 100.0,
+      "pitch_sd_st": 2.36,
+      "cps": 5.6
+     },
+     "ALL": {
+      "dur": 19.79,
+      "lufs": -17.8,
+      "lra": 7.8,
+      "f0": 108.1,
+      "pitch_sd_st": 2.82,
+      "cps": 5.3
+     }
+    },
+    "Sadaltager·urgent": {
+     "L1": {
+      "dur": 4.4,
+      "lufs": -16.8,
+      "lra": 1.6,
+      "f0": 126.0,
+      "pitch_sd_st": 2.4,
+      "cps": 7.5
+     },
+     "L2": {
+      "dur": 7.56,
+      "lufs": -17.0,
+      "lra": 2.7,
+      "f0": 101.9,
+      "pitch_sd_st": 2.66,
+      "cps": 5.4
+     }
+    },
+    "Charon·epic": {
+     "L1": {
+      "dur": 4.92,
+      "lufs": -21.8,
+      "lra": 1.2,
+      "f0": 92.0,
+      "pitch_sd_st": 3.83,
+      "cps": 6.7
+     },
+     "L2": {
+      "dur": 5.88,
+      "lufs": -19.2,
+      "lra": 1.7,
+      "f0": 116.8,
+      "pitch_sd_st": 4.31,
+      "cps": 7.0
+     }
+    },
+    "Charon·urgent": {
+     "L1": {
+      "dur": 5.56,
+      "lufs": -19.7,
+      "lra": 1.9,
+      "f0": 107.4,
+      "pitch_sd_st": 2.61,
+      "cps": 5.9
+     },
+     "L2": {
+      "dur": 6.36,
+      "lufs": -16.2,
+      "lra": 1.9,
+      "f0": 114.3,
+      "pitch_sd_st": 2.49,
+      "cps": 6.4
+     }
+    },
+    "chain_M0": {
+     "ALL": {
+      "dur": 18.87,
+      "lufs": -17.9,
+      "lra": 5.2,
+      "f0": 135.6,
+      "pitch_sd_st": 2.84,
+      "cps": 5.5
+     }
+    },
+    "chain_M1": {
+     "ALL": {
+      "dur": 18.87,
+      "lufs": -16.3,
+      "lra": 3.5,
+      "f0": 134.5,
+      "pitch_sd_st": 2.99,
+      "cps": 5.5
+     }
+    },
+    "chain_M2": {
+     "ALL": {
+      "dur": 18.87,
+      "lufs": -16.2,
+      "lra": 3.8,
+      "f0": 135.6,
+      "pitch_sd_st": 2.91,
+      "cps": 5.5
+     }
+    }
+   },
+   "generated": 15,
+   "suspect_duration": [],
+   "finalists": [
+    "Sadaltager·epic",
+    "Algenib·urgent",
+    "Algenib·epic"
+   ],
+   "leaked": [],
+   "final": {
+    "order": [
+     "Algenib·urgent",
+     "Sadaltager·epic",
+     "Algenib·epic"
+    ],
+    "leaked": [],
+    "notes": {
+     "Sadaltager·epic": "أداء سينمائي متزن بنبرة دافئة وتشويق ممتاز ونطق سليم.",
+     "Algenib·urgent": "أفضل حضور وهيبة؛ صوت عميق وملحمي جداً يناسب أجواء المعارك التاريخية.",
+     "Algenib·epic": "إلقاء وثائقي جيد وواضح، لكنه أقل إثارة وهيبة درامية مقارنة بالبقية."
+    },
+    "model": "gemini-3.5-flash"
+   },
+   "winner": {
+    "voice": "Algenib",
+    "style": "urgent",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: the clash of two armies: cannons, muskets, horses and lances.\n### DIRECTOR'S NOTES\nStyle: urgent, tense and driving; punchy phrasing with rising intensity, never shouting.\nPace: fast but every word clear.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "order": [
+     "Algenib·urgent",
+     "Sadaltager·epic",
+     "Algenib·epic"
+    ],
+    "chain": "M0",
+    "filter": "atempo=1.05,adeclick,dynaudnorm"
+   },
+   "chains": {
+    "order": [
+     "M0",
+     "M2",
+     "M1"
+    ],
+    "leaked": [],
+    "notes": {
+     "M0": "معالجة متوازنة تجمع بين الدفء الرخيم والوضوح دون حدة أو ضغط مفرط.",
+     "M2": "طبقة الترددات العالية أوضح حضوراً، مع لمعان طفيف مقارنة بالأولى.",
+     "M1": "الصوت أقل انفتاحاً في الترددات العليا وأميل للانكتام النسبي."
+    },
+    "model": "gemini-flash-latest",
+    "filters": {
+     "M0": "atempo=1.05,adeclick,dynaudnorm",
+     "M1": "atempo=1.05,adeclick,highpass=f=70,acompressor=threshold=-20dB:ratio=3:attack=8:release=180:makeup=3,equalizer=f=3000:t=q:w=1.2:g=2.5,equalizer=f=180:t=q:w=1:g=1.5,loudnorm=I=-16:TP=-1.5:LRA=9",
+     "M2": "atempo=1.05,adeclick,highpass=f=70,acompressor=threshold=-18dB:ratio=2.5:attack=10:release=200:makeup=2,loudnorm=I=-16:TP=-1.5:LRA=11"
+    }
+   }
+  }
+ },
+ "generated": 15,
+ "stage1": {
+  "L1": {
+   "order": [
+    "Algenib·epic",
+    "Algenib·urgent",
+    "Sadaltager·epic",
+    "Charon·urgent",
+    "Sadaltager·urgent",
+    "Charon·epic"
+   ],
+   "leaked": [],
+   "notes": {
+    "Algenib·epic": "صوت ملحمي فخم ذو هيبة وحضور ممتاز وإيقاع مثالي يشد المشاهد فوراً.",
+    "Algenib·urgent": "أداء سينمائي قوي مع وقفة درامية ممتازة تعزز عنصر التشويق.",
+    "Sadaltager·epic": "نبرة عميقة وجادة تضفي غموضاً وثقلاً تاريخياً مناسباً.",
+    "Charon·urgent": "قراءة واضحة وسليمة لغوياً لكنها تقليدية وتفتقر للعمق الدرامي.",
+    "Sadaltager·urgent": "نطق نقي وواضح لكن الأداء اعتيادي يفتقر للهيبة والمهابة الملحمية.",
+    "Charon·epic": "إيقاع سريع وأداء عادي يفتقر إلى الحضور والتشويق المطلوب للخطّاف."
+   }
+  },
+  "L2": {
+   "order": [
+    "Sadaltager·epic",
+    "Charon·epic",
+    "Algenib·urgent",
+    "Charon·urgent",
+    "Sadaltager·urgent",
+    "Algenib·epic"
+   ],
+   "leaked": [],
+   "notes": {
+    "Sadaltager·epic": "أداء ملحمي مشدود ومقنع يجسد ذروة الالتحام وسخونة المعركة بإيقاع وحضور ممتازين.",
+    "Charon·epic": "نبرة حازمة وإيقاع متسارع مناسب لمشهد عاجل، مع وضوح ونقاء صوتي عاليين.",
+    "Algenib·urgent": "صوت جهوري فخم ومتمكن يعكس رهبة الموقف، مع إيقاع متزن.",
+    "Charon·urgent": "أداء سليم ومخارج حروف واضحة، ينقصه القليل من تصاعد التوتر والانفعال.",
+    "Sadaltager·urgent": "أداء درامي مبالغ فيه وتكلف واضح في التنفس والهمس أفقده الهيبة الطبيعية.",
+    "Algenib·epic": "إيقاع بطيء وممتد للغاية لا يتناسب مع طبيعة الموقف العاجل والمشدود."
+   }
+  }
+ },
+ "metrics": {
+  "Algenib·epic": {
+   "L1": {
+    "dur": 5.72,
+    "lufs": -15.7,
+    "lra": 4.1,
+    "f0": 121.2,
+    "pitch_sd_st": 3.27,
+    "cps": 5.8
+   },
+   "L2": {
+    "dur": 8.2,
+    "lufs": -15.1,
+    "lra": 3.3,
+    "f0": 108.8,
+    "pitch_sd_st": 2.69,
+    "cps": 5.0
+   },
+   "L3": {
+    "dur": 5.04,
+    "lufs": -17.6,
+    "lra": 1.6,
+    "f0": 126.0,
+    "pitch_sd_st": 3.95,
+    "cps": 6.0
+   },
+   "ALL": {
+    "dur": 20.31,
+    "lufs": -15.8,
+    "lra": 5.7,
+    "f0": 112.7,
+    "pitch_sd_st": 3.38,
+    "cps": 5.1
+   }
+  },
+  "Algenib·urgent": {
+   "L1": {
+    "dur": 6.48,
+    "lufs": -18.6,
+    "lra": 2.3,
+    "f0": 133.3,
+    "pitch_sd_st": 2.61,
+    "cps": 5.1
+   },
+   "L2": {
+    "dur": 6.56,
+    "lufs": -18.1,
+    "lra": 2.3,
+    "f0": 139.1,
+    "pitch_sd_st": 3.12,
+    "cps": 6.2
+   },
+   "L3": {
+    "dur": 5.44,
+    "lufs": -17.2,
+    "lra": 1.1,
+    "f0": 140.4,
+    "pitch_sd_st": 2.57,
+    "cps": 5.5
+   },
+   "ALL": {
+    "dur": 19.83,
+    "lufs": -18.0,
+    "lra": 5.5,
+    "f0": 135.6,
+    "pitch_sd_st": 2.87,
+    "cps": 5.2
+   }
+  },
+  "Sadaltager·epic": {
+   "L1": {
+    "dur": 6.12,
+    "lufs": -18.2,
+    "lra": 7.7,
+    "f0": 106.7,
+    "pitch_sd_st": 2.83,
+    "cps": 5.4
+   },
+   "L2": {
+    "dur": 6.96,
+    "lufs": -17.1,
+    "lra": 2.4,
+    "f0": 112.7,
+    "pitch_sd_st": 2.72,
+    "cps": 5.9
+   },
+   "L3": {
+    "dur": 5.36,
+    "lufs": -18.5,
+    "lra": 0.8,
+    "f0": 100.0,
+    "pitch_sd_st": 2.36,
+    "cps": 5.6
+   },
+   "ALL": {
+    "dur": 19.79,
+    "lufs": -17.8,
+    "lra": 7.8,
+    "f0": 108.1,
+    "pitch_sd_st": 2.82,
+    "cps": 5.3
+   }
+  },
+  "Sadaltager·urgent": {
+   "L1": {
+    "dur": 4.4,
+    "lufs": -16.8,
+    "lra": 1.6,
+    "f0": 126.0,
+    "pitch_sd_st": 2.4,
+    "cps": 7.5
+   },
+   "L2": {
+    "dur": 7.56,
+    "lufs": -17.0,
+    "lra": 2.7,
+    "f0": 101.9,
+    "pitch_sd_st": 2.66,
+    "cps": 5.4
+   }
+  },
+  "Charon·epic": {
+   "L1": {
+    "dur": 4.92,
+    "lufs": -21.8,
+    "lra": 1.2,
+    "f0": 92.0,
+    "pitch_sd_st": 3.83,
+    "cps": 6.7
+   },
+   "L2": {
+    "dur": 5.88,
+    "lufs": -19.2,
+    "lra": 1.7,
+    "f0": 116.8,
+    "pitch_sd_st": 4.31,
+    "cps": 7.0
+   }
+  },
+  "Charon·urgent": {
+   "L1": {
+    "dur": 5.56,
+    "lufs": -19.7,
+    "lra": 1.9,
+    "f0": 107.4,
+    "pitch_sd_st": 2.61,
+    "cps": 5.9
+   },
+   "L2": {
+    "dur": 6.36,
+    "lufs": -16.2,
+    "lra": 1.9,
+    "f0": 114.3,
+    "pitch_sd_st": 2.49,
+    "cps": 6.4
+   }
+  },
+  "chain_M0": {
+   "ALL": {
+    "dur": 18.87,
+    "lufs": -17.9,
+    "lra": 5.2,
+    "f0": 135.6,
+    "pitch_sd_st": 2.84,
+    "cps": 5.5
+   }
+  },
+  "chain_M1": {
+   "ALL": {
+    "dur": 18.87,
+    "lufs": -16.3,
+    "lra": 3.5,
+    "f0": 134.5,
+    "pitch_sd_st": 2.99,
+    "cps": 5.5
+   }
+  },
+  "chain_M2": {
+   "ALL": {
+    "dur": 18.87,
+    "lufs": -16.2,
+    "lra": 3.8,
+    "f0": 135.6,
+    "pitch_sd_st": 2.91,
+    "cps": 5.5
+   }
+  }
+ },
+ "suspect_duration": [],
+ "finalists": [
+  "Sadaltager·epic",
+  "Algenib·urgent",
+  "Algenib·epic"
+ ],
+ "leaked": [],
+ "final": {
+  "order": [
+   "Algenib·urgent",
+   "Sadaltager·epic",
+   "Algenib·epic"
+  ],
+  "leaked": [],
+  "notes": {
+   "Sadaltager·epic": "أداء سينمائي متزن بنبرة دافئة وتشويق ممتاز ونطق سليم.",
+   "Algenib·urgent": "أفضل حضور وهيبة؛ صوت عميق وملحمي جداً يناسب أجواء المعارك التاريخية.",
+   "Algenib·epic": "إلقاء وثائقي جيد وواضح، لكنه أقل إثارة وهيبة درامية مقارنة بالبقية."
+  },
+  "model": "gemini-3.5-flash"
+ },
+ "winner": {
+  "voice": "Algenib",
+  "style": "urgent",
+  "director": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: the clash of two armies: cannons, muskets, horses and lances.\n### DIRECTOR'S NOTES\nStyle: urgent, tense and driving; punchy phrasing with rising intensity, never shouting.\nPace: fast but every word clear.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+  "order": [
+   "Algenib·urgent",
+   "Sadaltager·epic",
+   "Algenib·epic"
+  ],
+  "chain": "M0",
+  "filter": "atempo=1.05,adeclick,dynaudnorm"
+ },
+ "chains": {
+  "order": [
+   "M0",
+   "M2",
+   "M1"
+  ],
+  "leaked": [],
+  "notes": {
+   "M0": "معالجة متوازنة تجمع بين الدفء الرخيم والوضوح دون حدة أو ضغط مفرط.",
+   "M2": "طبقة الترددات العالية أوضح حضوراً، مع لمعان طفيف مقارنة بالأولى.",
+   "M1": "الصوت أقل انفتاحاً في الترددات العليا وأميل للانكتام النسبي."
+  },
+  "model": "gemini-flash-latest",
+  "filters": {
+   "M0": "atempo=1.05,adeclick,dynaudnorm",
+   "M1": "atempo=1.05,adeclick,highpass=f=70,acompressor=threshold=-20dB:ratio=3:attack=8:release=180:makeup=3,equalizer=f=3000:t=q:w=1.2:g=2.5,equalizer=f=180:t=q:w=1:g=1.5,loudnorm=I=-16:TP=-1.5:LRA=9",
+   "M2": "atempo=1.05,adeclick,highpass=f=70,acompressor=threshold=-18dB:ratio=2.5:attack=10:release=200:makeup=2,loudnorm=I=-16:TP=-1.5:LRA=11"
+  }
+ },
+ "judge_calls": 4,
+ "quota_wall": false
+}
