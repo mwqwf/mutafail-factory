@@ -337,6 +337,7 @@ jobs:
           # ⛔ حدّ الأصل في GitHub 2 غ.ب ⇒ أجزاءٌ من 1.9 غ.ب (tools/state_fetch.sh يجمعها)
           tar czf - -C proj $(cd proj && ls -d audio audio_prev_* listen_results.json audio_checks.json fal_ledger.json fal_pending.json clips 2>/dev/null) | split -b 1900m -d - out/state.tgz.part_
           cp proj/listen_report.json proj/audio_checks.json out/ 2>/dev/null || true
+          python3 tools/gen_summary.py proj out/gen_summary.json || true   # ملخّص المولّد بلا مفاتيح
           if [ -f proj/film.mp4 ]; then
             ffmpeg -v error -y -i proj/film.mp4 -vf scale=-2:480 -c:v libx264 -crf 30 -preset veryfast -c:a aac -b:a 64k out/preview480.mp4
             ffmpeg -v error -y -i proj/film.mp4 -vf "fps=1/20,scale=320:-1,tile=6x5" -frames:v 3 out/sheet_%d.jpg
