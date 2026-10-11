@@ -78,6 +78,8 @@ jobs:
           at = d.get('publish_at', '')
           if at:
               assert at == 'now' or re.fullmatch(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ', at); print('PUBLISH_AT=' + at)
+          if d.get('private'):
+              assert not at, 'private لا يجتمع مع publish_at'; print('PRIVATE_ALL=1')   # كلّه خاصّ بلا موعد
           off = d.get('reel_offsets', '')
           if off:
               assert off == 'now' or re.fullmatch(r'\d+(,\d+)*', off); print('REEL_OFFSETS=' + off)

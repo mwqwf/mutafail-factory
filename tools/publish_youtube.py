@@ -152,6 +152,10 @@ def reschedule(svc, vid, at):
     print("🕒 أُعيدت جدولة", vid, "إلى", at, flush=True)
 
 
+# private في ملفّ النشر ⇒ الفيلم والريلزات كلّها خاصّة بلا موعد، يجعلها المالك عامّةً بنفسه (set-privacy.yml)
+PRIVATE_ALL = os.environ.get("PRIVATE_ALL") == "1"
+
+
 def reel_at(film_at, i):
     """موعدُ الريلز رقم i: بعد موعد الفيلم بـREEL_OFFSETS دقيقةً (افتراضاً 30 ثم 150)، أو فوراً إن لم يُجدول الفيلم
     أو كان REEL_OFFSETS = "now" (أمر المالك 2026-09-28: «الشورتات لا تجدولهما، يكفي جدولة الفيلم»)."""
@@ -424,6 +428,8 @@ def main():
         elif env_at:
             when, public_now = env_at, False
         public_now = public_now and not when
+        if PRIVATE_ALL:                                # أمر المالك 2026-10-11 (وادي المخازن): «اجعله خاصّاً» — لا عامّ ولا جدولة
+            when, public_now = None, False
         film_id = os.environ.get("FILM_VIDEO_ID", "").strip()
         if film_id:
             print("↻ استئناف: الفيلم مرفوعٌ سلفاً", film_id, flush=True)
@@ -516,8 +522,8 @@ def main():
         rm["description"] = r["description"].replace("{FILM_URL}", link)
         if "#Shorts" not in rm["description"]:
             rm["description"] = rm["description"].rstrip() + "\n\n#Shorts"
-        rat = reel_at(when or reel_base, len(reels))
-        rid = upload(svc, P("reels", r["file"]), rm, publish_at=rat, public_now=not rat)
+        rat = None if PRIVATE_ALL else reel_at(when or reel_base, len(reels))
+        rid = upload(svc, P("reels", r["file"]), rm, publish_at=rat, public_now=not rat and not PRIVATE_ALL)
         # ⛔ يُسجَّل **قبل** التحقّق: سقوطُ التحقّق بعد رفعٍ واقعٍ كان يُنتج نسخةً ثانية.
         reels.append({"id": rid, "title": r["title"], "file": r["file"]})
         save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
