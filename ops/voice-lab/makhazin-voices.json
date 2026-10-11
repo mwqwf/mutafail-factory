@@ -1,0 +1,61 @@
+{
+ "slug": "makhazin-voices",
+ "_ملاحظة": "صوتا «وادي المخازن» الآخران: الاقتباس (أقوال القادة والعلماء المسندة نثراً) والملقي (بيت أبي فراس). المرشّحون بما حُكم في مختبرَي مؤتة واليمامة. والجمل من المصادر المنشورة.",
+ "voices": [
+  "Algieba",
+  "Enceladus",
+  "Rasalgethi",
+  "Iapetus",
+  "Charon"
+ ],
+ "styles": {
+  "quote": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of a historical figure.\n## THE SCENE: a historical documentary quotes an eyewitness or a leader.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+  "recitation": "# AUDIO PROFILE: a classical Arabic poetry reciter.\n## THE SCENE: a verse spoken in the middle of a battle in a historical documentary.\n### DIRECTOR'S NOTES\nStyle: eloquent spoken recitation with firm resolve; NO singing, NO melody, NO chanting rhythm; pause at the half-verse.\nPace: measured.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+ },
+ "lines": [
+  {
+   "id": "Q1",
+   "text": "الْزَمُوا بِلَادَكُمْ وَدُورَكُمْ، فَإِنَّ عَظِيمَ النَّصَارَى مَسْجُونٌ حَيْثُ هُوَ.",
+   "purpose": "قول أبي المحاسن الفاسي: حرفيّاً بلا تمثيل"
+  },
+  {
+   "id": "Q2",
+   "text": "إِنِّي رَحَلْتُ إِلَيْكَ سِتَّ عَشْرَةَ مَرْحَلَةً، أَمَا تَرْحَلُ إِلَيَّ وَاحِدَةْ؟",
+   "purpose": "رسالة السلطان: حرفيّاً بثباتٍ وتحدٍّ هادئ"
+  },
+  {
+   "id": "P1",
+   "text": "وَنَحْنُ أُنَاسٌ لَا تَوَسُّطَ عِنْدَنَا… لَنَا الصَّدْرُ دُونَ الْعَالَمِينَ أَوِ الْقَبْرُ",
+   "purpose": "بيت أبي فراس: إلقاءٌ فصيحٌ بلا لحن"
+  }
+ ],
+ "roles": {
+  "quote": {
+   "styles": [
+    "quote"
+   ],
+   "lines": [
+    "Q1",
+    "Q2"
+   ],
+   "stage1_lines": [
+    "Q1"
+   ],
+   "finalists": 3,
+   "purpose": "أقوالٌ مسندة بصوتٍ مستقلّ عن الراوي"
+  },
+  "poetry": {
+   "styles": [
+    "recitation"
+   ],
+   "lines": [
+    "P1"
+   ],
+   "stage1_lines": [
+    "P1"
+   ],
+   "finalists": 3,
+   "purpose": "إلقاء الشعر بلا لحن"
+  }
+ }
+}
