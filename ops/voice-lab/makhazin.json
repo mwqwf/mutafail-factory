@@ -1,0 +1,35 @@
+{
+ "slug": "makhazin",
+ "_ملاحظة": "مختبر راوي «وادي المخازن» (أمر المالك 2026-10-04: الصوت أولويةٌ قصوى). المرشّحون بما حُكم فعلاً في مختبرات الأرك ومؤتة واليمامة: Algenib (فائز الأرك واليمامة) وSadaltager وCharon. والجمل من المصادر المنشورة (الاستقصا ونزهة الحادي) أو عامّة، لا من نصّ الفيلم غير المنشور.",
+ "voices": [
+  "Algenib",
+  "Sadaltager",
+  "Charon"
+ ],
+ "styles": {
+  "epic": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: an epic battle documentary.\n### DIRECTOR'S NOTES\nStyle: powerful, commanding and epic, with weight and suspense; full chest voice.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+  "urgent": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: the clash of two armies: cannons, muskets, horses and lances.\n### DIRECTOR'S NOTES\nStyle: urgent, tense and driving; punchy phrasing with rising intensity, never shouting.\nPace: fast but every word clear.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+ },
+ "lines": [
+  {
+   "id": "L1",
+   "text": "مَاتَ السُّلْطَانُ فِي وَسَطِ الْمَعْرَكَةْ… وَجَيْشُهُ لَا يَعْلَمْ.",
+   "purpose": "أوّل ثلاث ثوانٍ: خطّاف السرّ يشدّ المشاهد فوراً"
+  },
+  {
+   "id": "L2",
+   "text": "وَحَمِيَ الْوَطِيسُ… وَاسْوَدَّ الْجَوُّ بِنَقْعِ الْجِيَادِ وَدُخَانِ الْمَدَافِعْ.",
+   "purpose": "قلب الالتحام: عاجلٌ مشدود"
+  },
+  {
+   "id": "L3",
+   "text": "فَقَصَدُوا الْقَنْطَرَةَ… فَلَمْ يَجِدُوا إِلَّا آثَارَهَا.",
+   "purpose": "الذروة عند النهر: ثقيلٌ متصاعد"
+  }
+ ],
+ "stage1_lines": [
+  "L1",
+  "L2"
+ ],
+ "finalists": 3
+}
