@@ -25,6 +25,12 @@
   ✗ إعادة شدٍّ كلّ ≤ 45 ث في الدقائق 1–6 (موضع النزيف في منحنياتنا) · خطّاف الحلقة التالية في آخر دقيقةٍ من فيلمٍ في سلسلة
   ✗ الكلمات المأثورة (كتلةٌ فيها speaker) لا تُقبل بلا رقم دعواها في السجلّ (claim).
 
+⭐⭐⭐ حكم المالك 2026-10-11 بعد دراسة السلسلتين (الأرك مقابل سيف الله) — موانع:
+  ✗ لا صيغ تحوّطٍ في كلام الراوي («يُروى»، «تروي كتب الأخبار»، «في رواية»، «قيل إنّ»…): «لا ينبغي أن يلوّث بها الفيلم،
+    يكفي الإشارة لها في المصادر» — الخبر يُحكى مشهداً، ودرجته في الوصف وسجلّ الدعاوى.
+  ✗ أوّل التحامٍ قبل 25٪ من المتن (كان 35٪) · لا شرحَ خلفيّةٍ (setup) متّصلاً أطول من 40 ث
+  ✗ صوتٌ غير صوت الراوي (قولٌ مسند أو رسالة) كلّ ≤ 90 ث في فيلم المعركة.
+
 لا تقيس البوّابة الصدق — ذاك للتفنيد وسجلّ الدعاوى. والحماسة لا تُسقط التوثيق.
 
     python3 tools/thrill_gate.py <مجلد_المشروع> [--thumbs thumbs.json]   # خروج 0 = تجتاز · 1 = لا
@@ -50,7 +56,14 @@ SHOT_MEAN_MAX = 6.0      # متوسّط بقاء اللقطة على الشاش�
 SHOT_MAX = 10.0          # أطولُ لقطة (ث)
 INTRO_MAX = 60.0         # الفصل الأوّل كلّه (ث): بدر كانت نحو 80 ث، عشرون منها خطّاف والباقي مراسم
 INTRO_NARRATOR_MAX = 45  # كلماتُ الراوي الظاهر في الافتتاحية
-BATTLE_MIN, SETUP_MAX, AFTER_MAX, FIRST_CLASH_MAX = 0.45, 0.15, 0.15, 0.35
+# FIRST_CLASH_MAX: 0.35 ⇒ 0.25 بحكم المالك 2026-10-11 (المنافسون يقاتلون نصف وقتهم، والأرك هبط عند الخلفيّة)
+BATTLE_MIN, SETUP_MAX, AFTER_MAX, FIRST_CLASH_MAX = 0.45, 0.15, 0.15, 0.25
+SETUP_RUN_MAX = 40.0     # أطول شرحِ خلفيّةٍ متّصل (ث) — هبوط الأرك من 74٪ إلى 31٪ وقع في التاريخ والطلب والمرض
+VOICE_GAP_MAX = 90.0     # أطول فجوةٍ بلا صوتٍ غير الراوي (ث) في فيلم المعركة
+# ⛔ حكم المالك 2026-10-11: «يروى وما شابهها من الصيغ… لا ينبغي أن يلوّث بها الفيلم، يكفي الإشارة لها في المصادر»
+HEDGE = re.compile(r"(يروى|يُروى|يروي|تروي|تروى|روي أن|روي أنّ|رُوي|يقال|يُقال|قيل إن|قيل أن|وقيل|في رواية|وفي رواية|في خبر|"
+                   r"الروايات|الرواية تقول|كتب الأخبار|كتب التاريخ|كتب السير|تذكر الأخبار|تحكي الأخبار|الأخبار تقول|"
+                   r"يذكر أن|يذكر المؤرخون|يذكرون|بحسب ما|حسب ما ورد|فيما ورد|ورد أن|ورد أنّ|نقل أن|ينقلون)")
 PHASES = ("setup", "buildup", "battle", "aftermath")
 # «الله أكبر» تكبيرٌ لا تفضيل. و«أخطر/أقوى» من مراجعة مؤتة («أخطر من ادّعى النبوّة»)؛ و«أشدّ» تُترك: أكثرها نسبيٌّ («أشدّ ساعات القتال»)
 SUPERLATIVE = re.compile(r"(?<!من )(?<!الله )\b(أعظم|أكبر|الوحيد|لم يسبق|أخطر|أقوى)")
@@ -176,6 +189,13 @@ def pacing(proj: Path, blocks: list[dict], film: list[dict], sections: list[dict
             pos = sum(words(by_id[i]["text"]) for i in body[:first]) / tot if first is not None else 1
             if pos > FIRST_CLASH_MAX:
                 errs.append(f"أوّل كتلة قتالٍ بعد {pos:.0%} من المتن (≤ {FIRST_CLASH_MAX:.0%})")
+            ph_of = {i: ph for ph, ids in sec_of.values() for i in ids}
+            run, worst = 0.0, 0.0
+            for i in body:
+                run = run + sec([i]) if ph_of.get(i) == "setup" else 0.0
+                worst = max(worst, run)
+            if worst > SETUP_RUN_MAX:
+                errs.append(f"شرحُ خلفيّةٍ متّصل {worst:.0f} ث (≤ {SETUP_RUN_MAX:.0f}): يُقطع بمشهد خطرٍ أو قول (حكم المالك 2026-10-11)")
     elif pub.get("genre") == "battle":
         errs.append("فيلم معركة بلا فصول (sections.json)")
 
@@ -291,6 +311,16 @@ def owner_1005(blocks: list[dict], film: list[dict], shots: list[dict], pub: dic
         tail = [x for x in film if start[x["id"]] >= total - NEXT_TAIL]
         if not any(NEXT.search(plain(x["text"])) for x in tail):
             errs.append("فيلمٌ في سلسلة بلا خطّافٍ للحلقة التالية في دقيقته الأخيرة")
+
+    hedged = [x["id"] for x in film if not x.get("speaker") and x.get("role", "N") == "N" and HEDGE.search(plain(x["text"]))]
+    if hedged:
+        errs.append(f"صيغة تحوّطٍ في كلام الراوي ({', '.join(hedged[:6])}): «يُروى/تروي الأخبار/في رواية» لا تدخل الفيلم، "
+                    "والدرجة في الوصف وسجلّ الدعاوى (حكم المالك 2026-10-11)")
+    if pub.get("genre") == "battle" and total > 2 * VOICE_GAP_MAX:
+        marks = [0.0] + [start[x["id"]] for x in film if x.get("speaker") or x.get("role", "N") != "N"] + [total]
+        gap = max(q - p for p, q in zip(marks, marks[1:]))
+        if gap > VOICE_GAP_MAX:
+            errs.append(f"فجوةٌ {gap:.0f} ث بلا صوتٍ غير الراوي (≤ {VOICE_GAP_MAX:.0f}): قولٌ مسند أو رسالة (حكم المالك 2026-10-11)")
 
     quoted = [x["id"] for x in film if x.get("speaker") and not x.get("claim")]
     if quoted:
