@@ -87,6 +87,10 @@ jobs:
               assert re.fullmatch(r'[A-Za-z0-9_-]{11}', fv); print('FILM_VIDEO_ID=' + fv)
           if d.get('reels_for_film'):
               assert fv, 'reels_for_film يحتاج film_video_id'; print('REELS_FOR_FILM=1')
+          ru = d.get('reupload')
+          if ru:
+              assert isinstance(ru, list) and all(isinstance(x, str) and re.fullmatch(r'[a-z0-9_]+\.mp4', x) for x in ru)
+              print('REUPLOAD=' + json.dumps(ru))
           rt = d.get('reel_titles')
           if rt:
               assert isinstance(rt, dict) and all(isinstance(k, str) and isinstance(v, str) and 0 < len(v.strip()) <= 100 for k, v in rt.items())

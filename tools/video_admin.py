@@ -36,6 +36,11 @@ if not r.get("items"):
     if hit:
         print("⚠ في رفعات القناة ولا يُرجعه videos.list بعد:", hit[0]["snippet"]["title"][:60],
               "| الخصوصيّة:", (hit[0].get("status") or {}).get("privacyStatus"), flush=True)
+    # آخر عشر رفعاتٍ بمعرّفها وخصوصيّتها ووقتها، لتُعرف حداثة القائمة نفسها. ولا يُطبع عنوانٌ إلا للعامّ.
+    for i in its[:10]:
+        pv = (i.get("status") or {}).get("privacyStatus")
+        print("  رفعة:", i["snippet"]["resourceId"]["videoId"], pv, i["snippet"].get("publishedAt"),
+              i["snippet"]["title"][:50] if pv == "public" else "", flush=True)
     raise SystemExit("⛔ لا فيديو بهذا المعرّف: " + vid + ("" if hit else " — وليس في آخر خمسين رفعةً للقناة"))
 item = r["items"][0]
 sn, st = item["snippet"], item["status"]
