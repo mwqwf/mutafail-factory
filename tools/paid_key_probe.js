@@ -34,6 +34,7 @@ function wav(pcm, rate = 24000) {
   const extra = all.filter(m => !common.includes(m));
   console.log(`نماذج يراها كلّ مفتاح: ${common.length} · نماذج لا يراها إلا بعضها: ${extra.join('، ') || '—'}`);
   seen.forEach((s, i) => { const x = s.filter(m => extra.includes(m)); if (x.length) console.log(`#${i} يرى: ${x.join('، ')}`); });
+  const want = (arg('--tts', '') || '').split(',').filter(Boolean);
   console.log(`كلّ النماذج: ${all.join('، ')}`);
   // ٢ب) الفيديو (Veo): أحدثُ نموذجٍ غير «fast/lite»، بأقصر مدّةٍ وأدنى دقّة؛ المجانيّ يُرفض فوراً بلا كلفة
   const veo = all.filter(m => /^veo/i.test(m)).sort((a, b) => ver(b) - ver(a) || (/fast|lite/i.test(a) - /fast|lite/i.test(b)));
@@ -64,7 +65,6 @@ function wav(pcm, rate = 24000) {
     }
   }
   // أمر المالك 2026-10-14: «أقصد الصوت، جرّب نماذج جيميناي 3.8 برو» — تُجرَّب الأسماء المحتملة ولو لم تظهر في القائمة
-  const want = (arg('--tts', '') || '').split(',').filter(Boolean);
   const tts = want.length ? want : all.filter(m => /tts/i.test(m) && !/flash|lite/i.test(m)).sort((a, b) => ver(b) - ver(a));
   console.log(`نماذج الصوت ذات «pro» أو «3.8» في القائمة: ${all.filter(m => /tts|audio/i.test(m) && /pro|3\.8/i.test(m)).join('، ') || '—'}`);
   console.log(`نماذج الصوت الأعلى (غير الخفيفة): ${tts.join('، ') || '—'}`);
