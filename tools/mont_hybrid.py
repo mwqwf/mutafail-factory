@@ -5,7 +5,7 @@
 ⛔ لا موسيقى: المؤثّرات طبيعية CC0، وصوتُ Kling لا يدخل إلا إن اجتاز sfx_gate (clips/<id>.ok)."""
 import json, os, sys, glob, random, subprocess as sp
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import cards, envpaths, kb3d, kinetic, look, sfx_synth, transitions   # kinetic: الكتابة المتحرّكة (أمر المالك 2026-10-04)
+import cards, envpaths, kb3d, kinetic, look, sfx_auto, sfx_synth, transitions   # kinetic: الكتابة المتحرّكة (أمر المالك 2026-10-04)
 import battlemap   # خريطة المعركة الحيّة: حقل map في اللقطة (أمر المالك 2026-10-04، بحث الإبهار §١)
 from sfx_verdict import ok as sfx_ok   # صوت Kling يدخل بحكمٍ مطابقٍ لبصمة المقطع الحاليّ (MF-07)
 from envpaths import FF, FP
@@ -241,6 +241,27 @@ def captions(s, seg, span, L):
     return res
 
 
+# ⭐ أمر المالك 2026-10-14 (دراسة المغادرة بالثانية): يبدأ الهبوط الكبير حين تتوقّف الحركة الحيّة في الدقيقة الأولى
+#    (الأرك: مقاطعه الأربعة في أوّل 18 ث ثمّ أسئلةٌ على صورٍ ثابتة ⇒ خسر 45 نقطة بين 20 و60 ث).
+#    ⇒ كلّ لقطةٍ تبدأ قبل LIVE_UNTIL بلا مقطعٍ حيّ ولا خريطة تأخذ مقطعاً مدفوعاً من لقطةٍ أخرى (clip/clip_ss) بلا كلفة،
+#    بالتناوب وبنقطة بدءٍ مختلفة كلّ مرّة. ويُعطَّل لفيلمٍ بـ"live_open": false في publish.json.
+LIVE_UNTIL = 60.0
+_pub = json.load(open(P('publish.json'), encoding='utf-8')) if os.path.exists(P('publish.json')) else {}
+if _pub.get('live_open', True):
+    _pool = [x['id'] for x in shots if x['id'] not in STILL and not x.get('clip') and not x.get('lipsync')
+             and os.path.exists(P('clips', '%s.mp4' % x['id']))]
+    _k = 0
+    for _n, _s in enumerate(shots):
+        if FST[_n] / 25.0 >= LIVE_UNTIL or not _pool:
+            break
+        if _s['id'] in STILL or _s.get('map') or _s.get('clip') or clip(_s['id']):
+            continue
+        _src = _pool[_k % len(_pool)]
+        _s['clip'], _s['clip_ss'] = _src, round(((_k // len(_pool)) * 1.7) % 3.0, 2)
+        _k += 1
+    if _k:
+        print('①ج حركةٌ حيّة حتى الثانية %.0f: %d لقطةً أخذت مقطعاً مدفوعاً معاداً' % (LIVE_UNTIL, _k), flush=True)
+
 # ② اللقطات + جدول المؤثّرات — كلّ مقطعٍ بمقبضيه: NF[n] + 2×HF إطاراً، وبداية اللقطة فيه عند HEAD
 segs, fx = [], []   # fx: (بداية، مدة، ملف، مستوى)
 clean = []          # المقاطع قبل الكتابة المتحرّكة والبطاقات — تُصنع منها الريلزات العمودية فلا يُقصّ نصٌّ محروق
@@ -249,6 +270,7 @@ clean = []          # المقاطع قبل الكتابة المتحرّكة و
 SLOW_MAX = 1.15
 TL = {}             # بداية كل لقطة ومدتها في الفيلم — يقرؤها mkreel_open.py لقصّ ريلز الافتتاحية
 TEXTS = {b['id']: b['text'] for b in blocks}
+PHASES = sfx_auto.phases_of(shots, _secs)
 for n, s in enumerate(shots):
     span = NF[n] / 25.0                            # مدّة اللقطة مؤطَّرةً (تختلف عن span_of بأقلّ من نصف إطار)
     L, NT = LEN(n), NF[n] + 2 * HF
@@ -317,11 +339,14 @@ for n, s in enumerate(shots):
     # صوتُ Kling الطبيعي (إن اجتاز الفحص) وإلا مؤثّرُ المكتبة
     if kl and sfx_ok(kl):
         fx.append((t, min(span, dur(kl)), kl, 0.35))
-    elif s.get('sfx') and s['sfx'] != 'none':
-        c = sorted(glob.glob(os.path.join(SFX, s['sfx'] + '_*.ogg')))
-        if c: fx.append((t, span, random.Random(n).choice(c), float(s.get('sfx_vol', 0.22))))
+    else:
+        # المؤثّر من الحقل، وإلا يُشتقّ من مضمون اللقطة (tools/sfx_auto.py — مؤتة واليمامة خرجتا بلا sfx فلم يُسمع إلا الريح)
+        cat = s.get('sfx') or sfx_auto.derive(s, TEXTS, PHASES[n])
+        if cat != 'none':
+            c = sfx_auto.files(SFX, cat)
+            if c: fx.append((t, span, random.Random(n).choice(c), float(s.get('sfx_vol', 0.22))))
     TL[s['id']] = [round(t, 3), round(span, 3)]
-    print('  [%d/%d] %s · %.1f ث · %s' % (n + 1, len(shots), s['id'], span, s.get('sfx', '-')), flush=True)
+    print('  [%d/%d] %s · %.1f ث · %s' % (n + 1, len(shots), s['id'], span, s.get('sfx') or sfx_auto.derive(s, TEXTS, PHASES[n])), flush=True)
 
 json.dump(TL, open(P('timeline.json'), 'w', encoding='utf-8'))
 # ②ب الانتقالات المتداخلة بحسب الموقف (أمر المالك 2026-10-04: «صورٌ متداخلة احترافية» — tools/transitions.py)
