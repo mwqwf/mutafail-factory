@@ -1,0 +1,29 @@
+name: تحديد مفتاح جيميناي ذي الرصيد
+
+# أمر المالك 2026-10-14: أحدث نموذج صوت (غير الخفيف) لا تراه إلا المفاتيح المدفوعة ⇒ نداءات قائمةٍ مجّانية،
+# ثمّ توليدةٌ واحدةٌ قصيرة جداً بالمفتاح الذي يراه حتى أوّل نجاح. المقطع أثرٌ يُحذف بعد يوم.
+on:
+  push:
+    paths: ["ops/probe/paid_key.json"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: الفحص
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          node tools/paid_key_probe.js --keys /tmp/keys.json
+          rm -f /tmp/keys.json
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('out/paid_sample.wav') != ''
+        with: { name: paid-sample, path: out/paid_sample.wav, retention-days: 1 }
