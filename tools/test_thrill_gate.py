@@ -23,7 +23,7 @@ def B(i, t, **k):
     return dict({"id": i, "voice": "Charon", "text": t}, **k)
 
 
-GOOD = [B("d1", "سُفُنٌ تَمْشِي عَلَى ظُهُورِ الْإِبِلْ."), B("d2", "فَمَنْ صَاحِبُ الْفِكْرَةِ؟"), B("d3", "وَإِلَى أَيْنَ؟ سَنَكْشِفُ لَكُمْ"),
+GOOD = [B("d1", "سُفُنٌ تَمْشِي عَلَى ظُهُورِ الْإِبِلْ."), B("d2", "فَمَنْ صَاحِبُ الْفِكْرَةِ؟"), B("d3", "وَإِلَى أَيْنَ… سَنَكْشِفُ لَكُمْ"),
         B("d4", "ثُمَّ مَاذَا جَرَى؟"), B("d5", "فَصْلٌ ثَانٍ يَبْدَأُ قَصِيرًا"), B("d6", "وَلَكِنَّ الْمُفَاجَأَةَ لَمْ تَأْتِ بَعْدُ…")]
 REELS = [{"id": f"r{i}", "blocks": [f"x{i}a", f"x{i}b"]} for i in (1, 2, 3)]
 RB = [b for i in (1, 2, 3) for b in (B(f"x{i}a", "صَدْمَةٌ قَصِيرَةٌ.", reel_only=True), B(f"x{i}b", "فَمَنْ؟ الْجَوَابُ فِي الْفِيلْمْ.", reel_only=True))]
@@ -74,11 +74,11 @@ class ThrillGateTests(unittest.TestCase):
     # ⭐ الإيقاع والتركيز على المعركة (أمر المالك 2026-10-03)
     def battle(self, phases, words_per=(4, 4, 4, 4)):
         w = lambda n, tail="": " ".join(["كَلِمَةٌ"] * n) + tail
-        blocks = COLD + [B("d1", "سُيُوفٌ فِي اللَّيْلِ"), B("d2", "فَمَنْ؟"), B("d3", "وَلِمَاذَا؟")]
+        blocks = COLD + [B("d1", "سُيُوفٌ فِي اللَّيْلِ"), B("d2", "فَمَنْ؟"), B("d3", "وَلِمَاذَا…")]
         secs = [{"id": "k1", "title": "افتتاح"}]
         for k, (ph, n) in enumerate(zip(phases, words_per)):
             i = f"c{k}"
-            blocks.append(B(i, w(n, "؟")))
+            blocks.append(B(i, w(n, "؟" if k % 2 else "…")))   # لا أكثر من سؤالين متتاليين (البوّابة 2026-10-14)
             secs.append({"id": i, "title": ph, "phase": ph})
         return blocks + RB, secs
 
