@@ -255,7 +255,15 @@ def fresh(ya, per: list, today: dt.date) -> dict:
     return out
 
 
-SERIES_FROM = '2026-09-27'      # أوّل أفلام «معارك غيّرت مجرى التاريخ» (اليرموك)؛ وما بعده السلسلتان الأخيرتان وحدهما
+# الجولة 10 (طلب المالك 2026-10-14: «سرّ الأرك، وفشل ما قبلها وما بعدها، والزلاقة وبدر والمرابطون») ⇒ يمتدّ بـseries_from في الطلب
+def _series_from():
+    try:
+        return json.load(io.open('ops/stats/request.json', encoding='utf-8')).get('series_from') or '2026-09-27'
+    except Exception:
+        return '2026-09-27'
+
+
+SERIES_FROM = _series_from()
 
 
 def series_deep(ya, yt, rows: list, today: dt.date) -> dict:
