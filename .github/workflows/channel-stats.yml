@@ -110,6 +110,7 @@ jobs:
             J=1
           fi
           echo "judge=$J" >> "$GITHUB_OUTPUT"
+          echo "outl=$(flag ops/stats/outliers.json)" >> "$GITHUB_OUTPUT"
           echo "resume=$R" >> "$GITHUB_OUTPUT"
           echo "topics=$T" >> "$GITHUB_OUTPUT"; echo "comp=$C" >> "$GITHUB_OUTPUT"; echo "open=$O" >> "$GITHUB_OUTPUT"
           echo "البحث: $T | المنافسون: $C | الافتتاحيات: $O | الأسلوب: $S | المقارنة العمياء: $J"
@@ -138,6 +139,16 @@ jobs:
           gh release upload channel-stats out/competitors.json --clobber
           echo "✅ رُفع تحليل المنافسين إلى الإصدار المسوّد channel-stats"
           echo "ops/stats/competitors.json:$(sha256sum ops/stats/competitors.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
+      # ⭐ مضاعف الانفجار لفيديوهات المعارك العربية (دراسة اختيار الحلقة 2026-10-14): عشرون بحثاً تقريباً ونحو ألف وحدة قراءة
+      - name: مضاعف الانفجار في قنوات المعارك
+        if: steps.changed.outputs.outl == '1'
+        env:
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
+        run: |
+          set -euo pipefail
+          python tools/battle_outliers.py out/battle_outliers.json
+          gh release upload channel-stats out/battle_outliers.json --clobber
+          echo "ops/stats/outliers.json:$(sha256sum ops/stats/outliers.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
       # ⭐ تشريح الافتتاحيات: نصفُ مشاهدينا الطبيعيّين يغادرون في أوّل 30 ث ⇒ جيميناي يشاهد أوّل 150 ث من أفلامنا وأفلام
       #    المنافسين الناجحة بمعيارٍ واحد (لا يُخبَر أيُّها لنا). يجلب الفيديو من يوتيوب بنفسه، فلا حصّة يوتيوب ولا تنزيل.
       - name: تشريح الافتتاحيات
