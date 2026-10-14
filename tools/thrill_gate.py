@@ -333,8 +333,10 @@ def first_minute(proj: Path, blocks: list[dict], film: list[dict], shots: list[d
         sec = lambda x: (sum(words(by_id[i]["text"]) for i in x.get("blocks", []) if i in by_id and not by_id[i].get("reel_only"))
                          * SEC_PER_WORD) or float(x.get("hold") or 0)
         clips = proj / "clips"
-        live = lambda x: bool(x.get("clip") or x.get("map") or (clips / f"{x['id']}.mp4").exists())
-        t, bad, pool = 0.0, [], any((clips / f"{x['id']}.mp4").exists() for x in shots)
+        # قبل التوليد: اللقطة المخطّطة «حيّة» (kind) ستصير مقطع Kling، وهي معينٌ لإعادة الاستعمال
+        planned = lambda x: x.get("kind") == "حيّة" or (clips / f"{x['id']}.mp4").exists()
+        live = lambda x: bool(x.get("clip") or x.get("map") or planned(x))
+        t, bad, pool = 0.0, [], any(planned(x) for x in shots)
         for x in shots:
             if t >= 60.0:
                 break
