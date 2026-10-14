@@ -22,7 +22,7 @@ jobs:
         run: |
           set -euo pipefail
           printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
-          node tools/paid_key_probe.js --keys /tmp/keys.json
+          node tools/paid_key_probe.js --keys /tmp/keys.json --tts "$(python3 -c "import json;print(','.join(json.load(open('ops/probe/paid_key.json')).get('tts',[])))")"
           rm -f /tmp/keys.json
       - uses: actions/upload-artifact@v4
         if: always()

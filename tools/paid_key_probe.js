@@ -37,7 +37,7 @@ function wav(pcm, rate = 24000) {
   console.log(`كلّ النماذج: ${all.join('، ')}`);
   // ٢ب) الفيديو (Veo): أحدثُ نموذجٍ غير «fast/lite»، بأقصر مدّةٍ وأدنى دقّة؛ المجانيّ يُرفض فوراً بلا كلفة
   const veo = all.filter(m => /^veo/i.test(m)).sort((a, b) => ver(b) - ver(a) || (/fast|lite/i.test(a) - /fast|lite/i.test(b)));
-  if (veo.length) {
+  if (veo.length && !want.length) {
     const vm = veo[0]; console.log(`أحدث نماذج الفيديو: ${vm} (من ${veo.join('، ')})`);
     for (let i = 0; i < keys.length; i++) {
       const r = await fetch(`${GL}/models/${vm}:predictLongRunning?key=${keys[i]}`, { method: 'POST', headers: { 'content-type': 'application/json' },
@@ -63,11 +63,13 @@ function wav(pcm, rate = 24000) {
       console.log(`✗ فيديو #${i}: ${r.status} ${mask(m).slice(0, 90)}`);
     }
   }
-  const tts = all.filter(m => /tts/i.test(m) && !/flash|lite/i.test(m)).sort((a, b) => ver(b) - ver(a));
+  // أمر المالك 2026-10-14: «أقصد الصوت، جرّب نماذج جيميناي 3.8 برو» — تُجرَّب الأسماء المحتملة ولو لم تظهر في القائمة
+  const want = (arg('--tts', '') || '').split(',').filter(Boolean);
+  const tts = want.length ? want : all.filter(m => /tts/i.test(m) && !/flash|lite/i.test(m)).sort((a, b) => ver(b) - ver(a));
+  console.log(`نماذج الصوت ذات «pro» أو «3.8» في القائمة: ${all.filter(m => /tts|audio/i.test(m) && /pro|3\.8/i.test(m)).join('، ') || '—'}`);
   console.log(`نماذج الصوت الأعلى (غير الخفيفة): ${tts.join('، ') || '—'}`);
-  const model = tts[0];
-  if (!model) return console.log('لا نموذج صوتٍ غير خفيف تراه أيّ مفاتيح.');
-  const cand = keys.map((_, i) => i).filter(i => seen[i].includes(model));
+  for (const model of tts) {
+  const cand = want.length ? keys.map((_, i) => i) : keys.map((_, i) => i).filter(i => seen[i].includes(model));
   console.log(`أحدثها ${model} · يراه ${cand.length} مفتاحاً: ${cand.map(i => '#' + i).join(' ')}`);
   const res = [];
   for (const i of cand) {
@@ -86,5 +88,6 @@ function wav(pcm, rate = 24000) {
     let m = ''; try { m = JSON.parse(txt).error.message; } catch (e) {}
     console.log(`✗ #${i}: ${r.status} ${mask(m).slice(0, 110)}`);
   }
-  console.log(res.length ? `النتيجة: المفتاح ذو الرصيد #${res[0]}` : 'النتيجة: لم ينجح أيّ مفتاح.');
+  console.log(res.length ? `النتيجة (${model}): المفتاح ذو الرصيد #${res[0]}` : `النتيجة (${model}): لم ينجح أيّ مفتاح.`);
+  }
 })();
