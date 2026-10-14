@@ -291,6 +291,11 @@ def series_deep(ya, yt, rows: list, today: dt.date) -> dict:
                               metrics='views,estimatedMinutesWatched', sort='day')
         d['المشترك_وغيره'] = q(startDate=s0, dimensions='subscribedStatus', filters=v,
                                 metrics='views,estimatedMinutesWatched,averageViewDuration')
+        # طلب المالك 2026-10-14: «من أوّل من يُعرض عليهم الفيلم وبماذا يهتمّون؟» ⇒ المشترك وغيره يوماً بيوم مع مدّة المشاهدة
+        d['يومي_المشترك_وغيره'] = q(startDate=s0, dimensions='day,subscribedStatus', filters=v, sort='day',
+                                     metrics='views,estimatedMinutesWatched,averageViewDuration')
+        d['المصدر_والمشترك'] = q(startDate=s0, dimensions='insightTrafficSourceType,subscribedStatus', filters=v,
+                                  metrics='views,estimatedMinutesWatched,averageViewDuration')
         d['البلدان'] = q(startDate=s0, dimensions='country', filters=v, sort='-views', maxResults=10,
                          metrics='views,estimatedMinutesWatched,averageViewDuration')
         d['الأعمار'] = q(startDate=s0, dimensions='ageGroup,gender', filters=v, metrics='viewerPercentage')
