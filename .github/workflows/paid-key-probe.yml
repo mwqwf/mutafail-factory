@@ -25,5 +25,5 @@ jobs:
           node tools/paid_key_probe.js --keys /tmp/keys.json
           rm -f /tmp/keys.json
       - uses: actions/upload-artifact@v4
-        if: hashFiles('out/paid_sample.wav') != ''
-        with: { name: paid-sample, path: out/paid_sample.wav, retention-days: 1 }
+        if: always()
+        with: { name: paid-sample, path: out/, retention-days: 1, if-no-files-found: ignore }

@@ -34,6 +34,35 @@ function wav(pcm, rate = 24000) {
   const extra = all.filter(m => !common.includes(m));
   console.log(`نماذج يراها كلّ مفتاح: ${common.length} · نماذج لا يراها إلا بعضها: ${extra.join('، ') || '—'}`);
   seen.forEach((s, i) => { const x = s.filter(m => extra.includes(m)); if (x.length) console.log(`#${i} يرى: ${x.join('، ')}`); });
+  console.log(`كلّ النماذج: ${all.join('، ')}`);
+  // ٢ب) الفيديو (Veo): أحدثُ نموذجٍ غير «fast/lite»، بأقصر مدّةٍ وأدنى دقّة؛ المجانيّ يُرفض فوراً بلا كلفة
+  const veo = all.filter(m => /^veo/i.test(m)).sort((a, b) => ver(b) - ver(a) || (/fast|lite/i.test(a) - /fast|lite/i.test(b)));
+  if (veo.length) {
+    const vm = veo[0]; console.log(`أحدث نماذج الفيديو: ${vm} (من ${veo.join('، ')})`);
+    for (let i = 0; i < keys.length; i++) {
+      const r = await fetch(`${GL}/models/${vm}:predictLongRunning?key=${keys[i]}`, { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ instances: [{ prompt: 'Cinematic wide shot: thousands of armored horsemen charging across a desert plain at dawn, dust clouds, no faces visible, no text.' }],
+          parameters: { durationSeconds: 4, resolution: '720p', aspectRatio: '16:9', sampleCount: 1 } }) });
+      const txt = await r.text();
+      if (r.ok) {
+        const op = JSON.parse(txt).name; console.log(`✓ المفتاح #${i} قبل ${vm}: عمليّة ${op ? 'بدأت' : '?'}`);
+        for (let t = 0; t < 40 && op; t++) {
+          await new Promise(z => setTimeout(z, 10000));
+          const o = await (await fetch(`${GL}/${op}?key=${keys[i]}`)).json();
+          if (o.done) {
+            const u = o.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri;
+            if (u) { const b = Buffer.from(await (await fetch(u + (u.includes('?') ? '&' : '?') + 'key=' + keys[i])).arrayBuffer());
+              fs.mkdirSync('out', { recursive: true }); fs.writeFileSync('out/paid_sample.mp4', b); console.log(`المقطع ${b.length} بايت`); }
+            else console.log('انتهت بلا مقطع: ' + mask(JSON.stringify(o.error || o.response || {})).slice(0, 200));
+            break;
+          }
+        }
+        console.log(`النتيجة (فيديو): المفتاح ذو الرصيد #${i}`); break;
+      }
+      let m = ''; try { m = JSON.parse(txt).error.message; } catch (e) {}
+      console.log(`✗ فيديو #${i}: ${r.status} ${mask(m).slice(0, 90)}`);
+    }
+  }
   const tts = all.filter(m => /tts/i.test(m) && !/flash|lite/i.test(m)).sort((a, b) => ver(b) - ver(a));
   console.log(`نماذج الصوت الأعلى (غير الخفيفة): ${tts.join('، ') || '—'}`);
   const model = tts[0];
