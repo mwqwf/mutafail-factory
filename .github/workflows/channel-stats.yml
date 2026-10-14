@@ -111,6 +111,7 @@ jobs:
           fi
           echo "judge=$J" >> "$GITHUB_OUTPUT"
           echo "outl=$(flag ops/stats/outliers.json)" >> "$GITHUB_OUTPUT"
+          echo "thumbs=$(flag ops/stats/thumbs.json)" >> "$GITHUB_OUTPUT"
           echo "resume=$R" >> "$GITHUB_OUTPUT"
           echo "topics=$T" >> "$GITHUB_OUTPUT"; echo "comp=$C" >> "$GITHUB_OUTPUT"; echo "open=$O" >> "$GITHUB_OUTPUT"
           echo "البحث: $T | المنافسون: $C | الافتتاحيات: $O | الأسلوب: $S | المقارنة العمياء: $J"
@@ -149,6 +150,14 @@ jobs:
           python tools/battle_outliers.py out/battle_outliers.json
           gh release upload channel-stats out/battle_outliers.json --clobber
           echo "ops/stats/outliers.json:$(sha256sum ops/stats/outliers.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
+      - name: لوحة مصغّرات الأعلى والأدنى مضاعفاً
+        if: steps.changed.outputs.thumbs == '1'
+        run: |
+          set -euo pipefail
+          pip install -q pillow
+          python tools/thumb_sheet.py ops/stats/thumbs.json out/
+          gh release upload channel-stats out/thumbs_top.jpg out/thumbs_low.jpg --clobber
+          echo "ops/stats/thumbs.json:$(sha256sum ops/stats/thumbs.json | cut -c1-16)" >> /tmp/done.txt && gh release upload channel-stats /tmp/done.txt --clobber
       # ⭐ تشريح الافتتاحيات: نصفُ مشاهدينا الطبيعيّين يغادرون في أوّل 30 ث ⇒ جيميناي يشاهد أوّل 150 ث من أفلامنا وأفلام
       #    المنافسين الناجحة بمعيارٍ واحد (لا يُخبَر أيُّها لنا). يجلب الفيديو من يوتيوب بنفسه، فلا حصّة يوتيوب ولا تنزيل.
       - name: تشريح الافتتاحيات
