@@ -66,6 +66,10 @@ BUDGET_SHARE = 0.90      # المخطّط ≤ 90٪ من السقف (هامشُ �
 # ⭐⭐ حكم المالك 2026-10-05 بعد «بحث الاحتفاظ بالمشاهد» (ops/research/mutah/00-retention-plan.md §١ و§١٠): موانع لا تنبيهات
 NO_ASK_BEFORE = 240.0    # لا منهج ولا مصادر ولا طلب اشتراكٍ أو تعليقٍ قبل الدقيقة الرابعة
 COLD_MIN = 25.0          # الافتتاح البارد مشهدٌ متّصل: لا سؤال ولا تحيّة قبل هذه الثانية
+HERO_BEFORE = 10.0       # اسم البطل قبل هذه الثانية (دراسة المغادرة 2026-10-14)
+QUESTIONS_RUN_MAX = 2    # أسئلةٌ متتالية قبل الدقيقة
+STILL_MAX = 4.0          # أطول لقطةٍ ساكنة مقبولة في الدقيقة الأولى
+FIGHT_SFX_MIN = 0.60     # حصّة مؤثّرات المعركة بغير الريح
 OPEN_CUTS_MIN = 12       # لقطاتٌ تبدأ في أوّل 30 ث (لقطةٌ كلّ ثانيتين تقريباً)
 OPEN_NUMBERS_MAX = 1     # رقمٌ واحد في أوّل 30 ث على الأكثر (الخطّاف نفسه) ولا تاريخ
 DANGER = (60.0, 360.0)   # الدقائق 1–6: موضع النزيف في منحنياتنا
@@ -298,6 +302,62 @@ def owner_1005(blocks: list[dict], film: list[dict], shots: list[dict], pub: dic
     return errs, warns
 
 
+def first_minute(proj: Path, blocks: list[dict], film: list[dict], shots: list[dict], sections: list[dict], pub: dict
+                 ) -> tuple[list[str], list[str]]:
+    """دراسة المغادرة بالثانية (أمر المالك 2026-10-14): يبدأ الهبوط حين تتوقّف الحركة الحيّة ويبدأ كلامٌ مجرّد.
+    ① اسم البطل (publish.json: hero) منطوقٌ قبل الثانية 10 — مؤتة لم تُسمع اسمَ خالد قبل 37 ث.
+    ② لا أكثر من سؤالين متتاليين قبل الدقيقة — الأرك: ثلاثة أسئلةٍ بعد الثانية 20 فخسر 45 نقطة.
+    ③ حركةٌ حيّة: لا لقطةَ بلا مقطعٍ حيّ ولا خريطة تتجاوز 4 ث في أوّل 60 ث (يملؤها mont_hybrid آلياً بمقاطع معادة).
+    ④ مؤثّرات فصل المعركة: ≥ 60٪ من لقطاته بغير «wind» (كانت 65–73٪ ريحاً)."""
+    import sfx_auto
+    errs, warns = [], []
+    by_id = {b["id"]: b for b in blocks}
+    t, start = 0.0, {}
+    for b in film:
+        start[b["id"]] = t
+        t += words(b["text"]) * SEC_PER_WORD
+    early = lambda lim: [b for b in film if start[b["id"]] < lim]
+    hero = pub.get("hero")
+    if hero:
+        if not any(plain(hero) in plain(b["text"]) for b in early(HERO_BEFORE)):
+            errs.append(f"اسم البطل «{hero}» لا يُسمع قبل الثانية {HERO_BEFORE:.0f}: الاسم والحدث أوّلاً (مؤتة: 37 ث)")
+    else:
+        warns.append("publish.json بلا hero: لا يُفحص سماعُ اسم البطل قبل الثانية 10")
+    run, worst = 0, 0
+    for b in early(60.0):
+        run = run + 1 if "؟" in plain(b["text"]) else 0
+        worst = max(worst, run)
+    if worst > QUESTIONS_RUN_MAX:
+        errs.append(f"{worst} أسئلةٍ متتالية قبل الدقيقة (≤ {QUESTIONS_RUN_MAX}): موضع نزيف الأرك بين 20 و60 ث")
+    if shots:
+        sec = lambda x: (sum(words(by_id[i]["text"]) for i in x.get("blocks", []) if i in by_id and not by_id[i].get("reel_only"))
+                         * SEC_PER_WORD) or float(x.get("hold") or 0)
+        clips = proj / "clips"
+        # قبل التوليد: اللقطة المخطّطة «حيّة» (kind) ستصير مقطع Kling، وهي معينٌ لإعادة الاستعمال
+        planned = lambda x: x.get("kind") == "حيّة" or (clips / f"{x['id']}.mp4").exists()
+        live = lambda x: bool(x.get("clip") or x.get("map") or planned(x))
+        t, bad, pool = 0.0, [], any(planned(x) for x in shots)
+        for x in shots:
+            if t >= 60.0:
+                break
+            if not live(x) and sec(x) > STILL_MAX:
+                bad.append(f"{x['id']}({sec(x):.0f}ث)")
+            t += sec(x)
+        if bad and not pool:
+            errs.append(f"لقطاتٌ ساكنة أطول من {STILL_MAX:.0f} ث في الدقيقة الأولى ولا مقطع حيّ يُعاد: {', '.join(bad[:5])}")
+        elif bad:
+            warns.append(f"لقطاتٌ ساكنة في الدقيقة الأولى ستأخذ مقطعاً معاداً آلياً في المونتاج: {', '.join(bad[:5])}")
+        sfx_dir = str(Path(__file__).resolve().parent.parent / "assets" / "sfx")
+        texts = {b["id"]: b["text"] for b in blocks}
+        ph = sfx_auto.phases_of(shots, sections)
+        fight = [sfx_auto.resolved(sfx_dir, sfx_auto.derive(x, texts, p)) for x, p in zip(shots, ph) if p == "battle"]
+        if fight:
+            share = sum(1 for c in fight if c not in ("wind", "none")) / len(fight)
+            if share < FIGHT_SFX_MIN:
+                errs.append(f"مؤثّرات فصل المعركة {share:.0%} بغير الريح (≥ {FIGHT_SFX_MIN:.0%}): سيوفٌ وخيلٌ وسهامٌ من مضمون اللقطة")
+    return errs, warns
+
+
 def load(p: Path, name: str):
     f = p / name
     return json.loads(f.read_text(encoding="utf-8")) if f.exists() else None
@@ -438,6 +498,8 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
 
     e2, w2 = pacing(proj, blocks, film, sections, pub)
     e3, w3 = owner_1005(blocks, film, load(proj, "shots.json") or [], pub)
+    e4, w4 = first_minute(proj, blocks, film, load(proj, "shots.json") or [], sections, pub)
+    errs += e4; warns += w4
     return errs + e2 + e3, warns + w2 + w3
 
 
