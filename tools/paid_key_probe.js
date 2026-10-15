@@ -64,6 +64,19 @@ function wav(pcm, rate = 24000) {
       console.log(`✗ فيديو #${i}: ${r.status} ${mask(m).slice(0, 90)}`);
     }
   }
+  // أمر المالك 2026-10-15: «جرّب أحدث نسخةٍ منه على الإطلاق، 3.8 برو أو أحدث» ⇒ أحدث نموذج نصٍّ «pro» بتوليدةٍ من بضع كلمات
+  const pro = all.filter(m => /pro/i.test(m) && !/tts|image|audio|customtools|research|robotics|computer|embedding/i.test(m)).sort((a, b) => ver(b) - ver(a));
+  console.log(`نماذج النصّ «pro» في القائمة: ${pro.join('، ') || '—'}`);
+  for (const model of pro.slice(0, 2)) {
+    for (let i = 0; i < keys.length; i++) {
+      const r = await fetch(`${GL}/models/${model}:generateContent?key=${keys[i]}`, { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: 'أجب بكلمةٍ واحدة: ما عاصمة الشام؟' }] }], generationConfig: { maxOutputTokens: 64 } }) });
+      const txt = await r.text();
+      if (r.ok) { const j = JSON.parse(txt); console.log(`✓ نصّ ${model} بالمفتاح #${i} (${j.modelVersion || '?'}): ${(j.candidates?.[0]?.content?.parts?.[0]?.text || '').trim().slice(0, 40)}`); break; }
+      let m = ''; try { m = JSON.parse(txt).error.message; } catch (e) {}
+      console.log(`✗ نصّ ${model} #${i}: ${r.status} ${mask(m).slice(0, 110)}`);
+    }
+  }
   // أمر المالك 2026-10-14: «أقصد الصوت، جرّب نماذج جيميناي 3.8 برو» — تُجرَّب الأسماء المحتملة ولو لم تظهر في القائمة
   const tts = want.length ? want : all.filter(m => /tts/i.test(m) && !/flash|lite/i.test(m)).sort((a, b) => ver(b) - ver(a));
   console.log(`نماذج الصوت ذات «pro» أو «3.8» في القائمة: ${all.filter(m => /tts|audio/i.test(m) && /pro|3\.8/i.test(m)).join('، ') || '—'}`);
@@ -81,8 +94,8 @@ function wav(pcm, rate = 24000) {
     if (r.ok) {
       const d = JSON.parse(txt).candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
       fs.mkdirSync('out', { recursive: true });
-      if (d) fs.writeFileSync('out/paid_sample.wav', wav(Buffer.from(d, 'base64')));
-      console.log(`✓ المفتاح #${i} فيه رصيد: ولّد ${model}${d ? ' (out/paid_sample.wav)' : ''}`);
+      if (d) fs.writeFileSync(`out/${model}.wav`, wav(Buffer.from(d, 'base64')));
+      console.log(`✓ المفتاح #${i} فيه رصيد: ولّد ${model}${d ? ` (out/${model}.wav)` : ''}`);
       res.push(i); break;
     }
     let m = ''; try { m = JSON.parse(txt).error.message; } catch (e) {}

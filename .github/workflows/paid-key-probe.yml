@@ -19,9 +19,12 @@ jobs:
       - name: الفحص
         env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+          GEMINI_PAID_KEY: ${{ secrets.GEMINI_PAID_KEY }}
         run: |
           set -euo pipefail
-          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          # ⚠️ المفتاح المدفوع (سرّ GEMINI_PAID_KEY، أمر المالك 2026-10-15) يُفحص وحده إن ضُبط: كلّ نداءٍ به يُحاسَب
+          if [ -n "$GEMINI_PAID_KEY" ]; then echo "⚠️ المفتاح المدفوع وحده (GEMINI_PAID_KEY)"; printf '%s' "$GEMINI_PAID_KEY" > /tmp/keys.json
+          else printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json; fi
           node tools/paid_key_probe.js --keys /tmp/keys.json --tts "$(python3 -c "import json;print(','.join(json.load(open('ops/probe/paid_key.json')).get('tts',[])))")"
           rm -f /tmp/keys.json
       - uses: actions/upload-artifact@v4
