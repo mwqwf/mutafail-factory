@@ -1,0 +1,67 @@
+name: ضغط مفاتيح Gemini لمصحفك
+
+# 2026-10-16 (أمر المالك): استفراغ حصص المفاتيح بأسئلةٍ تحاكي «اسأل» في مصحفك، لقياس صلاحية Gemini خلفاً لـClaude.
+# ⛔ نموذج الأفلام gemini-3.8-flash-tts لا يُنادى (حارسٌ في الأداة). المستودع عامّ فالدقائق مجّانية.
+on:
+  push:
+    branches: ["claude/project-thread-wd382i"]
+    paths:
+      - "tools/mushafak_gemini_stress.js"
+      - ".github/workflows/mushafak-gemini-stress.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mushafak-gemini-stress
+  cancel-in-progress: false
+
+jobs:
+  stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: الضغط
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          KEYS="$RUNNER_TEMP/keys.json"
+          trap 'rm -f "$KEYS"' EXIT
+          printf '%s' "$GEMINI_KEYS_JSON" > "$KEYS"
+          J=ops/research/mushafak_gemini_stress_2026-10-16.json
+          M=ops/research/mushafak_gemini_stress_2026-10-16.md
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+
+          push_results() {
+            [ -f "$J" ] && [ -f "$M" ] || return 0
+            git add "$J" "$M"
+            if git diff --cached --quiet; then return 0; fi
+            git commit -q -m "ضغط Gemini: تحديث دوريّ للنتائج" -- "$J" "$M"
+            for i in 1 2 3 4; do
+              if git pull -q --rebase origin "$BRANCH" && git push -q origin "HEAD:$BRANCH"; then return 0; fi
+              sleep 5
+            done
+            echo "تعذّر دفع النتائج هذه المرّة"
+          }
+
+          node tools/mushafak_gemini_stress.js --keys "$KEYS" --out "$J" --md "$M" --minutes 330 &
+          PID=$!
+          while kill -0 "$PID" 2>/dev/null; do
+            for _ in $(seq 15); do kill -0 "$PID" 2>/dev/null || break; sleep 60; done
+            push_results
+          done
+          RC=0
+          wait "$PID" || RC=$?
+          push_results
+          { echo "## ضغط مفاتيح Gemini"; echo; [ -f "$M" ] && cat "$M"; } >> "$GITHUB_STEP_SUMMARY"
+          exit "$RC"
