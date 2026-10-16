@@ -1,0 +1,44 @@
+# 🔁 مزامنة مفاتيح Gemini إلى خادم «مصحفك» (بإذن المالك 2026-10-16 05:49Z)
+# يرسل السرَّ GEMINI_KEYS_JSON نفسه إلى https://mushafak-api.mushafak.workers.dev/v1/ai/gemini-sync
+# موثَّقاً برمز GitHub OIDC وحده (لا سرّ مشترك): الخادم يقبل هذا الملفَّ على master في هذا المستودع فقط.
+# يستعملها «مصحفك» احتياطاً لا غير: لا تُنادى إلا عند نفاد رصيد مفاتيح Claude كلّها.
+# ⛔ لا يُطبع المفتاح ولا جزءٌ منه؛ الردُّ عددٌ فقط. وتُعاد المزامنة يومياً فيصل كلُّ مفتاحٍ يُضاف هنا وحده.
+name: mushafak-gemini-sync
+
+on:
+  push:
+    branches: [master]
+    paths: [".github/workflows/mushafak-gemini-sync.yml"]
+  schedule:
+    - cron: "41 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: mushafak-gemini-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: أرسل مفاتيح Gemini إلى خادم مصحفك
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GEMINI_KEYS_JSON:-}" ]; then echo "::warning::السرّ GEMINI_KEYS_JSON غائب — لا مزامنة"; exit 0; fi
+          token="$(curl -sS -m 30 -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=mushafak-gemini-sync" | python3 -c 'import json,sys;print(json.load(sys.stdin)["value"])')"
+          echo "::add-mask::$token"
+          out="$RUNNER_TEMP/sync.json"
+          code="$(printf '%s' "$GEMINI_KEYS_JSON" | curl -sS -m 30 -o "$out" -w '%{http_code}' -X POST \
+            -H "authorization: Bearer $token" -H 'content-type: application/json' \
+            --data-binary @- https://mushafak-api.mushafak.workers.dev/v1/ai/gemini-sync)"
+          # الردّ عددٌ فقط ({ok,count}) فيُطبع
+          echo "HTTP $code — $(head -c 200 "$out")" | tee -a "$GITHUB_STEP_SUMMARY"
+          [ "$code" = "200" ]
