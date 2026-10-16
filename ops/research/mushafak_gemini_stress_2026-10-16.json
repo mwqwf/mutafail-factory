@@ -105,11 +105,11 @@
   "lyria-realtime-exp"
  ],
  "keyProject": {},
- "finishedAt": null,
- "phase": "سعة",
+ "finishedAt": "2026-10-16T12:59:22.520Z",
+ "phase": "انتهت",
  "droppedFromCapacity": [],
- "updatedAt": "2026-10-16T12:58:37.879Z",
- "elapsedMin": 330,
+ "updatedAt": "2026-10-16T12:59:22.520Z",
+ "elapsedMin": 330.7,
  "models": {
   "gemini-3.5-flash": {
    "totalOk": 98,
@@ -11169,8 +11169,7 @@
    },
    "keyPhases": {
     "جدار": 27,
-    "انتهت المدّة": 3,
-    "running": 1
+    "انتهت المدّة": 4
    },
    "quality": {
     "key": "#9",
@@ -12261,7 +12260,7 @@
    "rejections": {
     "503 خادم": 34,
     "429 مستنفد بلا معرّف": 387,
-    "net": 46,
+    "net": 47,
     "500 خادم": 6
    },
    "unknownRejections": {
@@ -12295,8 +12294,7 @@
    },
    "keyPhases": {
     "جدار": 27,
-    "انتهت المدّة": 3,
-    "running": 1
+    "انتهت المدّة": 4
    },
    "quality": {
     "key": "#11",
