@@ -108,18 +108,18 @@
  "finishedAt": null,
  "phase": "سعة",
  "droppedFromCapacity": [],
- "updatedAt": "2026-10-16T08:38:37.869Z",
- "elapsedMin": 70,
+ "updatedAt": "2026-10-16T08:58:37.870Z",
+ "elapsedMin": 90,
  "models": {
   "gemini-3.5-flash": {
-   "totalOk": 63,
+   "totalOk": 74,
    "perKey": {
     "0": 4,
     "1": 8,
     "2": 4,
     "3": 1,
     "5": 3,
-    "6": 2,
+    "6": 4,
     "7": 1,
     "9": 1,
     "11": 1,
@@ -130,11 +130,12 @@
     "17": 6,
     "18": 7,
     "19": 1,
+    "21": 1,
     "24": 2,
-    "26": 4,
-    "28": 1,
-    "40": 3,
-    "41": 2
+    "26": 5,
+    "28": 5,
+    "40": 5,
+    "41": 3
    },
    "perProject": {
     "م?#0": 4,
@@ -142,7 +143,7 @@
     "م?#2": 4,
     "م?#3": 1,
     "م?#5": 3,
-    "م?#6": 2,
+    "م?#6": 4,
     "م?#7": 1,
     "م?#9": 1,
     "م?#11": 1,
@@ -153,11 +154,12 @@
     "م?#17": 6,
     "م?#18": 7,
     "م?#19": 1,
+    "م?#21": 1,
     "م?#24": 2,
-    "م?#26": 4,
-    "م?#28": 1,
-    "م?#40": 3,
-    "م?#41": 2
+    "م?#26": 5,
+    "م?#28": 5,
+    "م?#40": 5,
+    "م?#41": 3
    },
    "walls": [
     {
@@ -575,6 +577,84 @@
      "retryDelay": "55993s",
      "hadSuccessBefore": true,
      "returnedAt": "2026-10-16T08:36:50.699Z"
+    },
+    {
+     "key": "#6",
+     "project": "",
+     "at": "2026-10-16T08:42:20.062Z",
+     "okBefore": 3,
+     "okTotalForKey": 4,
+     "kind": "حدّ اليوم",
+     "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+     "quotaValue": "20",
+     "retryDelay": "55059s",
+     "hadSuccessBefore": true,
+     "returnedAt": null
+    },
+    {
+     "key": "#41",
+     "project": "",
+     "at": "2026-10-16T08:42:39.872Z",
+     "okBefore": 3,
+     "okTotalForKey": 3,
+     "kind": "حدّ اليوم",
+     "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+     "quotaValue": "20",
+     "retryDelay": "55040s",
+     "hadSuccessBefore": true,
+     "returnedAt": null
+    },
+    {
+     "key": "#26",
+     "project": "",
+     "at": "2026-10-16T08:43:01.156Z",
+     "okBefore": 5,
+     "okTotalForKey": 5,
+     "kind": "حدّ اليوم",
+     "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+     "quotaValue": "20",
+     "retryDelay": "55018s",
+     "hadSuccessBefore": true,
+     "returnedAt": null
+    },
+    {
+     "key": "#24",
+     "project": "",
+     "at": "2026-10-16T08:43:35.750Z",
+     "okBefore": 2,
+     "okTotalForKey": 2,
+     "kind": "مستنفد بلا معرّف",
+     "quotaId": "",
+     "quotaValue": "",
+     "retryDelay": "",
+     "hadSuccessBefore": true,
+     "returnedAt": null
+    },
+    {
+     "key": "#40",
+     "project": "",
+     "at": "2026-10-16T08:44:04.147Z",
+     "okBefore": 5,
+     "okTotalForKey": 5,
+     "kind": "حدّ اليوم",
+     "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+     "quotaValue": "20",
+     "retryDelay": "54955s",
+     "hadSuccessBefore": true,
+     "returnedAt": null
+    },
+    {
+     "key": "#28",
+     "project": "",
+     "at": "2026-10-16T08:48:34.850Z",
+     "okBefore": 5,
+     "okTotalForKey": 5,
+     "kind": "حدّ اليوم",
+     "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+     "quotaValue": "20",
+     "retryDelay": "54685s",
+     "hadSuccessBefore": true,
+     "returnedAt": "2026-10-16T08:58:29.875Z"
     }
    ],
    "returns": [
@@ -626,20 +706,27 @@
      "wallAt": "2026-10-16T08:26:46.768Z",
      "returnAt": "2026-10-16T08:36:50.699Z",
      "afterMinutes": 10.1
+    },
+    {
+     "key": "#21",
+     "project": "",
+     "wallAt": "2026-10-16T08:48:34.850Z",
+     "returnAt": "2026-10-16T08:58:29.875Z",
+     "afterMinutes": 9.9
     }
    ],
    "rejections": {
-    "503 خادم": 3,
-    "429 مستنفد بلا معرّف": 123,
-    "429 حدّ اليوم": 15
+    "503 خادم": 4,
+    "429 مستنفد بلا معرّف": 127,
+    "429 حدّ اليوم": 26
    },
    "unknownRejections": {
     "بلا نجاحٍ سابق": 66,
-    "بعد نجاحٍ سابق": 57
+    "بعد نجاحٍ سابق": 61
    },
    "hourly": {
     "0": 50,
-    "1": 13
+    "1": 24
    },
    "qualityOnly": false,
    "declaredLimits": {
@@ -657,24 +744,24 @@
     }
    },
    "latencyMs": {
-    "p50": 3731,
-    "p95": 7097,
-    "n": 63
+    "p50": 3703,
+    "p95": 7229,
+    "n": 74
    },
    "avgTokens": {
-    "in": 2830.2,
-    "out": 23.6,
-    "think": 357.1
+    "in": 2829.9,
+    "out": 25.3,
+    "think": 372.8
    },
    "finishReasons": {
     "UNEXPECTED_TOOL_CALL": 11,
     "MALFORMED_FUNCTION_CALL": 4,
-    "STOP": 33,
-    "MAX_TOKENS": 15
+    "STOP": 42,
+    "MAX_TOKENS": 17
    },
    "keyPhases": {
-    "جدار": 25,
-    "running": 6
+    "جدار": 30,
+    "running": 1
    },
    "quality": {
     "key": "#0",
@@ -1196,12 +1283,12 @@
    ],
    "returns": [],
    "rejections": {
-    "503 خادم": 33,
-    "429 مستنفد بلا معرّف": 109,
-    "429 حدّ اليوم": 4
+    "503 خادم": 37,
+    "429 مستنفد بلا معرّف": 111,
+    "429 حدّ اليوم": 5
    },
    "unknownRejections": {
-    "بلا نجاحٍ سابق": 95,
+    "بلا نجاحٍ سابق": 97,
     "بعد نجاحٍ سابق": 14
    },
    "hourly": {
@@ -1217,7 +1304,8 @@
       "58288s",
       "58277s",
       "56488s",
-      "55941s"
+      "55941s",
+      "54688s"
      ]
     }
    },
@@ -1755,11 +1843,11 @@
    ],
    "returns": [],
    "rejections": {
-    "503 خادم": 29,
-    "429 مستنفد بلا معرّف": 121
+    "503 خادم": 31,
+    "429 مستنفد بلا معرّف": 124
    },
    "unknownRejections": {
-    "بلا نجاحٍ سابق": 91,
+    "بلا نجاحٍ سابق": 94,
     "بعد نجاحٍ سابق": 30
    },
    "hourly": {
@@ -1851,14 +1939,14 @@
    }
   },
   "gemini-3.6-flash": {
-   "totalOk": 54,
+   "totalOk": 58,
    "perKey": {
     "0": 3,
     "1": 6,
     "2": 3,
     "3": 1,
     "5": 3,
-    "6": 2,
+    "6": 3,
     "7": 1,
     "8": 6,
     "9": 1,
@@ -1869,8 +1957,8 @@
     "16": 2,
     "19": 7,
     "24": 2,
-    "40": 2,
-    "41": 1
+    "40": 4,
+    "41": 2
    },
    "perProject": {
     "م?#0": 3,
@@ -1878,7 +1966,7 @@
     "م?#2": 3,
     "م?#3": 1,
     "م?#5": 3,
-    "م?#6": 2,
+    "م?#6": 3,
     "م?#7": 1,
     "م?#8": 6,
     "م?#9": 1,
@@ -1889,8 +1977,8 @@
     "م?#16": 2,
     "م?#19": 7,
     "م?#24": 2,
-    "م?#40": 2,
-    "م?#41": 1
+    "م?#40": 4,
+    "م?#41": 2
    },
    "walls": [
     {
@@ -2334,6 +2422,45 @@
      "retryDelay": "55284s",
      "hadSuccessBefore": true,
      "returnedAt": null
+    },
+    {
+     "key": "#6",
+     "project": "",
+     "at": "2026-10-16T08:42:14.686Z",
+     "okBefore": 2,
+     "okTotalForKey": 3,
+     "kind": "حدّ اليوم",
+     "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+     "quotaValue": "20",
+     "retryDelay": "55065s",
+     "hadSuccessBefore": true,
+     "returnedAt": null
+    },
+    {
+     "key": "#41",
+     "project": "",
+     "at": "2026-10-16T08:42:35.550Z",
+     "okBefore": 2,
+     "okTotalForKey": 2,
+     "kind": "حدّ اليوم",
+     "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+     "quotaValue": "20",
+     "retryDelay": "55044s",
+     "hadSuccessBefore": true,
+     "returnedAt": null
+    },
+    {
+     "key": "#40",
+     "project": "",
+     "at": "2026-10-16T08:44:04.292Z",
+     "okBefore": 4,
+     "okTotalForKey": 4,
+     "kind": "حدّ اليوم",
+     "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+     "quotaValue": "20",
+     "retryDelay": "54955s",
+     "hadSuccessBefore": true,
+     "returnedAt": null
     }
    ],
    "returns": [
@@ -2381,17 +2508,17 @@
     }
    ],
    "rejections": {
-    "429 مستنفد بلا معرّف": 113,
-    "429 حدّ اليوم": 18,
+    "429 مستنفد بلا معرّف": 115,
+    "429 حدّ اليوم": 29,
     "503 خادم": 1
    },
    "unknownRejections": {
-    "بلا نجاحٍ سابق": 65,
-    "بعد نجاحٍ سابق": 48
+    "بلا نجاحٍ سابق": 66,
+    "بعد نجاحٍ سابق": 49
    },
    "hourly": {
     "0": 39,
-    "1": 15
+    "1": 19
    },
    "qualityOnly": false,
    "declaredLimits": {
@@ -2411,22 +2538,21 @@
    "latencyMs": {
     "p50": 3579,
     "p95": 6386,
-    "n": 54
+    "n": 58
    },
    "avgTokens": {
-    "in": 2826.1,
-    "out": 23.2,
-    "think": 336.1
+    "in": 2827,
+    "out": 23.7,
+    "think": 330.8
    },
    "finishReasons": {
     "MAX_TOKENS": 12,
     "UNEXPECTED_TOOL_CALL": 12,
-    "STOP": 29,
-    "MALFORMED_FUNCTION_CALL": 1
+    "STOP": 32,
+    "MALFORMED_FUNCTION_CALL": 2
    },
    "keyPhases": {
-    "جدار": 28,
-    "running": 3
+    "جدار": 31
    },
    "quality": {
     "key": "#3",
@@ -2532,12 +2658,14 @@
    }
   },
   "gemini-flash-latest": {
-   "totalOk": 3,
+   "totalOk": 4,
    "perKey": {
+    "0": 1,
     "1": 2,
     "3": 1
    },
    "perProject": {
+    "م?#0": 1,
     "م?#1": 2,
     "م?#3": 1
    },
@@ -2943,21 +3071,43 @@
      "quotaValue": "",
      "retryDelay": "",
      "hadSuccessBefore": false,
+     "returnedAt": "2026-10-16T08:47:59.223Z"
+    },
+    {
+     "key": "#0",
+     "project": "",
+     "at": "2026-10-16T08:48:12.376Z",
+     "okBefore": 1,
+     "okTotalForKey": 1,
+     "kind": "حدّ اليوم",
+     "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+     "quotaValue": "20",
+     "retryDelay": "54707s",
+     "hadSuccessBefore": true,
      "returnedAt": null
     }
    ],
-   "returns": [],
+   "returns": [
+    {
+     "key": "#0",
+     "project": "",
+     "wallAt": "2026-10-16T07:56:27.968Z",
+     "returnAt": "2026-10-16T08:47:59.223Z",
+     "afterMinutes": 51.5
+    }
+   ],
    "rejections": {
-    "503 خادم": 29,
-    "429 مستنفد بلا معرّف": 106,
-    "429 حدّ اليوم": 5
+    "503 خادم": 31,
+    "429 مستنفد بلا معرّف": 109,
+    "429 حدّ اليوم": 8
    },
    "unknownRejections": {
-    "بلا نجاحٍ سابق": 101,
+    "بلا نجاحٍ سابق": 104,
     "بعد نجاحٍ سابق": 5
    },
    "hourly": {
-    "0": 3
+    "0": 3,
+    "1": 1
    },
    "qualityOnly": false,
    "declaredLimits": {
@@ -2975,17 +3125,17 @@
     }
    },
    "latencyMs": {
-    "p50": 4246,
+    "p50": 4389,
     "p95": 11179,
-    "n": 3
+    "n": 4
    },
    "avgTokens": {
-    "in": 2883.7,
-    "out": 27.7,
-    "think": 438
+    "in": 2841.5,
+    "out": 25.5,
+    "think": 472.8
    },
    "finishReasons": {
-    "MAX_TOKENS": 1,
+    "MAX_TOKENS": 2,
     "STOP": 2
    },
    "keyPhases": {
@@ -3058,7 +3208,7 @@
    }
   },
   "gemini-3-flash-preview": {
-   "totalOk": 111,
+   "totalOk": 135,
    "perKey": {
     "0": 12,
     "1": 7,
@@ -3071,15 +3221,15 @@
     "9": 1,
     "11": 9,
     "12": 9,
-    "13": 10,
+    "13": 11,
     "14": 9,
     "16": 9,
     "17": 8,
-    "18": 3,
+    "18": 10,
     "19": 7,
     "24": 1,
-    "40": 2,
-    "41": 1
+    "40": 10,
+    "41": 9
    },
    "perProject": {
     "م?#0": 12,
@@ -3093,15 +3243,15 @@
     "م?#9": 1,
     "م?#11": 9,
     "م?#12": 9,
-    "م?#13": 10,
+    "م?#13": 11,
     "م?#14": 9,
     "م?#16": 9,
     "م?#17": 8,
-    "م?#18": 3,
+    "م?#18": 10,
     "م?#19": 7,
     "م?#24": 1,
-    "م?#40": 2,
-    "م?#41": 1
+    "م?#40": 10,
+    "م?#41": 9
    },
    "walls": [
     {
@@ -3506,6 +3656,45 @@
      "retryDelay": "55597s",
      "hadSuccessBefore": true,
      "returnedAt": "2026-10-16T08:37:18.590Z"
+    },
+    {
+     "key": "#24",
+     "project": "",
+     "at": "2026-10-16T08:43:36.014Z",
+     "okBefore": 1,
+     "okTotalForKey": 1,
+     "kind": "مستنفد بلا معرّف",
+     "quotaId": "",
+     "quotaValue": "",
+     "retryDelay": "",
+     "hadSuccessBefore": true,
+     "returnedAt": "2026-10-16T08:53:22.808Z"
+    },
+    {
+     "key": "#13",
+     "project": "",
+     "at": "2026-10-16T08:53:35.971Z",
+     "okBefore": 1,
+     "okTotalForKey": 11,
+     "kind": "حدّ اليوم",
+     "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+     "quotaValue": "20",
+     "retryDelay": "54384s",
+     "hadSuccessBefore": true,
+     "returnedAt": null
+    },
+    {
+     "key": "#18",
+     "project": "",
+     "at": "2026-10-16T08:54:16.540Z",
+     "okBefore": 10,
+     "okTotalForKey": 10,
+     "kind": "حدّ اليوم",
+     "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+     "quotaValue": "20",
+     "retryDelay": "54343s",
+     "hadSuccessBefore": true,
+     "returnedAt": null
     }
    ],
    "returns": [
@@ -3536,19 +3725,26 @@
      "wallAt": "2026-10-16T08:33:22.630Z",
      "returnAt": "2026-10-16T08:37:18.590Z",
      "afterMinutes": 3.9
+    },
+    {
+     "key": "#13",
+     "project": "",
+     "wallAt": "2026-10-16T08:43:36.014Z",
+     "returnAt": "2026-10-16T08:53:22.808Z",
+     "afterMinutes": 9.8
     }
    ],
    "rejections": {
-    "429 مستنفد بلا معرّف": 160,
-    "429 حدّ اليوم": 10
+    "429 مستنفد بلا معرّف": 169,
+    "429 حدّ اليوم": 18
    },
    "unknownRejections": {
-    "بلا نجاحٍ سابق": 66,
-    "بعد نجاحٍ سابق": 94
+    "بلا نجاحٍ سابق": 67,
+    "بعد نجاحٍ سابق": 102
    },
    "hourly": {
     "0": 104,
-    "1": 7
+    "1": 31
    },
    "qualityOnly": false,
    "declaredLimits": {
@@ -3566,24 +3762,24 @@
     }
    },
    "latencyMs": {
-    "p50": 3649,
+    "p50": 3635,
     "p95": 6136,
-    "n": 111
+    "n": 135
    },
    "avgTokens": {
-    "in": 2833.9,
-    "out": 27.2,
-    "think": 457.3
+    "in": 2832.9,
+    "out": 26.2,
+    "think": 472.8
    },
    "finishReasons": {
     "UNEXPECTED_TOOL_CALL": 5,
     "MALFORMED_FUNCTION_CALL": 4,
-    "MAX_TOKENS": 63,
-    "STOP": 39
+    "MAX_TOKENS": 82,
+    "STOP": 44
    },
    "keyPhases": {
-    "جدار": 27,
-    "running": 4
+    "جدار": 29,
+    "running": 2
    },
    "quality": {
     "key": "#6",
@@ -3689,7 +3885,7 @@
    }
   },
   "gemini-3.5-flash-lite": {
-   "totalOk": 63,
+   "totalOk": 73,
    "perKey": {
     "0": 6,
     "1": 7,
@@ -3700,12 +3896,12 @@
     "8": 1,
     "9": 1,
     "11": 8,
-    "12": 1,
+    "12": 2,
     "13": 10,
-    "14": 8,
+    "14": 11,
     "16": 1,
     "18": 1,
-    "19": 7,
+    "19": 13,
     "24": 1
    },
    "perProject": {
@@ -3718,12 +3914,12 @@
     "م?#8": 1,
     "م?#9": 1,
     "م?#11": 8,
-    "م?#12": 1,
+    "م?#12": 2,
     "م?#13": 10,
-    "م?#14": 8,
+    "م?#14": 11,
     "م?#16": 1,
     "م?#18": 1,
-    "م?#19": 7,
+    "م?#19": 13,
     "م?#24": 1
    },
    "walls": [
@@ -4129,6 +4325,32 @@
      "retryDelay": "",
      "hadSuccessBefore": true,
      "returnedAt": null
+    },
+    {
+     "key": "#18",
+     "project": "",
+     "at": "2026-10-16T08:38:45.189Z",
+     "okBefore": 1,
+     "okTotalForKey": 1,
+     "kind": "مستنفد بلا معرّف",
+     "quotaId": "",
+     "quotaValue": "",
+     "retryDelay": "",
+     "hadSuccessBefore": true,
+     "returnedAt": null
+    },
+    {
+     "key": "#24",
+     "project": "",
+     "at": "2026-10-16T08:43:36.249Z",
+     "okBefore": 1,
+     "okTotalForKey": 1,
+     "kind": "مستنفد بلا معرّف",
+     "quotaId": "",
+     "quotaValue": "",
+     "retryDelay": "",
+     "hadSuccessBefore": true,
+     "returnedAt": "2026-10-16T08:56:16.473Z"
     }
    ],
    "returns": [
@@ -4152,34 +4374,48 @@
      "wallAt": "2026-10-16T08:22:37.676Z",
      "returnAt": "2026-10-16T08:31:26.846Z",
      "afterMinutes": 8.8
+    },
+    {
+     "key": "#19",
+     "project": "",
+     "wallAt": "2026-10-16T08:43:36.249Z",
+     "returnAt": "2026-10-16T08:52:45.261Z",
+     "afterMinutes": 9.2
+    },
+    {
+     "key": "#12",
+     "project": "",
+     "wallAt": "2026-10-16T08:43:36.249Z",
+     "returnAt": "2026-10-16T08:56:16.473Z",
+     "afterMinutes": 12.7
     }
    ],
    "rejections": {
-    "503 خادم": 7,
-    "429 مستنفد بلا معرّف": 158
+    "503 خادم": 13,
+    "429 مستنفد بلا معرّف": 166
    },
    "unknownRejections": {
     "بلا نجاحٍ سابق": 78,
-    "بعد نجاحٍ سابق": 80
+    "بعد نجاحٍ سابق": 88
    },
    "hourly": {
     "0": 61,
-    "1": 2
+    "1": 12
    },
    "qualityOnly": false,
    "declaredLimits": {},
    "latencyMs": {
-    "p50": 4080,
+    "p50": 4113,
     "p95": 10395,
-    "n": 63
+    "n": 73
    },
    "avgTokens": {
-    "in": 2841.8,
-    "out": 214,
+    "in": 2841.6,
+    "out": 216.2,
     "think": 0
    },
    "finishReasons": {
-    "STOP": 63
+    "STOP": 73
    },
    "keyPhases": {
     "جدار": 28,
@@ -4279,34 +4515,34 @@
    }
   },
   "gemini-flash-lite-latest": {
-   "totalOk": 38,
+   "totalOk": 56,
    "perKey": {
     "0": 4,
     "1": 4,
-    "2": 3,
+    "2": 10,
     "6": 1,
     "8": 1,
     "9": 1,
     "11": 6,
     "13": 9,
-    "14": 5,
+    "14": 6,
     "16": 1,
-    "17": 1,
-    "40": 2
+    "17": 3,
+    "40": 10
    },
    "perProject": {
     "م?#0": 4,
     "م?#1": 4,
-    "م?#2": 3,
+    "م?#2": 10,
     "م?#6": 1,
     "م?#8": 1,
     "م?#9": 1,
     "م?#11": 6,
     "م?#13": 9,
-    "م?#14": 5,
+    "م?#14": 6,
     "م?#16": 1,
-    "م?#17": 1,
-    "م?#40": 2
+    "م?#17": 3,
+    "م?#40": 10
    },
    "walls": [
     {
@@ -4724,6 +4960,19 @@
      "retryDelay": "",
      "hadSuccessBefore": true,
      "returnedAt": null
+    },
+    {
+     "key": "#17",
+     "project": "",
+     "at": "2026-10-16T08:50:29.490Z",
+     "okBefore": 3,
+     "okTotalForKey": 3,
+     "kind": "مستنفد بلا معرّف",
+     "quotaId": "",
+     "quotaValue": "",
+     "retryDelay": "",
+     "hadSuccessBefore": true,
+     "returnedAt": "2026-10-16T08:58:16.911Z"
     }
    ],
    "returns": [
@@ -4754,34 +5003,41 @@
      "wallAt": "2026-10-16T08:33:35.422Z",
      "returnAt": "2026-10-16T08:36:22.311Z",
      "afterMinutes": 2.8
+    },
+    {
+     "key": "#14",
+     "project": "",
+     "wallAt": "2026-10-16T08:50:29.490Z",
+     "returnAt": "2026-10-16T08:58:16.911Z",
+     "afterMinutes": 7.8
     }
    ],
    "rejections": {
-    "503 خادم": 18,
-    "429 مستنفد بلا معرّف": 148
+    "503 خادم": 22,
+    "429 مستنفد بلا معرّف": 158
    },
    "unknownRejections": {
-    "بلا نجاحٍ سابق": 93,
-    "بعد نجاحٍ سابق": 55
+    "بلا نجاحٍ سابق": 96,
+    "بعد نجاحٍ سابق": 62
    },
    "hourly": {
     "0": 35,
-    "1": 3
+    "1": 21
    },
    "qualityOnly": false,
    "declaredLimits": {},
    "latencyMs": {
-    "p50": 4378,
-    "p95": 20126,
-    "n": 38
+    "p50": 4417,
+    "p95": 10440,
+    "n": 56
    },
    "avgTokens": {
-    "in": 2846.4,
-    "out": 195.6,
+    "in": 2844,
+    "out": 200.8,
     "think": 0
    },
    "finishReasons": {
-    "STOP": 38
+    "STOP": 56
    },
    "keyPhases": {
     "جدار": 28,
@@ -4891,30 +5147,32 @@
    }
   },
   "gemini-3.1-flash-lite": {
-   "totalOk": 23,
+   "totalOk": 55,
    "perKey": {
-    "0": 7,
-    "1": 6,
-    "2": 3,
+    "0": 14,
+    "1": 9,
+    "2": 9,
     "3": 1,
     "5": 1,
-    "6": 1,
+    "6": 8,
     "7": 1,
     "8": 1,
     "16": 1,
-    "40": 1
+    "17": 1,
+    "40": 9
    },
    "perProject": {
-    "م?#0": 7,
-    "م?#1": 6,
-    "م?#2": 3,
+    "م?#0": 14,
+    "م?#1": 9,
+    "م?#2": 9,
     "م?#3": 1,
     "م?#5": 1,
-    "م?#6": 1,
+    "م?#6": 8,
     "م?#7": 1,
     "م?#8": 1,
     "م?#16": 1,
-    "م?#40": 1
+    "م?#17": 1,
+    "م?#40": 9
    },
    "walls": [
     {
@@ -5331,7 +5589,7 @@
      "quotaValue": "",
      "retryDelay": "",
      "hadSuccessBefore": true,
-     "returnedAt": "2026-10-16T08:38:15.621Z"
+     "returnedAt": "2026-10-16T08:58:19.755Z"
     }
    ],
    "returns": [
@@ -5369,38 +5627,53 @@
      "wallAt": "2026-10-16T08:37:34.498Z",
      "returnAt": "2026-10-16T08:38:15.621Z",
      "afterMinutes": 0.7
+    },
+    {
+     "key": "#0",
+     "project": "",
+     "wallAt": "2026-10-16T08:37:34.498Z",
+     "returnAt": "2026-10-16T08:41:27.733Z",
+     "afterMinutes": 3.9
+    },
+    {
+     "key": "#17",
+     "project": "",
+     "wallAt": "2026-10-16T08:37:34.498Z",
+     "returnAt": "2026-10-16T08:58:19.755Z",
+     "afterMinutes": 20.8
     }
    ],
    "rejections": {
-    "429 مستنفد بلا معرّف": 128,
-    "503 خادم": 12
+    "429 مستنفد بلا معرّف": 147,
+    "503 خادم": 21
    },
    "unknownRejections": {
-    "بلا نجاحٍ سابق": 93,
-    "بعد نجاحٍ سابق": 35
+    "بلا نجاحٍ سابق": 96,
+    "بعد نجاحٍ سابق": 51
    },
    "hourly": {
     "0": 19,
-    "1": 4
+    "1": 36
    },
    "qualityOnly": false,
    "declaredLimits": {},
    "latencyMs": {
-    "p50": 3540,
-    "p95": 34972,
-    "n": 23
+    "p50": 3593,
+    "p95": 32316,
+    "n": 55
    },
    "avgTokens": {
-    "in": 2824,
-    "out": 298,
+    "in": 2823.8,
+    "out": 309.6,
     "think": 0
    },
    "finishReasons": {
-    "STOP": 23
+    "STOP": 54,
+    "MAX_TOKENS": 1
    },
    "keyPhases": {
-    "جدار": 27,
-    "running": 4
+    "running": 6,
+    "جدار": 25
    },
    "quality": {
     "key": "#9",
@@ -5502,11 +5775,11 @@
    }
   },
   "gemma-4-31b-it": {
-   "totalOk": 14,
+   "totalOk": 19,
    "perKey": {
     "0": 4,
     "1": 1,
-    "2": 1,
+    "2": 2,
     "6": 1,
     "8": 1,
     "9": 1,
@@ -5514,12 +5787,12 @@
     "18": 1,
     "19": 1,
     "39": 1,
-    "40": 1
+    "40": 5
    },
    "perProject": {
     "م?#0": 4,
     "م?#1": 1,
-    "م?#2": 1,
+    "م?#2": 2,
     "م?#6": 1,
     "م?#8": 1,
     "م?#9": 1,
@@ -5527,7 +5800,7 @@
     "م?#18": 1,
     "م?#19": 1,
     "م?#39": 1,
-    "م?#40": 1
+    "م?#40": 5
    },
    "walls": [
     {
@@ -5945,6 +6218,45 @@
      "retryDelay": "",
      "hadSuccessBefore": true,
      "returnedAt": null
+    },
+    {
+     "key": "#18",
+     "project": "",
+     "at": "2026-10-16T08:38:58.051Z",
+     "okBefore": 1,
+     "okTotalForKey": 1,
+     "kind": "مستنفد بلا معرّف",
+     "quotaId": "",
+     "quotaValue": "",
+     "retryDelay": "",
+     "hadSuccessBefore": true,
+     "returnedAt": null
+    },
+    {
+     "key": "#19",
+     "project": "",
+     "at": "2026-10-16T08:43:46.637Z",
+     "okBefore": 1,
+     "okTotalForKey": 1,
+     "kind": "مستنفد بلا معرّف",
+     "quotaId": "",
+     "quotaValue": "",
+     "retryDelay": "",
+     "hadSuccessBefore": true,
+     "returnedAt": null
+    },
+    {
+     "key": "#39",
+     "project": "",
+     "at": "2026-10-16T08:49:13.069Z",
+     "okBefore": 1,
+     "okTotalForKey": 1,
+     "kind": "مستنفد بلا معرّف",
+     "quotaId": "",
+     "quotaValue": "",
+     "retryDelay": "",
+     "hadSuccessBefore": true,
+     "returnedAt": "2026-10-16T08:57:43.605Z"
     }
    ],
    "returns": [
@@ -5982,42 +6294,49 @@
      "wallAt": "2026-10-16T08:06:39.845Z",
      "returnAt": "2026-10-16T08:38:13.655Z",
      "afterMinutes": 31.6
+    },
+    {
+     "key": "#2",
+     "project": "",
+     "wallAt": "2026-10-16T08:49:13.069Z",
+     "returnAt": "2026-10-16T08:57:43.605Z",
+     "afterMinutes": 8.5
     }
    ],
    "rejections": {
-    "503 خادم": 12,
-    "429 مستنفد بلا معرّف": 121,
-    "net": 5,
-    "500 خادم": 1
+    "503 خادم": 14,
+    "429 مستنفد بلا معرّف": 133,
+    "net": 9,
+    "500 خادم": 3
    },
    "unknownRejections": {
-    "بلا نجاحٍ سابق": 94,
-    "بعد نجاحٍ سابق": 27
+    "بلا نجاحٍ سابق": 96,
+    "بعد نجاحٍ سابق": 37
    },
    "hourly": {
     "0": 10,
-    "1": 4
+    "1": 9
    },
    "qualityOnly": false,
    "declaredLimits": {},
    "latencyMs": {
     "p50": 42751,
     "p95": 109286,
-    "n": 14
+    "n": 19
    },
    "avgTokens": {
-    "in": 2858.5,
-    "out": 14,
-    "think": 531.6
+    "in": 2846.7,
+    "out": 18.4,
+    "think": 482.2
    },
    "finishReasons": {
-    "MAX_TOKENS": 12,
-    "UNEXPECTED_TOOL_CALL": 1,
-    "STOP": 1
+    "MAX_TOKENS": 14,
+    "UNEXPECTED_TOOL_CALL": 2,
+    "STOP": 3
    },
    "keyPhases": {
-    "جدار": 27,
-    "running": 4
+    "جدار": 29,
+    "running": 2
    },
    "quality": {
     "key": "#11",
