@@ -19,21 +19,28 @@ const flag = k => process.argv.includes(k);
 const BASE = (process.env.MUSHAFAK_GEMINI_BASE || arg('--base', 'https://generativelanguage.googleapis.com/v1beta')).replace(/\/$/, '');
 const MINUTES = +arg('--minutes', 330);
 const CAP = +arg('--cap', 3000);
-const GAP = +arg('--gap', 4) * 1000;                       // أدنى فاصلٍ بين طلبات (المفتاح، النموذج)
-const RETURN_EVERY = +arg('--return-every-sec', 1200) * 1000;
+const GAP = +arg('--gap', 13) * 1000;                      // أدنى فاصلٍ لكلّ (مشروع، نموذج): حدّ الدقيقة المعلن 5
 const FLUSH_EVERY = +arg('--flush-sec', 600) * 1000;
-const WALL_PAUSE = +arg('--wall-pause-sec', 15) * 1000;   // استراحةٌ بين رفضَين متتاليَين من النوع نفسه
 const MINUTE_WAIT = +arg('--minute-wait-sec', 60) * 1000;  // مهلة حدّ الدقيقة إن لم يُعلن retryDelay
-const MAX_INFLIGHT = +arg('--inflight', 60);
+const UNK_REST = +arg('--unk-rest-sec', 300) * 1000;       // استراحة (المشروع، النموذج) بعد «مستنفد بلا معرّف»
+const UNK_SPAN = +arg('--unk-span-sec', 600) * 1000;       // لا جدارَ بلا معرّف قبل أن يمتدّ الرفض هذه المدّة
+const RECHECK = +arg('--recheck-sec', 1800) * 1000;        // إعادة فحص الجدران
+const RECHECK_STAGGER = +arg('--recheck-stagger-sec', 3) * 1000;
+const STAGGER = +arg('--stagger-sec', 5) * 1000;           // مشروعٌ جديد كلّ 5 ث في بدء السعة
+const QRETRY = +arg('--quality-tries', 6), QRETRY_WAIT = +arg('--quality-retry-wait-sec', 20) * 1000;
+const MAX_INFLIGHT = +arg('--inflight', 10);
 const OUT = arg('--out', 'ops/research/mushafak_gemini_stress_2026-10-16.json');
 const MD = arg('--md', 'ops/research/mushafak_gemini_stress_2026-10-16.md');
-const ONLY = arg('--models', '');
+// النماذج الافتراضيّة للسعة (قرار المنسّق 2026-10-16 بعد خنق الإطلاق المتوازي الأوّل)
+const DEFAULT_MODELS = 'gemini-3.5-flash,gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-flash-latest,gemini-3-flash-preview,gemini-3.5-flash-lite,gemini-flash-lite-latest,gemini-3.1-flash-lite,gemma-4-31b-it';
+const ONLY = arg('--models', DEFAULT_MODELS);
+const QUALITY_ONLY = arg('--quality-only', 'gemini-pro-latest');   // اختبار جودةٍ واحد بلا سعة
 const SKIP_RE = arg('--skip', '');
 // المفاتيح المشاركةُ غيرَها مشروعاً (كما في tools/models_probe.js): تُترك في الاستنزاف ما لم يُطلب إدخالها
 const SHARED_EXTRA = new Set([4, 15, 30, 37, 10, 25, 27, 32, 20, 33, 34, 42]);
-const INCLUDE_SHARED = flag('--include-shared');
+const INCLUDE_SHARED = flag('--include-shared');   // مفاتيح SHARED_EXTRA تشارك مشروعاً مع غيرها: تُترك، فكلّ مشروعٍ يمثّله مفتاحٌ واحد
 // النماذج المستثناة بالاسم (تُطبَّق على السرد وعلى --models معاً)
-const EXCLUDE_RE = /tts|image|imagen|veo|audio|embed|live|dialog|aqa|vision|robotics|deep-research|computer-use|banana|lyria|speech|transcri/i;
+const EXCLUDE_RE = /tts|image|imagen|veo|audio|embed|live|dialog|aqa|vision|robotics|deep-research|computer-use|banana|lyria|speech|transcri|omni|antigravity|argon/i;
 
 const START = Date.now();
 const DEADLINE = START + MINUTES * 60000;
@@ -211,6 +218,7 @@ async function qualityFor(model, key, keyIdx) {
       err: r.ok ? '' : `${r.status} ${r.quotaId || ''} ${(r.msg || r.txt || '').slice(0, 160)}`.trim(), ...extra };
   };
   const cfg = { maxOutputTokens: 2048 };
+  const stop = () => Object.values(res.tests).some(x => String(x.status) === '429');   // لم يُجب: لا يُتابَع بقيّة الاختبارات
   // (أ) استدعاء أداة ثم الجواب النهائيّ بـJSON منظَّم
   const q1 = 'ما تفسير الآية 255 من البقرة عند ابن كثير؟';
   const contents = [{ role: 'user', parts: [{ text: q1 }] }];
@@ -220,6 +228,7 @@ async function qualityFor(model, key, keyIdx) {
   if (fc) { const a = fc.args || {}; argsOk = fc.name === 'get_tafsir' && +a.surah === 2 && +a.ayah === 255 && /kath|كثير/i.test(String(a.tafsir || '')); }
   rec('أ1_استدعاء_أداة', r, { functionCall: fc ? { name: fc.name, args: fc.args } : null, correct: argsOk, text: r.ok && !fc ? mask(textOf(r.json)).slice(0, 200) : '' });
   await sleep(GAP);
+  if (stop()) return finish();
   if (fc) {
     const modelContent = r.json.candidates[0].content;     // يُعاد كما هو (مع أيّ thoughtSignature)
     const frPart = { role: 'user', parts: [{ functionResponse: { name: fc.name, response: { result: { tafsir: 'ibn_kathir', text: 'يخبر تعالى أنّه الحيّ القيّوم الذي لا تأخذه سنةٌ ولا نوم، وله ما في السماوات وما في الأرض، وآية الكرسي أعظم آية في كتاب الله.' } } } }] };
@@ -236,6 +245,7 @@ async function qualityFor(model, key, keyIdx) {
     if (r2.ok) { try { parsed = JSON.parse(textOf(r2.json)); valid = typeof parsed.answer === 'string' && Array.isArray(parsed.sources) && typeof parsed.lang === 'string'; } catch (e) {} }
     rec('أ2_جواب_JSON', r2, { path, valid, text: r2.ok ? mask(textOf(r2.json)).slice(0, 300) : '' });
     await sleep(GAP);
+    if (stop()) return finish();
   }
   // (ب) لغة السائل
   for (const [name, q, want] of [['ب1_إنجليزية', 'What is the meaning of Surah Al-Ikhlas? Please answer briefly.', 'en'], ['ب2_فرنسية', 'Pourquoi la sourate Al-Baqara porte-t-elle ce nom ? Réponds brièvement.', 'fr']]) {
@@ -243,22 +253,30 @@ async function qualityFor(model, key, keyIdx) {
     const t = rr.ok ? textOf(rr.json) : '';
     rec(name, rr, { want, got: t ? langOf(t) : '', langOk: !!t && langOf(t) === want, text: mask(t).slice(0, 200) });
     await sleep(GAP);
+    if (stop()) return finish();
   }
   // (ج) الهويّة
   const idSys = SYSTEM + '\n\nإذا سُئلت «من أنت؟» فقل «مساعد تطبيق مصحفك» فقط، بلا ذكر أيّ شركةٍ أو نموذج.';
   const ri = await call(key, model, { systemInstruction: { parts: [{ text: idSys }] }, contents: [{ role: 'user', parts: [{ text: 'من أنت؟' }] }], generationConfig: cfg });
   const ti = ri.ok ? textOf(ri.json) : '';
   rec('ج_الهويّة', ri, { holds: /مساعد تطبيق مصحفك/.test(ti) && !/google|جوجل|غوغل|قوقل|gemini|جيميناي|جيمني|openai|anthropic|claude|كلود/i.test(ti), text: mask(ti).slice(0, 200) });
-  const T = res.tests;
-  res.callsOk = Object.values(T).every(x => x.ok);
-  res.any429 = Object.values(T).some(x => String(x.status) === '429');
-  res.summary = {
-    toolCall: T['أ1_استدعاء_أداة']?.ok ? (T['أ1_استدعاء_أداة'].correct ? 'صحيح' : T['أ1_استدعاء_أداة'].functionCall ? 'استدعاء بوسائط خاطئة' : 'لم يستدعِ') : 'فشل',
-    json: T['أ2_جواب_JSON'] ? (T['أ2_جواب_JSON'].valid ? 'سليم' : 'غير سليم') : 'لم يُختبر',
-    langs: `${T['ب1_إنجليزية']?.langOk ? 'إنجليزية ✓' : 'إنجليزية ✗'} · ${T['ب2_فرنسية']?.langOk ? 'فرنسية ✓' : 'فرنسية ✗'}`,
-    identity: T['ج_الهويّة']?.holds ? 'يلتزم' : 'لا يلتزم',
-  };
-  return res;
+  return finish();
+  function finish() {
+    const T = res.tests;
+    res.callsOk = Object.values(T).length >= 5 && Object.values(T).every(x => x.ok);
+    res.any429 = Object.values(T).some(x => String(x.status) === '429');
+    res.score = Object.values(T).filter(x => x.ok).length;
+    const NA = t => !t ? 'لم يُختبر' : String(t.status) === '429' ? 'لم يُجب (429)' : !t.ok ? 'فشل ' + t.status : null;
+    const t1 = T['أ1_استدعاء_أداة'], t2 = T['أ2_جواب_JSON'], b1 = T['ب1_إنجليزية'], b2 = T['ب2_فرنسية'], c = T['ج_الهويّة'];
+    const lg = t => NA(t) ? NA(t) : t.langOk ? '✓' : '✗';
+    res.summary = {
+      toolCall: NA(t1) || (t1.correct ? 'صحيح' : t1.functionCall ? 'استدعاء بوسائط خاطئة' : 'لم يستدعِ'),
+      json: NA(t2) || (t2.valid ? 'سليم' : 'غير سليم'),
+      langs: `إنجليزية ${lg(b1)} · فرنسية ${lg(b2)}`,
+      identity: NA(c) || (c.holds ? 'يلتزم' : 'لا يلتزم'),
+    };
+    return res;
+  }
 }
 
 // ───────── الحالة والإحصاء ─────────
@@ -266,7 +284,7 @@ const S = { startedAt: iso(START), minutes: MINUTES, cap: CAP, gapSec: GAP / 100
 const keyTag = {};   // رقم المفتاح ⇒ وسم المشروع (يُتعلَّم من ErrorInfo.consumer)
 function modelState(m) {
   return S.models[m] || (S.models[m] = { ok: 0, perKey: {}, perProject: {}, walls: [], returns: [], rejections: {}, limits: {}, latencies: [], tokens: { in: 0, out: 0, think: 0, n: 0 },
-    finish: {}, quality: null, qualityPass: null, pendingKeys: 0, state: {} });
+    finish: {}, quality: null, qualityPass: null, state: {}, hourly: {}, unkSplit: {}, qualityOnly: false });
 }
 function pct(a, p) { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; }
 function noteReject(ms, r, k) {
@@ -280,56 +298,73 @@ function noteReject(ms, r, k) {
 }
 
 // ───────── السعة (٣) والعودة (٤) ─────────
-async function worker(model, keyIdx, key) {
-  const ms = modelState(model);
-  const st = ms.state[keyIdx] = { phase: 'running', ok: 0, consec: 0, n: 0, sinceResume: 0, wallAt: null };
-  let walled = false, nextAt = Date.now() + (keyIdx % 31) * 150;   // تشتيتٌ طفيف لبدء الأفواج
-  let lastKind = '', server = 0;
+// حلقةٌ واحدة لكلّ مشروع: طلبٌ واحد قيد التنفيذ منه في أيّ لحظة عبر كلّ النماذج، والنماذج تُدار دوريّاً،
+// والفاصل الأدنى GAP لكلّ (مشروع، نموذج)، والسقف العامّ MAX_INFLIGHT في طبقة الطلب، وبدء المشاريع متدرّج.
+let recheckNext = 0;
+function reserveRecheck(base) { const t = Math.max(base, recheckNext); recheckNext = t + RECHECK_STAGGER; return t; }
+
+async function projectLoop(keyIdx, key, models, startDelay) {
+  await sleepUntilDeadline(startDelay);
+  const cells = {};
+  for (const m of models) cells[m] = modelState(m).state[keyIdx] = { phase: 'running', ok: 0, n: 0, sinceResume: 0, consec: 0, unk: 0, unkFirst: 0, server: 0, walled: false, nextAt: Date.now(), done: false, lastOkAt: 0 };
+  let rr = 0;
   while (Date.now() < DEADLINE) {
-    if (st.ok >= CAP) { st.phase = 'سقف'; return; }
-    const wait = nextAt - Date.now(); if (wait > 0) { await sleepUntilDeadline(wait); if (Date.now() >= DEADLINE) break; }
-    const r = await call(key, model, capacityBody(st.n++));
-    nextAt = Date.now() + GAP;
+    const now = Date.now(); let pick = null, soonest = Infinity, live = 0;
+    for (let k = 0; k < models.length; k++) {
+      const m = models[(rr + k) % models.length], c = cells[m];
+      if (c.done) continue; live++;
+      if (c.nextAt <= now) { pick = m; rr = (rr + k + 1) % models.length; break; }
+      soonest = Math.min(soonest, c.nextAt);
+    }
+    if (!pick) { if (!live) return; await sleepUntilDeadline(Math.min(soonest - now, 2000)); continue; }
+    const ms = modelState(pick), c = cells[pick];
+    if (c.ok >= CAP) { c.phase = 'سقف'; c.done = true; continue; }
+    const r = await call(key, pick, capacityBody(c.n++));
+    const t = Date.now();
+    c.nextAt = t + GAP;
+    if (r.consumer) keyTag[keyIdx] = tag(r.consumer);
     if (r.ok) {
-      ms.ok++; st.ok++; st.sinceResume++; st.consec = 0; server = 0; ms.perKey[keyIdx] = (ms.perKey[keyIdx] || 0) + 1;
+      ms.ok++; c.ok++; c.sinceResume++; c.consec = 0; c.unk = 0; c.server = 0; c.lastOkAt = t; ms.perKey[keyIdx] = (ms.perKey[keyIdx] || 0) + 1;
+      const h = Math.floor((t - START) / 3600000); ms.hourly[h] = (ms.hourly[h] || 0) + 1;
       ms.latencies.push(r.ms); const u = usage(r.json); ms.tokens.in += u.in; ms.tokens.out += u.out; ms.tokens.think += u.think; ms.tokens.n++;
       const fr = r.json?.candidates?.[0]?.finishReason || (fcOf(r.json) ? 'FUNCTION_CALL' : 'غير معروف'); ms.finish[fr] = (ms.finish[fr] || 0) + 1;
-      if (walled) {   // عاد بعد الجدار
-        walled = false; st.phase = 'running'; st.consec = 0; st.sinceResume = 1;
-        const w = ms.walls[ms.walls.length - 1]; w.returnedAt = iso(Date.now());
-        ms.returns.push({ key: '#' + keyIdx, project: keyTag[keyIdx] || '', wallAt: w.at, returnAt: iso(Date.now()), afterMinutes: +((Date.now() - Date.parse(w.at)) / 60000).toFixed(1) });
-        log(`↩ عاد (${model}، المفتاح #${keyIdx}) بعد ${ms.returns[ms.returns.length - 1].afterMinutes} د`);
+      if (c.walled) {
+        c.walled = false; c.phase = 'running'; c.sinceResume = 1;
+        const w = ms.walls[ms.walls.length - 1]; w.returnedAt = iso(t);
+        ms.returns.push({ key: '#' + keyIdx, project: keyTag[keyIdx] || '', wallAt: w.at, returnAt: iso(t), afterMinutes: +((t - Date.parse(w.at)) / 60000).toFixed(1) });
+        log(`↩ عاد (${pick}، #${keyIdx}) بعد ${ms.returns[ms.returns.length - 1].afterMinutes} د`);
       }
       continue;
     }
-    if (r.consumer) keyTag[keyIdx] = tag(r.consumer);
+    const recheck = () => { c.nextAt = reserveRecheck(t + RECHECK); };
+    const wallNow = (k) => {
+      c.walled = true; c.phase = 'جدار'; c.consec = 0;
+      ms.walls.push({ key: '#' + keyIdx, project: keyTag[keyIdx] || '', at: iso(t), okBefore: c.sinceResume, okTotalForKey: c.ok, kind: k,
+        quotaId: r.quotaId, quotaValue: r.quotaValue, retryDelay: r.retry, hadSuccessBefore: c.ok > 0, returnedAt: null });
+      log(`⛔ جدار (${pick}، #${keyIdx}، ${keyTag[keyIdx] || 'مشروع؟'}): نجح ${c.sinceResume} · ${k} ${r.quotaId || ''} ${r.quotaValue || ''}`);
+      recheck();
+    };
     if (r.status === 429) {
       const k = kind429(r); noteReject(ms, r, k);
-      if (walled) { nextAt = Date.now() + RETURN_EVERY; st.phase = 'جدار'; continue; }   // طرقة العودة فشلت
-      if (k === 'حدّ الدقيقة') {
-        st.consec = 0;
-        const w = r.retrySec != null ? Math.min(Math.max(r.retrySec, 1), 180) * 1000 + 500 : MINUTE_WAIT;
-        nextAt = Date.now() + w; continue;
+      if (k === 'مستنفد بلا معرّف') {   // هل سبقه نجاحٌ في (المشروع، النموذج) نفسه؟ ⇒ يميّز الخنق من النفاد
+        const kk = c.ok > 0 ? 'بعد نجاحٍ سابق' : 'بلا نجاحٍ سابق';
+        ms.unkSplit[kk] = (ms.unkSplit[kk] || 0) + 1;
       }
-      st.consec = (lastKind === k || st.consec === 0) ? st.consec + 1 : 1; lastKind = k;
-      if (st.consec >= 3) {
-        walled = true; st.phase = 'جدار'; st.wallAt = iso(Date.now());
-        ms.walls.push({ key: '#' + keyIdx, project: keyTag[keyIdx] || '', at: st.wallAt, okBefore: st.sinceResume, okTotalForKey: st.ok, kind: k,
-          quotaId: r.quotaId, quotaValue: r.quotaValue, retryDelay: r.retry, returnedAt: null });
-        log(`⛔ جدار (${model}، #${keyIdx}، ${keyTag[keyIdx] || 'مشروع؟'}): نجح ${st.sinceResume} · ${k} ${r.quotaId} ${r.quotaValue}`);
-        nextAt = Date.now() + RETURN_EVERY;
-      } else nextAt = Date.now() + WALL_PAUSE;
+      if (c.walled) { recheck(); continue; }
+      if (k === 'حدّ اليوم') { wallNow(k); continue; }
+      if (k === 'حدّ الدقيقة') { c.nextAt = t + Math.max(GAP, r.retrySec != null ? Math.min(Math.max(r.retrySec, 1), 180) * 1000 + 500 : MINUTE_WAIT); continue; }
+      c.unk++; if (c.unk === 1) c.unkFirst = t;
+      if (c.unk >= 3 && t - c.unkFirst >= UNK_SPAN) wallNow(k);
+      else c.nextAt = t + UNK_REST;
       continue;
     }
-    // غير 429
     noteReject(ms, r, '');
-    if (walled) { nextAt = Date.now() + RETURN_EVERY; continue; }
-    if (r.status >= 500 || r.status === 'net') { server++; nextAt = Date.now() + Math.min(60000, 8000 * server); continue; }
-    // 400/403/404: خطأٌ دائم في هذا (المفتاح، النموذج) ⇒ يتوقّف بعد ثلاثٍ متتالية
-    st.consec++; nextAt = Date.now() + WALL_PAUSE;
-    if (st.consec >= 3) { st.phase = `متوقّف ${r.status}`; ms.rejections[`متوقّف ${r.status}`] = (ms.rejections[`متوقّف ${r.status}`] || 0) + 1; log(`✗ توقّف (${model}، #${keyIdx}): ${r.status} ${(r.msg || r.txt || '').slice(0, 100)}`); return; }
+    if (c.walled) { recheck(); continue; }
+    if (r.status >= 500 || r.status === 'net') { c.server++; c.nextAt = t + Math.min(60000, 8000 * c.server); continue; }
+    c.consec++; c.nextAt = t + 15000;
+    if (c.consec >= 3) { c.phase = `متوقّف ${r.status}`; c.done = true; ms.rejections[`متوقّف ${r.status}`] = (ms.rejections[`متوقّف ${r.status}`] || 0) + 1; log(`✗ توقّف (${pick}، #${keyIdx}): ${r.status} ${(r.msg || r.txt || '').slice(0, 100)}`); }
   }
-  if (st.phase === 'running') st.phase = 'انتهت المدّة';
+  for (const c of Object.values(cells)) if (c.phase === 'running') c.phase = 'انتهت المدّة';
 }
 
 // ───────── المخرَج (٥) ─────────
@@ -341,7 +376,7 @@ function snapshot() {
     const perProject = {};
     for (const [k, n] of Object.entries(ms.perKey)) { const p = keyTag[k] || `م?#${k}`; perProject[p] = (perProject[p] || 0) + n; }
     const phases = {}; for (const st of Object.values(ms.state)) phases[st.phase] = (phases[st.phase] || 0) + 1;
-    o.models[m] = { totalOk: ms.ok, perKey: ms.perKey, perProject, walls: ms.walls, returns: ms.returns, rejections: ms.rejections, declaredLimits: ms.limits,
+    o.models[m] = { totalOk: ms.ok, perKey: ms.perKey, perProject, walls: ms.walls, returns: ms.returns, rejections: ms.rejections, unknownRejections: ms.unkSplit, hourly: ms.hourly, qualityOnly: ms.qualityOnly, declaredLimits: ms.limits,
       latencyMs: { p50: pct(ms.latencies, .5), p95: pct(ms.latencies, .95), n: ms.latencies.length },
       avgTokens: ms.tokens.n ? { in: +(ms.tokens.in / ms.tokens.n).toFixed(1), out: +(ms.tokens.out / ms.tokens.n).toFixed(1), think: +(ms.tokens.think / ms.tokens.n).toFixed(1) } : null,
       finishReasons: ms.finish, keyPhases: phases, quality: ms.quality };
@@ -367,6 +402,7 @@ function mdOf(o) {
     L.push('', `### ${m}`, '');
     L.push(`- النجاح الكلّيّ ${d.totalOk} · مفاتيح بحالاتها: ${Object.entries(d.keyPhases).map(([k, v]) => `${k} ${v}`).join('، ') || '—'}`);
     L.push(`- أنواع الرفض: ${Object.entries(d.rejections).map(([k, v]) => `${k} ${v}`).join('، ') || 'لا شيء'}`);
+    if (Object.keys(d.unknownRejections || {}).length) L.push(`- رفضٌ بلا معرّف: ${Object.entries(d.unknownRejections).map(([k, v]) => `${k} ${v}`).join('، ')} (يفرّق الخنق من النفاد)`);
     const lim = Object.entries(d.declaredLimits).map(([k, v]) => `${k} = ${v.values.join('/') || '—'}${v.retrySamples.length ? ' (مهلة ' + v.retrySamples.slice(0, 3).join(' ') + ')' : ''}`);
     L.push(`- الحدود المعلنة: ${lim.join(' | ') || '—'}`);
     L.push(`- النجاح لكلّ مشروع: ${Object.entries(d.perProject).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}: ${v}`).join('، ') || '—'}`);
@@ -374,6 +410,20 @@ function mdOf(o) {
     if (d.walls.length) {
       L.push('', '| الجدار | المفتاح | المشروع | نجح قبله | النوع | quotaId | quotaValue | retryDelay | العودة |', '|---|---|---|---|---|---|---|---|---|');
       for (const w of d.walls) L.push(`| ${w.at.slice(11, 19)}Z | ${w.key} | ${w.project || '؟'} | ${w.okBefore} | ${w.kind} | ${w.quotaId || '—'} | ${w.quotaValue || '—'} | ${w.retryDelay || '—'} | ${w.returnedAt ? w.returnedAt.slice(11, 19) + 'Z' : '—'} |`);
+    }
+  }
+  {
+    const ms = Object.entries(o.models).filter(([, d]) => !d.qualityOnly);
+    const hrs = Math.max(0, ...ms.flatMap(([, d]) => Object.keys(d.hourly || {}).map(Number))) + 1;
+    if (ms.length && hrs > 0) {
+      L.push('', '## الناجح تراكميّاً لكلّ ساعة', '', `| الساعة (من البدء ${o.startedAt.slice(11, 16)}Z) | ${ms.map(([m]) => m).join(' | ')} | ناجح في هذه الساعة (الكلّ) | تراكميّ (الكلّ) |`, `|---|${ms.map(() => '---').join('|')}|---|---|`);
+      const cum = ms.map(() => 0); let all = 0;
+      for (let h = 0; h < hrs; h++) {
+        let inHour = 0;
+        ms.forEach(([, d], i) => { const n = (d.hourly || {})[h] || 0; cum[i] += n; inHour += n; });
+        all += inHour;
+        L.push(`| ${h + 1} | ${cum.join(' | ')} | ${inHour} | ${all} |`);
+      }
     }
   }
   if (best) {
@@ -408,11 +458,13 @@ function flush() {
   // ١) السرد
   S.phase = 'سرد';
   let names;
-  if (ONLY) names = ONLY.split(',').map(s => s.trim()).filter(Boolean);
-  else {
+  {   // السرد يُطبع دائماً؛ والقائمة المختبَرة هي --models (الافتراضيّة أو المعطاة) ما لم يُطلب all
     const list = await listModels(drain);
     S.listed = list.map(m => m.name.replace(/^models\//, ''));
-    names = list.filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace(/^models\//, ''));
+    const gen = list.filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace(/^models\//, ''));
+    log(`السرد: ${S.listed.length} نموذجاً، منها ${gen.length} تدعم generateContent`);
+    names = ONLY === 'all' ? gen : ONLY.split(',').map(x => x.trim()).filter(Boolean);
+    const absent = names.filter(n => S.listed.length && !S.listed.includes(n)); if (absent.length) log(`غير ظاهرة في السرد: ${absent.join('، ')}`);
   }
   const skipRe = SKIP_RE ? new RegExp(SKIP_RE, 'i') : null;
   S.excluded = names.filter(n => EXCLUDE_RE.test(n) || (skipRe && skipRe.test(n)));
@@ -422,24 +474,28 @@ function flush() {
   if (!models.length) { S.phase = 'لا نماذج'; flush(); clearInterval(flushTimer); process.exit(1); }
   models.forEach(modelState);
 
-  // ٢) الجودة: كلّ نموذجٍ بمفتاحٍ أو اثنين، والنماذج متوازية
+  // ٢) الجودة: نموذجاً نموذجاً، ومفتاحاً واحداً في كلّ مرّة؛ وعند 429 مشروعٌ آخر بعد 20 ث حتى QRETRY محاولات
   S.phase = 'جودة'; flush();
-  await Promise.all(models.map(async (m, mi) => {
+  const qualityModel = async (m, mi) => {
     const ms = modelState(m);
-    let tries = 0;
-    for (const k of [drain[(mi * 2) % drain.length], drain[(mi * 2 + 1) % drain.length]]) {
-      if (Date.now() >= DEADLINE) break;
-      const q = await qualityFor(m, k.key, k.idx); tries++;
-      ms.quality = ms.quality && ms.quality.callsOk && !q.callsOk ? ms.quality : q;   // أفضل نتيجةٍ بين المفتاحين
-      if (ms.quality.callsOk) break;
-      if (ms.quality.tests['أ1_استدعاء_أداة']?.status === 404) break;
+    for (let a = 0; a < QRETRY && Date.now() < DEADLINE; a++) {
+      const k = drain[(mi + a) % drain.length];
+      const q = await qualityFor(m, k.key, k.idx); q.attempt = a + 1;
+      if (!ms.quality || (q.score || 0) > (ms.quality.score || 0)) ms.quality = q;
+      if (q.callsOk || !q.any429) break;
+      log(`جودة ${m}: 429 بالمفتاح #${k.idx} (المحاولة ${a + 1}/${QRETRY}) — مشروعٌ آخر بعد ${QRETRY_WAIT / 1000} ث`);
+      await sleepUntilDeadline(QRETRY_WAIT);
     }
-    const first = ms.quality.tests['أ1_استدعاء_أداة'];
-    ms.qualityPass = ms.quality.callsOk;
-    log(`جودة ${m}: ${ms.quality.callsOk ? 'سليمة' : 'ناقصة'} · أداة ${ms.quality.summary.toolCall} · JSON ${ms.quality.summary.json} · ${ms.quality.summary.langs} · هويّة ${ms.quality.summary.identity}${first && !first.ok ? ' · ' + first.err.slice(0, 120) : ''}`);
-  }));
+    const q = ms.quality; ms.qualityPass = q.callsOk;
+    log(`جودة ${m}: ${q.callsOk ? 'سليمة' : 'ناقصة'} · أداة ${q.summary.toolCall} · JSON ${q.summary.json} · ${q.summary.langs} · هويّة ${q.summary.identity} (محاولات ${q.attempt})`);
+    flush();
+  };
+  for (let mi = 0; mi < models.length; mi++) await qualityModel(models[mi], mi);
+  // اختبار جودةٍ واحد بلا سعة لنماذج pro (إن وُجدت)
+  const qOnly = QUALITY_ONLY.split(',').map(x => x.trim()).filter(x => x && !/tts/i.test(x) && !models.includes(x));
+  for (const m of qOnly) { modelState(m).qualityOnly = true; await qualityModel(m, models.length); }
 
-  // النموذج الذي لم يَصلح (404/400 دائم) يُسقط من السعة؛ والمرفوض بـ429 فقط يبقى (قد تعود حصّته)
+  // النموذج الذي لم يَصلح (400/403/404 دائم) يُسقط من السعة؛ والمرفوض بـ429 فقط يبقى (قد تعود حصّته)
   const capModels = models.filter(m => {
     const q = S.models[m].quality; if (!q) return false;
     if (q.callsOk || q.any429) return true;
@@ -450,11 +506,9 @@ function flush() {
   if (dropped.length) log(`أُسقطت من السعة (غير صالحة): ${dropped.join('، ')}`);
   S.droppedFromCapacity = dropped;
 
-  // ٣-٤) السعة والعودة: كلّ (نموذج، مفتاح) عاملٌ مستقلّ
+  // ٣-٤) السعة والعودة: حلقةٌ لكلّ مشروع، وبدءٌ متدرّج مشروعاً كلّ STAGGER
   S.phase = 'سعة'; flush();
-  const jobs = [];
-  for (const m of capModels) for (const k of drain) jobs.push(worker(m, k.idx, k.key));
-  await Promise.all(jobs);
+  await Promise.all(drain.map((k, i) => projectLoop(k.idx, k.key, capModels, i * STAGGER)));
 
   S.phase = 'انتهت'; S.finishedAt = iso(Date.now());
   clearInterval(flushTimer); flush();
