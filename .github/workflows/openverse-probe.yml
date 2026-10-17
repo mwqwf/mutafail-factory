@@ -2,8 +2,6 @@ name: فحص Openverse
 
 # فحصٌ لمرة: هل تصل واجهة Openverse من عدّاء Actions، وما حدود المعدّل، وما جودة النتائج لحاجاتنا.
 on:
-  push:
-    paths: ["ops/probe/openverse.trigger"]
   workflow_dispatch:
 
 permissions:
@@ -19,4 +17,4 @@ jobs:
         run: |
           python3 tools/openverse_sfx.py --probe --n 3 --out /tmp/ov
           ls -la /tmp/ov 2>/dev/null || true
-          for f in /tmp/ov/*; do [ -f "$f" ] && ffprobe -v error -show_entries format=duration,bit_rate -of csv=p=0 "$f" | sed "s|^|$(basename $f): |"; done || true
+          for f in /tmp/ov/*; do [ -f "$f" ] && true # -show_entries format=duration,bit_rate -of csv=p=0 "$f" | sed "s|^|$(basename $f): |"; done || true

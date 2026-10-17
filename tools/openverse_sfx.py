@@ -2,7 +2,8 @@
 """بحثٌ في مؤثّرات Openverse الصوتية (بلا مفتاح) بمرشّح ترخيصٍ صارم ونسبٍ للوصف.
 
 ⛔ لا موسيقى: يُقيَّد البحث بفئة sound_effect/ambience وتُرفض النتائج الموسومة music.
-⛔ الرخص المقبولة: cc0 وpdm وby فقط (تجاريّ + تعديلٌ جائز). تُستبعد nc وnd وsa.
+⛔ الرخص: cc0 وpdm افتراضياً؛ by بـ--allow-by (نسبٌ في الوصف). تُستبعد nc وnd وsa دائماً.
+الحدّ المجهول (قيس 2026-10-17 من Actions): 20 طلباً/دقيقة و200/يوم؛ التحميل من الروابط لا يُحتسب.
 النسب (by) يذهب إلى وصف يوتيوب لا إلى نصّ الفيلم (أمر المالك: المصادر خارج الفيلم).
 الاستعمال: openverse_sfx.py "horse gallop" --n 3 --out work/ov  |  --probe يطبع حدود المعدّل.
 """
@@ -16,21 +17,27 @@ import urllib.parse
 import urllib.request
 
 API = "https://api.openverse.org/v1/audio/"
-OK_LICENSES = "cc0,pdm,by"
+OK_LICENSES = "cc0,pdm"  # by فقط بـ --allow-by (يلزمه نسبٌ في الوصف)
 UA = {"User-Agent": "mutafail-factory/1.0 (sfx research)"}
 
 
-def search(q, n=5, categories="sound_effect,pronunciation", max_dur=30):
+def search(q, n=5, max_dur=30, licenses=OK_LICENSES):
     # الفئة غير معلَنةٍ في كل المصادر؛ نمرّر category ثم نرشّح محلياً
     qs = urllib.parse.urlencode({
-        "q": q, "license": OK_LICENSES, "page_size": min(n * 3, 20),
+        "q": q, "license": licenses, "page_size": min(n * 3, 20),
         "excluded_source": "jamendo,ccmixter,freemusicarchive",
         "duration": "short" if max_dur <= 30 else "medium",
     })
     req = urllib.request.Request(API + "?" + qs, headers=UA)
-    with urllib.request.urlopen(req, timeout=40) as r:
-        hdr = {k: v for k, v in r.headers.items() if "ratelimit" in k.lower() or k.lower() == "retry-after"}
-        data = json.load(r)
+    for attempt in range(3):  # الواجهة تتأخر أحياناً (انتهت مهلة «desert wind» في الفحص الأوّل)
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                hdr = {k: v for k, v in r.headers.items() if "ratelimit" in k.lower() or k.lower() == "retry-after"}
+                data = json.load(r)
+            break
+        except OSError:
+            if attempt == 2:
+                raise
     out = []
     for it in data.get("results", []):
         if it.get("category") == "music" or "music" in (it.get("genres") or []):
@@ -65,11 +72,12 @@ if __name__ == "__main__":
     ap.add_argument("--n", type=int, default=3)
     ap.add_argument("--out")
     ap.add_argument("--probe", action="store_true")
+    ap.add_argument("--allow-by", action="store_true")
     a = ap.parse_args()
     qs = ["horse gallop", "sword clash", "desert wind", "battle crowd shouting", "arrows whoosh", "fire crackling"] if a.probe else [a.q]
     for q in qs:
         try:
-            items, hdr = search(q, a.n)
+            items, hdr = search(q, a.n, licenses="cc0,pdm,by" if a.allow_by else OK_LICENSES)
         except Exception as e:  # noqa: BLE001
             print(f"[{q}] فشل: {e}")
             continue
