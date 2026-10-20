@@ -11,7 +11,7 @@ run-name: 🔑 ${{ github.event.head_commit.message || 'تجديد تفويض ي
 # الرمز في المستودع العامّ لا ينفع وحده: التبادل يحتاج سرّ العميل والمتحقّق المختوم. المستودع عامّ والعدّاء قياسيّ ⇒ مجّانيّ.
 on:
   push:
-    paths: ["ops/oauth/*.json"]
+    paths: ["ops/oauth/*.json", "ops/oauth/sealed/*.enc"]
 
 permissions:
   contents: write
@@ -33,7 +33,7 @@ jobs:
         id: m
         run: |
           F=$(git show --pretty= --name-only "$GITHUB_SHA")
-          if echo "$F" | grep -qx 'ops/oauth/code.json'; then echo "mode=exchange" >> "$GITHUB_OUTPUT"
+          if echo "$F" | grep -qx 'ops/oauth/code.json\|ops/oauth/sealed/key.enc'; then echo "mode=exchange" >> "$GITHUB_OUTPUT"
           elif echo "$F" | grep -qx 'ops/oauth/request.json'; then echo "mode=url" >> "$GITHUB_OUTPUT"
           else echo "::notice::لا أمر تفويضٍ في هذا الإيداع"; echo "mode=none" >> "$GITHUB_OUTPUT"; fi
       - name: ① رابط الإذن
@@ -62,7 +62,12 @@ jobs:
           gh release download yt-oauth -p 'session.*' -D /tmp/ss --clobber
           mv /tmp/ss/session.payload.enc /tmp/ss/payload.enc && mv /tmp/ss/session.key.enc /tmp/ss/key.enc
           bash tools/unseal.sh /tmp/ss /tmp/sess >/dev/null
-          RAW=$(python3 -c "import json;print(json.load(open('ops/oauth/code.json',encoding='utf-8'))['العنوان'])")
+          # العنوان مختوماً (ops/oauth/sealed) إن وُجد، فلا يمرّ رمز الإذن مكشوفاً في المستودع العامّ؛ وإلا code.json القديم
+          CODE=ops/oauth/code.json
+          if git show --pretty= --name-only "$GITHUB_SHA" | grep -qx 'ops/oauth/sealed/key.enc'; then
+            bash tools/unseal.sh ops/oauth/sealed /tmp/code >/dev/null; CODE=/tmp/code/code.json
+          fi
+          RAW=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1],encoding='utf-8'))['العنوان'])" "$CODE")
           python3 tools/yt_oauth_cloud.py exchange "$RAW" /tmp/sess /tmp/tok/yt_oauth.json
           bash tools/seal.sh /tmp/tok /tmp/sealed_tok
           mv /tmp/sealed_tok/payload.enc /tmp/sealed_tok/token.payload.enc
@@ -70,5 +75,5 @@ jobs:
           gh release upload yt-oauth /tmp/sealed_tok/token.payload.enc /tmp/sealed_tok/token.key.enc --clobber
           # الجلسة لا تصلح لرمزٍ ثانٍ: تُحذف بعد نجاح التبادل
           gh release delete-asset yt-oauth session.payload.enc -y; gh release delete-asset yt-oauth session.key.enc -y
-          rm -rf /tmp/tok /tmp/sess
+          rm -rf /tmp/tok /tmp/sess /tmp/code
           echo "✅ خُتم رمز التجديد الجديد في الإصدار الخاصّ yt-oauth — سير النشر والإحصاءات يقدّمه على السرّ"
