@@ -48,7 +48,8 @@ HARD_CAP = 45.0   # ⛔ أمر المالك 2026-10-01: لا يتجاوز فيل
 # سقوفٌ أقرّها المالك لفيلمٍ بعينه (بالاسم، لا بحقلٍ في publish.json يُكتب خطأً): ملاذكرد 65$ — بطاقة القرار 2026-10-03
 #   «ما سقف كلفة التحريك لفيلم ملاذكرد؟» ⇒ 65$، لتكون المعركة متحرّكةً كلّها (ops/RETENTION_PLAYBOOK_2026-10-03.md §٩).
 # والأرك 9$ — أمر المالك 2026-10-04: «الميزانية يجب ألّا تتجاوز 9 دولارات فقط اليوم للتحريك» (سقفٌ أدنى من المعتاد لا أعلى).
-OWNER_CAPS = {'manzikert': 65.0, 'alarcos': 9.0}
+# وأبرهة 150$ — تفويض المالك 2026-10-22 للفيلم الرهان: «التكلفة أنت تحدّدها، لا يهمّني ما تفعله، يهمّني النتيجة» (/mnt/project-files/abraha/PLAN.md)
+OWNER_CAPS = {'manzikert': 65.0, 'alarcos': 9.0, 'abraha': 150.0}
 HARD_CAP = OWNER_CAPS.get(str(meta.get('slug', '')).replace('-intro', ''), HARD_CAP)
 TOTAL = min(float(meta.get('budget_total_usd', HARD_CAP)), HARD_CAP)
 OTHER = 0.0

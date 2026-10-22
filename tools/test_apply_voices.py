@@ -98,6 +98,19 @@ class ApplyTest(unittest.TestCase):
         self.assertEqual(rc, 1)
         self.assertIn('style خام «medina»', out)
 
+    def test_cast_gives_each_speaker_a_fixed_judged_voice_never_the_narrator(self):
+        voices = json.loads(json.dumps(VOICES))
+        voices['roles']['quote']['winner']['order'] = ['Iapetus·quote', 'Charon·quote', 'Algieba·quote']
+        self.write('blocks.json', [{'id': 'n_001', 'role': 'N', 'text': 'أ'},
+                                   {'id': 'n_002', 'role': 'Q', 'cast': 0, 'text': 'ب'},
+                                   {'id': 'n_003', 'role': 'Q', 'cast': 1, 'text': 'ج'},
+                                   {'id': 'n_004', 'role': 'Q', 'cast': 1, 'text': 'د'},
+                                   {'id': 'n_005', 'role': 'Q', 'text': 'ه'}])
+        rc, out = self.run_main(self.d, self.write('n.json', NARR), self.write('v.json', voices))
+        self.assertEqual(rc, 0, out)
+        b = {x['id']: x['voice'] for x in self.read('blocks.json')}
+        self.assertEqual(b, {'n_001': 'Charon', 'n_002': 'Iapetus', 'n_003': 'Algieba', 'n_004': 'Algieba', 'n_005': 'Iapetus'})
+
 
 if __name__ == '__main__':
     unittest.main()

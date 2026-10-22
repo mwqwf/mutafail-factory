@@ -69,6 +69,14 @@ def plan(blocks: list[dict], results: list[dict]) -> tuple[list[dict], str | Non
                 v, s = alt[0].split('·')
                 w = dict(w, voice=v, style=s, director=roles[r]['styles'].get(s) or w['director'])
         pick[r] = w
+    # أصوات الشخصيّات (أبرهة 2026-10-22): «cast» في كتلة الاقتباس موضعُ صوتها في ترتيب فائزي الدور المحكَّم بعد صوت الراوي،
+    # فلكلّ متكلّمٍ صوتٌ ثابتٌ محكَّم (عبد المطّلب غيرُ أبرهة غيرُ نفيل)، ولا يكون صوتَ الراوي أبداً.
+    cast = {}
+    for r in need:
+        w = roles[r]['winner']
+        alt = [lab for lab in w.get('order') or ['%s·%s' % (w['voice'], w['style'])]
+               if not narr or lab.split('·')[0] != narr['voice']] or ['%s·%s' % (pick[r]['voice'], pick[r]['style'])]
+        cast[r] = alt
     for p in sorted({b['pos'] for b in blocks if b.get('pos') and ROLES.get(b.get('role')) == 'narrator'}):
         if p not in pos_styles or pos_styles[p] not in styles:
             errs.append('موضعٌ بلا أسلوبٍ في مواصفة الراوي: %s' % p)
@@ -80,6 +88,9 @@ def plan(blocks: list[dict], results: list[dict]) -> tuple[list[dict], str | Non
         r = ROLES.get(b.get('role'))
         if r:
             w = pick[r]
+            if isinstance(b.get('cast'), int) and r != 'narrator':
+                v, st = cast[r][b['cast'] % len(cast[r])].split('·')
+                w = dict(w, voice=v, style=st, director=roles[r]['styles'].get(st) or w['director'])
             d = w['director']
             if r == 'narrator' and b.get('pos'):
                 d = styles[pos_styles[b['pos']]]
