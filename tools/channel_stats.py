@@ -255,6 +255,76 @@ def fresh(ya, per: list, today: dt.date) -> dict:
     return out
 
 
+# الجولة 10 (طلب المالك 2026-10-14: «سرّ الأرك، وفشل ما قبلها وما بعدها، والزلاقة وبدر والمرابطون») ⇒ يمتدّ بـseries_from في الطلب
+def _series_from():
+    try:
+        return json.load(io.open('ops/stats/request.json', encoding='utf-8')).get('series_from') or '2026-09-27'
+    except Exception:
+        return '2026-09-27'
+
+
+SERIES_FROM = _series_from()
+
+
+def series_deep(ya, yt, rows: list, today: dt.date) -> dict:
+    """دراسة السلسلتين الأخيرتين — طلب المالك 2026-10-11: «افحص إحصائيات آخر سلسلتين… لماذا نجح الأرك بلا ترويج
+    ولماذا تبدو سلسلة خالد فاشلة؟ وافصل مشاهدات الإعلانات عن الأخرى». لكلّ فيلمٍ طويلٍ منذ SERIES_FROM:
+    المشاهدات يوماً بيوم بحسب المصدر، والمشترك وغير المشترك، والبلدان، والأعمار، والفيديوهات التي تقترحه وكلمات البحث،
+    ومنحنى البقاء الطبيعيّ كاملاً؛ ثمّ يوميّ القناة كلّها بحسب المصدر 60 يوماً. كلّ استعلامٍ مستقلّ: فشلُ واحدٍ يُسمّى ولا يُسقط غيره."""
+    end = today.isoformat()
+
+    def q(**kw):
+        try:
+            r = ya.reports().query(ids='channel==MINE', endDate=end, **kw).execute()
+            return [dict(zip([h['name'] for h in r.get('columnHeaders', [])], row)) for row in r.get('rows', [])]
+        except Exception as e:
+            c = getattr(e, 'content', b'') or b''
+            return {'خطأ': (c.decode('utf-8', 'ignore') if isinstance(c, bytes) else str(c))[:300] or str(e)[:200]}
+
+    films = [r for r in rows if r['seconds'] > SHORT_MAX and r['published'][:10] >= SERIES_FROM]
+    out, rel_ids = {}, []
+    for r in films:
+        v, s0 = 'video==' + r['id'], r['published'][:10]
+        d = {'العنوان': r['title'][:100], 'النشر': r['published'], 'الطول_ث': r['seconds'], 'العدّاد': r['views'],
+             'إعجاب': r['likes'], 'تعليق': r['comments']}
+        d['يومي_بالمصدر'] = q(startDate=s0, dimensions='day,insightTrafficSourceType', filters=v,
+                              metrics='views,estimatedMinutesWatched', sort='day')
+        d['المشترك_وغيره'] = q(startDate=s0, dimensions='subscribedStatus', filters=v,
+                                metrics='views,estimatedMinutesWatched,averageViewDuration')
+        # طلب المالك 2026-10-14: «من أوّل من يُعرض عليهم الفيلم وبماذا يهتمّون؟» ⇒ المشترك وغيره يوماً بيوم مع مدّة المشاهدة
+        d['يومي_المشترك_وغيره'] = q(startDate=s0, dimensions='day,subscribedStatus', filters=v, sort='day',
+                                     metrics='views,estimatedMinutesWatched,averageViewDuration')
+        d['المصدر_والمشترك'] = q(startDate=s0, dimensions='insightTrafficSourceType,subscribedStatus', filters=v,
+                                  metrics='views,estimatedMinutesWatched,averageViewDuration')
+        d['البلدان'] = q(startDate=s0, dimensions='country', filters=v, sort='-views', maxResults=10,
+                         metrics='views,estimatedMinutesWatched,averageViewDuration')
+        d['الأعمار'] = q(startDate=s0, dimensions='ageGroup,gender', filters=v, metrics='viewerPercentage')
+        det = dict(startDate=s0, dimensions='insightTrafficSourceDetail', metrics='views,estimatedMinutesWatched',
+                   sort='-views', maxResults=10)
+        d['تقترحه'] = q(filters=v + ';insightTrafficSourceType==RELATED_VIDEO', **det)
+        d['كلمات_البحث'] = q(filters=v + ';insightTrafficSourceType==YT_SEARCH', **det)
+        d['منحنى_طبيعي'] = q(startDate=s0, dimensions='elapsedVideoTimeRatio', filters=v + ';audienceType==ORGANIC',
+                             metrics='audienceWatchRatio,relativeRetentionPerformance')
+        if isinstance(d['تقترحه'], list):
+            rel_ids += [x['insightTrafficSourceDetail'] for x in d['تقترحه']]
+        out[r['id']] = d
+    titles = {}
+    rel_ids = list(dict.fromkeys(rel_ids))
+    for i in range(0, len(rel_ids), 50):
+        try:
+            for x in yt.videos().list(part='snippet,statistics,contentDetails', id=','.join(rel_ids[i:i + 50])).execute().get('items', []):
+                titles[x['id']] = {'العنوان': x['snippet']['title'][:100], 'القناة': x['snippet']['channelTitle'],
+                                   'المشاهدات': int(x.get('statistics', {}).get('viewCount', 0)),
+                                   'النشر': x['snippet']['publishedAt'][:10], 'الطول_ث': seconds(x['contentDetails'].get('duration'))}
+        except Exception as e:
+            titles['خطأ'] = str(e)[:200]
+    return {'الأفلام': out, 'عناوين_المقترِحين': titles,
+            'يومي_القناة_بالمصدر_60': q(startDate=(today - dt.timedelta(days=60)).isoformat(),
+                                         dimensions='day,insightTrafficSourceType', metrics='views,estimatedMinutesWatched', sort='day'),
+            'المشتركون_يومياً_60': q(startDate=(today - dt.timedelta(days=60)).isoformat(), dimensions='day',
+                                     metrics='subscribersGained,subscribersLost,views', sort='day')}
+
+
 def main(out: str) -> None:
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
@@ -287,7 +357,7 @@ def main(out: str) -> None:
                          'description': (v['snippet'].get('description') or '')[:300]})
     rows = [r for r in rows if r['privacy'] == 'public']
     analytics = 'غير متاحة'
-    ins, tr, rc, fk = {}, {}, {}, {}
+    ins, tr, rc, fk, sd = {}, {}, {}, {}, {}
     try:
         ya = build('youtubeAnalytics', 'v2', credentials=cred, cache_discovery=False)
         start = min(r['published'][:10] for r in rows) if rows else dt.date.today().isoformat()
@@ -307,6 +377,10 @@ def main(out: str) -> None:
         tr = truth(ya, rows, dt.date.today())
         rc = reach(ya, rows, dt.date.today())
         fk = fresh(ya, tr.get('لكل_فيديو', []), dt.date.today())
+        try:
+            sd = series_deep(ya, yt, rows, dt.date.today())
+        except Exception as e:               # الدراسة إضافةٌ لا تُسقط التقرير
+            sd = {'خطأ': str(e)[:300]}
     except HttpError as e:
         analytics = 'غير متاحة: %s' % str(e)[:200]
     except Exception as e:                       # نطاق التحليلات غير ممنوح أو المكتبة غير مثبّتة
@@ -315,7 +389,7 @@ def main(out: str) -> None:
     rep = {'القناة': ch['snippet']['title'], 'تاريخ': dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
            'التحليلات': analytics, 'عدد_العام': len(rows), 'عدد_الريلزات': len(ranked),
            'الريلزات_من_الأضعف': ranked,
-           'رؤى': ins, 'الحقيقة': tr, 'الظهور_والنقر': rc, 'مؤشرات_الأفلام_الجديدة': fk,
+           'رؤى': ins, 'الحقيقة': tr, 'الظهور_والنقر': rc, 'مؤشرات_الأفلام_الجديدة': fk, 'السلسلتان': sd,
            'الأفلام': sorted([r for r in rows if r['seconds'] > SHORT_MAX], key=lambda r: r['published'], reverse=True)}
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     json.dump(rep, io.open(out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
