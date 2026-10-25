@@ -496,7 +496,15 @@ def main():
     reels = []
     # ⭐ عنوانٌ مُعدَّل لريلزٍ بعينه من ملفّ النشر (reel_titles): حارس العنوان أعلاه يمنع رفع نسخةٍ مصحّحة بعنوان القديمة نفسه
     titles = json.loads(os.environ.get("REEL_TITLES") or "{}")
+    # ⭐ إعادة رفع ريلزٍ بعينه نسخةً جديدة (أبرهة 2026-10-25: أزال يوتيوب ريلز الفيل بتحذيرٍ فأُعيد بنصٍّ معدَّل):
+    #    reels_redo في ملفّ النشر ⇒ تُرفع هذه الملفّات وحدها ولو سُجّلت منشورةً، ويُسجَّل المعرّف الجديد مكان القديم
+    redo = {x for x in os.environ.get("REELS_REDO", "").split(",") if x}
+    if redo:
+        reels = [x for x in prev.get("reels", []) if x.get("file") not in redo]
+        done = {k: v for k, v in done.items() if k not in redo}
     for r in meta.get("reels", []):
+        if redo and r["file"] not in redo:
+            continue
         if r.get("file") in titles:
             r = dict(r, title=titles[r["file"]])
         if r["file"] in done:                      # ↻ استئناف: لا يُرفع مرّتين
