@@ -21,6 +21,6 @@ jobs:
       - name: إيداع الفرق على master
         run: |
           git config user.name "مصنع المتفائل" && git config user.email "factory@mutafail.local"
-          git add -A ops/policy/snapshots ops/policy/CHANGED.md 2>/dev/null || true
+          git add -A ops/policy/snapshots && { [ -f ops/policy/CHANGED.md ] && git add ops/policy/CHANGED.md || true; }
           git diff --cached --quiet && { echo "لا تغيّر في السياسات"; exit 0; }
           git commit -qm "📜 تغيّرت صفحات سياسات يوتيوب — تُراجَع البوّابة" && git push -q origin HEAD:master

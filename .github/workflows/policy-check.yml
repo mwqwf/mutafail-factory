@@ -13,8 +13,9 @@ on:
       strict:
         description: "true = ما قد يُقيَّد عمرياً يُعدّ مانعاً"
         default: "false"
+# contents: write لأنّ الإصدارات المسوّدة لا تُرى بصلاحية القراءة وحدها
 permissions:
-  contents: read
+  contents: write
 jobs:
   check:
     runs-on: ubuntu-latest
