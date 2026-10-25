@@ -1,0 +1,58 @@
+# بوّابة المخالفات على إصدارٍ جاهز — للتجربة ولفحص فيلمٍ أو ريلزٍ مصنوعٍ قبل نشره أو بعده
+# (أمر المالك 2026-10-25). يُشغَّل يدوياً: release_tag = مثل abraha-out (preview480.mp4 وr1–r3.mp4) أو policy-test.
+name: 🛡️ بوّابة المخالفات (إصدار)
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "وسم الإصدار الذي فيه الفيلم (film.mp4 أو preview480.mp4) والريلزات (r*.mp4) والمصغّرات (thumb*.jpg|png)"
+        required: true
+      every:
+        description: "ثوانٍ بين الإطارات المفحوصة"
+        default: "2"
+      strict:
+        description: "true = ما قد يُقيَّد عمرياً يُعدّ مانعاً"
+        default: "false"
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -q pillow && (command -v ffmpeg || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; })
+      - name: جلب الإصدار
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.release_tag }}
+          PRIV: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          mkdir -p proj && cd proj
+          if [ -d "../ops/sealed/$TAG" ]; then
+            cp -r "../ops/sealed/$TAG" ../sealed && cd ../sealed && sed -i 's/ \*/  /' SHA256SUMS && sha256sum -c SHA256SUMS && cat part_* > payload.enc && rm part_* && cd ..
+            CONTENT_PRIVATE_KEY="$PRIV" bash tools/unseal.sh sealed "$PWD/proj" && rm -rf sealed
+          else
+            gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p '*.mp4' -p 'thumb*' -p '*.jpg' -p '*.png' --clobber || true
+          fi
+          ls -la "$GITHUB_WORKSPACE/proj"
+      - name: بوّابة المخالفات (صور)
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+          EVERY: ${{ inputs.every }}
+          STRICT: ${{ inputs.strict }}
+        run: |
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          S=""; [ "$STRICT" = "true" ] && S="--strict"
+          rc=0; python tools/policy_gate.py media proj --keys /tmp/keys.json --every "$EVERY" $S --out /tmp/policy_media.json || rc=$?
+          rm -f /tmp/keys.json
+          echo "## نتيجة بوّابة المخالفات ($rc)" >> "$GITHUB_STEP_SUMMARY"
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY" || true
+          import json; d=json.load(open('/tmp/policy_media.json',encoding='utf-8'))
+          print('لوحات: %d · نداءات: %d · تعذّر: %d' % (d['لوحات'], d['نداءات'], len(d['تعذّر'])))
+          for f in d['نتائج']: print('- **%s** [%s] %s — %s' % (f.get('severity'), f.get('category'), f.get('where'), f.get('what')))
+          PY
+          rm -f /tmp/policy_media.json
+          exit $rc
