@@ -49,6 +49,12 @@ add = CMD.get("descriptionPrepend", "").strip()
 if add and add not in sn.get("description", ""):
     sn["description"] = add + "\n\n" + sn.get("description", "")
     changed = True
+# ⭐ استبدال عبارةٍ في الوصف (أبرهة 2026-10-25: وصف الفيلم المنشور فيه «ضربوا رأسه بالفؤوس» بعد تحذير أذى الحيوان)
+for old, new in (CMD.get("descriptionReplace") or {}).items():
+    if old in sn.get("description", ""):
+        sn["description"] = sn["description"].replace(old, new)
+        changed = True
+        print("✏ استُبدل في الوصف:", old[:40], "→", new[:40], flush=True)
 if CMD.get("public") and st.get("privacyStatus") != "public":
     st["privacyStatus"] = "public"
     st.pop("publishAt", None)          # ⛔ الجدولةُ تمنع النشرَ الفوريّ فتُرفع
@@ -78,7 +84,8 @@ if changed:
             time.sleep(wait)
         g = svc.videos().list(part="snippet,status", id=vid).execute()["items"][0]
         ok_pub = (not CMD.get("public")) or g["status"]["privacyStatus"] == "public"
-        ok_des = (not add) or add in g["snippet"].get("description", "")
+        ok_des = ((not add) or add in g["snippet"].get("description", "")) and \
+                 not any(o in g["snippet"].get("description", "") for o in (CMD.get("descriptionReplace") or {}))
         ok_at = (not at) or g["status"].get("publishAt", "").replace(".000", "") == at
         if ok_pub and ok_des and ok_at:
             print("✅ تحقّق: الخصوصيّة =", g["status"]["privacyStatus"],
