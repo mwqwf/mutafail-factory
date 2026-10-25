@@ -34,8 +34,14 @@ def main(path):
     if not os.path.exists(path):
         print(f'✗ لا يوجد ملف: {path}'); return 1
     if path.endswith('.json'):
-        return check([(f'{os.path.basename(path)}:{name}', line, thumb) for name, line, thumb in codex_lines(path)],
-                     os.path.basename(path))
+        rc = check([(f'{os.path.basename(path)}:{name}', line, thumb) for name, line, thumb in codex_lines(path)],
+                   os.path.basename(path))
+        # ⛔ بوّابة المخالفات على أوامر الصور (2026-10-25): أذى حيوان، دم، أطفال، عري… — tools/policy_gate.py
+        import subprocess, tempfile
+        pg = subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'policy_gate.py'),
+                             'text', tempfile.mkdtemp(), '--codex', path], capture_output=True, text=True)
+        print(pg.stdout.strip())
+        return rc or pg.returncode
     # ⛔⛔ ثغرةٌ أُغلقت 2026-09-14: الحارسُ كان يفحص `script.md` وحدَه، و`images-extra.md`
     #    فيه أوصافُ صورٍ تُولَّد وتدخل الفيلم كغيرها — فكانت تمرّ بلا فحصٍ البتّة.
     files = [path]

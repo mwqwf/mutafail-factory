@@ -143,6 +143,26 @@ jobs:
       #    القصّة دون ثلث أوّل 150 ث، أو منهجٌ أو طلبٌ أو تعريفٌ بالقناة قبل الدقيقة الرابعة، أو تحيّةٌ في الافتتاح البارد ⇒ لا نشر.
       #    والتعذّر (حصّةٌ أو خطأ) ليس نجاحاً. ولا بوّابة لحمولة ريلزاتٍ وحدها ولا لاستئنافٍ رُفع فيلمه سلفاً.
       #    والتقرير في العدّاء وحده (فيه تفريغ ما لم يُنشر)، والسجلّ أرقامٌ وأسباب.
+      # ⛔⛔ بوّابة المخالفات (أمر المالك 2026-10-25 بعد رفض الاعتراض على ريلز الفيل): النصّ والعناوين بلا شبكة، ثم يشاهد جيميناي
+      #    كلّ إطارٍ (كلّ ثانيتين) من الفيلم والريلزات والمصغّرة بمعيار سياسات يوتيوب (ops/policy/README.md). مانعٌ ⇒ لا نشر.
+      #    والتعذّر ليس نجاحاً. ولا بوّابة بصرية لاستئنافٍ رُفع فيلمه سلفاً (يُفحص وقت رفعه).
+      - name: بوّابة المخالفات (نصّ)
+        run: python tools/policy_gate.py text proj --out /tmp/policy_text.json && rm -f /tmp/policy_text.json
+      - name: بوّابة المخالفات (صور)
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          pip install -q pillow
+          if python - <<'PY'
+          import json, os, sys
+          sys.path.insert(0, 'tools'); import opening_gate
+          sys.exit(0 if opening_gate.already_up('proj') else 1)
+          PY
+          then echo "↻ الفيلم مرفوعٌ سلفاً (استئناف): فُحص وقت رفعه"; exit 0; fi
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          rc=0; python tools/policy_gate.py media proj --keys /tmp/keys.json --out /tmp/policy_media.json || rc=$?
+          rm -f /tmp/keys.json /tmp/policy_media.json
+          exit $rc
       - name: بوّابة الافتتاحية
         env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
