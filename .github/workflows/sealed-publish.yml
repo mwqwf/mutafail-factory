@@ -89,6 +89,9 @@ jobs:
               assert fv, 'reels_for_film يحتاج film_video_id'; print('REELS_FOR_FILM=1')
           if d.get('private_all'):
               print('PRIVATE_ALL=1')   # أمر المالك 2026-10-18: الفيلم والريلزات خاصّةً بلا موعد
+          ft = d.get('film_title')
+          if ft:
+              assert isinstance(ft, str) and 0 < len(ft.strip()) <= 100; print('FILM_TITLE=' + ft.strip())
           rr = d.get('reels_redo')
           if rr:
               assert isinstance(rr, list) and all(re.fullmatch(r'r\d\.mp4', x) for x in rr); print('REELS_REDO=' + ','.join(rr))

@@ -400,6 +400,9 @@ def main():
             raise SystemExit("⛔ الوصفُ ينتظر الفصول ولا ملفَّ فصولٍ — لا يُرفع فيلمٌ بلا فصول")
         meta["film"]["description"] = meta["film"]["description"].replace("{CHAPTERS}", chapters)
 
+    # ⭐ عنوانٌ معدَّل للفيلم من ملفّ النشر (أبرهة 2026-10-25: إعادة رفع نسخةٍ مصحّحة والقديمة غير مدرجة بعنوانها)
+    if os.environ.get("FILM_TITLE", "").strip():
+        meta["film"]["title"] = os.environ["FILM_TITLE"].strip()
     svc = yt()
     # ⭐ ريلزٌ دعائيٌّ وحده (ريلز السلسلة 2026-09-30): لا فيلم يُرفع ولا مصغّرة ولا قائمة؛ و{FILM_URL} يُحال إلى قائمة السلسلة
     reels_only = bool(meta.get("reels_only"))
