@@ -1,0 +1,968 @@
+Advertiser-friendly content guidelines
+If you’re in the YouTube Partner Program, you can share revenue from ads. This article aims to help you understand which individual videos or Shorts on your channel are suitable for advertisers. Creators can use this article to understand both the platform’s self-certification questionnaire and specific rules about what will receive ad earnings, will receive limited ad earnings, and what will receive no ad earnings. Our policies apply to all portions of your content (video, Short, or live stream, thumbnail, title, description, and tags).
+Learn more about our best practices
+Our systems don't always get it right, but you can
+request human review
+of decisions made by our automated systems.
+Advertiser-friendly Content Guidelines & Notice Icons
+Subscribe to the
+YouTube Creators channel
+for the latest news, updates, and tips.
+Note
+: All content uploaded to YouTube must comply with both our
+Community Guidelines
+and
+our Program Policies
+. If your content violates our Community Guidelines, it may be removed from YouTube. If you see violative content,
+you can report it
+What you'll find in this article
+You'll find examples of content not suitable for ads, and may result in a "
+Limited ad earnings" or “No ad earnings” notice
+" monetization state.
+Here are all the main topics that are not advertiser-friendly:
+Inappropriate language
+Violence
+Adult content
+Shocking content
+Harmful acts and unreliable content
+Hateful & derogatory content
+Recreational drugs and drug-related content
+Firearms-related content
+Controversial issues
+Sensitive events
+Enabling dishonest behavior
+Inappropriate content for kids and families
+Incendiary and demeaning
+Tobacco-related content
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Please note that context is very important. Artistic content such as music videos may contain elements such as inappropriate language, references to soft drug use, or non-explicit sexual themes, and still be suitable for advertising.
+Opening all of the policy details at once can help if you would like to search this page for specific terms.
+Click here
+to open all of the guides.
+Inappropriate language
+Content that contains profanity or vulgarity at the start or throughout the majority of the video may not be suitable for advertising. Occasional use of profanity (such as in music videos, backing tracks, intro/outro music, or music played in the background) won’t necessarily result in your video being unsuitable for advertising.
+Policy Detail
+Ads guidance
+Questionnaire options & details
+This content can earn ad revenue
+Abbreviated or obscured profanity, or words like “hell” or “damn” in the title, thumbnail, or video. Moderate profanity like “bitch”, “douchebag”, "asshole", and “shit” used frequently in the video. Most profanity used within music or stand-up comedy video content.
+Definitions:
+“Obscured profanity” refers to things like bleeping or muting the word as well as covering written words with black bars, symbols, or text added in post-production.
+“Abbreviated profanity” refers to an acronym like WTF (“what the f*ck”) where the original term is abbreviated by using its acronyms.
+This content will receive limited ad earnings
+Moderate profanity (like “shit”) in the title or thumbnail.
+Some examples of content that also fall into this category
+Focal usage of profanity throughout a video (such as profanity used in most sentences).
+Profanity used in the title or thumbnail of music or stand up comedy content.
+This content will receive no ad earnings
+Stronger profanity (like f*ck) used in thumbnails or titles. Use of extreme profanity, which includes hateful language or slurs in the video, thumbnail, or title such as "n***er" or "fa**ot.”
+For additional information about hateful language or slurs, you may also refer to our
+hateful & derogatory content guideline
+within our Help Center.
+Some examples of content that also fall into this category
+Any use of hateful language in the video. Please refer to
+Hateful & derogatory content
+for more info.
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Violence
+Content where the focal point is on blood, violence, or injury, when presented without other context, is not suitable for advertising. If you're showing violent content in a news, educational, artistic, or documentary context, that additional context is important. For example, if a video provides news reporting on a violent event like a terrorist attack in a journalistic context, it may be eligible for monetization. Violence in unedited video gameplay is generally acceptable for advertising, but montages where gratuitous violence is the focal point is not. All games (whether realistic or non-realistic) are in scope of this policy.
+Policy Detail
+Ads guidance
+Questionnaire options & details
+This content can earn ad revenue
+Law enforcement including regular duty in action (such as forcible arrest, crowd control, dispute with officer, forcible entry); unedited gameplay violence occurring after the first 7 seconds; mild violence with minimal blood; dead bodies that are fully obscured, blurred, prepared for burial, or shown in historical events like wars, as part of an educational video. Non-violent or brief references to foreign terrorist organizations (FTOs). Educational content or journalistic reporting which includes imagery related to foreign terrorist organizations or mentioning foreign terrorist organizations as the central topic.
+Some examples of content that also fall into this category
+General violence
+Dramatized content depicting non-graphic violence or graphic violence.
+In the course of a larger narrative, showing a fleeting scene involving physical harm (such as bullet wounds) as a part of a violent action scene.
+Fighting violence excerpts from an action movie (such as scripted content) where injuries are mostly indiscernible.
+People mourning as a result of a death in scripted content.
+Depiction of non-graphic injury.
+A character falling on their knees where no or limited amount of blood is shown.
+Tumbling down a hill or running into a wall accidentally or purposely as a part of a script or sports.
+Gaming
+Gaming violence including:
+Graphic scenes (such as a gory attack on a person) outside the first 7 seconds of the video.
+Violence that is unrealistic, playful, and generally acceptable for all ages (such as family-friendly video games depicting running from monsters).
+Violence that is obscured, blurred, or otherwise concealed (such as a blurred-out beheading scene).
+Death & tragedy
+Educational or historical content with:
+Non-graphic depictions of dead bodies.
+Public honoring of the deceased showing a non-graphic dead body.
+Fully obscured (such as blurred out), graphic dead bodies.
+Coverage of tragedies involving one or more deaths (excluding sensitive events such as mass shootings or terrorist attacks) with limited or no display of violent acts or their results.
+Reports of nearby homicide events without graphic descriptions of the casualties.
+Implied moment of death or severe bodily harm in an educational, documentary, journalistic reporting or music video context.
+Severe property damage where death or severe bodily harm likely occurred (such as bombings, fires, building collapses, etc).
+Educational, documentary, or journalistic reporting containing:
+Direct display of moment of death on certain events with historical or political significance, provided the incident involves sudden physical forces that stop short of visible bodily destruction (such as peaceful passing due to cardiac arrest, accidental drowning).
+Display of unprepared dead bodies in public funerals with open caskets.
+Hunting
+Hunting content where there’s no depiction of graphic animal injuries or prolonged suffering.
+Hunting videos where the moment of kill or injury is indiscernible, and with no focal footage of how this dead animal is processed for trophy or food purposes.
+Animal violence
+Non-graphic depictions of animal violence in the natural world.
+Predators running after their prey where the graphic details (such as focus on bloody body parts of the prey or graphic moments of catching the prey) are not included; some blood may be visible fleetingly, but is not the focal subject of the content.
+Animal abuse
+Animals in distress during species-appropriate animal training, medical intervention or relocation.
+Coverage or discussion of animal abuse with no actual footage of the abuse.
+Violence in sports play
+Violence in combat sports involving weapons (such as fencing) regardless of protective gear worn or safety precautions warranted.
+Non-graphic injuries in sports or graphic injuries as part of sports play where blood is shown.
+Combat sports such as boxing conducted in a professional setting (such as in a fitness center or arena).
+Non-graphic injuries (such as twisting an ankle) portrayed in the sports play.
+Fights (excluding combat sports)
+Depictions of fights in an educational context with no visible injury or knockout.
+Self-defense moves that are shared as a tutorial.
+Fleeting depictions of people fighting with no visible injury.
+Law enforcement & physical altercation
+Non-combative or non-abrasive interactions with law enforcement.
+Normal interactions with police (such as asking for directions, receiving a parking ticket, etc.).
+Non-physical altercations with police, police seizure of or forcible entry onto a property, and police pursuit.
+Violent, combative, or abrasive interactions with law enforcement in an educational context or journalistic reporting.
+Commentary using clips from a news report on a violent protest by civilians (such as hitting or pushing civilians down against the floor).
+Reporting on police spraying water on civilians in a riot.
+Foreign terrorist organizations (FTOs)
+Educational, journalistic reports, or music videos discussing a terrorist attack as a central subject.
+Educational or dramatized content on these groups as a general subject without footage of terrorist attacks.
+Journalistic reportings featuring FTOs or terrorism with comedic intent.
+Educational, dramatized, journalistic reports, or music videos featuring FTOs images but otherwise not mentioned as a main topic of the content.
+War & conflict
+Non-graphic educational coverage or discussion of war and/or conflict.
+Shooting at unseen targets without display or depictions of suffering or agony.
+Violence concerning minors
+Videos featuring play-fighting or roughhousing between minors with no injuries or distress.
+Music content on violence between minors with no or only fleeting footage of such altercations displayed.
+Definitions
+“Mild violence” refers to scuffles in realistic content or fleeting acts of violence like punching.
+"Non-graphic violence" refers to portrayals of aggressive physical behavior towards another person like finger pointing while yelling or isolated acts of violence (such as throwing a bottle against a wall).
+This content will receive limited ad earnings
+Dead bodies with obvious injury or damage in educational or documentary settings (such as a history learning channel); graphic game violence in thumbnail; raw footage of armed conflict without injuries; description of graphic details of tragedies; dramatized content displaying severe and shocking injuries. Comedic references or fleeting images of foreign terrorist organizations.
+Some examples of content that also fall into this category
+General violence
+Dramatized violence that results in serious injury where the aftermath or impact is visible and present.
+Bloody or gory scenes where bones are visibly broken.
+Dramatized, long-form video content with a short, ultra-graphic violent scene (such as a mass killing) or a video compilation of such graphic scenes.
+Highly graphic descriptions of tragedies (in the form of audio or video).
+People suffering from suffocation or experiencing severe agony and pain, such as from non-stop coughing.
+Footage of disasters that involve visible harm to people or their resulting suffering, such as extreme emotional distress.
+Raw footage of ruins of destroyed buildings resulting from a violent event (such as ruins of schools after a typhoon) or people with light injuries (such as twisting ankles or applying bandages to fingers).
+Gaming
+Graphic game violence in the thumbnail of the video.
+“Graphic game violence” includes brutal killings or severe injuries focusing on bodily fluids and parts such as beheadings and dismemberment.
+Death & tragedy
+Reporting of tragedies involving multiple casualties which include graphic or gruesome details.
+A documentary on a recent homicide featuring descriptive language of the circumstances of death.
+Fights (excluding combat sports)
+Street fights featuring visible injury or knockouts in an educational context.
+Graphic street fighting including scenes featuring injuries and emotional distress (such as yelling).
+Law enforcement & physical altercation
+Highly combative altercations with law enforcement, usually including acts of brutality committed by or against law enforcement.
+Hitting civilians with sticks forcefully where injuries occur
+Spitting on police
+Violence in sports play
+Graphic sports injuries as part of a larger video with context.
+Compilations or highlights involving graphic injuries but not singularly focused on them.
+Animal violence
+Animal violence in the natural world not caused by humans or human-trained animals (such as wild lions hunting deers, but not trained dogs catching rabbits).
+When focal, prolonged graphic animal injuries (such as blood or bones) are the focal subject of a video.
+Hunting
+Hunting content featuring fleeting graphic imagery such as injured or suffering animals (such as bloody body parts) portrayed in the content.
+Foreign terrorist organizations (FTOs)
+Comedic references to FTOs or terrorism in any context (e.g. educational documentary).
+Showing FTO related images but not as the main topic or theme of the content.
+War & conflict
+Real, non-graphic raw footage of armed conflict (such as war) without educational context, with no gory scenes or explicit injuries.
+This content will receive no ad earnings
+Graphic dead bodies in a non-educational video; video gameplay featuring prohibited themes (such as sexual assault). Ultra graphic violent acts (including those involving law enforcement) and injuries. Incitement to or glorification of violence. Glorification, denialism, recruitment, or graphic portrayal of foreign terrorist organizations. Any first party uploaded footage or content with foreign terrorist organizations as the main topic.
+Some examples of content that also fall into this category
+General violence
+Focus on blood, guts, gore, bodily fluids (human or animal), crime scenes or accident photos with little to no context.
+Displaying the graphic aftermath of an act of violence that includes extremely shocking imagery, including:
+Heavy display of blood or gore (such as open wounds like amputated leg or severe burns)
+Severe agony (such as people crying or fainting due to extreme pain from open wounds)
+Content featuring shocking, graphic, and/or violent imagery, or scenes of incitement to or glorification of violence.
+Gaming
+Focus on gameplay manufactured to create a shocking experience. Examples include:
+Aggregating non-playable characters for mass killings.
+Graphic game violence in the thumbnail or in the first seven seconds of the video.
+“Graphic game violence” includes severe injuries (such as beheadings, dismemberment) focusing on bodily fluids and/or parts with prolonged or severe agony.
+Video gameplay showing sexual violence.
+Video gameplay showing violence motivated by hate or violence targeting protected groups.
+Video gameplay showing graphic torture.
+Video gameplay showing graphic violence directed at minors.
+Video gameplay showing graphic violence directed at real named persons.
+Death & tragedy
+Display of unprepared dead bodies or those with ultra-graphic injuries.
+Display of unprepared dead bodies in non-educational contexts.
+Direct display of the moment of death involving physical force on individuals (such as pedestrian strikes or falling off a bridge) in non-educational, documentary, or news contexts.
+Direct display of the moment of death involving extreme physical suffering or catastrophic physical trauma (such as executions or human torture), regardless of context.
+Non-educational, documentation, or news of implied moment of death or severe bodily harm.
+Severe property damage where death or severe bodily harm likely occurred (such as bombings, fires, building collapses, etc).
+Non-educational obscured (such as blurred) graphic dead bodies.
+Fights (excluding combat sports)
+Focal or prolonged display of street fights, even without injuries, in non-educational contexts.
+Hunting
+Hunting content featuring focal graphic imagery of injured or suffering animals (such as bloody body parts).
+Animal abuse
+Display or depiction of animal abuse (both physical or emotional) or animal cruelty, such as kicking.
+Promotion or glorification of human-controlled animal violence (such as cockfighting or dogfighting) which may or may not involve graphic imagery.
+Footage of animals in distress induced by human intervention, such as the purposeful placement of an animal in harm’s way, in strained positions or other dangerous scenarios deemed stressful or unnatural.
+Violence in sports play
+Sports videos where the display of graphic injury is the central subject of the video.
+Foreign terrorist organizations (FTOs)
+Non-educational videos focusing on FTOs or the subject of terrorism, such as:
+Discussions of a terrorist attack as a central subject.
+Relevant imagery or names of the group/leader anywhere in the content (such as in the thumbnail).
+Content featuring shocking, graphic, and/or violent imagery, or scenes of incitement to or glorification of violence.
+Content made by or in support of FTOs.
+Content that celebrates or denies terrorist attacks.
+War & conflict
+Graphic images or accounts of shootings, explosions, executions, or bombings.
+Footage of war with graphic depictions of injury, death, or suffering in any context.
+Violence concerning minors
+Content focally depicting violence between minors in any context or featuring injury or distress to the participants.
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Adult content
+Content that features highly sexualized content in the title or thumbnail or highly sexualized themes is not suitable for advertising. There are limited exceptions for non-graphic sexual education videos and music videos. This policy includes both real and computer-generated visuals. Stating comedic intent does not make highly sexualized content suitable for advertising.
+Policy Detail
+Ads guidance
+Questionnaire options & details
+This content can earn ad revenue
+Romance or kissing; discussions of romantic relationships or sexuality without reference to intercourse; fully obscured nudity that is indiscernible and without intent to arouse the audience; breastfeeding nudity where a child is present; non-graphic sex education; dancing involving rhythmic body movements of commonly sexualized body parts in an attempt to appear desirable or attractive, but which are not sexually graphic; sexually graphic dancing in a professional setting, such as in a choreographed dance or music video.
+Some examples of content that also fall into this category
+Sexually gratifying content
+Romantic scenes that aren’t sexually gratifying, such as animated, real-life, or dramatized kiss or cuddling scenes.
+Scenes involving sexual tension between characters without explicit depictions of sexual acts.
+A kissing scene in a larger narrative where the focus is the romance itself and is not intended to be sexually gratifying.
+Fleeting implied sexual acts without visible genitals, such as showing shaking beds, moaning, or dry humping.
+Discussions of sex in non-sexually gratifying/comedic contexts:
+Lyrics or dialogues referring to passion, desire, or lust.
+Sex education.
+Sexually transmitted diseases (STDs) and how they are transmitted.
+Sexual experiences (such as dealing with pain after a sexual intercourse) which focus exclusively on how sex works, and do not recount how to improve performance.
+Sperm donation.
+Scientific representations of reproductive anatomy using diagrams or dummies.
+Sexual orientation and/or how sexual identity evolves amid relationships.
+Usage of sexual jokes and innuendos (such as mimicking sex acts in a humorous way) that does not use vulgar or obscene terms (such as music lyrics referencing sexual tension).
+Content which refers to fetishes in a non-sexual way (such as “what is your favorite food or food fetish?”).
+Dance
+Sexy dance moves, such as gyrating or rolling one's hips or waist.
+Twerking or grinding.
+Fleeting minimal clothing while dancing.
+Fleeting caresses of sexual body parts.
+Partnered dancers in close bodily contact. For example, their pelvic areas are in close contact.
+Dance moves that mimic or simulate sexual acts, such as pelvic thrusting or erotic lap dances, presented in a professional setting (e.g. dance studios).
+Music videos featuring recurring shots of sexual body parts.
+Nudity
+Obscured nudity where nudity isn’t the focus, such as scenes where characters may be nude but no nipples, butt, or genitalia are visible (such as they are completely pixelated/blurred).
+Blurred nudity of historical figures wearing limited clothing in educational contexts.
+Fully-obscured genitalia that are indiscernible and shown for non-sexual purposes, such as medical procedures.
+Depictions of people wearing limited clothing where the presentation isn’t intended to be sexually gratifying, such as bikinis worn at the swimming pool.
+Clothing reviews focused on the form and function of the clothing rather than a sustained focus on body parts underneath, such as breasts.
+Artistic expressions, such as sculptures, sketches, or computer-generated graphics involving illustrated nudity, such as characters in classic art or photography of indigenous people in loincloths.
+Translucent or sheer coverings of female breasts/cleavage, buttocks, or male torsos seen in appropriate settings, such as fashion show runways, medical exams, or at a recreational beach.
+Visible partial nudity as part of sports, such as boxing where such attire may be required.
+Sheer or minimally-covered breasts or butts (such as when wearing swimwear) that are both not sexually gratifying and not a focal point of the video.
+Objects used to simulate the weight or appearance of genitalia on the body, excluding those used for sexual gratification.
+Artificial breasts used by those who have had mastectomies, or by members of the trans and/or non-binary community.
+Devices used by the trans and/or non-binary community, such as stand-to-pee devices or flaccid packers.
+Breastfeeding nudity
+A woman breastfeeding her child with her nipples uncovered or visible.
+Demonstrating hand expression or breast pump usage with nipples visible and a child in the scene.
+Definitions
+“Sexually gratifying” refers to an intent to sexually arouse an audience.
+“Sexual innuendo” refers to any use of a phrase to suggest or joke about something sexual.
+“Sexually suggestive” refers to visual, audible, or written-out undertones implying intent to sexually arouse an audience.
+“Graphicness” refers to how explicitly the sexual act or nudity is portrayed in order to excite the audience.
+“Breastfeeding nudity” refers to exposed breasts and/or nipples in the context of breastfeeding or lactation. Must include contextual reference to breastfeeding, such as a child about to breastfeed or active lactation.
+This content will receive limited ad earnings
+Classical art displaying discernible intercourse (such as a picture of sexual act) or focus on genitals in thumbnails; non-arousing sexual education containing animated sex acts; pranks involving sexual themes; dancing with focus on minimal clothing; deliberate touching of or sustained focus on sexual body parts in dance.
+Some examples of content that also fall into this category
+Sexually gratifying content
+Titles or thumbnails with sexualized themes (including misleading signals).
+Music videos with thumbnails or titles with sexualized themes (including misleading signals).
+Descriptions of or implicit references to sexual activities (such as implicit references to sexual body parts using emojis or graphics).
+Circling out or otherwise calling attention to something in a thumbnail which suggests implied sexual acts.
+Sex workers featured as an entity.
+Sexual activities (including implied sexual acts).
+Sexual innuendos, such as moaning sounds or ear nibbling.
+Sex toys or devices featured in the content even when not used.
+Depictions of non-arousing sexual activities in educational, documentary, or dramatized content.
+Sexual activities and their histories explained for educational purposes, such as with medical topics.
+Sex-related content, such as documentaries about the sex industry.
+Educational and documentary content containing:
+Discussion of intimate sexual experiences, such as their personal tips learned as a sex worker or obscene languages used as part of intimate conversation.
+Titles or thumbnails featuring adult content in classical arts.
+Dance
+Twerking or grinding where the focus is on the dancer's minimal clothing.
+Dances where a partner grabs their partner's breasts or butt, or where one dancer puts their hands under their partner's clothing.
+Deliberately zooming in on sexual body parts in dance.
+Nudity
+Educational or documentary content featuring full nudity.
+History or industry overviews relating to sex or nudity, such as showcasing full body paintings.
+Classical art featuring discernible genitals.
+Definitions
+“Obscured nudity” refers to things like blurring, covering nudity with black bars or pixelation.
+Implied sexual act: Behavior that mimics sexual intercourse, such as dry humping.
+This content will receive no ad earnings
+Exposed, minimally covered sexual body parts or full nudity; breastfeeding nudity without a child present in the scene; sexual acts (even if blurred or implied), discussion of sexual topics, such as fetishes, tips, experiences; a video thumbnail with sexual content (including texts or links); sexually arousing scenes and gestures; appearance of sex toys or devices; content related to sex industry and their workers; animal sexuality featuring genitals or mating scenes; mimicking or simulating sexual movements or acts in dance; erotic dances explicitly intended to arouse an audience.
+Some examples of content that also fall into this category:
+Sexually gratifying content
+Titles or thumbnails with sexualized themes (including misleading signals).
+Descriptions of or implicit references to sexual activities (such as implicit reference to sexual body parts using emojis or graphics).
+Circling out or otherwise calling attention to something in a thumbnail which suggests implied sexual acts.
+Misleading title where a video promises sexual content, but it doesn't have it (such as a cooking video with the title “watch porn”).
+Computer-generated nudity in a medical context.
+Focal, implicit sexual act or behavior.
+The main subject of the video suggests sexual activity is occurring, such as shaking objects, moaning sounds, etc.
+Depictions of sex toys, sexual devices, or other products intended to enhance sexual activity even where they aren’t in use.
+Unintentional display of a sexual device in a video that is irrelevant to sexual topics (such as displayed in the background).
+A medical object which resembles genitalia introduced during a discussion.
+Scenes with sexually graphic dancing, groping, or making out to sexually arouse audiences.
+Short scenes on sexual activities (including implied sex acts) as a part of a larger narrative.
+Scenes where the main focus is to showcase sexual tension.
+Sexual innuendos using non-sexually gratifying objects:
+Objects resembling genitalia, such as human figurines with realistic genitalia.
+The use of daily objects (such as eggplants) or emojis intended to resemble genitals and sexually arouse audiences.
+Sexually explicit video, audio, text, or dialogue:
+Sex-related entertainment, such as pornography or other sexual services (including links to paid subscription adult content platforms).
+Graphic sexual acts or simulations intended to gratify.
+Depictions of fetishes (such as guides or walkthroughs).
+Focus on sex scandals or the leaking of private intimate material.
+Imitating or mimicking sexual activities (such as pornographic media).
+Promotions of sexual acts in exchange for compensation.
+Actual usage of sex toys (or other products intended to enhance sexual activity).
+Misleading sexual behavior or nudity-related content.
+Thumbnails intending to mislead viewers with sexualized depictions of normal objects or scenes, oftentimes unrelated to the actual video topic.
+Scenes that are edited with the intent to sexually arouse.
+Compilations of sexually gratifying acts, such as scenes of making out or humping.
+Sexually gratifying titles (such as “A hot make-out session”).
+Animal sexuality when:
+Mating videos where the focus is on the genitals.
+Animal genitals or mating shown in a sexually gratifying manner.
+Promoting the creation or distribution of content that has been digitally altered or generated to be sexually explicit or to contain nudity:
+Providing instructions on how to create or distribute sexually explicit synthetic content or synthetic content containing nudity.
+Promoting the creation of sexually explicit synthetic content or synthetic content containing nudity, such as endorsements or comparisons of deepfake pornography services.
+Discussions of intimate sexual experiences, such as masturbation, orgasm, intercourse, tips, or other sexual acts. This may also include sexual innuendos or sexually explicit or obscene text or audio, such as detailed conversations about sex.
+Explicit discussions on sex tips or how to have sex.
+Audio or sound compilations of sexual acts without pictures or visual scenes of the act (such as ear licking and nibbling sounds).
+Descriptions of sexual activities which intend to sexually arouse audiences.
+Mentions of sexual fetishes even when it’s not descriptive.
+Titles or thumbnails referencing adult content, such as 18+, 21+, ‘adult only,’ ‘porn,’ etc., unless it’s educational or documentary in context.
+Usage of emoticons or emojis in text representing sexual body parts or acts to gratify viewers.
+Sexual video games that are targeting adults or sexualizing video game characters with the intent to gratify the audience.
+Dance
+Daggering moves where one partner roughly thrusts their genitals into their partner's genital region.
+Straddling or spreading one's legs open towards their dance partner as if engaging in a sex act.
+Lap dances or strip teases, unless performed as a choreographed dance, music video, or otherwise in a professional setting.
+Nudity
+Pixelated or obscured nudity where the sexual body parts are still recognizable.
+Scenes with naked bodies starred or blurred, but still identifiable from their silhouettes.
+Non-fleeting depictions of nudity (animated, real-life, or dramatized).
+Content featuring (either through focus or repeated showing) breasts or genital areas (such as content featuring a person's genital area "bulge" protruding from their lingerie or swimwear).
+Depictions of sexual body parts, such as recurring or focal shots of cleavage or bulges, intended to sexually arouse audiences.
+Compilations of visibly recognizable turgid genital outlines.
+Minimally-covered (such as thongs) sexual body parts (such as breasts, cleavage, buttocks, etc.) frequently appearing.
+Real or animated nudity, such as full exposure of sexual body parts or sex acts.
+Child nudity
+Content showing visible genitals, such as when changing a diaper or babies swimming fully naked.
+Breastfeeding nudity
+Educational content about how to use a breast pump where nipples are visible but no child is present.
+Hand expression tutorials where nipples are visible without a child present in the scene.
+Showing a woman lactating into a cup without a child present in the scene.
+Definitions:
+Deepfakes are synthetic media that have been digitally manipulated to replace one person's likeness convincingly with that of another.
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Shocking content
+Content that may upset, disgust, or shock viewers may not be suitable for advertising. Unobscured shocking elements won’t necessarily result in your video being unsuitable for advertising, but context matters.
+Policy Detail
+Ads guidance
+Questionnaire options & details
+This content can earn ad revenue
+Light or moderately shocking content that is obscured or shown in context for educational, documentary, or other purposes.
+Some examples of content that also fall into this category
+Body parts, liquids, waste
+Body parts, liquids, or waste that is made for kids or presented in an educational, scientific, documentary, or artistic context, and where intent is not to shock.
+Dramatized body parts, liquids, or waste where intent is to shock, mostly for entertainment purposes (like a magic trick) but where legitimate context must be given.
+Medical and cosmetic procedures
+Medical or cosmetic procedures that are educational, focusing on the procedure itself rather than on bodily parts, liquids, or waste.
+Tattoo, piercing, or botox procedures with minimal blood.
+Obscured or fleeting display of body parts, liquids, or waste during medical or cosmetic procedures.
+Human and animal birth videos educating viewers without extra focus on body parts, fluids, or waste.
+Accidents and injuries
+Accidents where no exposed injury is visible (such as internal tissue, bleeding wounds).
+Accidents that do not cause a real upset due to only moderate impact being visible (e.g. falling off a motorcycle).
+Accidents where the victim is not subject to distress or suffering as a result of the accident (no crying or screaming shown).
+Accidents in which no long-term medical care becomes necessary.
+Accidents and injuries that are presented in a news, documentary, or artistic context (such as a film or music video).
+Animal preparation and eating
+Unsensational handling of animal parts.
+Portrayals of meat, fish in raw or prepared-to-eat states, such as when demonstrating cooking or preparation techniques.
+Sensational eating or preparation of animal-based food products that do not resemble animal parts.
+Eating shellfish in a restaurant that are alive or still visibly moving.
+Eating prepared foods (such as shrimp) as part of a “mukbang” or ASMR performance.
+Fleeting display of animal parts with explicit facial features (excluding fish, mollusca, or crustaceans, which are allowed to be presented focally).
+Definitions
+"Intent to shock" refers to the video’s purpose to shock, which is determined by what context is given as well as its focus.
+"Accidents" refers to unfortunate incidents typically resulting in damage or injury, including where injury itself may not be clearly visible (such as with vehicle accidents).
+"Exposed" refers to visibility of bodily parts, liquids, or waste (such as tissue or blood).
+"Upset” refers to the unsettling or surprised emotion arising from visible or reasonably assumed detrimental impact or injury.
+"Distress" refers to the visible, audible, or perceived presentation of human suffering as a result of pain or even unconsciousness. In this case, it’s related to individuals involved in accidents and individuals undertaking or experiencing medical or cosmetic procedures (including births).
+“Unsensational” (used in context of exposed animal parts or animal/insect eating) refers to a manner focused on food product usage without the intent to arouse curiosity about the animal. The animal or its consumption is not intended to shock nor are there graphic and exaggerated details.
+"Mishandling" refers to how the animal is being prepared or eaten in a brutal or savage manner. For example, being thrown, dropped, played with entertainingly, poked, or beheaded. The animal does not necessarily have to be alive to be mishandled, and mishandling can be done with tools, utensils, or bare hands.
+"Professional context" refers to the profession of being a butcher or fishmonger and the contexts where they cut and handle dead animals.
+"Explicit facial features" refers to facial features that confirm to an audience that the animal was or still is a living being. Features include noses, ears, mouth, eyes, etc.
+This content will receive limited ad earnings
+Shocking content, like graphic images of human, or animal body parts, that is unobscured or intended to shock yet still provides general context.
+Some examples of content that also fall into this category
+Body parts, liquids, waste
+Focus on real body parts, liquids, or waste where the intent is to shock.
+Dramatized presentations of bodily parts, liquids, and waste focusing on gruesome and gory details.
+Surgery scenes in a scripted content with excessive blood.
+Medical and cosmetic procedures
+Educational or artistic content with medical or cosmetic procedures focusing on exhibiting unobscured bodily, parts, fluids or waste in detail, but where these obscured elements are not the central focus.
+Focal, obscured surgery where organs are visible but not necessarily the only subject of the video.
+A medical professional demonstrating earwax removal or pimple popping with explanations of the condition.
+Accidents and injuries
+Accidents where there's such a strong moment of impact that it’s likely to cause upset.
+Accidents in which an unexposed injury is visible (such as seeing bleeding happen through clothing or out of a vehicle), but where no distress of the victim can be perceived.
+High impact car crash where no victims are shown suffering.
+Animal preparation and eating
+Sensational “mukbang” or ASMR animal consumption displaying unprepared animal parts or eating them in a barbaric or exaggerated manner.
+Focal, discernible explicit features of a living being (such as focusing on animal eyes while cooking).
+Skinned animal parts with gruesome and gory elements, but no mishandling is apparent (e.g. focus on bleeding meat and tendons in animal parts being prepared).
+This content will receive no ad earnings
+Highly shocking content where the whole purpose of the video is to shock viewers. Generally, no real context is provided, while gruesome and gory elements, distress (including showing minors in distress), or mishandling are clear and apparent.
+Some examples of content that also fall into this category
+Body parts, liquids, waste
+Disgusting, gruesome, or gory presentations of bodily parts, fluids, or waste with little to no context.
+Ear wax or pimple popping without explicit explanation of the procedure, where most of the video focuses on body parts, liquids, or waste, even in educational contexts.
+Dramatized shocking elements presented with little context, solely with the intent to shock.
+Medical and cosmetic procedures
+Unobscured body parts, liquids, or waste taking up a large proportion of a video that are gruesome and gory even while context is provided.
+Medical professionals explaining how to perform a specific operation.
+Procedures presented with no or misleading context, where most of the video shows body parts, liquids, or waste that are gruesome and gory.
+Accidents and injuries
+Upsetting presentations of accidents and extreme injuries where exposed body parts are visible or where extreme injury can be reasonably assumed.
+Showing bleeding and exposed tissue is visible.
+Extreme impact accidents without context.
+Animal preparation and eating
+Showing, preparing, or eating live animals where the sole intent is to shock viewers, often in a gruesome and gory manner.
+Strong focus on explicit facial features or clear mishandling of the animal without context.
+Brutal or graphic depictions of preparing (skinning) or killing visibly distressed animals.
+Non-educational portrayals of the preparation of visibly distressed, living animals for eating.
+Non-educational portrayals of eating animals with focus on explicit facial features.
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Harmful acts and unreliable content
+Content that promotes harmful or dangerous acts resulting in serious physical, emotional, or psychological injury is not suitable for advertising.
+Policy Detail
+Ads guidance
+Questionnaire options & details
+This content can earn ad revenue
+Stunts or acts that are slightly dangerous, but performed in a professional and controlled environment where no one is seriously injured.
+Some examples of content that also fall into this category:
+General harmful or dangerous acts
+Activities where risk is involved with no visible injuries such as:
+Professional stunts or extreme sports such as wingsuit flying.
+Footage of a person doing wheelies or ground-level parkour.
+Motor vehicles speeding or drifting without doing dangerous tricks (such as stand up wheelies or free hands) or causing frequent disruptions to others (such as driving in between lanes).
+Fail compilations
+Fail compilation videos without a focus on graphic injuries (such as walking into a glass door).
+Pranks & challenges
+Pranks or challenges where there is perplexity, confusion, or discomfort but no risk or long-term harm is involved such as the ice bucket challenge.
+Discussions or reports about harmful pranks or challenges with no footage or audio of the moment of harm (such as reports on a fire challenge without the details of the incident).
+Educational, documentary, or news report content showcasing pranks or challenges that cause extreme emotional distress (such as physical fights, abusive language and insults, such as “you’re fired!” pranks).
+Medical and scientific misinformation
+Neutral content about viruses, infectious diseases, and COVID-19 without the intent of inciting fear (such as a video for kids on the difference between viruses and bacteria).
+Harmful misinformation
+Educational or documentary content seeking to explain how groups promoting harmful misinformation gain traction, rise to prominence, and/or spread misinformation.
+Educational or documentary content with a focus on debunking harmful misinformation.
+Educational or documentary content seeking to debunk climate change misinformation.
+Certain content of public interest.
+Vaping & tobacco
+Public service announcements for preventative actions.
+Dramatized content with focal depiction of usage.
+Educational or documentary content showcasing industries involving vaping/tobacco.
+Alcohol
+Presence of alcohol or adults drinking alcohol in content without promoting or glorifying irresponsible drinking.
+Definitions:
+“Seriously injured” refers to injuries that cannot be treated without proper medical care or cannot be treated at home such as broken bones, visible dislocations, or significant amounts of blood.
+Body modification may include things like tattoo, piercing, or medical surgery.
+“Dramatized” refers to scripted content such as movies or fictional settings.
+This content will receive limited ad earnings
+Content showing but not focusing on physical harm or distress, including acts done in a non-professional, non-controlled environment.
+Some examples of content that also fall into this category:
+General harmful or dangerous acts
+Acts involving high risk activities such as skyscraper parkour or depicting serious injury like skate slam aftermath.
+Educational, documentary, or news report on:
+Harmful or dangerous acts with graphic injury.
+Children involved in gambling or driving motor vehicles designed for use by adults.
+Motor vehicles speeding or drifting and doing dangerous tricks (e.g. stand up wheelie or free hands) or causing frequent disruptions to others (e.g. driving in between lanes).
+Educational, dramatized or music video content showcasing dangerous acts that include a minor as a participant or victim.
+Fail compilations
+Focal depictions of moments with graphic injuries that do not lead to death or terminal conditions (e.g. video compilation of road bike crashes).
+Pranks & challenges
+Educational, documentary, or news reports on prank or challenge content with:
+Threats or advocacy for physical or psychological harm against oneself or others such as laying flat between train tracks.
+Acts that should not be imitated such as a challenge to drink bleach and may result in immediate and critical harm to one’s health.
+Pranks or challenges that create extreme emotional distress such as physical altercations, abusive language and insults. These can also include threatening an individual’s life status such as layoff pranks or by emotionally evoking or threatening someone in the context of a relationship (e.g. break up pranks where one person becomes emotionally volatile, or arrest pranks against relatives, etc.).
+Pranks involving gratuitous amounts of body fluids or graphic violence.
+Challenges that include eating non-toxic, non-edible substances such as ingesting a glue stick or pet food. Eating edible substances that are harmful in large volumes such as the Carolina Reaper pepper, or ones that depict a mild physical reaction.
+Vaping & tobacco
+Product reviews of or comparison between tobacco products (e.g. vaping juice comparison).
+Educational or documentary mention of addiction services.
+Alcohol
+Educational, documentary, or dramatized content featuring minors consuming alcohol or alcohol-focused products.
+Definitions:
+“Mild physical reaction” refers to things like dry heaving, vomit-inducing cough.
+This content will receive no ad earnings
+Content that mainly shows accidents, vigilantism, pranks, or dangerous acts, such as experiments or stunts that have health risks (like drinking or eating non-edibles); discussions of trending videos that show this type of content.
+Some examples of content that also fall into this category:
+General harmful or dangerous acts
+Glorification of harmful or dangerous acts or acts perceived to be dangerous.
+Motor vehicles with shocking scenes and injuries (e.g. of the moment of impact or showing someone in an unconscious state on a road after getting hit by a truck).
+Children involved in gambling or driving motor vehicles designed for use by adults.
+Dangerous acts that include a minor as a participant or victim.
+Fail compilations
+Fail compilations that include activities resulting in death or grievous damage (irreversible or puts the person into coma, seizure, paralysis, etc.).
+Pranks & challenges
+Pranks or challenges that should not be imitated such as a challenge to drink chlorine and may result in immediate and critical harm to one’s health.
+Pranks or challenges relating to:
+Suicide, death, terrorism such as fake bomb scare pranks, or threats with lethal weapons.
+Sexually unwanted acts such as forced kissing, groping, sexual abuse, spy cams in dress room.
+Physical harm or distress but where such distress is not the focus of the video.
+Prolonged emotional distress of a minor such as a prank that lasts for an extended period of time leading to a child being scared or upset. This could include pranking children into believing their parents are dead.
+Threats or advocating for physical or psychological harm against oneself or others such as laying flat between train tracks.
+Promoting the use of weapons to inflict harm on others.
+Showing the consumption of substances in such quantities that it results in a graphically shocking physical reaction such as vomiting after eating a ghost pepper.
+Challenges which, if replicated, could result in serious harm such as fire challenge or bird box challenge.
+Encouragement of fraudulent or illicit activities (e.g. breaking and entering).
+Medical and scientific misinformation
+Promoting harmful health or medical claims or practices:
+Denying that established health conditions exist, for example, HIV.
+Videos that encourage or provide instructions for scientifically unproven remedies for medical conditions (e.g. healing cancer through diet choices).
+Spreading misinformation that denies established medical and scientific facts, such as promoting anti-vaccination.
+Content that promotes or condones gay conversion therapy programs or services.
+Promoting or advocating for COVID-19 harmful misinformation:
+False or misleading claims about the effects or distribution of the vaccine.
+Videos that encourage or provide instructions for scientifically unproven remedies for COVID-19
+Harmful misinformation
+Making claims that are demonstrably false and could significantly undermine participation or trust in an electoral or democratic process.
+Demonstrably false information about public voting procedures, political candidate eligibility based on age or birthplace, election results, or census participation that contradicts official government records.
+Promoting harmful misinformation.
+Advocating for groups which promote harmful misinformation.
+Contradicting scientific consensus on the existence of and causes behind climate change.
+Vaping & tobacco
+Promoting tobacco and tobacco-related products and their consumption.
+Footage of minors consuming vaping/tobacco products.
+Facilitating the sale of vaping/tobacco products.
+Usage of vaping/tobacco products in a manner not intended by the manufacturer (e.g. drinking vape juice).
+Alcohol
+Portrayal of minors consuming alcohol, even if it’s not the central subject of the video.
+Promoting alcohol consumption to minors.
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Hateful & derogatory content
+Content that incites hatred against, promotes discrimination, disparages, or humiliates an individual or group of people is not suitable for advertising. Content that is satire or comedy may be exempt. Stating your comedic intent is not sufficient and that content may still not be suitable for advertising.
+Policy Detail
+Ads guidance
+Questionnaire options & details
+This content can earn ad revenue
+Content referencing protected groups or criticizing an individual's opinions or actions in a non-hurtful manner.
+Some examples of content that also fall into this category
+News content which describes a protected group in a non-hateful way such as a news report on discrimination.
+Comedic content that condemns or alludes to ridicule, humiliation, or other disparaging comments towards protected groups.
+Public debates on protected groups without inciting hatred and violent confrontation against them.
+Artistic content that uses sensitive terminology or symbols in a non-hateful way, such as in popular music videos.
+Educational or documentary content:
+Obscured racial slurs or derogatory terms with the intent to educate the audience (e.g. n***er).
+Containing focal hate imagery.
+Certain content of public interest.
+Criticizing an individual’s or group’s opinion, views, or actions without any incendiary or demeaning intent.
+Definitions
+“Protected group” refers to the groups of characteristics below. Inciting hatred against, discriminating, disparaging, or humiliating an individual or group of people based on the below characteristics is not considered advertiser-friendly.
+Race
+Ethnicity or ethnic origin
+Nationality
+Religion
+Disability
+Age
+Veteran status
+Sexual orientation
+Gender identity
+Any other characteristic associated with systemic discrimination or marginalization.
+This content will receive limited ad earnings
+Content that may be offensive to individuals or groups, but is used for education, news, or in a documentary.
+Some examples of content that also fall into this category
+Debate that may include offensive language but is intended to educate such as a political debate on civil rights issues.
+Educational content:
+Unobscured racial slurs or derogatory terms with the intent to educate the audience (e.g. unobscured or fully spelled out usage of the n-word).
+Containing raw footage of someone conducting the following acts without explicitly promoting or glorifying the acts:
+Focuses on shaming or insulting an individual or group.
+Singles out someone for abuse or harassment.
+Denies tragic events happened and are cover-ups.
+Malicious personal attacks and defamation.
+This content will receive no ad earnings
+Hate or harassment towards individuals or groups.
+Some examples of content that also fall into this category
+Statements intended to disparage a protected group or imply/state its inferiority, such as “all people from this country are disgusting”.
+Non-educational content featuring racial slurs or derogatory terms.
+Promoting, glorifying, or condoning violence against others.
+Inciting discrimination against protected groups, such as stating “you should hate all disabled people in this country”.
+Promoting hate groups, hate symbols, or hate group paraphernalia.
+Malicious shaming or insulting of an individual or group.
+Singling out an individual or group for abuse or harassment.
+Denying or glorifying that tragic events happened, framing victims or survivors as crisis actors.
+Malicious personal attacks, slander, and defamation.
+Portraying ideologies or beliefs in a malicious way by generalizing or disparaging.
+Negatively characterizing individuals, groups, ideologies, or beliefs, such as stating “all feminism is sick”.
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Recreational drugs and drug-related content
+Content that promotes or features the sale, use, or abuse of illegal drugs, regulated legal drugs or substances, drug trafficking organizations or other dangerous products is not suitable for advertising.
+Policy Detail
+Ads guidance
+Questionnaire options & details
+This content can earn ad revenue
+Educational, humorous, or music-related references about recreational drugs or drug paraphernalia, where the intent is not to promote or glorify illegal drug usage. Drug deals shown in gaming content. Documentary,journalistic, or comedic content portraying usage of drugs or drug trafficking organizations.
+Some examples of content that fall into this category
+Educational content about drugs or drug paraphernalia, such as the scientific effects of drug use or the history of drug trafficking.
+Personal accounts of drug addiction recovery.
+Music videos with fleeting depiction of drugs.
+Gaming and scripted content displaying drug dealings.
+Documentary or journalistic reports on the purchase, fabrication, usage, or distribution of drugs, such a story about a drug bust.
+Dramatized, documentary, or journalistic report including gaming scenes with consumption or usage (such as injection) of drugs.
+Drug trade organizations (DTOs)
+Educational, dramatized, journalistic, or music content focusing on the international drug trade as a whole.
+Educational, dramatized, journalistic, or music content portraying DTOs and related imagery like slogans.
+Educational, dramatized, journalistic, or music content featuring comedic content covering DTOs or international drug trading as a subject.
+DTO Public service announcements in journalistic reports.
+Journalistic reports including scenes of violent situations and actions such as hostages or interrogation conducted by DTOs.
+This content will receive limited ad earnings
+Non-educational and non-informational content focusing on illegal drug consumption (including injection) or creation, where the intent is not to promote or glorify illegal drug usage. Educational content portraying drug trade organization’s violent situations (e.g. hostages).
+Some examples of content that fall into this category:
+Dramatized content, including music and video games, which focuses on drug usage.
+Scenes of injecting drugs to get high in a scripted content.
+Drug trade organizations (DTOs)
+Educational or documentary content on DTOs.
+May include non-graphic situations of attacks and/or their aftermath, hostage situations, etc.
+Violent situations and actions such as hostages or interrogation conducted by DTOs.
+This content will receive no ad earnings
+Content promoting or glorifying drug usage, such as providing instructions on buying, making, selling, or finding illegal drugs or drug paraphernalia in order to encourage recreational usage. Glorification, recruitment, graphic portrayal (e.g. hostage situation), or imagery of drug trade organizations. Focal content on drug trafficking organizations.
+Some examples of content that fall into this category
+Sharing drug reviews and drug insights.
+Tips or recommendations on recreational drug usage or creation, such as cannabis farming.
+Reviews of cannabis coffee shops, head shops, dealers, dispensary tours, etc.
+Selling or buying drugs online or offline.
+Sharing links to drug purchasing sites or the physical addresses of drug purchasing locations.
+Drug trade organizations (DTOs)
+Non-educational videos focused on specific DTOs, DTO leaders, or international drug trading.
+Discussion of DTOs with no explicit reference to an intent to educate or explain the topic is considered “non-educational” content.
+Non-educational depictions of DTO-related imagery such as flags, slogans, banners, etc.
+Recruitment of DTO group members.
+Violent situations and actions such as hostages or interrogation conducted by DTOs.
+Comedic content covering DTOs or international drug trading as a subject.
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Firearms-related content
+Content focused on the sale, assembly, abuse, or misuse of real or fake firearms is not suitable for advertising.
+Policy Detail
+Ads guidance
+Questionnaire options & details
+This content can earn ad revenue
+Non or semi-automatic and unmodified guns shown in a safe environment like a shooting range or a clear open area so as not to endanger bystanders or property owned by others. Firearm and paintball gun assembly and disassembly for the purposes of repair or maintenance. Responsible use of airsoft or ball bullet (BB) guns.
+Some examples of content that also fall into this category:
+Discussions on gun legislation or the issue of gun control.
+Gun reviews and demonstrations.
+Content featuring optical scopes and silencers.
+Prop guns when not used to harm a person or property.
+Definitions:
+A “safe environment” refers to locations like shooting ranges or enclosed areas that are purpose built for target practice.
+“Modifications” refer to anything that interferes, enhances or changes the internal functioning of the product, as well as hair triggers, bump stocks, and explosive/incendiary ammunition, or other attachments such as thermal/infrared sights or large capacity magazines.
+A “prop gun” is a non-functioning firearm by design. This definition includes guns designed to only fire blanks (blank firing guns).
+This content will receive limited ad earnings
+Use of guns outside a controlled environment; use of airsoft or ball bullet (BB) guns against others without protective gear.
+Some examples of content that also fall into this category:
+Showing guns being used in unprepared or uncontrolled environments (e.g. on a public street outside a home, or anywhere bystanders or other people’s property are put at risk).
+This content will receive no ad earnings
+Content that shows gun creation or modification (including assembly or disassembly), promotes gun makers or sellers, or facilitates the sale of a gun, minors using guns without adult supervision. Content showing guns modified with bump stocks or hair triggers, thermal night vision or infrared sights, or using thermal, explosive, or incendiary ammunition. Content featuring large capacity magazines (more than 30 rounds) attached or separate from a gun. Content featuring fully automatic guns or guns modified to fire more than one round on a single trigger pull.
+Some examples of content that also fall into this category:
+Guides as to how to add bump stocks to a firearm.
+Recommendations of top gun manufacturers or firms from which to purchase firearms (e.g. “15 best gun shops”).
+Referring users directly to a site facilitating gun sales.
+Promotions of the sale of a firearm or component, including but not limited to:
+Sale of a firearm-related part or component that is essential to, or enhances the functionality of a firearm including:
+80% finished gun-parts
+Ammunition
+Ammunition clips
+Silencers
+Ammunition belts
+Stocks
+Conversion kits
+Gun-grips
+Scopes
+Sights
+Videos which promote content for gun stores.
+Videos which promote manufacturers or discount codes for gun stores.
+Videos containing firearm-making instructions (e.g. replicable gun assembly/disassembly or steps on gun modifications), guides, or software, or equipment for 3D printing of guns or gun parts.
+Assembly/disassembly of a firearm for the purpose of modification.
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Controversial issues
+Controversial issues are topics associated with trauma, abuse, or that may be unsettling for viewers. This policy may apply even if the content is purely commentary.
+Topics covered under Controversial issues policy are child abuse, adult sexual abuse, sexual harassment, self-harm, suicide, eating disorders, domestic abuse, and abortion.
+Policy Detail
+Ads guidance
+Questionnaire options & details
+This content can earn ad revenue
+Content related to preventing controversial issues. Content where the controversial issues are mentioned fleetingly and are non-graphic and non-descriptive. Non-graphic but descriptive or dramatized content related to domestic abuse, self-harm, suicide, adult sexual abuse, abortion, and sexual harassment.
+Some examples of content that fall into this category:
+Non-graphic, main topic news coverage of controversial issues
+Non-graphic abortion content, including personal accounts, opinion pieces, or medical procedure content
+Content that covers historical or legislative facts related to abortion
+Journalistic reporting of non-graphic, non-descriptive content related to suicide/self-harm, adult sexual abuse, domestic abuse, and sexual harassment
+Dramatized or artistic depictions of controversial issues
+A movie that shows someone jumping off of a bridge
+General reference to eating disorders without triggering or imitable signals
+Title & thumbnail:
+References to controversial issues that are non-graphic
+Text or image of a razor
+Definitions:
+Fleeting references are not the focus of content (not focal) and include passing references to topics listed as controversial or sensitive. For example, briefly acknowledging a controversial or sensitive topic wouldn’t be considered focal, but rather fleeting
+Such as “In next week’s video we’ll be discussing declining rates of suicide”
+Triggering or imitable signals:
+Lowest BMI or weight
+Showing an overly thin or emaciated body
+Weight or body-based shaming or bullying
+Reference to binging, hiding, or hoarding food
+Exercising to reach a caloric deficit
+Vomiting or abusing laxatives
+Checking weight loss progress
+Reference to hiding any of the above behaviors
+This content will receive limited ad earnings
+Artistic, educational, documentary, or scientific representation of controversial issues. Non-graphic, non-descriptive, main topic related to child abuse. Thumbnails with graphic depictions of controversial issues, including real or dramatized.
+Some examples of content that also fall into this category:
+Depicting a child being verbally abused
+Dramatized or artistic depiction of eating disorders with triggering or imitable signals
+Eating disorder recovery stories such as a person’s journey to overcome bulimia
+Title & thumbnail:
+Graphic depictions of controversial issues in the thumbnail, including real, dramatized, and artistic depictions
+This content will receive no ad earnings
+Graphic depictions of controversial issues. Descriptive content related to child abuse as the main topic. Explicit reference to eating disorders accompanied by any of the following references or context: Lowest BMI or weight, showing a thin or emaciated body, weight or body-based shaming or bullying, reference to binging, hiding, or hoarding food, exercising to reach a caloric deficit, vomiting or abusing laxatives, checking weight loss progress, reference to hiding any of the above behaviors.
+Some examples of content that also fall into this category:
+Graphic first person accounts or biographies from survivors discussing their past experiences with:
+Child abuse
+Promotion or glorification of controversial issues in the content, title, or thumbnail such as "how to kill yourself and die honorably”
+Graphic depiction of self-harm where scars, blood, or injury are visible
+Raw footage of controversial issues like someone cutting their wrist with blood shown
+Explicit reference to eating disorders with triggering or imitable signals
+Graphic depiction of controversial issues:
+A controversial issue (e.g., child abuse) depicted with traumatic elements, such as a broken arm
+Animated depiction of controversial issues presented in a sensational manner
+Showing characters bullying others
+Definitions:
+Focus or focal refers to a segment, full video, or a sustained discussion about a given controversial issue. A passing reference to a controversial issue is not considered focus on that issue. For example, briefly acknowledging a controversial or sensitive topic such as “In next week’s video we’ll be discussing declining rates of suicide" wouldn’t be considered focal, but a segment of a video specifically talking about such a topic would be considered focal. Focus need not be verbal. If there is an image or text that focuses on the sensitive issue, that would be considered focus too.
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Sensitive events
+March 23, 2022: Due to the war in Ukraine, content that exploits, dismisses, or condones the war is ineligible for monetization until further notice. This update is meant to clarify, and in some cases expand, our guidance as it relates to this war.
+A sensitive event is an event or development that creates significant risk to Google's ability to provide high quality, relevant information and ground truth, and reduce insensitive or exploitative content in prominent and monetized features. During a sensitive event, we may take a variety of actions to address these risks.
+Examples of sensitive events include civil emergencies, natural disasters, public health emergencies, terrorism and related activities, conflict, or mass acts of violence. This policy applies even if the content contains no graphic imagery.
+Policy Detail
+Ads guidance
+Questionnaire options & details
+This content can earn ad revenue
+Discussions involving the loss of life or tragedy that are not exploitative or dismissive.
+In certain circumstances, we may prevent monetization of any content related to a sensitive event to avoid abuse or exploitation of victims. Context is important: for instance, we may allow content to earn ad revenue if it features news reporting, documentary content or discussions about a sensitive event.
+This content will receive no ad earnings
+Creators may not monetize content that profits from or exploits a sensitive event.
+Examples (non-exhaustive):
+Appearing to profit from a tragic event with no discernible benefit to users, sale of products or services that may not meet the standards and/or guidelines of relevant oversight bodies (for example, emergency relief organizations, health authorities, or international organizations).
+Using keywords related to a sensitive event to attempt to drive additional traffic.
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Enabling dishonest behavior
+Content glorifying or promoting dishonest behavior, such as trespassing, cheating, or computer hacking that is personal or paid for.
+Policy Detail
+Ads guidance
+Questionnaire options & details
+This content can earn ad revenue
+Educational, humorous, or music-related references or statements on dishonest behavior. Content that doesn’t promote dishonest behavior such as journalistic reports on misdemeanors against codes of conduct.
+Some examples of content that fall into this category
+Trespassing
+Exploring abandoned buildings or decommissioned sites in order to share or educate an audience with descriptions of having permission to do.
+Tours of restricted zones at the Chernobyl site with necessary permits and permissions.
+Journalistic reports on:
+Content violating a retail store or commercial building's code of conduct (such as staying overnight at a store after closing hours).
+Pretending to be a retail store employee in-store without the owner’s consent (such as wearing a store uniform and providing guidance on merch to clients).
+Hacking
+Penetration testing (a service that ethical hackers sell to companies to test for physical and information security vulnerabilities).
+Bug bounties (rewards offered for finding computer bugs in systems or programs).
+Digital hacks, lifehacks, tips and tricks (e.g. jailbreaking a phone, game cheats, game mods, VPN services).
+Educational, documentary or journalistic reports on usage or encouragement of hacking software in competitive e-sports.
+Crime
+Documentaries about crime.
+Personal accounts by individuals affected by crimes.
+This content will receive no ad earnings
+Content meant to educate viewers on how to gain unauthorized access or make unauthorized changes to systems, devices, or property in malicious ways. Displaying acts that are against a property's code of conduct. Showcasing products or services that help mislead or cheat, such as academic essay writing services or hacking methods to win in competitive e-sports
+Some examples of content that fall into this category
+Trespassing
+Promoting or glorifying trespassing, such as overnight stunts in a secured building.
+Violating a retail store or commercial building's code of conduct.
+Impersonating retail store employees in-store without the property owner's consent.
+Displaying a house break-in without additional context, e.g. CCTV footage of a house break-in.
+Hacking
+Encouraging or enabling viewers to digitally track or monitor another person or their activities without their consent.
+Tips on how to wiretap a person’s phone without their consent.
+Use or encouraging use of hacking software in competitive e-sports
+Unethical products or services
+Academic essay writing services.
+Circumvention of drug tests.
+Forgery or creation of fake passports or other identification documents.
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Inappropriate content for kids and families
+Content that is
+“made for kids”
+must be appropriate for a family audience in order to monetize on YouTube. This means it must follow YouTube’s
+quality principles for kids and family content
+and
+our Program Policies
+Policy Detail
+Content that encourages negative behavior
+Promoting negative behaviors that could negatively impact kids.
+Ads guidance
+Questionnaire options & details
+This content can earn ad revenue
+Content that encourages positive behavior and isn't harmful to kids.
+Some examples of content that fall into this category
+Educational content on negative behavior
+Public Service Announcements (PSAs) or videos on the negative impact of bullying or humiliating kids
+Display of healthy eating habits
+Videos about sports and fitness
+DIY, challenges, or pranks that have low risk and cause no serious physical or emotional harm to kids, such as:
+DIYs, demos, or how-tos, such as baking or cooking with utensils used in safe and appropriate ways
+Pranks where kids aren’t traumatized or physically harmed
+This content will receive no ad earnings
+Content that could impact kids by promoting negative behavior such as cheating and bullying, or content that could cause serious physical or emotional harm to kids.
+Some examples of content that fall into this category
+Content that encourages or promotes negative behavior by kids, or content about social issues that negatively affect kids.
+Dishonest behavior, such as cheating on tests
+Display of real or realistic guns in kids content
+Binge eating high sugar or high fat foods
+Bullying, harassing, or humiliating kids
+Content on how to change bodies to look slimmer, more curvaceous or muscular, restrict or increase calories, etc.
+DIYs or challenges that depict or could result in serious physical or emotional harm, such as:
+Using prohibited chemicals, explosives, matchsticks for volcano DIY content, etc.
+Food stuffing challenges that may cause suffocation
+Encouraging eating non-edible products
+Mature content aimed towards kids
+Themes that are mostly associated with teen or adult audiences such as nudity, sex, realistic violence, drugs, alcohol, or profanity in the video, thumbnail, or title.
+Category
+Limited ad earnings or no ad earnings
+Content that is made to appear appropriate for kids and families, but contains adult themes.
+Sex and sexual innuendos
+Violence, realistic weapons
+Moderate, strong or extreme profanity
+Drugs and alcohol
+Other depictions of kids or popular kids’ characters that are unsuitable for kids and families
+Shocking content aimed toward kids
+Content that is safe for adults, but could shock or scare kids, such as adult horror characters or jump scare themes such as kidnaping, horror movies, etc.
+Category
+Limited ad earnings or no ad earnings
+Content that is made to appear appropriate for kids and families, but contains content to scare or shock children.
+Characters aimed to scare kids, such as Momo or adult horror characters
+Content that depicts gore or other graphic violent content
+Non-graphic content that could frighten kids such as kidnapping, horror scenes, syringes being used as weapons, etc.
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Tobacco-related content
+Content that promotes tobacco and tobacco-related products is not suitable for advertising. This policy falls under Harmful or dangerous acts in the self-certification questionnaire in YouTube Studio, so be sure to check that one as well for detailed guidance.
+Examples (non-exhaustive)
+Category
+Limited ad earnings or no ad earnings
+Promoting tobacco
+Cigarettes, cigars, chewing tobacco
+Promoting tobacco-related products
+Tobacco pipes, rolling papers, vape pens
+Promoting products designed to simulate tobacco smoking
+Herbal cigarettes, e-cigarettes, vaping
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Incendiary and demeaning
+Content that is gratuitously incendiary, inflammatory, or demeaning may not be suitable for advertising. This policy falls under Hateful & derogatory content in the self-certification questionnaire in YouTube Studio, so be sure to check that one as well for detailed guidance.
+Examples (non-exhaustive)
+Category
+Limited ad earnings or no ad earnings
+Content that is incendiary and demeaning
+Content that focuses on shaming or insulting an individual or group
+Content that harasses, intimidates, or bullies an individual or group of individuals
+Content that singles out someone for abuse or harassment
+Content that suggests a tragic event did not happen, or that victims or their families are actors, or complicit in a cover-up of the event
+Malicious personal attacks, slander, and defamation
+To learn more about key terms used throughout these guidelines, see our
+table of definitions
+Definitions
+We’ve put together a table of definitions to help you better understand terms commonly used throughout our advertiser-friendly content guidelines.
+Definitions
+Terms
+Definitions
+Music
+This refers to any video that contains music, such as official music videos, art tracks, backing tracks, intro/outro music, reactions to music videos, music playing during dance tutorials, music added or obtained through YouTube's tools, or music played in the background. This does not apply to poetry and spoken word performances.
+Educational
+“Educational” refers to informing or teaching about a subject without deliberately misinforming the audience. Educational content expresses an opinion in a neutral way, such as in a discussion of safe sex practices. The following terms are contextually related:
+“Documentary” refers to memorializing and preserving historic events by quoting original documents or describing facts, such as in a history of Ancient Egypt.
+“Scientific” refers to advancing inquiry through scientific experimentation and theory, such as when presenting data on human psychology.
+Artistic
+“Artistic” refers to art intended to express human creativity such as painting, drawings, architecture, sculpture, literature, poetry, music, performing, and scripted content. An example would be a video of a poetry recital.
+Dramatized
+“Dramatized” refers to scripted content such as movies or fictional settings including animated content.
+Graphic, Graphicness
+"Graphic” or “graphicness” refers to inclusions of explicit and realistic portrayals such as the following:
+Gore or open wounds resulting from violent acts, like street fights.
+Violent acts against animals, like kicking.
+Visuals of sexual acts, sexual body parts and fluids.
+Realism
+“Realism” refers to three levels of severity:
+“Low realism”: Highly divergent from reality, such as a talking cat.
+“Moderate realism”: Low divergence from reality, such as exaggerated graphics depicting real-world figures such as humans or animated characters in video games.
+“High realism”: Real-world situations depicting humans as main characters, such as a street fight.
+Explicit, Explicitness
+“Explicit” or “explicitness” refer to how present or visible the violative subject is in content. Some examples include:
+Video showing or depicting an abortion procedure.
+Audio or sounds of someone getting abused.
+Implicit, Implied
+“Implicit” or “implied” refer to a suggestive, indirect presence or visibility of the violative subject. Some examples include:
+Video showing or depicting shaking beds with moaning sounds that suggest sexual acts.
+Video showing or depicting vehicles blowing up in order to suggest a moment of death.
+Focus, Focal
+“Focus” or “focal” refers to when a segment or full video is about a given topic, and that there is repeated reference and focus on the topic. A passing reference to one of the topics listed as controversial or sensitive is not a reason for No Ads. For example, briefly acknowledging a controversial or sensitive topic (e.g. “In next week’s video we’ll be discussing declining rates of suicide.”) wouldn’t be considered focal, but a segment of a video specifically talking about such a topic would be considered focal. Focus need not be verbal. If there is an image or text that focuses on the sensitive issue, that would be considered focus too. Some examples include:
+A video focused on how to perform self-harm.
+Content only focused on using strong profanities without other context or reason.
+Fleeting
+“Fleeting” refers to moments that are not the focus of content (not focal), and include passing references to topics listed as controversial or sensitive. For example, briefly acknowledging a controversial or sensitive topic (e.g. “In next week’s video we’ll be discussing declining rates of suicide.”) wouldn’t be considered focal, but rather fleeting.
+Sensational
+Refers to a manner intended to arouse curiosity or broad interest, especially through the inclusion of exaggerated, graphic, or sensitive details.
+“Sensational eating,” such as eating animal or animal parts that are alive or still visibly moving.
+“Sensational preparation or eating” where preparation or eating becomes theatrical, such as part of “mukbang” or an ASMR performance.
+“Sensational depiction of controversial issues” where sensitive topics, like bullying, become the core theme of entertainment, particularly through negative character interactions.
+Public Interest
+Public interest content refers to content such as congressional or parliamentary proceedings, campaign speeches, or debates over ongoing government actions.
+All videos uploaded to YouTube must comply with YouTube’s
+Terms of Service
+and
+Community Guidelines
+. To be able to monetize with ads, you’ll need to follow the
+YouTube monetization policies
+and Program Policies.
+We may reserve the right to disable ads on your entire channel in situations where the majority of your content is not suitable for any advertisers or where there are repeated, serious violations (e.g. uploading of content which is incendiary, demeaning or hateful).
+Was this helpful?
+How can we improve it?
+Yes
+Submit
