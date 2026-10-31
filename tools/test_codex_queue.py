@@ -5,15 +5,20 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+
+from PIL import Image, ImageFile
+
+import codex_queue
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = ROOT / "tools" / "codex_queue.py"
 
 
 def png(path, w=1920, h=1080):
-    """ترويسةُ PNG بأبعادٍ معيّنة — يكفي لفحص الاكتمال التقنيّ بلا مكتبة صور."""
+    """صورةٌ حقيقية قابلة لفكّ البكسلات؛ الترويسة وحدها لا تكفي."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(b"\x89PNG\r\n\x1a\n" + struct.pack(">I", 13) + b"IHDR" + struct.pack(">II", w, h) + b"\x08\x02\x00\x00\x00")
+    Image.new("RGB", (w, h), (38, 75, 112)).save(path, format="PNG")
 
 
 def run(*args):
@@ -22,7 +27,9 @@ def run(*args):
 
 class CodexQueueTests(unittest.TestCase):
     def setUp(self):
-        self.tmp = Path(tempfile.mkdtemp())
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.tmp = Path(directory.name)
         self.prompts = self.tmp / "prompts.json"
         self.prompts.write_text(json.dumps({"F001": "a", "F002": "b", "F003": "c"}), encoding="utf-8")
 
@@ -68,6 +75,80 @@ class CodexQueueTests(unittest.TestCase):
         self.prompts.write_text(json.dumps([{"file": "a.jpg", "prompt": "1"}, {"file": "a.jpg", "prompt": "2"}]), encoding="utf-8")
         self.assertNotEqual(run("write", self.tmp, "film", self.prompts).returncode, 0)
 
+    def test_header_only_png_is_missing_in_status_and_its_original_shard(self):
+        run("write", self.tmp, "film", self.prompts)
+        images = self.tmp / "film" / "images"
+        for name in ("F001", "F002", "F003"):
+            png(images / f"{name}.jpg")
+        (images / "F002.jpg").write_bytes(
+            b"\x89PNG\r\n\x1a\n" + struct.pack(">I", 13) + b"IHDR"
+            + struct.pack(">II", 1920, 1080) + b"\x08\x02\x00\x00\x00")
+        result = run("status", self.tmp, "film")
+        self.assertEqual(result.returncode, 3)
+        self.assertIn("2/3", result.stdout)
+        self.assertIn("F002.jpg", result.stdout)
+        self.assertEqual(run("shard", self.tmp, "film", 1, 2).stdout.split(), [])
+        self.assertEqual(run("shard", self.tmp, "film", 2, 2).stdout.split(), ["images/F002.jpg"])
+
+    def test_real_jpeg_and_png_are_complete(self):
+        for image_format in ("JPEG", "PNG"):
+            with self.subTest(image_format=image_format):
+                file = self.tmp / image_format
+                Image.new("RGB", (1280, 720), "navy").save(file, format=image_format)
+                self.assertTrue(codex_queue.done(self.tmp, {"file": file.name, "size": [1280, 720]}))
+
+    def test_truncated_jpeg_with_readable_dimensions_is_not_complete(self):
+        file = self.tmp / "broken.jpg"
+        Image.new("RGB", (320, 180), "navy").save(file)
+        file.write_bytes(file.read_bytes()[:-20])
+        with Image.open(file) as image:
+            self.assertEqual(image.size, (320, 180))
+            with self.assertRaises(OSError):
+                image.load()
+        self.assertFalse(codex_queue.done(self.tmp, {"file": file.name, "size": [320, 180]}))
+
+    def test_truncated_png_is_not_complete(self):
+        file = self.tmp / "broken.png"
+        png(file, 320, 180)
+        file.write_bytes(file.read_bytes()[:50])
+        self.assertIsNone(codex_queue.dims(file))
+
+    def test_png_with_bad_chunk_checksum_is_not_complete(self):
+        file = self.tmp / "bad-checksum.png"
+        png(file, 320, 180)
+        data = bytearray(file.read_bytes())
+        data[-13] ^= 1  # آخر بايت من بصمة مقطع IDAT، قبل مقطع IEND.
+        file.write_bytes(data)
+        self.assertIsNone(codex_queue.dims(file))
+
+    def test_non_images_empty_files_and_directories_are_missing(self):
+        for name, content in (("empty.png", b""), ("text.jpg", b"not an image")):
+            (self.tmp / name).write_bytes(content)
+            self.assertIsNone(codex_queue.dims(self.tmp / name))
+        self.assertIsNone(codex_queue.dims(self.tmp / "absent.png"))
+        self.assertIsNone(codex_queue.dims(self.tmp))
+
+    def test_other_image_formats_are_not_accepted_as_queue_images(self):
+        file = self.tmp / "renamed.jpg"
+        Image.new("RGB", (32, 32)).save(file, format="GIF")
+        self.assertIsNone(codex_queue.dims(file))
+
+    def test_large_image_guard_is_preserved(self):
+        file = self.tmp / "large.png"
+        png(file, 32, 32)
+        for limit in (600, 100):
+            with self.subTest(limit=limit), patch.object(Image, "MAX_IMAGE_PIXELS", limit):
+                self.assertIsNone(codex_queue.dims(file))
+
+    def test_truncated_image_setting_is_temporarily_disabled_and_restored(self):
+        file = self.tmp / "broken.jpg"
+        Image.new("RGB", (320, 180)).save(file)
+        file.write_bytes(file.read_bytes()[:-20])
+        with patch.object(ImageFile, "LOAD_TRUNCATED_IMAGES", True):
+            self.assertIsNone(codex_queue.dims(file))
+            self.assertTrue(ImageFile.LOAD_TRUNCATED_IMAGES)
+
 
 if __name__ == "__main__":
     unittest.main()
+

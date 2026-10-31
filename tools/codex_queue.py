@@ -17,14 +17,17 @@
 
 `prompts.json` إمّا قاموس `{"F001": "وصف…"}` (يُحفظ `images/F001.jpg`) أو قائمة
 `[{"file": "thumbs/x-A.png", "prompt": "…", "size": [1280, 720]}]`.
+
+الفحص الكامل يحتاج Pillow: `python -m pip install Pillow`.
+النجاح يعني سلامة البنية وفكّ الصورة بالمقاس المطلوب؛ الاعتماد البصري يبقى على الجلسة.
 """
 from __future__ import annotations
 
 import argparse
 import json
-import struct
 import sys
 import time
+import warnings
 from pathlib import Path, PurePosixPath
 
 JOB = "codex_job.json"
@@ -47,32 +50,37 @@ def load_items(prompts: Path, size: list[int]) -> list[dict]:
 
 
 def dims(path: Path) -> tuple[int, int] | None:
-    """أبعاد JPG/PNG من ترويسته بلا مكتبة؛ None = ليس صورةً سليمة الترويسة."""
+    """أبعاد JPG/PNG بعد التحقّق من بنية الملف وفكّ كل بكسلاته، لا من الترويسة وحدها."""
     try:
-        b = path.read_bytes()
-    except OSError:
+        from PIL import Image, ImageFile
+    except ImportError:
+        sys.exit("⛔ فحص الصور الكامل يحتاج Pillow؛ ثبّتها بالأمر: python -m pip install Pillow")
+
+    # لا نرث تساهل برنامج آخر مع الصور المبتورة عند استيراد هذه الأداة.
+    allow_truncated = ImageFile.LOAD_TRUNCATED_IMAGES
+    ImageFile.LOAD_TRUNCATED_IMAGES = False
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            with Image.open(path) as image:
+                if image.format not in {"JPEG", "PNG"}:
+                    return None
+                image.verify()
+            # verify يفحص البنية؛ إعادة الفتح ثم load تفحص بيانات الصورة نفسها.
+            with Image.open(path) as image:
+                image.load()
+                return image.size
+    except (OSError, ValueError, SyntaxError,
+            Image.DecompressionBombError, Image.DecompressionBombWarning):
         return None
-    if b[:8] == b"\x89PNG\r\n\x1a\n" and len(b) >= 24:
-        return struct.unpack(">II", b[16:24])
-    if b[:2] == b"\xff\xd8":
-        i = 2
-        while i + 9 < len(b):
-            if b[i] != 0xFF:
-                return None
-            m, ln = b[i + 1], struct.unpack(">H", b[i + 2:i + 4])[0]
-            if m in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
-                h, w = struct.unpack(">HH", b[i + 5:i + 9])
-                return w, h
-            i += 2 + ln
-    return None
+    finally:
+        ImageFile.LOAD_TRUNCATED_IMAGES = allow_truncated
 
 
 def done(base: Path, it: dict) -> bool:
-    """منجزٌ = ملفٌّ صورةٌ سليمةُ الترويسة بالمقاس المطلوب — لا مجرّد وجود اسم (تدقيق كوديكس MF-10).
+    """منجزٌ = صورةٌ تُفتح وتُفكّ كاملةً بالمقاس المطلوب، لا مجرّد ترويسة سليمة.
     ⛔ هذا اكتمالٌ تقنيّ لا اعتمادٌ بصريّ: الفحص بالعين يبقى على الجلسة."""
     f = base / it["file"]
-    if not f.is_file() or f.stat().st_size == 0:
-        return False
     d = dims(f)
     return d is not None and list(d) == list(it.get("size") or d)
 
@@ -156,3 +164,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
