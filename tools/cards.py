@@ -201,6 +201,10 @@ CTA1, CTA2 = 'الجواب في الفيلم الكامل', 'اكتب جوابك
 
 def reel_cards(r: dict) -> dict[str, dict]:
     sq = [1024, 640]
+    # ⭐ الريلز «الكامل» (دراسة الريلزات 2026-10-31): قصّةٌ تفي بنفسها في 15–25 ث، بلا سؤالٍ يحبس الجواب ولا دعوةٍ إلى الفيلم
+    if r.get('complete'):
+        return {'title': _spec('rtitle', 'rtitle', plain(r['title']), sq),
+                'hook': _spec('rhook', 'rhook', plain(r.get('hook') or r['title']), sq)}
     return {'title': _spec('rtitle', 'rtitle', plain(r['title']), sq),
             'hook': _spec('rhook', 'rhook', plain(r.get('hook') or r['title']), sq),
             'end': _spec('rend', 'rend', plain(r.get('end_q') or 'ماذا حدث بعد ذلك؟'), sq),

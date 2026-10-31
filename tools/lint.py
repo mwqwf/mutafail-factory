@@ -44,7 +44,8 @@ def naqs(path):
         bid, _, txt = raw.rstrip('\n').split('|', 2) if raw.count('|') >= 2 else (raw.split('|')[0], '', '')
         plain = strip_d(txt).replace('ـ', '')
         for w in NAQS:
-            if w in plain: hits.append((bid, w))
+            # من أوّل الكلمة لا من وسطها: «منزلتنا» ليست «زلة» (جَرَجة 2026-10-31)، وتبقى السوابق «وَ/فَ/بِ/لِ/الـ»
+            if re.search(r'(?<![^\s\W\dوفبلك])(?:ال)?' + re.escape(w), plain): hits.append((bid, w))
     return hits
 
 def check(path):

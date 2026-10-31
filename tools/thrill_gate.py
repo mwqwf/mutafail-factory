@@ -45,6 +45,7 @@ HOOK_FIRST_MAX = 16      # كلماتُ أوّل جملة
 CHAPTER_OPEN_MAX = 22    # كلماتُ أوّل كتلة في الفصل
 CLIFF_MIN = 0.70         # نسبةُ الفصول المختومة بمعلّقة
 OPEN_LOOPS_MIN = 1       # سؤالٌ مركزيّ بعد الافتتاح البارد وقبل الدقيقة (حكم المالك 2026-10-05؛ كان سؤالين في أوّل 12 كتلة)
+REEL_SEC_PER_WORD = 0.81  # إيقاع الصوت الفعليّ (نهاوند) — للريلز الكامل حيث الحدّ ضيّق
 SEC_PER_WORD = 0.46      # تقديرُ زمن الكلمة المشكولة بصوت القناة (≈ 130 كلمة/د) — قبل وجود الصوت
 SHOT_MEAN_MAX = 6.0      # متوسّط بقاء اللقطة على الشاشة (ث)
 SHOT_MAX = 10.0          # أطولُ لقطة (ث)
@@ -445,6 +446,18 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
     for r in reels:
         rb = [by_id[i]["text"] for i in r.get("blocks", []) if i in by_id]
         end = plain(rb[-1]) if rb else plain(r.get("end_q", ""))
+        if r.get("complete"):
+            # ⭐ الريلز الكامل (دراسة الريلزات 2026-10-31): يفي بقصّته ولا يحبسها، 15–25 ث، ولا دعوةَ ولا «الفيلم الكامل»
+            est = sum(words(t) for t in rb) * REEL_SEC_PER_WORD
+            if not 14.0 <= est <= 27.0:
+                errs.append(f"الريلز الكامل {r.get('id')} نحو {est:.0f} ث (المطلوب 15–25): قالب دراسة 2026-10-31")
+            if "؟" in end or end.endswith("…"):
+                errs.append(f"الريلز الكامل {r.get('id')} يُختم بسؤالٍ أو تعليق: يفي بقصّته ولا يحبسها")
+            if any(re.search(r"(الفيلم|الفلم|الحلقة|القناة|اشترك|التعليقات)", plain(t)) for t in rb):
+                errs.append(f"الريلز الكامل {r.get('id')} يحيل إلى الفيلم أو يدعو: القالب بلا إحالة")
+            if rb and words(rb[0]) > HOOK_FIRST_MAX:
+                errs.append(f"الريلز {r.get('id')} يفتح بـ{words(rb[0])} كلمة (> {HOOK_FIRST_MAX}): الصدمة في أوّل ثانيتين")
+            continue
         if "؟" not in end:
             errs.append(f"الريلز {r.get('id')} لا يُختم بسؤالٍ معلّق يقود إلى الفيلم")
         if rb and words(rb[0]) > HOOK_FIRST_MAX:
