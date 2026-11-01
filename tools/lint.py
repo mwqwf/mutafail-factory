@@ -29,7 +29,23 @@ def naqs(path):
         bid, _, txt = raw.rstrip('\n').split('|', 2) if raw.count('|') >= 2 else (raw.split('|')[0], '', '')
         plain = strip_d(txt).replace('ـ', '')
         for w in NAQS:
-            if w in plain: hits.append((bid, w))
+            # من أوّل الكلمة لا من وسطها: «منزلتنا» ليست «زلة» (جَرَجة 2026-10-31)، وتبقى السوابق «وَ/فَ/بِ/لِ/الـ»
+            if re.search(r'(?<![^\s\W\dوفبلك])(?:ال)?' + re.escape(w), plain): hits.append((bid, w))
+    return hits
+
+# ⛔ حكم المالك 2026-10-11 (والمرجع الموحّد 2026-11-01): لا صيغ تمريضٍ في كلام الراوي؛ ما لا يُجزم به يُحذف، والدرجة في الوصف.
+#    يُفحص الراوي (N) وحده، فقول الصاحب المسند قد يحوي «قيل له» بمعناه. ولا تُدرج «قيل» المجرّدة لأنها تأتي بمعنى «قيل له».
+HEDGE = ['يروى', 'تروي', 'في رواية', 'تقول الروايات', 'ذكرت الروايات', 'تذكر الروايات', 'تذكر المصادر', 'تقول المصادر',
+         'يقال إن', 'يقال ان', 'ويقال', 'قيل إن', 'قيل ان', 'فيما يروى', 'كما يروى']
+
+def hedge(path):
+    hits = []
+    for raw in io.open(path, encoding='utf-8'):
+        m = re.match(r'^(d_\d{3}|m_\d{3}|r_\d{3})\|(\w)\|(.+)$', raw.rstrip('\n'))
+        if not m or m.group(2) != 'N': continue
+        plain = strip_d(m.group(3)).replace('ـ', '')
+        for w in HEDGE:
+            if re.search(r'(?<![^\s\W\dوفبلك])' + re.escape(w) + r'(?!\w)', plain): hits.append((m.group(1), w))  # لا «ترويع»
     return hits
 
 def check(path):
@@ -90,6 +106,12 @@ if __name__ == '__main__':
         print('⛔ %d تعليقاً قد يُفهم منه تنقّصٌ من مسلمٍ أو من تاريخ المسلمين — احذف التعليق واذكر الواقعة مجرّدة:' % len(hits))
         for bid, w in hits: print('  %s | «%s»' % (bid, w))
         print('')
+    hh = hedge(p)
+    if hh:
+        print('⛔ %d صيغة تمريضٍ في كلام الراوي (حكم المالك 2026-10-11) — احذف ما لا يُجزم به، والدرجة في الوصف:' % len(hh))
+        for bid, w in hh: print('  %s | «%s»' % (bid, w))
+        print('')
+        hits = hits + hh
     bad = check(p)
     if hits and not bad:
         sys.exit(1)
