@@ -1,6 +1,6 @@
 # مرجع الأدلة والتطبيق لمهارة مصنع المتفائل
 
-تاريخ التحقق: 1 نوفمبر 2026. هذا مرجع مساعد لتصميم مهارة تحرير وإخراج عربية، لا ادعاء بأنه يحوي كل المعرفة البشرية أو وصفة مضمونة للانتشار. لا يتضمن تثبيت أدوات أو توليدًا مدفوعًا أو تغيير حسابات.
+تاريخ التحقق: 1 نوفمبر 2026. هذا مرجع المصادر في المرجع الموحّد المعتمد، وهو مساعد لتصميم مهارة تحرير وإخراج عربية، لا ادعاء بأنه يحوي كل المعرفة البشرية أو وصفة مضمونة للانتشار. لا يتضمن تثبيت أدوات أو توليدًا مدفوعًا أو تغيير حسابات.
 
 ## 1. تصنيف المعرفة قبل استعمالها
 
@@ -141,6 +141,31 @@
 
 ## 14. ما لم يُختبر في هذا التسليم
 
-لم تُحلل بيانات جمهور خاصة، ولم يُنتج صوت أو صورة، ولم يُشغّل اختبار A/B، ولم تُقَس زيادة مشاهدات. التسليم دراسة ومهارة تحريرية قابلة للمراجعة والتجربة، لا شهادة تحسن للقناة. تُراجع التعريفات والمزايا المتغيرة في المصادر الرسمية عند التطبيق.
+في تسليم ChatGPT الأوّل لم تُحلل بيانات جمهور خاصة؛ وأُضيفت في الدمج أدلّة القناة والمجال (channel-evidence.md) دون تجربةٍ جديدة. ولم يُنتج صوت أو صورة، ولم يُشغّل اختبار A/B، ولم تُقَس زيادة مشاهدات. التسليم دراسة ومهارة تحريرية قابلة للمراجعة والتجربة، لا شهادة تحسن للقناة. تُراجع التعريفات والمزايا المتغيرة في المصادر الرسمية عند التطبيق.
 
 مصدر رسمي إضافي لتعريف المشاهدات وتاريخ تغييره: [YouTube: How engagement metrics are counted](https://support.google.com/youtube/answer/2991785?hl=en).
+
+## 15. مصادر القرارات المدموجة من دليل Claude (2026-11-01)
+
+| المجال | المصدر | القوّة |
+|---|---|---|
+| الانغماس وأثره العاطفيّ والمواقف، ومنابعه (حبكةٌ متخيَّلة، ألفة، شخصيّةٌ يُتماهى معها) | [van Laer et al. 2014، تحليل تجميعيّ](https://openaccess.city.ac.uk/id/eprint/6755/1/SSRN-id2033192.pdf) | قويّ |
+| المهامّ غير المكتملة لا تُتذكّر أفضل (زيغارنيك)، والذي ثبت ميلٌ إلى الاستئناف | [Ghibellini & Meier 2025، تحليل تجميعيّ](https://ideas.repec.org/a/pal/palcom/v12y2025i1d10.1057_s41599-025-05000-w.html) | قويّ |
+| فجوة الفضول تنشّط المكافأة وتقوّي التذكّر في أسئلةٍ قصيرة | [Kang et al. 2009](https://pubmed.ncbi.nlm.nih.gov/19619181/) | متوسّط |
+| الرهبة ترفع المشاركة والحزن يخفضها (عن الأخبار) | [Berger & Milkman](https://faculty.wharton.upenn.edu/wp-content/uploads/2011/11/Virality.pdf) | متوسّط |
+| العناوين الطُّعميّة لم تتفوّق في ثلاث تجارب | [Molina, Sundar & Rony، CHI 2021](https://www.psu.edu/news/research/story/clickbait-headlines-might-not-lure-readers-much-may-confuse-ai) | متوسّط |
+| كشف النهاية: متعارض | [APS 2011](https://www.psychologicalscience.org/news/releases/spoiler-alert-stories-are-not-spoiled-byspoilers.html)؛ [إعادة 2016](https://www.onfiction.ca/2017/04/research-bulletin-spoiler-alert-not-all.html)؛ [SAGE 2018](https://journals.sagepub.com/doi/10.1177/0033294118793971) | متعارض |
+| قِصَر اللقطة مقترناً بالحركة، وتفاوت الأطوال | [Cutting et al. 2011](https://journals.sagepub.com/doi/reader/10.1068/i0441aap)؛ [APS Observer](https://www.psychologicalscience.org/observer/the-science-of-hollywood-blockbusters-2) | قويّ في الاتجاه |
+| التحريرات داخل المشهد ترفع الإثارة والتذكّر | [Lang et al. 2000](https://scholars.cityu.edu.hk/en/publications/the-effects-of-edits-on-arousal-attention-and-memory-for-televisi/) | قويّ في الأصل |
+| التنافر في الصوت الاصطناعيّ | [arXiv 2505.05543](https://arxiv.org/pdf/2505.05543) | متوسّط |
+| المشهد الصوتيّ الطبيعيّ والحضور، والتزامن | [Kern & Ellermeier 2020](https://www.frontiersin.org/articles/10.3389/frobt.2020.00020/pdf) | قويّ في سياقه |
+| تقدير العمل الآليّ أقلّ لنقص «الأصالة المدرَكة» | [Raj, Berg & Seamans عبر PsyPost](https://www.psypost.org/people-consistently-devalue-creative-writing-generated-by-artificial-intelligence/) | قويّ (عن الكتابة) |
+| «الحركات الآليّة» أوّل علامات التوليد | [Animoto 2026](https://www.businesswire.com/news/home/20260121875037/en/83-of-Consumers-Can-Spot-AI-Videos-36-Say-It-Lowers-Brand-Trust-According-to-Animotos-New-Report) | ضعيف–متوسّط |
+| سياسة المحتوى غير الأصيل | [YouTube Help 1311392](https://support.google.com/youtube/answer/1311392?hl=en) | قويّ |
+| الإفصاح عن التوليد لا يغيّر التوصية ولا الربح | [YouTube Blog 2026-05-27](https://blog.youtube/news-and-events/improving-ai-labels-for-viewers-and-creators/) | قويّ |
+| الرضا في التوصية (وقت المشاهدة القيّم) | [YouTube Blog 2021](https://blog.youtube/inside-youtube/on-youtubes-recommendation-system/) | قويّ |
+| الشورتس لا يرفع الطويل بالضرورة | [YouTube Blog 2025](https://blog.youtube/creator-and-artist-stories/debunking-common-myths-about-youtube-shorts/) | قويّ |
+| توجيه Gemini TTS بأجزاء (ملفّ الصوت، المشهد، ملاحظات المخرج، النصّ) | [Google AI على dev.to](https://dev.to/googleai/how-to-prompt-gemini-31s-new-text-to-speech-model-24bb) | قويّ (إرشاد المزوّد) |
+| الفتاوى في المؤثّرات والتلاوة | الشاملة: [٢٧١٠٧/١٣٨٢٣](https://shamela.ws/book/27107/13823)، [٩٦٢٤٨/٣](https://shamela.ws/book/96248/3)؛ [islamqa 229732](https://islamqa.info/en/answers/229732) | متوسّط |
+
+**ثغرة:** لم نجد دراسةً محكّمة عن تلقّي المحتوى الدينيّ العربيّ على يوتيوب؛ فكلّ ما يخصّه تركيبٌ من نتائج عامّة يحتاج اختباراً على قناتنا.
