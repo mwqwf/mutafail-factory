@@ -47,7 +47,7 @@ try:
 except (OSError, ValueError):
     VF = 'atempo=1.05,adeclick,dynaudnorm'
 run(['-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'a.txt'), '-filter:a', VF, '-ar', '48000', voice])
-VD = dur(voice) + 0.6                               # نَفَسٌ قصير بعد آخر كلمة تحت بطاقة الختام
+VD = dur(voice) + (0.15 if R.get('complete') else 0.6)                              # نَفَسٌ قصير بعد آخر كلمة تحت بطاقة الختام
 
 # ② الصورة: قطعٌ كلّ CUT ثانية يدور على اللقطات؛ وفي كلّ دورةٍ جزءٌ آخر من اللقطة نفسها (حركةٌ جديدة لا تكرار)
 n = max(1, math.ceil(VD / CUT)); per = VD / n; shots = R['shots']; segs = []
@@ -78,6 +78,9 @@ run(['-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'v.txt'), '-c', 'cop
 #    بطاقاتٌ من كوديكس (tools/cards.py: rtitle · rhook · rend · rcta1 · rcta2) تُقصّ وتُحجَّم هنا فقط، والغائبة تُترك.
 import cards, kinetic  # noqa: E402
 RC = {k: kinetic.card(PROJ, c['key']) for k, c in cards.reel_cards(R).items()}
+COMPLETE = bool(R.get('complete'))   # ريلزٌ كامل: لا بطاقة ختامٍ ولا دعوة، والنهاية تدور إلى أوّله (دراسة 2026-10-31)
+for k in ('end', 'cta1', 'cta2'):
+    RC.setdefault(k, None)
 
 
 def put(canvas, im, cy, maxw, maxh):
@@ -162,10 +165,10 @@ ain = ['-i', norm]
 amix = '[1:a]apad=whole_dur=%.3f[au]' % VD
 
 # ⑥ التجميع: خلفيةٌ مموّهة + الإطار المكبَّر + العنوان + الترجمة + شريط التقدّم + الخطّاف أوّلاً + بطاقة الختام آخراً
-HOOK_T, END_T = 1.6, 3.2
+HOOK_T, END_T = 1.6, (0.0 if COMPLETE else 3.2)
 k0 = 2
 inp = ['-i', fg] + ain + ['-loop', '1', '-i', os.path.join(WORK, 'top.png'), '-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'caps.txt'),
-                          '-loop', '1', '-i', os.path.join(WORK, 'hook.png'), '-loop', '1', '-i', os.path.join(WORK, 'end.png')]
+                          '-loop', '1', '-i', os.path.join(WORK, 'hook.png')] + ([] if COMPLETE else ['-loop', '1', '-i', os.path.join(WORK, 'end.png')])
 iT, iC, iH, iE = k0, k0 + 1, k0 + 2, k0 + 3
 flt = ['[0:v]split[a][b]', '[a]scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d,boxblur=30:3,eq=brightness=-0.2[bg]' % (W, H, W, H),
        '[bg][b]overlay=0:%d:shortest=1[v0]' % FG_Y, '[v0][%d:v]overlay=0:0:shortest=1[v1]' % iT,
@@ -173,9 +176,11 @@ flt = ['[0:v]split[a][b]', '[a]scale=%d:%d:force_original_aspect_ratio=increase,
        "[v2]drawbox=x=0:y=0:w='iw*t/%.3f':h=12:color=0xF7C74A@1:t=fill[v3]" % VD,
        '[%d:v]format=rgba,fade=t=out:st=%.2f:d=0.25:alpha=1[hk]' % (iH, HOOK_T - 0.25),
        "[v3][hk]overlay=0:0:enable='lte(t,%.2f)'[v4]" % HOOK_T,
-       '[%d:v]format=rgba,fade=t=in:st=%.2f:d=0.35:alpha=1[en]' % (iE, VD - END_T),
+       ('[%d:v]format=rgba,fade=t=in:st=%.2f:d=0.35:alpha=1[en]' % (iE, VD - END_T)) if not COMPLETE else None,
        "[v4]crop=w=iw-48:h=ih-48:x='24+if(lt(t,0.7),22*sin(70*t)*exp(-5*t),0)':y='24+if(lt(t,0.7),16*cos(85*t)*exp(-5*t),0)',scale=%d:%d[v4s]" % (W, H),
-       "[v4s][en]overlay=0:0:enable='gte(t,%.2f)',fps=30,setsar=1,format=yuv420p[v]" % (VD - END_T), amix]
+       ("[v4s][en]overlay=0:0:enable='gte(t,%.2f)',fps=30,setsar=1,format=yuv420p[v]" % (VD - END_T)) if not COMPLETE
+       else '[v4s]fps=30,setsar=1,format=yuv420p[v]', amix]
+flt = [x for x in flt if x]
 out = P('reels', RID + '.mp4')
 run(inp + ['-filter_complex', ';'.join(flt), '-map', '[v]', '-map', '[au]', '-t', '%.3f' % VD,
            '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-c:a', 'aac', '-b:a', '192k', out])
