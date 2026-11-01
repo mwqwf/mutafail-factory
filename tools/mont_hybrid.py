@@ -6,6 +6,7 @@
 import json, os, sys, glob, random, subprocess as sp
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cards, envpaths, kb3d, kinetic, look, sfx_auto, sfx_synth, transitions   # kinetic: الكتابة المتحرّكة (أمر المالك 2026-10-04)
+import ayah        # الآية نصّاً مركّباً مع صمتٍ تامّ: حقل ayah في لقطة الإمساك (حكم المالك 2026-11-01)
 import battlemap   # خريطة المعركة الحيّة: حقل map في اللقطة (أمر المالك 2026-10-04، بحث الإبهار §١)
 from sfx_verdict import ok as sfx_ok   # صوت Kling يدخل بحكمٍ مطابقٍ لبصمة المقطع الحاليّ (MF-07)
 from envpaths import FF, FP
@@ -176,6 +177,17 @@ def overlay(s, seg, span, L):
     return res
 
 
+def ayah_ov(s, seg, L):
+    """الآية من المصحف نصّاً مركّباً (tools/ayah.py): تعتيمٌ والآيةُ بتلاشٍ من أوّل اللقطة إلى آخرها، والمزج يُكتم في نافذتها."""
+    res = seg[:-4] + '_ayah.mp4'
+    if os.path.exists(res) and abs(dur(res) - L) < 0.03: return res
+    png = ayah.render(s['ayah'], os.path.join(WORK, 'ayah_%s.png' % s['id']))
+    sp.run([FF, '-v', 'error', '-y', '-i', seg, '-loop', '1', '-t', '%.3f' % L, '-i', png, '-filter_complex',
+            '[1:v]format=rgba,fade=t=in:st=%.2f:d=0.6:alpha=1[o];[0:v][o]overlay=0:0[v]' % (HEAD + 0.15),
+            '-map', '[v]', '-frames:v', str(int(round(L * 25)))] + ENC + [res], check=True)
+    return res
+
+
 def captions(s, seg, span, L):
     """"title": {"text","sub","word"|"at"} ⇒ اسمٌ كبير بخطٍّ عربيّ يظهر بتلاشٍ عند كلمته.
     "counter": {"from":2026,"to":1260,"start":0.4,"secs":4.5,"suffix":"م","then":"٦٥٨ هـ"} ⇒ عدّادُ سنين تنازليّ متسارعٌ ثم متباطئ.
@@ -263,7 +275,7 @@ if _pub.get('live_open', True):
         print('①ج حركةٌ حيّة حتى الثانية %.0f: %d لقطةً أخذت مقطعاً مدفوعاً معاداً' % (LIVE_UNTIL, _k), flush=True)
 
 # ② اللقطات + جدول المؤثّرات — كلّ مقطعٍ بمقبضيه: NF[n] + 2×HF إطاراً، وبداية اللقطة فيه عند HEAD
-segs, fx = [], []   # fx: (بداية، مدة، ملف، مستوى)
+segs, fx, AYAH_SIL = [], [], []   # AYAH_SIL: نوافذ الآيات الصامتة؛ fx: (بداية، مدة، ملف، مستوى)
 clean = []          # المقاطع قبل الكتابة المتحرّكة والبطاقات — تُصنع منها الريلزات العمودية فلا يُقصّ نصٌّ محروق
 # ⭐ أمر المالك 2026-10-03 («لا أكشن»): كان المقطعُ الحيّ يُبطَّأ ×1.4 ليملأ كلاماً أطول، فتصير الخيلُ والسيوف حركةً بطيئةً
 #    مائعة. ⇒ لا إبطاء فوق ×1.15، وما زاد يكمله kb3d — والعلاجُ الحقّ لقطاتٌ أقصر (thrill_gate: ≤ 6 ث متوسّطاً).
@@ -335,6 +347,12 @@ for n, s in enumerate(shots):
     if kinetic.has_fx(s):                          # الكتابة المتحرّكة كلمةً كلمة والضربات والبطاقات (الأرك)
         mt = MATTE(s) if not kl else None                # القناع للّقطة المجسّمة وحدها (المقطع الحيّ بلا عمقٍ إطاراً بإطار)
         out = kinetic.apply(PROJ, s, out, span, TEXTS, durs, GAP, WORK, ENC, HEAD, L, mt if mt and os.path.exists(mt) else None)
+    if s.get('ayah'):                              # ⛔ لا تلاوة مولَّدة: الآية مكتوبةً والمزجُ صامتٌ تحتها (AYAH_SIL)
+        out = ayah_ov(s, out, L)
+        AYAH_SIL.append((t, t + span))
+        segs.append(out); TL[s['id']] = [round(t, 3), round(span, 3)]
+        print('  [%d/%d] %s · %.1f ث · آية (صمت)' % (n + 1, len(shots), s['id'], span), flush=True)
+        continue
     segs.append(out)
     # صوتُ Kling الطبيعي (إن اجتاز الفحص) وإلا مؤثّرُ المكتبة
     if kl and sfx_ok(kl):
@@ -410,7 +428,8 @@ flt.append('%samix=inputs=%d:duration=first:normalize=0[amb]' % (''.join(amb), l
 dip = '+'.join('between(t,%.3f,%.3f)' % (ht - 0.28, ht) for ht in heavy_t)
 flt.append('[amb][vsc]sidechaincompress=threshold=0.025:ratio=5:attack=50:release=450:makeup=1[ambd]')
 flt.append("[ambd]volume='max(0.3,1-0.7*(%s))':eval=frame[amb2]" % (dip or '0'))
-flt.append('[v][amb2][h]amix=inputs=3:duration=first:normalize=0[a]')
+flt.append('[v][amb2][h]amix=inputs=3:duration=first:normalize=0[a0]')
+flt.append("[a0]volume='%s':eval=frame[a]" % ayah.silence_expr(AYAH_SIL))   # صمتٌ تامّ تحت كلّ آية: لا رياح ولا مؤثّر ولا ارتطام
 raw = os.path.join(WORK, 'audio_mix.wav')
 sp.run(inp + ['-filter_complex', ';'.join(flt), '-map', '[a]', '-c:a', 'pcm_s16le', '-ar', '48000', raw], check=True)
 mixed = os.path.join(WORK, 'audio_final.m4a')
