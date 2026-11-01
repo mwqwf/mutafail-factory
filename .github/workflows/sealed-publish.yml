@@ -120,7 +120,8 @@ jobs:
           gh release download "$TAG" -R "$GITHUB_REPOSITORY" --clobber
           sed -i 's/ \*/  /' SHA256SUMS
           sha256sum -c SHA256SUMS
-          cat part_* > payload.enc && rm part_*
+          # جَرَجة 2026-11-01: جزءٌ قديمٌ بقي من ختمٍ سابق (part_06) أفسد فكّ الختم، فلا يُضمّ إلا ما في SHA256SUMS
+          cat $(awk '{print $2}' SHA256SUMS | grep '^part_' | sort) > payload.enc && rm part_*
 
       - name: فضُّ الختم
         env:
