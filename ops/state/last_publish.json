@@ -1,22 +1,24 @@
 {
- "slug": "nimrod",
+ "slug": "jarajah",
  "film": {
-  "id": "ZSI2NvQp8yc"
+  "id": "ZSI2NvQp8yc",
+  "title": "خرج ليقاتل خالد بن الوليد… فأسلم | جَرَجة يوم اليرموك",
+  "publishAt": null
  },
  "reels": [
   {
-   "id": "p1BAuQ_Oy2w",
-   "title": "ملكٌ سجدت له بابل… فدخلت بعوضةٌ في أنفه",
+   "id": "vkpvigtqNPA",
+   "title": "خرج ليقاتل خالداً… فأسلم",
    "file": "r1.mp4"
   },
   {
-   "id": "207o0pelw0I",
-   "title": "جمعوا الحطب أيّاماً لرجلٍ واحد… ثمّ خرج من النار يمشي",
+   "id": "RpPWXh1kHzs",
+   "title": "ركعتان في عمره كله",
    "file": "r2.mp4"
   },
   {
-   "id": "QL3Jrv2DP7A",
-   "title": "قال الملك: أنا أحيي وأميت… فأخرسه سؤالٌ واحد",
+   "id": "BaE1dgL0dHo",
+   "title": "لماذا سُمّي خالد سيف الله",
    "file": "r3.mp4"
   }
  ],
