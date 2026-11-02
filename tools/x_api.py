@@ -208,7 +208,7 @@ def me(c: Client, d: str, refresh: bool = False) -> dict:
     p = os.path.join(d, 'me.json')
     if os.path.exists(p) and not refresh:
         return json.load(io.open(p, encoding='utf-8'))
-    r = c.call('GET', '/2/users/me', {'user.fields': 'public_metrics,created_at,verified_type'}, cost=PRICE['user'])['data']
+    r = c.call('GET', '/2/users/me', {'user.fields': 'public_metrics,created_at,verified_type,profile_image_url,name,description,url'}, cost=PRICE['user'])['data']
     json.dump(r, io.open(p, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     return r
 
@@ -218,6 +218,9 @@ def cmd_check(a) -> int:
     u = me(c, a.dir, refresh=True)
     pm = u.get('public_metrics', {})
     print('✅ الحساب المربوط: @%s · منشورات %s · متابعون %s' % (u.get('username'), pm.get('tweet_count'), pm.get('followers_count')))
+    # الصورة الشخصية عامّةٌ أصلاً على الحساب: رابطها بالحجم الأصليّ لمراجعة الهوية
+    if u.get('profile_image_url'):
+        print('🖼 الصورة الشخصية: %s' % u['profile_image_url'].replace('_normal', ''))
     return 0
 
 
