@@ -1,0 +1,114 @@
+name: اكس — الربط والنشر والمراقبة والتنظيف
+
+run-name: 𝕏 ${{ github.event.head_commit.message || inputs.cmd || 'لقطة اكس اليومية' }}
+
+# طلب المالك 2026-11-02: أداةٌ رسمية تنشر في حسابه على اكس وتراقب أداءه، وتنظّف الحساب قبل البدء (tools/x_api.py).
+# الواجهة بالدفع بالاستعمال، والسقف 5$ شهرياً بموافقته، والتنظيف بسقفٍ مستقلّ يذكره طلبُه.
+# الأوامر بدفع ملفّ:
+#   ops/x/check.json           ⇒ من الحساب المربوط
+#   ops/x/post/<اسم>.json      ⇒ نشر {"النص": "...", "الوسائط": "مسار في المستودع | release:<وسم>/<ملف>", "ردّ_على": "<id>"}
+#   ops/x/clean.json           ⇒ {"التنفيذ": false} خطّة بلا حذف · {"التنفيذ": true, "السقف_بالدولار": 12, "الأنواع": "منشور,ردّ,إعادة_نشر"} حذف
+# ⛔ المستودع عامّ: الحالة والأرقام والنصوص في الإصدار المسوّد الخاصّ x-stats، والسجلّ أعدادٌ وحدها. العدّاء القياسيّ مجّانيّ هنا.
+on:
+  push:
+    paths: ["ops/x/*.json", "ops/x/post/*.json"]
+  workflow_dispatch:
+    inputs:
+      cmd:
+        description: "check | stats | plan | clean"
+        required: true
+        default: stats
+  schedule:
+    - cron: "41 6 * * *"
+
+permissions:
+  contents: write
+  actions: write
+
+# كلّ أوامر اكس تمرّ في طابورٍ واحد: دفتر الإنفاق واحد
+concurrency:
+  group: x-api
+  cancel-in-progress: false
+
+jobs:
+  x:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - name: أيّ أمر؟
+        id: m
+        run: |
+          set -euo pipefail
+          if [ -z "$X_API_KEY" ] || [ -z "$X_ACCESS_SECRET" ]; then
+            echo "::notice::أسرار اكس لم تُضف بعد — لا شيء يُفعل"; echo "cmd=none" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          CMD=none; POSTS=""
+          if [ "${{ github.event_name }}" = "schedule" ]; then CMD=stats
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then CMD="${{ inputs.cmd }}"
+          else
+            F=$(git show --pretty= --name-only --diff-filter=AM "$GITHUB_SHA")
+            if echo "$F" | grep -qx 'ops/x/clean.json'; then
+              CMD=$(python3 -c "import json;print('clean' if json.load(open('ops/x/clean.json',encoding='utf-8')).get('التنفيذ') is True else 'plan')")
+            elif echo "$F" | grep -q '^ops/x/post/.*\.json$'; then CMD=post; POSTS=$(echo "$F" | grep '^ops/x/post/.*\.json$' | tr '\n' ' ')
+            elif echo "$F" | grep -qx 'ops/x/check.json'; then CMD=check; fi
+          fi
+          echo "cmd=$CMD" >> "$GITHUB_OUTPUT"; echo "posts=$POSTS" >> "$GITHUB_OUTPUT"
+          echo "الأمر: $CMD"
+      - name: الحالة الخاصّة من الإصدار المسوّد
+        if: steps.m.outputs.cmd != 'none'
+        run: |
+          set -euo pipefail
+          gh release view x-stats >/dev/null 2>&1 || \
+            gh release create x-stats --draft --title "اكس — خاصّ" --notes "حالة tools/x_api.py: دفتر الإنفاق والحساب والمنشورات واللقطات وخطّة التنظيف. خاصٌّ: لا يُودَع في المستودع العامّ."
+          mkdir -p /tmp/xs
+          gh release download x-stats -p '*.json' -D /tmp/xs --clobber 2>/dev/null || true
+          ls /tmp/xs | wc -l | xargs echo "ملفّات الحالة:"
+      - name: من الحساب المربوط
+        if: steps.m.outputs.cmd == 'check'
+        run: python3 tools/x_api.py check /tmp/xs
+      - name: لقطة الأداء
+        if: steps.m.outputs.cmd == 'stats'
+        run: python3 tools/x_api.py stats /tmp/xs
+      - name: النشر
+        if: steps.m.outputs.cmd == 'post'
+        run: |
+          set -euo pipefail
+          for P in ${{ steps.m.outputs.posts }}; do
+            M=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1],encoding='utf-8')).get('الوسائط') or '')" "$P")
+            REQ="$P"
+            if [ "${M#release:}" != "$M" ]; then
+              R="${M#release:}"; mkdir -p /tmp/media && gh release download "${R%%/*}" -p "${R#*/}" -D /tmp/media --clobber
+              REQ=/tmp/req.json
+              python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));d['الوسائط']=sys.argv[2];json.dump(d,open(sys.argv[3],'w',encoding='utf-8'),ensure_ascii=False)" "$P" "/tmp/media/${R#*/}" "$REQ"
+            fi
+            python3 tools/x_api.py post "$REQ" /tmp/xs
+          done
+      - name: خطّة التنظيف (بلا حذف)
+        if: steps.m.outputs.cmd == 'plan'
+        run: python3 tools/x_api.py plan /tmp/xs
+      - name: التنظيف
+        id: clean
+        if: steps.m.outputs.cmd == 'clean'
+        run: |
+          set -uo pipefail
+          CAP=$(python3 -c "import json;print(json.load(open('ops/x/clean.json',encoding='utf-8'))['السقف_بالدولار'])")
+          TYPES=$(python3 -c "import json;print(json.load(open('ops/x/clean.json',encoding='utf-8')).get('الأنواع') or '')")
+          python3 tools/x_api.py clean /tmp/xs --cap "$CAP" ${TYPES:+--types "$TYPES"} --minutes 320; RC=$?
+          echo "rc=$RC" >> "$GITHUB_OUTPUT"
+          [ "$RC" = 0 ] || [ "$RC" = 3 ]
+      - name: حفظ الحالة في الإصدار الخاصّ
+        if: always() && steps.m.outputs.cmd != 'none'
+        run: |
+          ls /tmp/xs/*.json >/dev/null 2>&1 && gh release upload x-stats /tmp/xs/*.json --clobber && echo "✅ حُفظت الحالة في x-stats"
+      # الحذف أبطأ من شوطٍ واحد (نحو 50 كلّ ربع ساعة): يُستأنف وحده بشوطٍ جديد حتى يكتمل
+      - name: استئناف التنظيف
+        if: steps.clean.outputs.rc == '3'
+        run: gh workflow run x.yml --ref "${GITHUB_REF_NAME}" -f cmd=clean
