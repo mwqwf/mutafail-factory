@@ -11,7 +11,7 @@ run-name: 𝕏 ${{ github.event.head_commit.message || inputs.cmd || 'لقطة �
 # ⛔ المستودع عامّ: الحالة والأرقام والنصوص في الإصدار المسوّد الخاصّ x-stats، والسجلّ أعدادٌ وحدها. العدّاء القياسيّ مجّانيّ هنا.
 on:
   push:
-    paths: ["ops/x/*.json", "ops/x/post/*.json", "ops/x/sealed/*.enc"]
+    paths: ["ops/x/*.json", "ops/x/post/*.json", "ops/x/sealed/*.enc", "ops/x/keys_sealed/*.enc"]
   workflow_dispatch:
     inputs:
       cmd:
@@ -52,7 +52,7 @@ jobs:
         id: m
         run: |
           set -euo pipefail
-          if [ -z "$X_KEYS" ] && [ -z "$X_REFRESH_TOKEN" ] && { [ -z "$X_API_KEY" ] || [ -z "$X_ACCESS_SECRET" ]; }; then
+          if [ ! -f ops/x/keys_sealed/key.enc ] && [ -z "$X_KEYS" ] && [ -z "$X_REFRESH_TOKEN" ] && { [ -z "$X_API_KEY" ] || [ -z "$X_ACCESS_SECRET" ]; }; then
             echo "::notice::أسرار اكس لم تُضف بعد — لا شيء يُفعل"; echo "cmd=none" >> "$GITHUB_OUTPUT"; exit 0
           fi
           CMD=none; POSTS=""
@@ -81,6 +81,23 @@ jobs:
           ls /tmp/xs | wc -l | xargs echo "ملفّات الحالة:"
       # OAuth 2.0 (X_KEYS بثلاثة أسطر): رمز الوصول يصلح ساعتين، ورمز التجديد يتبدّل مع كلّ تجديدٍ ويبطل القديم
       # ⇒ يُجدَّد هنا، ويُختم الجديد ويُرفع فوراً قبل أيّ طلب، وإلا ضاع الربط.
+      # مفاتيح OAuth 1.0a مختومةً في المستودع (أيسر على المالك من أربعة أسرار): تُفكّ هنا وتُقنَّع وتُصدَّر
+      - name: 🔑 مفاتيح اكس المختومة
+        if: steps.m.outputs.cmd != 'none' && hashFiles('ops/x/keys_sealed/key.enc') != ''
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          bash tools/unseal.sh ops/x/keys_sealed /tmp/xkeys >/dev/null
+          python3 - <<'PY'
+          import json, os
+          k = json.load(open('/tmp/xkeys/keys.json', encoding='utf-8'))
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              for n in ('X_API_KEY', 'X_API_SECRET', 'X_ACCESS_TOKEN', 'X_ACCESS_SECRET'):
+                  print('::add-mask::' + k[n]); env.write('%s=%s\n' % (n, k[n]))
+          PY
+          rm -rf /tmp/xkeys
+          echo "🔑 مفاتيح OAuth 1.0a من المختوم"
       # إذنٌ جديد بالرابط (نافذة اكس لا تعرض media.write): ① دفع ops/x/auth.json ⇒ رابطٌ في السجلّ وجلسةٌ مختومة؛
       # ② عنوان الصفحة الأخيرة مختوماً في ops/x/sealed ⇒ تبادلٌ ورمزٌ مختوم يُقدَّم على السرّ.
       - name: ① رابط الإذن
