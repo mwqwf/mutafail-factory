@@ -53,6 +53,10 @@ def reel_shape(path):
 
 
 def upload(svc, path, meta, publish_at=None, public_now=False):
+    # ⭐ أمر المالك 2026-10-18 (أُلّيس): «ارفعها خاصّة كلّها» ⇒ PRIVATE_ALL=1 يرفع الفيلم والريلزات خاصّةً بلا موعد،
+    #    ويغلب publicNow وpublishAt في الحمولة وفي ملفّ النشر؛ والمالك يعرضها بنفسه من الاستوديو بعد مراجعتها.
+    if PRIVATE_ALL:
+        publish_at, public_now = None, False
     status = {
         "privacyStatus": "public" if public_now else "private",
         "selfDeclaredMadeForKids": False,      # ⛔ لازمٌ وإلا رُفض الحفظ صامتاً (درس 09-13)
@@ -133,9 +137,14 @@ def recent_uploads(svc, limit=50):
         return {}
 
 
+PRIVATE_ALL = os.environ.get("PRIVATE_ALL", "").strip() == "1"
+
+
 def reschedule(svc, vid, at):
     """يعدّل موعدَ فيديو مرفوعٍ ما دام خاصّاً (تصحيحُ موعدٍ بعد رفعه، بلا نسخةٍ ثانية)؛
     وبلا موعدٍ (at=None) يجعله عامّاً الآن."""
+    if PRIVATE_ALL:
+        print("↻", vid, "يبقى خاصّاً (PRIVATE_ALL) — لا موعد ولا عرض", flush=True); return
     st = svc.videos().list(part="status", id=vid).execute()["items"][0]["status"]
     if st.get("privacyStatus") == "public":
         print("↻", vid, "عامٌّ سلفاً — لا يُعاد جدولته", flush=True); return
