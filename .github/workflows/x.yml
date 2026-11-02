@@ -41,6 +41,9 @@ jobs:
       X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
       X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
       X_KEYS: ${{ secrets.X_KEYS }}
+      X_CLIENT_ID: ${{ secrets.X_CLIENT_ID }}
+      X_CLIENT_SECRET: ${{ secrets.X_CLIENT_SECRET }}
+      X_REFRESH_TOKEN: ${{ secrets.X_REFRESH_TOKEN }}
       X_TOKEN_FILE: /tmp/xtok/x_token.json
     steps:
       - uses: actions/checkout@v4
@@ -49,7 +52,7 @@ jobs:
         id: m
         run: |
           set -euo pipefail
-          if [ -z "$X_KEYS" ] && { [ -z "$X_API_KEY" ] || [ -z "$X_ACCESS_SECRET" ]; }; then
+          if [ -z "$X_KEYS" ] && [ -z "$X_REFRESH_TOKEN" ] && { [ -z "$X_API_KEY" ] || [ -z "$X_ACCESS_SECRET" ]; }; then
             echo "::notice::أسرار اكس لم تُضف بعد — لا شيء يُفعل"; echo "cmd=none" >> "$GITHUB_OUTPUT"; exit 0
           fi
           CMD=none; POSTS=""
@@ -82,6 +85,7 @@ jobs:
         run: |
           set -euo pipefail
           N=$(printf '%s\n' "$X_KEYS" | grep -c . || true)
+          [ -n "$X_REFRESH_TOKEN" ] && N=3
           [ "$N" = 3 ] || { echo "🔑 وضع OAuth 1.0a — لا تجديد"; exit 0; }
           mkdir -p /tmp/xtok /tmp/xsealed
           if gh release download x-stats -p 'xtok.*' -D /tmp/xsealed --clobber 2>/dev/null && [ -s /tmp/xsealed/xtok.key.enc ]; then

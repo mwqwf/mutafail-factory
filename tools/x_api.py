@@ -90,7 +90,7 @@ def oauth_header(method: str, url: str, params: dict, keys: dict, nonce: str | N
 def env_keys() -> dict:
     names = {'api_key': 'X_API_KEY', 'api_secret': 'X_API_SECRET', 'access_token': 'X_ACCESS_TOKEN', 'access_secret': 'X_ACCESS_SECRET'}
     # سرٌّ واحد أيسر على المالك من الهاتف (2026-11-02): X_KEYS أربعة أسطر بهذا الترتيب
-    lines = [l.strip() for l in os.environ.get('X_KEYS', '').splitlines() if l.strip()]
+    lines = keys_lines()
     if len(lines) == 3:
         # OAuth 2.0 (لوحة اكس الجديدة تعطي رمز الوصول بها): رمزٌ يصلح ساعتين يُجدَّد بخطوة refresh قبل كلّ شوط
         tf = os.environ.get('X_TOKEN_FILE', '')
@@ -412,8 +412,16 @@ def cmd_clean(a) -> int:
 
 # ─────────────────────────── تجديد OAuth 2.0 ───────────────────────────
 
+def keys_lines() -> list[str]:
+    """X_KEYS بأسطره، أو ثلاثة أسرارٍ منفصلة أيسر على المالك (قيمةٌ واحدة في كلّ سرّ)."""
+    sep = [os.environ.get(k, '').strip() for k in ('X_CLIENT_ID', 'X_CLIENT_SECRET', 'X_REFRESH_TOKEN')]
+    if all(sep):
+        return sep
+    return [l.strip() for l in os.environ.get('X_KEYS', '').splitlines() if l.strip()]
+
+
 def oauth2_lines() -> list[str]:
-    lines = [l.strip() for l in os.environ.get('X_KEYS', '').splitlines() if l.strip()]
+    lines = keys_lines()
     if len(lines) != 3:
         raise SystemExit('⛔ وضع OAuth 2.0 يحتاج X_KEYS بثلاثة أسطر: Client ID ثمّ Client Secret ثمّ Refresh Token')
     return lines
