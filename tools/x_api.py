@@ -484,10 +484,69 @@ def cmd_refresh(a) -> int:
     return 0
 
 
+# ─────────────────────────── إذنٌ جديد بالرابط (OAuth 2.0 PKCE) ───────────────────────────
+# نافذة لوحة اكس لا تعرض media.write ⇒ رابط إذنٍ يطلب الصلاحيات كلّها، يضغطه المالك ثمّ ينسخ عنوان الصفحة الأخيرة
+# (http://localhost:8822/?state=…&code=…). المتحقّق يبقى في جلسةٍ مختومة، والعنوان يصل مختوماً (كتفويض يوتيوب).
+
+REDIRECT = 'http://localhost:8822/'
+SCOPES = 'tweet.read tweet.write users.read media.write offline.access'
+
+
+def cmd_authurl(a) -> int:
+    cid = keys_lines()[0]
+    os.makedirs(a.sessdir, exist_ok=True)
+    verifier = secrets.token_urlsafe(64)[:96]
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip('=')
+    state = secrets.token_urlsafe(16)
+    json.dump({'verifier': verifier, 'state': state, 'وقت': now().isoformat(timespec='seconds')},
+              io.open(os.path.join(a.sessdir, 'x_sess.json'), 'w', encoding='utf-8'))
+    q = urllib.parse.urlencode({'response_type': 'code', 'client_id': cid, 'redirect_uri': REDIRECT, 'scope': SCOPES,
+                                'state': state, 'code_challenge': challenge, 'code_challenge_method': 'S256'},
+                               quote_via=urllib.parse.quote)
+    print('https://x.com/i/oauth2/authorize?' + q)
+    return 0
+
+
+def cmd_exchange(a) -> int:
+    cid, csec, srt = oauth2_lines()
+    sess = json.load(io.open(os.path.join(a.sessdir, 'x_sess.json'), encoding='utf-8'))
+    qs = urllib.parse.parse_qs(urllib.parse.urlparse(a.url.strip()).query)
+    code, state = (qs.get('code') or [''])[0], (qs.get('state') or [''])[0]
+    if not code:
+        raise SystemExit('⛔ لا code في العنوان: يُنسخ عنوان الصفحة الأخيرة كاملاً بعد الموافقة')
+    if state != sess['state']:
+        raise SystemExit('⛔ الحالة لا تطابق الجلسة: العنوان من رابطٍ أقدم — يُطلب رابطٌ جديد')
+    body = urllib.parse.urlencode({'grant_type': 'authorization_code', 'code': code, 'redirect_uri': REDIRECT,
+                                   'code_verifier': sess['verifier'], 'client_id': cid}).encode()
+    basic = base64.b64encode(('%s:%s' % (cid, csec)).encode()).decode()
+    req = urllib.request.Request(API + '/2/oauth2/token', data=body, method='POST', headers={
+        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Basic ' + basic})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            tok = json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        raise SystemExit('⛔ رفضت اكس التبادل (HTTP %d): %s — الرمز يصلح ثوانيَ معدودة، يُطلب رابطٌ جديد'
+                         % (e.code, e.read().decode('utf-8', 'replace')[:200]))
+    for k in ('access_token', 'refresh_token'):
+        if tok.get(k):
+            print('::add-mask::' + tok[k])
+    if not tok.get('refresh_token'):
+        raise SystemExit('⛔ لم يرجع رمز تجديد (offline.access)')
+    os.makedirs(a.tokdir, exist_ok=True)
+    # src = بصمة السرّ الحاليّ ⇒ يُقدَّم هذا المختوم على السرّ القديم
+    out = {'access_token': tok['access_token'], 'refresh_token': tok['refresh_token'], 'src': fp(srt),
+           'expires_at': int(time.time()) + int(tok.get('expires_in', 7200)), 'scope': tok.get('scope', '')}
+    json.dump(out, io.open(os.path.join(a.tokdir, 'x_token.json'), 'w', encoding='utf-8'))
+    print('🔑 إذنٌ جديد · الصلاحيات: %s' % out['scope'])
+    return 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest='cmd', required=True)
     s = sub.add_parser('refresh'); s.add_argument('tokdir')
+    s = sub.add_parser('authurl'); s.add_argument('sessdir')
+    s = sub.add_parser('exchange'); s.add_argument('url'); s.add_argument('sessdir'); s.add_argument('tokdir')
     s = sub.add_parser('check'); s.add_argument('dir')
     s = sub.add_parser('post'); s.add_argument('req'); s.add_argument('dir')
     s = sub.add_parser('stats'); s.add_argument('dir')
@@ -496,7 +555,7 @@ def main(argv=None) -> int:
     s.add_argument('--types'); s.add_argument('--minutes', type=float, default=330)
     a = ap.parse_args(argv)
     os.makedirs(a.dir, exist_ok=True) if hasattr(a, 'dir') else None
-    return {'refresh': cmd_refresh, 'check': cmd_check, 'post': cmd_post, 'stats': cmd_stats, 'plan': cmd_plan, 'clean': cmd_clean}[a.cmd](a)
+    return {'authurl': cmd_authurl, 'exchange': cmd_exchange, 'refresh': cmd_refresh, 'check': cmd_check, 'post': cmd_post, 'stats': cmd_stats, 'plan': cmd_plan, 'clean': cmd_clean}[a.cmd](a)
 
 
 if __name__ == '__main__':

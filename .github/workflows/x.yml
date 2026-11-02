@@ -11,7 +11,7 @@ run-name: 𝕏 ${{ github.event.head_commit.message || inputs.cmd || 'لقطة �
 # ⛔ المستودع عامّ: الحالة والأرقام والنصوص في الإصدار المسوّد الخاصّ x-stats، والسجلّ أعدادٌ وحدها. العدّاء القياسيّ مجّانيّ هنا.
 on:
   push:
-    paths: ["ops/x/*.json", "ops/x/post/*.json"]
+    paths: ["ops/x/*.json", "ops/x/post/*.json", "ops/x/sealed/*.enc"]
   workflow_dispatch:
     inputs:
       cmd:
@@ -60,7 +60,9 @@ jobs:
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then CMD="${{ inputs.cmd }}"
           else
             F=$(git show --pretty= --name-only --diff-filter=AM "$GITHUB_SHA")
-            if echo "$F" | grep -qx 'ops/x/clean.json'; then
+            if echo "$F" | grep -qx 'ops/x/sealed/key.enc'; then CMD=exchange
+            elif echo "$F" | grep -qx 'ops/x/auth.json'; then CMD=authurl
+            elif echo "$F" | grep -qx 'ops/x/clean.json'; then
               CMD=$(python3 -c "import json;print('clean' if json.load(open('ops/x/clean.json',encoding='utf-8')).get('التنفيذ') is True else 'plan')")
             elif echo "$F" | grep -q '^ops/x/post/.*\.json$'; then CMD=post; POSTS=$(echo "$F" | grep '^ops/x/post/.*\.json$' | tr '\n' ' ')
             elif echo "$F" | grep -qx 'ops/x/check.json'; then CMD=check; fi
@@ -78,8 +80,40 @@ jobs:
           ls /tmp/xs | wc -l | xargs echo "ملفّات الحالة:"
       # OAuth 2.0 (X_KEYS بثلاثة أسطر): رمز الوصول يصلح ساعتين، ورمز التجديد يتبدّل مع كلّ تجديدٍ ويبطل القديم
       # ⇒ يُجدَّد هنا، ويُختم الجديد ويُرفع فوراً قبل أيّ طلب، وإلا ضاع الربط.
+      # إذنٌ جديد بالرابط (نافذة اكس لا تعرض media.write): ① دفع ops/x/auth.json ⇒ رابطٌ في السجلّ وجلسةٌ مختومة؛
+      # ② عنوان الصفحة الأخيرة مختوماً في ops/x/sealed ⇒ تبادلٌ ورمزٌ مختوم يُقدَّم على السرّ.
+      - name: ① رابط الإذن
+        if: steps.m.outputs.cmd == 'authurl'
+        run: |
+          set -euo pipefail
+          python3 tools/x_api.py authurl /tmp/xsess > /tmp/xurl.txt
+          bash tools/seal.sh /tmp/xsess /tmp/xsealedsess >/dev/null
+          mv /tmp/xsealedsess/payload.enc /tmp/xsealedsess/xsess.payload.enc; mv /tmp/xsealedsess/key.enc /tmp/xsealedsess/xsess.key.enc
+          gh release upload x-stats /tmp/xsealedsess/xsess.payload.enc /tmp/xsealedsess/xsess.key.enc --clobber >/dev/null
+          echo "افتح الرابط، ووافق، ثمّ انسخ عنوان الصفحة الأخيرة كاملاً (يبدأ بـ http://localhost:8822/):"
+          cat /tmp/xurl.txt
+      - name: ② تبادل الإذن وختم الرمز
+        if: steps.m.outputs.cmd == 'exchange'
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ss && gh release download x-stats -p 'xsess.*' -D /tmp/ss --clobber
+          mv /tmp/ss/xsess.payload.enc /tmp/ss/payload.enc; mv /tmp/ss/xsess.key.enc /tmp/ss/key.enc
+          bash tools/unseal.sh /tmp/ss /tmp/xsess >/dev/null
+          bash tools/unseal.sh ops/x/sealed /tmp/xcode >/dev/null
+          RAW=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1],encoding='utf-8'))['العنوان'])" /tmp/xcode/code.json)
+          python3 tools/x_api.py exchange "$RAW" /tmp/xsess /tmp/xtok
+          rm -rf /tmp/xtokonly /tmp/xsealed && mkdir -p /tmp/xtokonly && cp /tmp/xtok/x_token.json /tmp/xtokonly/
+          bash tools/seal.sh /tmp/xtokonly /tmp/xsealed >/dev/null
+          mv /tmp/xsealed/payload.enc /tmp/xsealed/xtok.payload.enc; mv /tmp/xsealed/key.enc /tmp/xsealed/xtok.key.enc
+          gh release upload x-stats /tmp/xsealed/xtok.payload.enc /tmp/xsealed/xtok.key.enc --clobber >/dev/null
+          gh release delete-asset x-stats xsess.payload.enc -y; gh release delete-asset x-stats xsess.key.enc -y
+          rm -rf /tmp/xcode /tmp/xsess /tmp/xtokonly
+          echo "✅ خُتم الرمز الجديد في x-stats"
+          python3 tools/x_api.py check /tmp/xs
       - name: 🔑 تجديد رمز اكس
-        if: steps.m.outputs.cmd != 'none'
+        if: steps.m.outputs.cmd != 'none' && steps.m.outputs.cmd != 'authurl' && steps.m.outputs.cmd != 'exchange'
         env:
           CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
         run: bash tools/x_refresh.sh
