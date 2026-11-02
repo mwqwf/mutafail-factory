@@ -134,7 +134,7 @@ jobs:
       - name: حفظ الحالة في الإصدار الخاصّ
         if: always() && steps.m.outputs.cmd != 'none'
         run: |
-          ls /tmp/xs/*.json >/dev/null 2>&1 && gh release upload x-stats /tmp/xs/*.json --clobber && echo "✅ حُفظت الحالة في x-stats"
+          if ls /tmp/xs/*.json >/dev/null 2>&1; then gh release upload x-stats /tmp/xs/*.json --clobber && echo "✅ حُفظت الحالة في x-stats"; else echo "لا حالة جديدة"; fi
       # الحذف أبطأ من شوطٍ واحد (نحو 50 كلّ ربع ساعة)، ورمز OAuth 2.0 يصلح ساعتين فالشوط 100 دقيقة: يُستأنف وحده بشوطٍ جديد حتى يكتمل
       - name: استئناف التنظيف
         if: steps.clean.outputs.rc == '3'

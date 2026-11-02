@@ -423,7 +423,8 @@ def keys_lines() -> list[str]:
 def oauth2_lines() -> list[str]:
     lines = keys_lines()
     if len(lines) != 3:
-        raise SystemExit('⛔ وضع OAuth 2.0 يحتاج X_KEYS بثلاثة أسطر: Client ID ثمّ Client Secret ثمّ Refresh Token')
+        miss = [k for k in ('X_CLIENT_ID', 'X_CLIENT_SECRET', 'X_REFRESH_TOKEN') if not os.environ.get(k, '').strip()]
+        raise SystemExit('⛔ وضع OAuth 2.0: أسرارٌ ناقصة أو فارغة: %s' % ' '.join(miss))
     return lines
 
 
