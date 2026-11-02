@@ -302,6 +302,14 @@ def cmd_post(a) -> int:
     return 0
 
 
+def cmd_mediatest(a) -> int:
+    """رفع صورةٍ تجريبيّ بلا نشر: الوسائط غير المرفقة بمنشورٍ تنتهي وحدها عند اكس."""
+    c = Client(env_keys(), Ledger(a.dir))
+    mid = upload_media(c, a.path)
+    print('✅ رُفعت الصورة التجريبية (معرّف وسائط %s) — صلاحية الصور تعمل، ولم يُنشر شيء' % mid)
+    return 0
+
+
 # ─────────────────────────── المراقبة ───────────────────────────
 
 FIELDS = 'created_at,public_metrics,non_public_metrics,organic_metrics,referenced_tweets'
@@ -551,6 +559,7 @@ def main(argv=None) -> int:
     s = sub.add_parser('authurl'); s.add_argument('sessdir')
     s = sub.add_parser('exchange'); s.add_argument('url'); s.add_argument('sessdir'); s.add_argument('tokdir')
     s = sub.add_parser('check'); s.add_argument('dir')
+    s = sub.add_parser('mediatest'); s.add_argument('path'); s.add_argument('dir')
     s = sub.add_parser('post'); s.add_argument('req'); s.add_argument('dir')
     s = sub.add_parser('stats'); s.add_argument('dir')
     s = sub.add_parser('plan'); s.add_argument('dir'); s.add_argument('--cap', type=float, default=4.0)
@@ -558,7 +567,7 @@ def main(argv=None) -> int:
     s.add_argument('--types'); s.add_argument('--minutes', type=float, default=330)
     a = ap.parse_args(argv)
     os.makedirs(a.dir, exist_ok=True) if hasattr(a, 'dir') else None
-    return {'authurl': cmd_authurl, 'exchange': cmd_exchange, 'refresh': cmd_refresh, 'check': cmd_check, 'post': cmd_post, 'stats': cmd_stats, 'plan': cmd_plan, 'clean': cmd_clean}[a.cmd](a)
+    return {'mediatest': cmd_mediatest, 'authurl': cmd_authurl, 'exchange': cmd_exchange, 'refresh': cmd_refresh, 'check': cmd_check, 'post': cmd_post, 'stats': cmd_stats, 'plan': cmd_plan, 'clean': cmd_clean}[a.cmd](a)
 
 
 if __name__ == '__main__':

@@ -65,6 +65,7 @@ jobs:
             elif echo "$F" | grep -qx 'ops/x/clean.json'; then
               CMD=$(python3 -c "import json;print('clean' if json.load(open('ops/x/clean.json',encoding='utf-8')).get('التنفيذ') is True else 'plan')")
             elif echo "$F" | grep -q '^ops/x/post/.*\.json$'; then CMD=post; POSTS=$(echo "$F" | grep '^ops/x/post/.*\.json$' | tr '\n' ' ')
+            elif echo "$F" | grep -qx 'ops/x/mediatest.json'; then CMD=mediatest
             elif echo "$F" | grep -qx 'ops/x/check.json'; then CMD=check; fi
           fi
           echo "cmd=$CMD" >> "$GITHUB_OUTPUT"; echo "posts=$POSTS" >> "$GITHUB_OUTPUT"
@@ -117,6 +118,9 @@ jobs:
         env:
           CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
         run: bash tools/x_refresh.sh
+      - name: رفع صورةٍ تجريبيّ بلا نشر
+        if: steps.m.outputs.cmd == 'mediatest'
+        run: python3 tools/x_api.py check /tmp/xs && python3 tools/x_api.py mediatest assets/logo.png /tmp/xs
       - name: من الحساب المربوط
         if: steps.m.outputs.cmd == 'check'
         run: python3 tools/x_api.py check /tmp/xs
