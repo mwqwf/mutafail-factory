@@ -2,8 +2,11 @@
 """أداة اكس الرسمية: الربط والنشر والمراقبة وتنظيف الحساب (طلب المالك 2026-11-02).
 
 الواجهة الرسمية v2 بالدفع بالاستعمال (لا مستوى مجّانيّ منذ فبراير 2026)، والسقف الشهريّ 5$ بموافقة المالك.
-التفويض OAuth 1.0a بمفاتيح المالك الأربعة من console.x.com، في أسرار المستودع (لا تنتهي أسبوعياً):
-  X_API_KEY  X_API_SECRET  X_ACCESS_TOKEN  X_ACCESS_SECRET
+التفويض من console.x.com في سرٍّ واحد X_KEYS:
+  ثلاثة أسطر ⇒ OAuth 2.0: Client ID، Client Secret، Refresh Token (المعتمد 2026-11-02: لوحة اكس الجديدة تعطي الرمز بها).
+     رمز التجديد يتبدّل مع كلّ تجديد ⇒ يُختم الجديد فوراً في الإصدار الخاصّ x-stats (tools/seal.sh)، ويُفضَّل على السرّ
+     ما دام السرّ لم يتغيّر.
+  أربعة أسطر ⇒ OAuth 1.0a: API Key، API Key Secret، Access Token، Access Token Secret (أو أربعة أسرار منفصلة).
 بلا مكتبةٍ خارجية: التوقيع HMAC-SHA1 بالمكتبة القياسية.
 
 ⛔ المستودع عامّ: لا يُطبع في السجلّ إلا أعداد؛ النصوص والأرقام في الإصدار المسوّد الخاصّ x-stats.
@@ -88,6 +91,12 @@ def env_keys() -> dict:
     names = {'api_key': 'X_API_KEY', 'api_secret': 'X_API_SECRET', 'access_token': 'X_ACCESS_TOKEN', 'access_secret': 'X_ACCESS_SECRET'}
     # سرٌّ واحد أيسر على المالك من الهاتف (2026-11-02): X_KEYS أربعة أسطر بهذا الترتيب
     lines = [l.strip() for l in os.environ.get('X_KEYS', '').splitlines() if l.strip()]
+    if len(lines) == 3:
+        # OAuth 2.0 (لوحة اكس الجديدة تعطي رمز الوصول بها): رمزٌ يصلح ساعتين يُجدَّد بخطوة refresh قبل كلّ شوط
+        tf = os.environ.get('X_TOKEN_FILE', '')
+        if not tf or not os.path.exists(tf):
+            raise SystemExit('⛔ وضع OAuth 2.0: لا رمز وصولٍ مجدَّد — تُشغَّل خطوة refresh أوّلاً')
+        return {'bearer': json.load(io.open(tf, encoding='utf-8'))['access_token']}
     if lines:
         if len(lines) != 4:
             raise SystemExit('⛔ السرّ X_KEYS فيه %d أسطر، والمطلوب أربعة: API Key ثمّ API Key Secret ثمّ Access Token ثمّ Access Token Secret' % len(lines))
@@ -147,7 +156,8 @@ class Client:
         query = {k: v for k, v in (query or {}).items() if v is not None}
         full = url + ('?' + urllib.parse.urlencode(query, quote_via=urllib.parse.quote) if query else '')
         for attempt in range(retries):
-            headers = {'Authorization': oauth_header(method, url, query, self.keys), 'User-Agent': 'mutafail-factory'}
+            auth = ('Bearer ' + self.keys['bearer']) if 'bearer' in self.keys else oauth_header(method, url, query, self.keys)
+            headers = {'Authorization': auth, 'User-Agent': 'mutafail-factory'}
             data = None
             if js is not None:
                 data = json.dumps(js, ensure_ascii=False).encode('utf-8')
@@ -400,9 +410,58 @@ def cmd_clean(a) -> int:
     return 0 if left == 0 else 3
 
 
+# ─────────────────────────── تجديد OAuth 2.0 ───────────────────────────
+
+def oauth2_lines() -> list[str]:
+    lines = [l.strip() for l in os.environ.get('X_KEYS', '').splitlines() if l.strip()]
+    if len(lines) != 3:
+        raise SystemExit('⛔ وضع OAuth 2.0 يحتاج X_KEYS بثلاثة أسطر: Client ID ثمّ Client Secret ثمّ Refresh Token')
+    return lines
+
+
+def fp(s: str) -> str:
+    return hashlib.sha256(s.encode()).hexdigest()[:16]
+
+
+def pick_refresh(secret_rt: str, sealed: dict | None) -> str:
+    """رمز التجديد يتبدّل مع كلّ تجديد (يبطل القديم): المختوم المحفوظ أحدث من السرّ، إلا إن وضع المالك في السرّ رمزاً جديداً."""
+    if sealed and sealed.get('src') == fp(secret_rt) and sealed.get('refresh_token'):
+        return sealed['refresh_token']
+    return secret_rt
+
+
+def cmd_refresh(a) -> int:
+    cid, csec, srt = oauth2_lines()
+    sp = os.path.join(a.tokdir, 'x_token.json')
+    sealed = json.load(io.open(sp, encoding='utf-8')) if os.path.exists(sp) else None
+    rt = pick_refresh(srt, sealed)
+    body = urllib.parse.urlencode({'grant_type': 'refresh_token', 'refresh_token': rt, 'client_id': cid}).encode()
+    basic = base64.b64encode(('%s:%s' % (cid, csec)).encode()).decode()
+    req = urllib.request.Request(API + '/2/oauth2/token', data=body, method='POST', headers={
+        'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': 'Basic ' + basic})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            tok = json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        raise SystemExit('⛔ رفضت اكس تجديد الرمز (HTTP %d): %s — يولّد المالك Refresh Token جديداً ويضعه سطراً ثالثاً في X_KEYS'
+                         % (e.code, e.read().decode('utf-8', 'replace')[:200]))
+    for k in ('access_token', 'refresh_token'):
+        if tok.get(k):
+            print('::add-mask::' + tok[k])
+    if not tok.get('refresh_token'):
+        raise SystemExit('⛔ لم يرجع رمز تجديد: يُولَّد الرمز مع «Include refresh token (offline.access)»')
+    os.makedirs(a.tokdir, exist_ok=True)
+    out = {'access_token': tok['access_token'], 'refresh_token': tok['refresh_token'], 'src': fp(srt),
+           'expires_at': int(time.time()) + int(tok.get('expires_in', 7200)), 'scope': tok.get('scope', '')}
+    json.dump(out, io.open(sp, 'w', encoding='utf-8'))
+    print('🔑 جُدِّد رمز اكس (%s) · الصلاحيات: %s' % ('من السرّ' if rt == srt else 'من المختوم', out['scope']))
+    return 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest='cmd', required=True)
+    s = sub.add_parser('refresh'); s.add_argument('tokdir')
     s = sub.add_parser('check'); s.add_argument('dir')
     s = sub.add_parser('post'); s.add_argument('req'); s.add_argument('dir')
     s = sub.add_parser('stats'); s.add_argument('dir')
@@ -411,7 +470,7 @@ def main(argv=None) -> int:
     s.add_argument('--types'); s.add_argument('--minutes', type=float, default=330)
     a = ap.parse_args(argv)
     os.makedirs(a.dir, exist_ok=True) if hasattr(a, 'dir') else None
-    return {'check': cmd_check, 'post': cmd_post, 'stats': cmd_stats, 'plan': cmd_plan, 'clean': cmd_clean}[a.cmd](a)
+    return {'refresh': cmd_refresh, 'check': cmd_check, 'post': cmd_post, 'stats': cmd_stats, 'plan': cmd_plan, 'clean': cmd_clean}[a.cmd](a)
 
 
 if __name__ == '__main__':

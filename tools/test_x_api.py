@@ -30,6 +30,22 @@ class TestX(unittest.TestCase):
         finally:
             del os.environ['X_KEYS']
 
+    def test_pick_refresh(self):
+        self.assertEqual(x.pick_refresh('S', None), 'S')
+        self.assertEqual(x.pick_refresh('S', {'src': x.fp('S'), 'refresh_token': 'R2'}), 'R2')
+        self.assertEqual(x.pick_refresh('S_NEW', {'src': x.fp('S'), 'refresh_token': 'R2'}), 'S_NEW')
+
+    def test_oauth2_mode(self):
+        d = tempfile.mkdtemp()
+        tf = os.path.join(d, 't.json')
+        open(tf, 'w').write('{"access_token": "AT"}')
+        os.environ['X_KEYS'] = 'cid\ncsec\nrt'
+        os.environ['X_TOKEN_FILE'] = tf
+        try:
+            self.assertEqual(x.env_keys(), {'bearer': 'AT'})
+        finally:
+            del os.environ['X_KEYS'], os.environ['X_TOKEN_FILE']
+
     def test_ledger_guard(self):
         d = tempfile.mkdtemp()
         led = x.Ledger(d, cap=0.05)

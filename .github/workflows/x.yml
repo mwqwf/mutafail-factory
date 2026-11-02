@@ -41,6 +41,7 @@ jobs:
       X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
       X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
       X_KEYS: ${{ secrets.X_KEYS }}
+      X_TOKEN_FILE: /tmp/xtok/x_token.json
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 2 }
@@ -72,6 +73,27 @@ jobs:
           mkdir -p /tmp/xs
           gh release download x-stats -p '*.json' -D /tmp/xs --clobber 2>/dev/null || true
           ls /tmp/xs | wc -l | xargs echo "ملفّات الحالة:"
+      # OAuth 2.0 (X_KEYS بثلاثة أسطر): رمز الوصول يصلح ساعتين، ورمز التجديد يتبدّل مع كلّ تجديدٍ ويبطل القديم
+      # ⇒ يُجدَّد هنا، ويُختم الجديد ويُرفع فوراً قبل أيّ طلب، وإلا ضاع الربط.
+      - name: 🔑 تجديد رمز اكس
+        if: steps.m.outputs.cmd != 'none'
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          N=$(printf '%s\n' "$X_KEYS" | grep -c . || true)
+          [ "$N" = 3 ] || { echo "🔑 وضع OAuth 1.0a — لا تجديد"; exit 0; }
+          mkdir -p /tmp/xtok /tmp/xsealed
+          if gh release download x-stats -p 'xtok.*' -D /tmp/xsealed --clobber 2>/dev/null && [ -s /tmp/xsealed/xtok.key.enc ]; then
+            mv /tmp/xsealed/xtok.payload.enc /tmp/xsealed/payload.enc; mv /tmp/xsealed/xtok.key.enc /tmp/xsealed/key.enc
+            bash tools/unseal.sh /tmp/xsealed /tmp/xtok >/dev/null
+          fi
+          python3 tools/x_api.py refresh /tmp/xtok
+          mkdir -p /tmp/xtokonly && cp /tmp/xtok/x_token.json /tmp/xtokonly/
+          rm -rf /tmp/xsealed && bash tools/seal.sh /tmp/xtokonly /tmp/xsealed >/dev/null && rm -rf /tmp/xtokonly
+          mv /tmp/xsealed/payload.enc /tmp/xsealed/xtok.payload.enc; mv /tmp/xsealed/key.enc /tmp/xsealed/xtok.key.enc
+          gh release upload x-stats /tmp/xsealed/xtok.payload.enc /tmp/xsealed/xtok.key.enc --clobber
+          echo "✅ خُتم رمز التجديد الجديد في x-stats"
       - name: من الحساب المربوط
         if: steps.m.outputs.cmd == 'check'
         run: python3 tools/x_api.py check /tmp/xs
@@ -102,14 +124,14 @@ jobs:
           set -uo pipefail
           CAP=$(python3 -c "import json;print(json.load(open('ops/x/clean.json',encoding='utf-8'))['السقف_بالدولار'])")
           TYPES=$(python3 -c "import json;print(json.load(open('ops/x/clean.json',encoding='utf-8')).get('الأنواع') or '')")
-          python3 tools/x_api.py clean /tmp/xs --cap "$CAP" ${TYPES:+--types "$TYPES"} --minutes 320; RC=$?
+          python3 tools/x_api.py clean /tmp/xs --cap "$CAP" ${TYPES:+--types "$TYPES"} --minutes 100; RC=$?
           echo "rc=$RC" >> "$GITHUB_OUTPUT"
           [ "$RC" = 0 ] || [ "$RC" = 3 ]
       - name: حفظ الحالة في الإصدار الخاصّ
         if: always() && steps.m.outputs.cmd != 'none'
         run: |
           ls /tmp/xs/*.json >/dev/null 2>&1 && gh release upload x-stats /tmp/xs/*.json --clobber && echo "✅ حُفظت الحالة في x-stats"
-      # الحذف أبطأ من شوطٍ واحد (نحو 50 كلّ ربع ساعة): يُستأنف وحده بشوطٍ جديد حتى يكتمل
+      # الحذف أبطأ من شوطٍ واحد (نحو 50 كلّ ربع ساعة)، ورمز OAuth 2.0 يصلح ساعتين فالشوط 100 دقيقة: يُستأنف وحده بشوطٍ جديد حتى يكتمل
       - name: استئناف التنظيف
         if: steps.clean.outputs.rc == '3'
         run: gh workflow run x.yml --ref "${GITHUB_REF_NAME}" -f cmd=clean
