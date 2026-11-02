@@ -372,6 +372,18 @@ def cmd_plan(a) -> int:
     return 0
 
 
+def renew_if_needed(c: Client, margin: int = 900):
+    """رمز OAuth 2.0 يصلح ساعتين والتنظيف أطول: يُجدَّد (ويُختم رمز التجديد) قبل انتهائه بربع ساعة."""
+    tf = os.environ.get('X_TOKEN_FILE', '')
+    if 'bearer' not in c.keys or not tf or not os.path.exists(tf):
+        return
+    if json.load(io.open(tf, encoding='utf-8')).get('expires_at', 0) - time.time() > margin:
+        return
+    import subprocess
+    subprocess.run(['bash', os.path.join(HERE, 'x_refresh.sh')], check=True, cwd=os.path.dirname(HERE))
+    c.keys = env_keys()
+
+
 def cmd_clean(a) -> int:
     pp = os.path.join(a.dir, 'clean_plan.json')
     if not os.path.exists(pp):
@@ -389,6 +401,7 @@ def cmd_clean(a) -> int:
     deadline = time.time() + a.minutes * 60
     n = 0
     for i in todo:
+        renew_if_needed(c)
         if time.time() > deadline:
             print('⏸ انتهت مهلة الشوط — يُستأنف من حيث وقف')
             break
