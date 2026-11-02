@@ -40,6 +40,7 @@ jobs:
       X_API_SECRET: ${{ secrets.X_API_SECRET }}
       X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
       X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+      X_KEYS: ${{ secrets.X_KEYS }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 2 }
@@ -47,7 +48,7 @@ jobs:
         id: m
         run: |
           set -euo pipefail
-          if [ -z "$X_API_KEY" ] || [ -z "$X_ACCESS_SECRET" ]; then
+          if [ -z "$X_KEYS" ] && { [ -z "$X_API_KEY" ] || [ -z "$X_ACCESS_SECRET" ]; }; then
             echo "::notice::أسرار اكس لم تُضف بعد — لا شيء يُفعل"; echo "cmd=none" >> "$GITHUB_OUTPUT"; exit 0
           fi
           CMD=none; POSTS=""

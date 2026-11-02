@@ -86,6 +86,12 @@ def oauth_header(method: str, url: str, params: dict, keys: dict, nonce: str | N
 
 def env_keys() -> dict:
     names = {'api_key': 'X_API_KEY', 'api_secret': 'X_API_SECRET', 'access_token': 'X_ACCESS_TOKEN', 'access_secret': 'X_ACCESS_SECRET'}
+    # سرٌّ واحد أيسر على المالك من الهاتف (2026-11-02): X_KEYS أربعة أسطر بهذا الترتيب
+    lines = [l.strip() for l in os.environ.get('X_KEYS', '').splitlines() if l.strip()]
+    if lines:
+        if len(lines) != 4:
+            raise SystemExit('⛔ السرّ X_KEYS فيه %d أسطر، والمطلوب أربعة: API Key ثمّ API Key Secret ثمّ Access Token ثمّ Access Token Secret' % len(lines))
+        return dict(zip(names, lines))
     miss = [v for v in names.values() if not os.environ.get(v, '').strip()]
     if miss:
         raise SystemExit('⛔ أسرار اكس ناقصة: %s — تُضاف من إعدادات المستودع ← Secrets and variables ← Actions' % ' '.join(miss))

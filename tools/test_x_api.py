@@ -20,6 +20,16 @@ class TestX(unittest.TestCase):
                            nonce='kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg', ts='1318622958')
         self.assertIn('oauth_signature="hCtSmYh%2BiHYCEqBWrE7C7hYmtUk%3D"', h)
 
+    def test_single_secret(self):
+        os.environ['X_KEYS'] = 'a\n b \n\nc\nd\n'
+        try:
+            self.assertEqual(x.env_keys(), {'api_key': 'a', 'api_secret': 'b', 'access_token': 'c', 'access_secret': 'd'})
+            os.environ['X_KEYS'] = 'a\nb'
+            with self.assertRaises(SystemExit):
+                x.env_keys()
+        finally:
+            del os.environ['X_KEYS']
+
     def test_ledger_guard(self):
         d = tempfile.mkdtemp()
         led = x.Ledger(d, cap=0.05)
