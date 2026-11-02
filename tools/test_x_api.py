@@ -46,6 +46,16 @@ class TestX(unittest.TestCase):
         finally:
             del os.environ['X_KEYS'], os.environ['X_TOKEN_FILE']
 
+    def test_oauth1_preferred(self):
+        env = {'X_API_KEY': 'a', 'X_API_SECRET': 'b', 'X_ACCESS_TOKEN': 'c', 'X_ACCESS_SECRET': 'd',
+               'X_CLIENT_ID': 'i', 'X_CLIENT_SECRET': 's', 'X_REFRESH_TOKEN': 'r'}
+        os.environ.update(env)
+        try:
+            self.assertEqual(x.env_keys(), {'api_key': 'a', 'api_secret': 'b', 'access_token': 'c', 'access_secret': 'd'})
+        finally:
+            for k in env:
+                del os.environ[k]
+
     def test_ledger_guard(self):
         d = tempfile.mkdtemp()
         led = x.Ledger(d, cap=0.05)

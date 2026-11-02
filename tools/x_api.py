@@ -89,7 +89,10 @@ def oauth_header(method: str, url: str, params: dict, keys: dict, nonce: str | N
 
 def env_keys() -> dict:
     names = {'api_key': 'X_API_KEY', 'api_secret': 'X_API_SECRET', 'access_token': 'X_ACCESS_TOKEN', 'access_secret': 'X_ACCESS_SECRET'}
-    # سرٌّ واحد أيسر على المالك من الهاتف (2026-11-02): X_KEYS أربعة أسطر بهذا الترتيب
+    # OAuth 1.0a أوّلاً إن اكتملت أسراره الأربعة: لا ينتهي ولا يتبدّل، ويرفع الصور والفيديو
+    # (رمز OAuth 2.0 من لوحة اكس بلا media.write، ورابط الإذن لا يصلح عبر المحادثة: رمزه يعيش 30 ثانية)
+    if all(os.environ.get(v, '').strip() for v in names.values()):
+        return {k: os.environ[v].strip() for k, v in names.items()}
     lines = keys_lines()
     if len(lines) == 3:
         # OAuth 2.0 (لوحة اكس الجديدة تعطي رمز الوصول بها): رمزٌ يصلح ساعتين يُجدَّد بخطوة refresh قبل كلّ شوط
