@@ -108,8 +108,13 @@ def verify(svc, vid):
         raise SystemExit("⛔ صُنّف للأطفال على الخادم: " + json.dumps(st))
     if kids is None and declared is None:
         raise SystemExit("⛔ لا حقلَ أطفالٍ في الردّ أصلاً: " + json.dumps(st))
+    # ⛔ أمر المالك 2026-11-02 (ذو القرنين: رُفعت الريلزات عامّةً والفيلم خاصّاً، «توهمني بأنكم فعلتم ذلك»):
+    #    الخصوصيّة تُقرأ من الخادم وتُطبع لكلّ فيديو، وPRIVATE_ALL مع فيديو غير خاصٍّ يُسقط الشوط فلا يُدّعى رفعٌ خاصّ.
+    privacy = st.get("privacyStatus")
+    if PRIVATE_ALL and privacy != "private":
+        raise SystemExit("⛔ طُلب رفعٌ خاصّ والفيديو %s على الخادم %s" % (vid, privacy))
     synth = st.get("containsSyntheticMedia")
-    print("✅ تحقّق", vid, "| للأطفال=False | وسمُ الذكاء الاصطناعي:",
+    print("✅ تحقّق", vid, "| الخصوصيّة=%s" % privacy, "| للأطفال=False | وسمُ الذكاء الاصطناعي:",
           "true" if synth is True else "أُرسل ولا تُرجعه الواجهة (يُراجَع في الاستوديو)",
           flush=True)
     return st
