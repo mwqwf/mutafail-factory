@@ -206,7 +206,7 @@ def frame(tm):
         kinetic(c, 'في تطبيقٍ واحد'.split(), font(PB, 62), GOLD2, 950, a - d_ * 0.62, 0.35, out)
     elif k == 'm03':
         title(c, a, d_, 'سمّع من حفظك', 'بروايتك… ويكشف خطأك كلمةً كلمة', out)
-        ph = tilt(phone('02-tasmi', 470), -0.9 * (1 - ease(a / 0.9)))
+        ph = tilt(phone('promo_01_home', 470), -0.9 * (1 - ease(a / 0.9)))
         put(c, ph, W / 2 + 200 - 600 * (1 - ease(a / 0.7)) - 600 * out, 810)
         rw = ['حفص', 'ورش', 'قالون', 'شعبة', 'الدوري', 'السوسي']
         for i, s in enumerate(rw):
@@ -223,7 +223,7 @@ def frame(tm):
             put(c, CH('كلمة ' + s, 38, fg=WHITE, fill=col + (220,), outline=col), W / 2 + 345 - i * 230, 900, scale=spring(ta / 0.4), alpha=ease(ta / 0.1) * (1 - out))
     elif k == 'm05':
         title(c, a, d_, 'قرابة مئتي قارئ', 'بستّ روايات… آيةً آية', out)
-        ph = tilt(phone('03-mushaf', 470), 0.9 * (1 - ease(a / 0.9)))
+        ph = tilt(phone('promo_03_mushaf', 470), 0.9 * (1 - ease(a / 0.9)))
         put(c, ph, W / 2 - 200 + 600 * (1 - ease(a / 0.7)) + 600 * out, 820)
         n = int(196 * ease((a - 0.3) / (d_ * 0.5)))
         put(c, T(str(n), font(PB, 150), GOLD2), 860, 560, alpha=ease((a - 0.3) / 0.2) * (1 - out))
@@ -232,39 +232,34 @@ def frame(tm):
             ta = a - d_ * (0.45 + 0.25 * i)
             put(c, CH(s, 40), 860, 840 + i * 120, scale=spring(ta / 0.45), alpha=ease(ta / 0.12) * (1 - out))
     elif k == 'm06':
-        title(c, a, d_, 'المساعد الذكي', 'يجيبك من التفاسير ومصادر التطبيق', out)
-        ph = tilt(phone('ask', 470, top=0.03), -0.9 * (1 - ease(a / 0.9)))
+        title(c, a, d_, 'المساعد الذكي', 'في كلّ ما يتّصل بدينك… من المصادر', out)
+        ph = tilt(phone('promo_22_ask_fiqh_end', 470, top=0.03), -0.9 * (1 - ease(a / 0.9)))
         put(c, ph, W / 2 + 200 - 600 * (1 - ease(a / 0.7)) - 600 * out, 800)
-        q = 'ما سبب نزول هذه الآية؟'
-        nq = int(len(q) * cl((a - 0.5) / (d_ * 0.4)))
-        if nq > 0:
-            put(c, CH(q[:nq] + ('|' if nq < len(q) and int(a * 4) % 2 else ''), 36, fg=NAVY1, fill=(247, 218, 146, 240)), W / 2 - 120, 1170, alpha=1 - out)
-        for i, s in enumerate(['من التفاسير', 'بالمصدر', 'لا يخمّن']):
-            ta = a - d_ * (0.35 + 0.18 * i)
-            put(c, CH(s, 38), 200, 520 + i * 120, scale=spring(ta / 0.45), alpha=ease(ta / 0.12) * (1 - out))
+        for i, s in enumerate(['التفسير', 'الحديث', 'الفقه', 'بالمصدر', 'لا يخمّن']):
+            ta = a - d_ * (0.2 + 0.12 * i)
+            put(c, CH(s, 38), 200, 480 + i * 120, scale=spring(ta / 0.45), alpha=ease(ta / 0.12) * (1 - out))
     elif k == 'm07':
-        title(c, a, d_, 'خطّة حفظ يومية', 'تعيد عليك الآية قبل أن تنساها', out)
-        ph = tilt(phone('05-hifz', 470), 0.9 * (1 - ease(a / 0.9)))
-        put(c, ph, W / 2 - 200 + 600 * (1 - ease(a / 0.7)) + 600 * out, 810)
-        days = ['س', 'ح', 'ن', 'ث', 'ر', 'خ', 'ج']
-        for i, dn in enumerate(days):
-            ta = a - (0.7 + i * d_ * 0.07); on = ease(ta / 0.2)
-            col = GOLD if on > 0.5 else (60, 80, 110)
-            put(c, CH(dn, 34, fg=NAVY1 if on > 0.5 else SOFT, fill=col + (235,), outline=col), 880, 500 + i * 100, scale=0.8 + 0.2 * spring(ta / 0.4), alpha=(0.5 + 0.5 * on) * (1 - out))
+        title(c, a, d_, 'تدرّب', 'حفظي · وِردي · اختبرني', out)
+        for j, (nm, x, ang) in enumerate([('promo_07_practice_wird', W / 2 + 300, 5), ('promo_06_practice_hifz', W / 2, 0), ('promo_08_practice_quiz', W / 2 - 300, -5)]):
+            tj = a - d_ * (0.05 + 0.22 * j)
+            put(c, phone(nm, 340), x, 760 + 700 * (1 - ease(tj / 0.6)) + 700 * out, angle=ang)
+        for i, (s, x) in enumerate(zip(['خطّة حفظ يومية', 'ورد ختمتك', 'اختبر حفظك'], [W / 2 + 330, W / 2, W / 2 - 330])):
+            ta = a - d_ * (0.15 + 0.22 * i)
+            put(c, CH(s, 34), x, 1235, scale=spring(ta / 0.5), alpha=ease(ta / 0.15) * (1 - out))
     elif k == 'm08':
-        title(c, a, d_, 'تدرّب', 'اختبر حفظك · مختبر النطق والتجويد', out)
-        ph = tilt(phone('06-tajweed', 500), -0.9 * (1 - ease(a / 0.9)))
-        put(c, ph, W / 2, 830 + 700 * (1 - ease(a / 0.7)) + 700 * out)
-        for i, (s, x) in enumerate([('اختبرني', W / 2 + 320), ('مختبر النطق', W / 2 - 320)]):
-            ta = a - d_ * (0.1 + 0.4 * i)
-            put(c, CH(s, 42), x, 1235, scale=spring(ta / 0.5), alpha=ease(ta / 0.15) * (1 - out))
-    elif k == 'm09':
-        title(c, a, d_, 'يومك مع القرآن', None, out)
-        put(c, tilt(phone('07-wird', 380), 0.6), W / 2 + 230 - 700 * (1 - ease(a / 0.7)), 720, angle=4 * ease(a / 0.7), alpha=1 - out)
-        put(c, tilt(phone('08-adhkar', 380), -0.6), W / 2 - 230 + 700 * (1 - ease((a - 0.2) / 0.7)), 720, angle=-4 * ease((a - 0.2) / 0.7), alpha=1 - out)
-        for i, (s, x) in enumerate(zip(['وِردك', 'الأذكار', 'المواقيت', 'القبلة'], [W / 2 + 375, W / 2 + 125, W / 2 - 125, W / 2 - 375])):
+        title(c, a, d_, 'يومي', None, out)
+        put(c, tilt(phone('promo_09_daily', 380), 0.6), W / 2 + 230 - 700 * (1 - ease(a / 0.7)), 720, angle=4 * ease(a / 0.7), alpha=1 - out)
+        put(c, tilt(phone('promo_10_daily_more', 380), -0.6), W / 2 - 230 + 700 * (1 - ease((a - 0.2) / 0.7)), 720, angle=-4 * ease((a - 0.2) / 0.7), alpha=1 - out)
+        for i, (s, x) in enumerate(zip(['المواقيت', 'الأذان', 'القبلة', 'الأذكار'], [W / 2 + 375, W / 2 + 125, W / 2 - 125, W / 2 - 375])):
             ta = a - d_ * (0.08 + 0.2 * i)
             put(c, CH(s, 40), x, 1225, scale=spring(ta / 0.5), alpha=ease(ta / 0.15) * (1 - out))
+    elif k == 'm09':
+        title(c, a, d_, 'علوم القرآن', None, out)
+        ph = tilt(phone('promo_11_ulum', 480), -0.9 * (1 - ease(a / 0.9)))
+        put(c, ph, W / 2 + 180, 800 + 700 * (1 - ease(a / 0.7)) + 700 * out)
+        for i, s in enumerate(['التفاسير', 'التجويد', 'معاني الكلمات']):
+            ta = a - d_ * (0.15 + 0.2 * i)
+            put(c, CH(s, 40), 230, 560 + i * 140, scale=spring(ta / 0.45), alpha=ease(ta / 0.12) * (1 - out))
     elif k == 'm10':
         glow(c, W / 2, 600, 320, ease(a / 0.4) * (1 - out))
         put(c, T('المصحف كاملاً', font(PS, 60), WHITE), W / 2, 420, alpha=ease(a / 0.3) * (1 - out))

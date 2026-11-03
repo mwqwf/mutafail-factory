@@ -215,7 +215,7 @@ def frame(tm):
         else:
             put(c, T('يخمّن…', font(AM, 110), RED), W / 2, 300, scale=0.6 + 0.4 * spring(a / 0.5), alpha=ease(a / 0.15) * (1 - out))
             b = a - d_ * 0.35
-            kinetic(c, 'وينسب إلى القرآن ما ليس فيه'.split(), font(PB, 56), WHITE, 1010, b, 0.7, out)
+            kinetic(c, 'ويجيبك بثقةٍ بلا مصدر'.split(), font(PB, 56), WHITE, 1010, b, 0.7, out)
             put(c, XX, W / 2 - 330, 790, scale=1 + 1.2 * (1 - ease((a - 0.3) / 0.25)), alpha=ease((a - 0.3) / 0.1) * (1 - out), angle=-10)
     elif k == 'a03':
         glow(c, W / 2, 470, 280, ease(a / 0.4) * (1 - out))
@@ -224,25 +224,20 @@ def frame(tm):
         put(c, T('المساعد الذكي', font(AM, 130), GOLD2), W / 2, 790, scale=0.8 + 0.2 * spring((a - d_ * 0.45) / 0.6), alpha=ease((a - d_ * 0.45) / 0.25) * (1 - out))
         put(c, T('في مصحفك', font(PB, 60), WHITE), W / 2, 930, alpha=ease((a - d_ * 0.7) / 0.25) * (1 - out))
     elif k == 'a04':
-        title(c, a, d_, 'يجيبك من المصادر', 'ويحيلك إلى كلّ مصدر', out)
-        ph = tilt(phone('ask', 470, top=0.03), -0.9 * (1 - ease(a / 0.9)))
+        title(c, a, d_, 'في كلّ ما يتّصل بدينك', 'على منهج أهل السنّة', out)
+        ph = tilt(phone('promo_22_ask_fiqh_end', 470, top=0.03), -0.9 * (1 - ease(a / 0.9)))
         put(c, ph, W / 2 + 200 - 600 * (1 - ease(a / 0.7)) - 600 * out, 800)
-        for i, s_ in enumerate(['التفسير', 'غريب القرآن', 'أسباب النزول', 'التجويد']):
-            ta = a - d_ * (0.15 + 0.15 * i)
-            put(c, CH(s_, 40), 210, 500 + i * 125, scale=spring(ta / 0.45), alpha=ease(ta / 0.12) * (1 - out))
-        ta = a - d_ * 0.8
-        put(c, CH('📎 بالمصدر'.replace('📎 ', ''), 44, fg=NAVY1, fill=(247, 218, 146, 245)), 210, 1030, scale=spring(ta / 0.45), alpha=ease(ta / 0.12) * (1 - out))
+        for i, s_ in enumerate(['التفسير', 'الحديث', 'الفقه', 'العقيدة', 'السيرة']):
+            ta = a - d_ * (0.12 + 0.13 * i)
+            put(c, CH(s_, 40), 210, 470 + i * 120, scale=spring(ta / 0.45), alpha=ease(ta / 0.12) * (1 - out))
     elif k == 'a05':
-        title(c, a, d_, 'لا يكتب نصّ القرآن بنفسه', 'الآيات تُعرض من مصحفك', out)
-        ph = tilt(phone('03-mushaf', 480), 0.9 * (1 - ease(a / 0.9)))
+        title(c, a, d_, 'لا نتيجة بلا مصدر', 'وينسب كلّ قولٍ إلى قائله', out)
+        ph = tilt(phone('promo_23_ask_fiqh_up', 480, top=0.03), 0.9 * (1 - ease(a / 0.9)))
         put(c, ph, W / 2, 820 + 700 * (1 - ease(a / 0.7)) + 700 * out)
+        ta = a - d_ * 0.55
+        put(c, XX, W / 2 + 330, 470, scale=0.6 * spring(ta / 0.4), alpha=ease(ta / 0.1) * (1 - out) * 0)
     elif k == 'a06':
-        glow(c, W / 2, 640, 330, ease(a / 0.4) * (1 - out))
-        put(c, T('إن لم يجد الجواب', font(PS, 60), WHITE), W / 2, 430, alpha=ease(a / 0.3) * (1 - out))
-        b = a - d_ * 0.4
-        put(c, T('لا يخمّن', font(AM, 210), GOLD2), W / 2, 660, scale=1.0 + 1.1 * (1 - ease(b / 0.25)), alpha=ease(b / 0.12) * (1 - out), angle=-3 * ease(b / 0.25))
-    elif k == 'a07':
-        title(c, a, d_, 'بحثٌ معمّق', 'يقارن المصادر وينقدها… ولا يتساهل في الأصول', out)
+        title(c, a, d_, 'بحثٌ معمّق', 'باحثٌ ناقدٌ دقيق… لا يتساهل في الأصول', out)
         cx, cy = W / 2, 760
         glow(c, cx, cy, 160, ease((a - 0.3) / 0.4) * (1 - out))
         put(c, LG[170], cx, cy, scale=spring((a - 0.2) / 0.6), alpha=ease((a - 0.2) / 0.2) * (1 - out))
@@ -255,26 +250,29 @@ def frame(tm):
         for i, (s_, x, y) in enumerate(nodes):
             ta = a - (0.9 + i * d_ * 0.18)
             put(c, CH(s_, 40), x, y, scale=spring(ta / 0.45), alpha=ease(ta / 0.12) * (1 - out))
+    elif k == 'a07':
+        title(c, a, d_, 'يعرف مصحفك كلّه', 'ويشرح لك أيّ ميزةٍ فيه', out)
+        ph = tilt(phone('promo_24_ask_app_end', 480, top=0.03), -0.9 * (1 - ease(a / 0.9)))
+        put(c, ph, W / 2, 820 + 700 * (1 - ease(a / 0.7)) + 700 * out)
     elif k == 'a08':
-        title(c, a, d_, 'اسأله عمّا تريد', 'عن آيةٍ أو ذكرٍ أو حكمٍ في التجويد', out)
-        ph = tilt(phone('dict_2_recording', 470, top=0.03), 0.9 * (1 - ease(a / 0.9)))
-        put(c, ph, W / 2 - 200 + 600 * (1 - ease(a / 0.7)) + 600 * out, 800)
-        for i, s_ in enumerate(['آية', 'ذكر', 'تجويد', '🎙 بصوتك'.replace('🎙 ', 'بصوتك') if False else 'بصوتك', 'بصورة']):
-            ta = a - d_ * (0.1 + 0.15 * i)
-            put(c, CH(s_, 40), 880, 470 + i * 125, scale=spring(ta / 0.45), alpha=ease(ta / 0.12) * (1 - out))
+        title(c, a, d_, 'بصوتك… أو بصورةٍ أو ملفّ', None, out)
+        put(c, tilt(phone('dict_2_recording', 400, top=0.03), 0.6), W / 2 + 220 - 700 * (1 - ease(a / 0.7)), 760, angle=4 * ease(a / 0.7), alpha=1 - out)
+        put(c, tilt(phone('promo_30_ask_attach', 400, top=0.03), -0.6), W / 2 - 220 + 700 * (1 - ease((a - 0.2) / 0.7)), 760, angle=-4 * ease((a - 0.2) / 0.7), alpha=1 - out)
+        for i, (s_, x) in enumerate(zip(['بصوتك', 'صورة', 'PDF أو Word'], [W / 2 + 300, W / 2, W / 2 - 300])):
+            ta = a - d_ * (0.15 + 0.2 * i)
+            put(c, CH(s_, 40), x, 1235, scale=spring(ta / 0.5), alpha=ease(ta / 0.15) * (1 - out))
     elif k == 'a09':
-        put(c, T('ليس مفتياً', font(AM, 150), GOLD2), W / 2, 540, scale=0.7 + 0.3 * spring(a / 0.6), alpha=ease(a / 0.2) * (1 - out))
-        kinetic(c, 'أسئلة الفتوى يحيلها إلى أهل العلم'.split(), font(PS, 54), WHITE, 760, a - d_ * 0.35, 0.8, out)
+        title(c, a, d_, 'لا يكتب نصّ القرآن بنفسه', 'الآيات تُعرض من مصحفك', out)
+        ph = tilt(phone('promo_03_mushaf', 480), 0.9 * (1 - ease(a / 0.9)))
+        put(c, ph, W / 2, 820 + 700 * (1 - ease(a / 0.7)) + 700 * out)
     else:
-        glow(c, W / 2, 380, 220, ease(a / 0.4))
-        b = a
-        put(c, T('٣', font(PB, 200), GOLD2), W / 2, 330, scale=0.5 + 0.5 * spring(b / 0.5), alpha=ease(b / 0.15))
-        put(c, T('أسئلة مجّاناً كلّ يوم', font(PB, 64), WHITE), W / 2, 510, alpha=ease((a - 0.4) / 0.25))
-        put(c, LG[170], W / 2, 720, scale=0.4 + 0.6 * spring((a - d_ * 0.5) / 0.6), alpha=ease((a - d_ * 0.5) / 0.2))
-        put(c, T('جرّبه الآن في مصحفك', font(PB, 66), GOLD2), W / 2, 900, alpha=ease((a - d_ * 0.6) / 0.25))
+        glow(c, W / 2, 420, 260, ease(a / 0.4))
+        put(c, LG[260], W / 2, 400, scale=0.4 + 0.6 * spring(a / 0.6), alpha=ease(a / 0.2))
+        put(c, T('جرّبه الآن', font(AM, 120), GOLD2), W / 2, 680, scale=0.8 + 0.2 * spring((a - 0.3) / 0.5), alpha=ease((a - 0.3) / 0.2))
+        put(c, T('واسأله ما شئت', font(PB, 66), WHITE), W / 2, 830, alpha=ease((a - d_ * 0.45) / 0.25))
         pulse = 1 + 0.04 * math.sin(max(0, a - 2) * 6)
-        put(c, CH('Google Play', 52, fg=NAVY1, fill=(247, 218, 146, 245)), W / 2, 1040, scale=pulse * spring((a - d_ * 0.75) / 0.5), alpha=ease((a - d_ * 0.75) / 0.15))
-        put(c, T('الرابط في الردّ', font(PM, 36), SOFT), W / 2, 1160, alpha=ease((a - d_ * 0.9) / 0.3))
+        put(c, CH('Google Play', 52, fg=NAVY1, fill=(247, 218, 146, 245)), W / 2, 990, scale=pulse * spring((a - d_ * 0.6) / 0.5), alpha=ease((a - d_ * 0.6) / 0.15))
+        put(c, T('الرابط في الردّ', font(PM, 36), SOFT), W / 2, 1110, alpha=ease((a - d_ * 0.8) / 0.3))
     for kk in K[1:]:
         p = (tm - (st[kk] - GAP / 2 - 0.25)) / 0.5
         if 0 < p < 1: flash(c, p)
