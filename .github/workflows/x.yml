@@ -81,7 +81,7 @@ jobs:
           ls /tmp/xs | wc -l | xargs echo "ملفّات الحالة:"
       # OAuth 2.0 (X_KEYS بثلاثة أسطر): رمز الوصول يصلح ساعتين، ورمز التجديد يتبدّل مع كلّ تجديدٍ ويبطل القديم
       # ⇒ يُجدَّد هنا، ويُختم الجديد ويُرفع فوراً قبل أيّ طلب، وإلا ضاع الربط.
-      # مفاتيح OAuth 1.0a مختومةً في المستودع (أيسر على المالك من أربعة أسرار): تُفكّ هنا وتُقنَّع وتُصدَّر
+      # مفاتيح اكس مختومةً في المستودع (أيسر على المالك من الأسرار): تُفكّ هنا وتُقنَّع وتُصدَّر وتغلب الأسرار
       - name: 🔑 مفاتيح اكس المختومة
         if: steps.m.outputs.cmd != 'none' && hashFiles('ops/x/keys_sealed/key.enc') != ''
         env:
@@ -93,11 +93,12 @@ jobs:
           import json, os
           k = json.load(open('/tmp/xkeys/keys.json', encoding='utf-8'))
           with open(os.environ['GITHUB_ENV'], 'a') as env:
-              for n in ('X_API_KEY', 'X_API_SECRET', 'X_ACCESS_TOKEN', 'X_ACCESS_SECRET'):
-                  print('::add-mask::' + k[n]); env.write('%s=%s\n' % (n, k[n]))
+              for n, v in k.items():
+                  if n.startswith('X_') and v:
+                      print('::add-mask::' + v); env.write('%s=%s\n' % (n, v))
           PY
           rm -rf /tmp/xkeys
-          echo "🔑 مفاتيح OAuth 1.0a من المختوم"
+          echo "🔑 مفاتيح اكس من المختوم (تغلب الأسرار)"
       # إذنٌ جديد بالرابط (نافذة اكس لا تعرض media.write): ① دفع ops/x/auth.json ⇒ رابطٌ في السجلّ وجلسةٌ مختومة؛
       # ② عنوان الصفحة الأخيرة مختوماً في ops/x/sealed ⇒ تبادلٌ ورمزٌ مختوم يُقدَّم على السرّ.
       - name: ① رابط الإذن
