@@ -36,9 +36,8 @@ jobs:
           CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          mkdir -p sealed && gh release download "$SLUG-payload" -R "$GITHUB_REPOSITORY" -D sealed --clobber
-          ( cd sealed && sed -i 's/ \*/  /' SHA256SUMS && sha256sum -c --quiet SHA256SUMS && cat part_* > payload.enc && rm part_* )
-          bash tools/unseal.sh sealed "$PWD/proj" >/dev/null && rm -rf sealed proj/images proj/clips 2>/dev/null || true
+          # النصوص مختومةٌ بالمفتاح العامّ في ops/exp/jarajah-texts (الحمولة الأصلية تُفكّ بغير هذا المسار)
+          cp -r ops/exp/jarajah-texts /tmp/txt && bash tools/unseal.sh /tmp/txt "$PWD/proj" >/dev/null
           bash tools/state_fetch.sh "$SLUG-out" /tmp/st
           tar xzf /tmp/st/state.tgz -C proj --wildcards 'audio/n_*.wav' && rm -f /tmp/st/state.tgz
           echo "كتل: $(python -c "import json;print(len(json.load(open('proj/blocks.json'))))") · صوت: $(ls proj/audio/*.wav | wc -l)"
