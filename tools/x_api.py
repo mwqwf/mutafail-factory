@@ -270,35 +270,54 @@ def upload_media(c: Client, path: str) -> str:
     return mid
 
 
+def resolve_media(m: str) -> str:
+    """مسارٌ في المستودع، أو release:<وسم>/<ملف> يُنزَّل من إصدار المستودع (المسوّد منها أيضاً)."""
+    if not m.startswith('release:'):
+        return m
+    tag, name = m[len('release:'):].split('/', 1)
+    os.makedirs('/tmp/media', exist_ok=True)
+    subprocess.run(['gh', 'release', 'download', tag, '-p', name, '-D', '/tmp/media', '--clobber'], check=True)
+    return os.path.join('/tmp/media', name)
+
+
 def cmd_post(a) -> int:
+    """منشورٌ واحد أو سلسلة: {"النص", "الوسائط": مسار أو قائمة حتى 4، "ردّ_على", "الردود": [نصّ أو {"النص","الوسائط"}]}.
+    كلّ نصٍّ في السلسلة يمرّ على بوّابة السياسات قبل نشر أيّ شيء، والحارس على كلفة السلسلة كلّها."""
     req = json.load(io.open(a.req, encoding='utf-8'))
-    text = (req.get('النص') or '').strip()
-    media = req.get('الوسائط')
-    if not text and not media:
-        raise SystemExit('⛔ لا نصّ ولا وسائط')
-    blocks = policy_check(text)
-    if blocks:
-        for h in blocks:
-            print('⛔ [%s] %s' % (h['الفئة'], ', '.join(h['ما وُجد'])))
-        raise SystemExit('⛔ بوّابة السياسات منعت المنشور — يُحذف ما أمسكته من النصّ لا يُعاد صوغه')
-    cost = PRICE['post_url'] if has_url(text) else PRICE['post']
+    parts = [req] + [r if isinstance(r, dict) else {'النص': r} for r in req.get('الردود', [])]
+    for p in parts:
+        if not (p.get('النص') or '').strip() and not p.get('الوسائط'):
+            raise SystemExit('⛔ جزءٌ بلا نصّ ولا وسائط')
+        blocks = policy_check((p.get('النص') or '').strip())
+        if blocks:
+            for h in blocks:
+                print('⛔ [%s] %s' % (h['الفئة'], ', '.join(h['ما وُجد'])))
+            raise SystemExit('⛔ بوّابة السياسات منعت المنشور — يُحذف ما أمسكته من النصّ لا يُعاد صوغه')
+    costs = [PRICE['post_url'] if has_url(p.get('النص') or '') else PRICE['post'] for p in parts]
     led = Ledger(a.dir)
-    led.guard(cost)
+    led.guard(sum(costs))
     c = Client(env_keys(), led)
-    body = {}
-    if text:
-        body['text'] = text
-    if media:
-        body['media'] = {'media_ids': [upload_media(c, media)]}
-    if req.get('ردّ_على'):
-        body['reply'] = {'in_reply_to_tweet_id': str(req['ردّ_على'])}
-    r = c.call('POST', '/2/tweets', js=body, cost=cost)
-    pid = r['data']['id']
     log = os.path.join(a.dir, 'posts.json')
     posts = json.load(io.open(log, encoding='utf-8')) if os.path.exists(log) else []
-    posts.append({'id': pid, 'وقت': now().isoformat(timespec='seconds'), 'الطلب': os.path.basename(a.req), 'الكلفة': cost})
-    json.dump(posts, io.open(log, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-    print('✅ نُشر المنشور %s (الكلفة المقدّرة %.3f$، مصروف الشهر %.3f$)' % (pid, cost, led.spent()))
+    prev = str(req['ردّ_على']) if req.get('ردّ_على') else None
+    for i, (p, cost) in enumerate(zip(parts, costs)):
+        body = {}
+        text = (p.get('النص') or '').strip()
+        if text:
+            body['text'] = text
+        media = p.get('الوسائط')
+        if media:
+            media = media if isinstance(media, list) else [media]
+            if len(media) > 4:
+                raise SystemExit('⛔ اكس يقبل 4 وسائط في المنشور حدّاً أقصى')
+            body['media'] = {'media_ids': [upload_media(c, resolve_media(m)) for m in media]}
+        if prev:
+            body['reply'] = {'in_reply_to_tweet_id': prev}
+        r = c.call('POST', '/2/tweets', js=body, cost=cost)
+        prev = r['data']['id']
+        posts.append({'id': prev, 'وقت': now().isoformat(timespec='seconds'), 'الطلب': os.path.basename(a.req), 'الجزء': i, 'الكلفة': cost})
+        json.dump(posts, io.open(log, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+        print('✅ نُشر %s %s (الكلفة المقدّرة %.3f$، مصروف الشهر %.3f$)' % ('المنشور' if i == 0 else 'الردّ', prev, cost, led.spent()))
     return 0
 
 

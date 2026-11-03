@@ -6,7 +6,7 @@ run-name: 𝕏 ${{ github.event.head_commit.message || inputs.cmd || 'لقطة �
 # الواجهة بالدفع بالاستعمال، والسقف 5$ شهرياً بموافقته، والتنظيف بسقفٍ مستقلّ يذكره طلبُه.
 # الأوامر بدفع ملفّ:
 #   ops/x/check.json           ⇒ من الحساب المربوط
-#   ops/x/post/<اسم>.json      ⇒ نشر {"النص": "...", "الوسائط": "مسار في المستودع | release:<وسم>/<ملف>", "ردّ_على": "<id>"}
+#   ops/x/post/<اسم>.json      ⇒ نشر {"النص": "...", "الوسائط": "مسار | release:<وسم>/<ملف> | قائمة حتى 4", "ردّ_على": "<id>", "الردود": ["نصّ", ...]}
 #   ops/x/clean.json           ⇒ {"التنفيذ": false} خطّة بلا حذف · {"التنفيذ": true, "السقف_بالدولار": 12, "الأنواع": "منشور,ردّ,إعادة_نشر"} حذف
 # ⛔ المستودع عامّ: الحالة والأرقام والنصوص في الإصدار المسوّد الخاصّ x-stats، والسجلّ أعدادٌ وحدها. العدّاء القياسيّ مجّانيّ هنا.
 on:
@@ -150,13 +150,7 @@ jobs:
         run: |
           set -euo pipefail
           for P in ${{ steps.m.outputs.posts }}; do
-            M=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1],encoding='utf-8')).get('الوسائط') or '')" "$P")
             REQ="$P"
-            if [ "${M#release:}" != "$M" ]; then
-              R="${M#release:}"; mkdir -p /tmp/media && gh release download "${R%%/*}" -p "${R#*/}" -D /tmp/media --clobber
-              REQ=/tmp/req.json
-              python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));d['الوسائط']=sys.argv[2];json.dump(d,open(sys.argv[3],'w',encoding='utf-8'),ensure_ascii=False)" "$P" "/tmp/media/${R#*/}" "$REQ"
-            fi
             python3 tools/x_api.py post "$REQ" /tmp/xs
           done
       - name: خطّة التنظيف (بلا حذف)
