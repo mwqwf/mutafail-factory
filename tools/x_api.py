@@ -285,6 +285,15 @@ def cmd_post(a) -> int:
     """منشورٌ واحد أو سلسلة: {"النص", "الوسائط": مسار أو قائمة حتى 4، "ردّ_على", "الردود": [نصّ أو {"النص","الوسائط"}]}.
     كلّ نصٍّ في السلسلة يمرّ على بوّابة السياسات قبل نشر أيّ شيء، والحارس على كلفة السلسلة كلّها."""
     req = json.load(io.open(a.req, encoding='utf-8'))
+    # «الموعد» (ISO بتوقيت غرينتش): يُدفع الطلب قبله بدقائق فينتظر الشوط حتى يحين، ولا انتظار فوق ساعة
+    if req.get('الموعد'):
+        at = dt.datetime.fromisoformat(req['الموعد'].replace('Z', '+00:00'))
+        wait = (at - now()).total_seconds()
+        if wait > 3600:
+            raise SystemExit('⛔ الموعد بعد أكثر من ساعة: يُدفع الطلب قبله بدقائق')
+        if wait > 0:
+            print('⏳ أنتظر الموعد %s (%d ث)' % (req['الموعد'], wait))
+            time.sleep(wait)
     parts = [req] + [r if isinstance(r, dict) else {'النص': r} for r in req.get('الردود', [])]
     for p in parts:
         if not (p.get('النص') or '').strip() and not p.get('الوسائط'):
