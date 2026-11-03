@@ -1,0 +1,184 @@
+name: اكس — الربط والنشر والمراقبة والتنظيف
+
+run-name: 𝕏 ${{ github.event.head_commit.message || inputs.cmd || 'لقطة اكس اليومية' }}
+
+# طلب المالك 2026-11-02: أداةٌ رسمية تنشر في حسابه على اكس وتراقب أداءه، وتنظّف الحساب قبل البدء (tools/x_api.py).
+# الواجهة بالدفع بالاستعمال، والسقف 5$ شهرياً بموافقته، والتنظيف بسقفٍ مستقلّ يذكره طلبُه.
+# الأوامر بدفع ملفّ:
+#   ops/x/check.json           ⇒ من الحساب المربوط
+#   ops/x/post/<اسم>.json      ⇒ نشر {"النص": "...", "الوسائط": "مسار في المستودع | release:<وسم>/<ملف>", "ردّ_على": "<id>"}
+#   ops/x/clean.json           ⇒ {"التنفيذ": false} خطّة بلا حذف · {"التنفيذ": true, "السقف_بالدولار": 12, "الأنواع": "منشور,ردّ,إعادة_نشر"} حذف
+# ⛔ المستودع عامّ: الحالة والأرقام والنصوص في الإصدار المسوّد الخاصّ x-stats، والسجلّ أعدادٌ وحدها. العدّاء القياسيّ مجّانيّ هنا.
+on:
+  push:
+    paths: ["ops/x/*.json", "ops/x/post/*.json", "ops/x/sealed/*.enc", "ops/x/keys_sealed/*.enc"]
+  workflow_dispatch:
+    inputs:
+      cmd:
+        description: "check | stats | plan | clean"
+        required: true
+        default: stats
+  schedule:
+    - cron: "41 6 * * *"
+
+permissions:
+  contents: write
+  actions: write
+
+# كلّ أوامر اكس تمرّ في طابورٍ واحد: دفتر الإنفاق واحد
+concurrency:
+  group: x-api
+  cancel-in-progress: false
+
+jobs:
+  x:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+      X_KEYS: ${{ secrets.X_KEYS }}
+      X_CLIENT_ID: ${{ secrets.X_CLIENT_ID }}
+      X_CLIENT_SECRET: ${{ secrets.X_CLIENT_SECRET }}
+      X_REFRESH_TOKEN: ${{ secrets.X_REFRESH_TOKEN }}
+      X_TOKEN_FILE: /tmp/xtok/x_token.json
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - name: أيّ أمر؟
+        id: m
+        run: |
+          set -euo pipefail
+          if [ ! -f ops/x/keys_sealed/key.enc ] && [ -z "$X_KEYS" ] && [ -z "$X_REFRESH_TOKEN" ] && { [ -z "$X_API_KEY" ] || [ -z "$X_ACCESS_SECRET" ]; }; then
+            echo "::notice::أسرار اكس لم تُضف بعد — لا شيء يُفعل"; echo "cmd=none" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          CMD=none; POSTS=""
+          if [ "${{ github.event_name }}" = "schedule" ]; then CMD=stats
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then CMD="${{ inputs.cmd }}"
+          else
+            F=$(git show --pretty= --name-only --diff-filter=AM "$GITHUB_SHA")
+            if echo "$F" | grep -qx 'ops/x/sealed/key.enc'; then CMD=exchange
+            elif echo "$F" | grep -qx 'ops/x/auth.json'; then CMD=authurl
+            elif echo "$F" | grep -qx 'ops/x/clean.json'; then
+              CMD=$(python3 -c "import json;print('clean' if json.load(open('ops/x/clean.json',encoding='utf-8')).get('التنفيذ') is True else 'plan')")
+            elif echo "$F" | grep -q '^ops/x/post/.*\.json$'; then CMD=post; POSTS=$(echo "$F" | grep '^ops/x/post/.*\.json$' | tr '\n' ' ')
+            elif echo "$F" | grep -qx 'ops/x/mediatest.json'; then CMD=mediatest
+            elif echo "$F" | grep -qx 'ops/x/check.json'; then CMD=check; fi
+          fi
+          echo "cmd=$CMD" >> "$GITHUB_OUTPUT"; echo "posts=$POSTS" >> "$GITHUB_OUTPUT"
+          echo "الأمر: $CMD"
+      - name: الحالة الخاصّة من الإصدار المسوّد
+        if: steps.m.outputs.cmd != 'none'
+        run: |
+          set -euo pipefail
+          gh release view x-stats >/dev/null 2>&1 || \
+            gh release create x-stats --draft --title "اكس — خاصّ" --notes "حالة tools/x_api.py: دفتر الإنفاق والحساب والمنشورات واللقطات وخطّة التنظيف. خاصٌّ: لا يُودَع في المستودع العامّ."
+          mkdir -p /tmp/xs
+          gh release download x-stats -p '*.json' -D /tmp/xs --clobber 2>/dev/null || true
+          ls /tmp/xs | wc -l | xargs echo "ملفّات الحالة:"
+      # OAuth 2.0 (X_KEYS بثلاثة أسطر): رمز الوصول يصلح ساعتين، ورمز التجديد يتبدّل مع كلّ تجديدٍ ويبطل القديم
+      # ⇒ يُجدَّد هنا، ويُختم الجديد ويُرفع فوراً قبل أيّ طلب، وإلا ضاع الربط.
+      # مفاتيح اكس مختومةً في المستودع (أيسر على المالك من الأسرار): تُفكّ هنا وتُقنَّع وتُصدَّر وتغلب الأسرار
+      - name: 🔑 مفاتيح اكس المختومة
+        if: steps.m.outputs.cmd != 'none' && hashFiles('ops/x/keys_sealed/key.enc') != ''
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          bash tools/unseal.sh ops/x/keys_sealed /tmp/xkeys >/dev/null
+          python3 - <<'PY'
+          import json, os
+          k = json.load(open('/tmp/xkeys/keys.json', encoding='utf-8'))
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              for n, v in k.items():
+                  if n.startswith('X_') and v:
+                      print('::add-mask::' + v); env.write('%s=%s\n' % (n, v))
+          PY
+          rm -rf /tmp/xkeys
+          echo "🔑 مفاتيح اكس من المختوم (تغلب الأسرار)"
+      # إذنٌ جديد بالرابط (نافذة اكس لا تعرض media.write): ① دفع ops/x/auth.json ⇒ رابطٌ في السجلّ وجلسةٌ مختومة؛
+      # ② عنوان الصفحة الأخيرة مختوماً في ops/x/sealed ⇒ تبادلٌ ورمزٌ مختوم يُقدَّم على السرّ.
+      - name: ① رابط الإذن
+        if: steps.m.outputs.cmd == 'authurl'
+        run: |
+          set -euo pipefail
+          python3 tools/x_api.py authurl /tmp/xsess > /tmp/xurl.txt
+          bash tools/seal.sh /tmp/xsess /tmp/xsealedsess >/dev/null
+          mv /tmp/xsealedsess/payload.enc /tmp/xsealedsess/xsess.payload.enc; mv /tmp/xsealedsess/key.enc /tmp/xsealedsess/xsess.key.enc
+          gh release upload x-stats /tmp/xsealedsess/xsess.payload.enc /tmp/xsealedsess/xsess.key.enc --clobber >/dev/null
+          echo "افتح الرابط، ووافق، ثمّ انسخ عنوان الصفحة الأخيرة كاملاً (يبدأ بـ http://localhost:8822/):"
+          cat /tmp/xurl.txt
+      - name: ② تبادل الإذن وختم الرمز
+        if: steps.m.outputs.cmd == 'exchange'
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ss && gh release download x-stats -p 'xsess.*' -D /tmp/ss --clobber
+          mv /tmp/ss/xsess.payload.enc /tmp/ss/payload.enc; mv /tmp/ss/xsess.key.enc /tmp/ss/key.enc
+          bash tools/unseal.sh /tmp/ss /tmp/xsess >/dev/null
+          bash tools/unseal.sh ops/x/sealed /tmp/xcode >/dev/null
+          RAW=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1],encoding='utf-8'))['العنوان'])" /tmp/xcode/code.json)
+          python3 tools/x_api.py exchange "$RAW" /tmp/xsess /tmp/xtok
+          rm -rf /tmp/xtokonly /tmp/xsealed && mkdir -p /tmp/xtokonly && cp /tmp/xtok/x_token.json /tmp/xtokonly/
+          bash tools/seal.sh /tmp/xtokonly /tmp/xsealed >/dev/null
+          mv /tmp/xsealed/payload.enc /tmp/xsealed/xtok.payload.enc; mv /tmp/xsealed/key.enc /tmp/xsealed/xtok.key.enc
+          gh release upload x-stats /tmp/xsealed/xtok.payload.enc /tmp/xsealed/xtok.key.enc --clobber >/dev/null
+          gh release delete-asset x-stats xsess.payload.enc -y; gh release delete-asset x-stats xsess.key.enc -y
+          rm -rf /tmp/xcode /tmp/xsess /tmp/xtokonly
+          echo "✅ خُتم الرمز الجديد في x-stats"
+          python3 tools/x_api.py check /tmp/xs
+      - name: 🔑 تجديد رمز اكس
+        if: steps.m.outputs.cmd != 'none' && steps.m.outputs.cmd != 'authurl' && steps.m.outputs.cmd != 'exchange'
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: bash tools/x_refresh.sh
+      - name: رفع صورةٍ تجريبيّ بلا نشر
+        if: steps.m.outputs.cmd == 'mediatest'
+        run: python3 tools/x_api.py check /tmp/xs && python3 tools/x_api.py mediatest assets/logo.png /tmp/xs
+      - name: من الحساب المربوط
+        if: steps.m.outputs.cmd == 'check'
+        run: python3 tools/x_api.py check /tmp/xs
+      - name: لقطة الأداء
+        if: steps.m.outputs.cmd == 'stats'
+        run: python3 tools/x_api.py stats /tmp/xs
+      - name: النشر
+        if: steps.m.outputs.cmd == 'post'
+        run: |
+          set -euo pipefail
+          for P in ${{ steps.m.outputs.posts }}; do
+            M=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1],encoding='utf-8')).get('الوسائط') or '')" "$P")
+            REQ="$P"
+            if [ "${M#release:}" != "$M" ]; then
+              R="${M#release:}"; mkdir -p /tmp/media && gh release download "${R%%/*}" -p "${R#*/}" -D /tmp/media --clobber
+              REQ=/tmp/req.json
+              python3 -c "import json,sys;d=json.load(open(sys.argv[1],encoding='utf-8'));d['الوسائط']=sys.argv[2];json.dump(d,open(sys.argv[3],'w',encoding='utf-8'),ensure_ascii=False)" "$P" "/tmp/media/${R#*/}" "$REQ"
+            fi
+            python3 tools/x_api.py post "$REQ" /tmp/xs
+          done
+      - name: خطّة التنظيف (بلا حذف)
+        if: steps.m.outputs.cmd == 'plan'
+        run: python3 tools/x_api.py plan /tmp/xs
+      - name: التنظيف
+        id: clean
+        if: steps.m.outputs.cmd == 'clean'
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          set -uo pipefail
+          CAP=$(python3 -c "import json;print(json.load(open('ops/x/clean.json',encoding='utf-8'))['السقف_بالدولار'])")
+          TYPES=$(python3 -c "import json;print(json.load(open('ops/x/clean.json',encoding='utf-8')).get('الأنواع') or '')")
+          python3 tools/x_api.py clean /tmp/xs --cap "$CAP" ${TYPES:+--types "$TYPES"} --minutes 330; RC=$?
+          echo "rc=$RC" >> "$GITHUB_OUTPUT"
+          [ "$RC" = 0 ] || [ "$RC" = 3 ]
+      - name: حفظ الحالة في الإصدار الخاصّ
+        if: always() && steps.m.outputs.cmd != 'none'
+        run: |
+          if ls /tmp/xs/*.json >/dev/null 2>&1; then gh release upload x-stats /tmp/xs/*.json --clobber && echo "✅ حُفظت الحالة في x-stats"; else echo "لا حالة جديدة"; fi
+      # الحذف أبطأ من شوطٍ واحد (نحو 50 كلّ ربع ساعة)، والرمز يُجدَّد داخل الشوط قبل انتهاء ساعتيه: يُستأنف وحده بشوطٍ جديد حتى يكتمل
+      - name: استئناف التنظيف
+        if: steps.clean.outputs.rc == '3'
+        run: gh workflow run x.yml --ref "${GITHUB_REF_NAME}" -f cmd=clean
