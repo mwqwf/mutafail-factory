@@ -217,7 +217,7 @@ def frame(tm):
         put(c, T('على جهازك', font(PS, 64), WHITE), W / 2, 420, alpha=ease(a / 0.3) * (1 - out))
         b = a - d_ * 0.35
         put(c, T('بلا إنترنت', font(AM, 190), GOLD2), W / 2, 640, scale=1.0 + 1.1 * (1 - ease(b / 0.25)), alpha=ease(b / 0.12) * (1 - out), angle=-3 * ease(b / 0.25))
-        marks = [('✓', GREEN), ('✓', GREEN), ('✗', RED), ('✓', GREEN)]
+        marks = [('✓', GREEN), ('✓', GREEN), ('×', RED), ('✓', GREEN)]
         for i, (s, col) in enumerate(marks):
             ta = a - (0.15 + i * 0.12)
             put(c, CH('كلمة ' + s, 38, fg=WHITE, fill=col + (220,), outline=col), W / 2 + 345 - i * 230, 900, scale=spring(ta / 0.4), alpha=ease(ta / 0.1) * (1 - out))
