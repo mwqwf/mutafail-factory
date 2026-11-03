@@ -20,7 +20,11 @@ def main(proj, out, ids):
     open(lst, 'w').write(''.join("file '%s'\n" % os.path.abspath(os.path.join(proj, 'audio', i + '.wav')) for i in narr))
     ref = os.path.join(out, 'ref.wav')
     sp.run(['ffmpeg', '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', lst, '-ac', '1', '-ar', '24000', ref], check=True)
-    model = ChatterboxMultilingualTTS.from_pretrained(device='cpu', t3_model='v3')
+    try:  # V3 في المصدر الأحدث؛ والحزمة المنشورة قد لا تعرف الوسيط بعد
+        model = ChatterboxMultilingualTTS.from_pretrained(device='cpu', t3_model='v3')
+    except TypeError:
+        model = ChatterboxMultilingualTTS.from_pretrained(device='cpu')
+    print('chatterbox', getattr(__import__('chatterbox'), '__version__', '?'), flush=True)
     key, rnd, log = {}, random.Random(20261103), []
     for i in ids:
         text = blocks[i]['text']
