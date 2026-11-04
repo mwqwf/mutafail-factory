@@ -66,6 +66,11 @@ class KineticReadsHeard(unittest.TestCase):
         got = k.block_word_times(TEXT, self.wav, 3.0)
         self.assertNotEqual([round(s, 2) for _, s, _ in got], [round(0.1 * i, 2) for i in range(len(got))])
 
+    def test_weak_hearing_entry_falls_back(self):
+        sha = hashlib.sha256(open(self.wav, 'rb').read()).hexdigest()[:16]
+        json.dump({'n_001': {'sha': sha, 'words': None}}, open(os.path.join(self.d, 'wordtimes.json'), 'w'))
+        self.assertEqual(len(k.block_word_times(TEXT, self.wav, 3.0)), len(self.words()))
+
     def test_falls_back_when_words_differ(self):
         self.write(self.words()[:-1])
         got = k.block_word_times(TEXT, self.wav, 3.0)

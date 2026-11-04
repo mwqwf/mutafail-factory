@@ -95,7 +95,9 @@ def main(argv=None) -> int:
         heard = [(w.word.strip(), w.start, w.end) for s in segs for w in s.words]
         words, ratio = merge(est, heard)
         if ratio < MIN_MATCH:
-            old.pop(b['id'], None); skipped.append(b['id']); continue
+            # يُحفظ بلا كلمات ببصمته فلا يُسمع في كلّ شوط، وkinetic تبقى فيه على التقدير
+            old[b['id']] = {'sha': sha(f), 'match': round(ratio, 2), 'words': None}
+            skipped.append(b['id']); continue
         old[b['id']] = {'sha': sha(f), 'match': round(ratio, 2), 'words': words}
         kept += 1
         # يُحفظ بعد كلّ كتلة: انقطاع الشوط لا يضيّع ما سُمع

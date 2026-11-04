@@ -100,7 +100,7 @@ def heard_word_times(wav: str, words: list[str]) -> list[tuple[str, float, float
         except (OSError, ValueError):
             _HEARD[d] = {}
     e = _HEARD[d].get(os.path.splitext(os.path.basename(wav))[0])
-    if not e or [w for w, _, _ in e.get('words', [])] != words:
+    if not e or [w for w, _, _ in (e.get('words') or [])] != words:
         return None
     import hashlib
     if hashlib.sha256(open(wav, 'rb').read()).hexdigest()[:16] != e.get('sha'):
