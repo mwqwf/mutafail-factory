@@ -154,7 +154,9 @@ class Client:
         self.keys, self.ledger, self.bucket, self.cap = keys, ledger, bucket, cap
 
     def call(self, method: str, path: str, query: dict | None = None, js=None, multipart: dict | None = None,
-             cost: float = 0.0, retries: int = 6):
+             cost: float = 0.0, retries: int = 6, idempotent: bool = True):
+        # idempotent=False لما يُنشئ أثراً عامّاً (نشر منشور): خطأ الخادم 5xx أو انقطاع الاتّصال لا يعني أنّ الطلب لم يصل،
+        # فلا يُعاد تلقائياً بل يُرفع XError(status>=500 أو 0) ليتحقّق المستدعي من الحساب أوّلاً. وحدّ المعدّل 429 رفضٌ صريح فيُعاد.
         self.ledger.guard(cost, self.bucket, self.cap)
         url = API + path
         query = {k: v for k, v in (query or {}).items() if v is not None}
@@ -183,10 +185,15 @@ class Client:
                     print('⏳ حدّ المعدّل — انتظار %d ث' % wait, flush=True)
                     time.sleep(wait)
                     continue
-                if e.code >= 500 and attempt < retries - 1:
+                if e.code >= 500 and idempotent and attempt < retries - 1:
                     time.sleep(5 * (attempt + 1))
                     continue
                 raise XError(e.code, body, dict(e.headers))
+            except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+                if idempotent and attempt < retries - 1:
+                    time.sleep(5 * (attempt + 1))
+                    continue
+                raise XError(0, 'انقطاع الاتّصال: %s' % e)
         raise XError(0, 'نفدت المحاولات')
 
 
@@ -281,6 +288,53 @@ def resolve_media(m: str) -> str:
     return os.path.join('/tmp/media', name)
 
 
+
+# ─────────────────────────── منع التكرار ───────────────────────────
+
+RECENT_N = 10   # منشوراتٌ حديثة تُقرأ للتحقّق (0.001$ للواحد)
+
+
+def norm_text(t: str) -> str:
+    """نصٌّ للمقارنة: اكس يبدّل الروابط بـt.co ويهرّب &<>، فتُحذف الروابط وتُوحَّد المسافات."""
+    import html
+    import re
+    t = html.unescape(t or '')
+    t = re.sub(r'https?://\S+', '', t)
+    return ' '.join(t.split())
+
+
+def logged_parts(posts: list, name: str) -> dict:
+    """أجزاء الطلب المنشورة سابقاً بحسب السجلّ الخاصّ: {رقم الجزء: المعرّف}."""
+    return {int(e['الجزء']): str(e['id']) for e in posts if e.get('الطلب') == name}
+
+
+def recent_posts(c: Client, uid: str, n: int = RECENT_N) -> list:
+    n = max(5, min(100, n))
+    c.ledger.guard(n * PRICE['owned_read'], c.bucket, c.cap)
+    r = c.call('GET', '/2/users/%s/tweets' % uid, {'max_results': n, 'tweet.fields': 'created_at,referenced_tweets'})
+    c.ledger.add(len(r.get('data', [])) * PRICE['owned_read'], c.bucket)
+    return r.get('data', [])
+
+
+def find_same(recent: list, text: str, reply_to: str | None = None, since: dt.datetime | None = None) -> str | None:
+    """معرّف منشورٍ حديث بالنصّ نفسه (وبالمردود عليه نفسه إن كان ردّاً)، أو None."""
+    want = norm_text(text)
+    if not want:
+        return None
+    for t in recent:
+        if norm_text(t.get('text', '')) != want:
+            continue
+        if since and t.get('created_at'):
+            if dt.datetime.fromisoformat(t['created_at'].replace('Z', '+00:00')) < since:
+                continue
+        if reply_to is not None:
+            refs = {r.get('id') for r in (t.get('referenced_tweets') or []) if r.get('type') == 'replied_to'}
+            if str(reply_to) not in refs:
+                continue
+        return str(t['id'])
+    return None
+
+
 def cmd_post(a) -> int:
     """منشورٌ واحد أو سلسلة: {"النص", "الوسائط": مسار أو قائمة حتى 4، "ردّ_على", "الردود": [نصّ أو {"النص","الوسائط"}]}.
     كلّ نصٍّ في السلسلة يمرّ على بوّابة السياسات قبل نشر أيّ شيء، والحارس على كلفة السلسلة كلّها."""
@@ -309,8 +363,33 @@ def cmd_post(a) -> int:
     c = Client(env_keys(), led)
     log = os.path.join(a.dir, 'posts.json')
     posts = json.load(io.open(log, encoding='utf-8')) if os.path.exists(log) else []
+    name = os.path.basename(a.req)
     prev = str(req['ردّ_على']) if req.get('ردّ_على') else None
+    # «إعادة_النشر»: true يُتجاوز بها منع التكرار عمداً (نشر الطلب نفسه مرّةً ثانية بأمرٍ صريح)
+    again = bool(req.get('إعادة_النشر'))
+    done = {} if again else logged_parts(posts, name)
+    start = 0
+    while start in done:
+        start += 1
+    if start >= len(parts):
+        print('ℹ️ سبق نشر «%s» كاملاً (%s) — لا نشر مكرّر' % (name, ', '.join(done[i] for i in sorted(done))))
+        return 0
+    if start:
+        prev = done[start - 1]
+        print('↪️ «%s» نُشر منه %d جزءاً سابقاً — أستأنف من الجزء %d ردّاً على %s' % (name, start, start, prev))
+    uid = None
+    if not again:
+        # السجلّ الخاصّ قد لا يُحفظ (أخفق رفعه مرّة بـ500)، فيُتحقّق من الحساب نفسه قبل أوّل نشر
+        uid = me(c, a.dir)['id']
+        p0 = parts[start]
+        hit = find_same(recent_posts(c, uid), p0.get('النص') or '', prev,
+                        since=now() - dt.timedelta(days=7))
+        if hit:
+            raise SystemExit('⛔ منشورٌ بالنصّ نفسه في الحساب منذ أقلّ من أسبوع (%s) — لا نشر مكرّر. '
+                             'للنشر عمداً: "إعادة_النشر": true' % hit)
     for i, (p, cost) in enumerate(zip(parts, costs)):
+        if i < start:
+            continue
         body = {}
         text = (p.get('النص') or '').strip()
         if text:
@@ -323,8 +402,24 @@ def cmd_post(a) -> int:
             body['media'] = {'media_ids': [upload_media(c, resolve_media(m)) for m in media]}
         if prev:
             body['reply'] = {'in_reply_to_tweet_id': prev}
-        r = c.call('POST', '/2/tweets', js=body, cost=cost)
-        prev = r['data']['id']
+        sent = now()
+        try:
+            r = c.call('POST', '/2/tweets', js=body, cost=cost, idempotent=False)
+            prev = r['data']['id']
+        except XError as e:
+            if e.status and e.status < 500:
+                raise
+            # نتيجةٌ مجهولة: ربما وصل المنشور. يُبحث عنه في الحساب ولا يُعاد الطلب تلقائياً
+            print('⚠️ استجابةٌ مجهولة (%s) — أتحقّق من الحساب قبل أيّ شيء' % e, flush=True)
+            time.sleep(20)
+            uid = uid or me(c, a.dir)['id']
+            hit = find_same(recent_posts(c, uid), text, prev, since=sent - dt.timedelta(minutes=2))
+            if not hit:
+                raise SystemExit('⛔ لم يُعثر على الجزء %d في الحساب بعد خطأ الخادم، ولم يُعد الطلب تلقائياً. '
+                                 'إعادة دفع الطلب نفسه تستأنف من هذا الجزء بعد تحقّقٍ جديد' % i)
+            led.add(cost)
+            prev = hit
+            print('✅ وصل المنشور رغم الخطأ: %s' % hit)
         posts.append({'id': prev, 'وقت': now().isoformat(timespec='seconds'), 'الطلب': os.path.basename(a.req), 'الجزء': i, 'الكلفة': cost})
         json.dump(posts, io.open(log, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
         print('✅ نُشر %s %s (الكلفة المقدّرة %.3f$، مصروف الشهر %.3f$)' % ('المنشور' if i == 0 else 'الردّ', prev, cost, led.spent()))

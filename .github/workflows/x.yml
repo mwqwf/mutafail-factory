@@ -171,7 +171,13 @@ jobs:
       - name: حفظ الحالة في الإصدار الخاصّ
         if: always() && steps.m.outputs.cmd != 'none'
         run: |
-          if ls /tmp/xs/*.json >/dev/null 2>&1; then gh release upload x-stats /tmp/xs/*.json --clobber && echo "✅ حُفظت الحالة في x-stats"; else echo "لا حالة جديدة"; fi
+          # سجلّ المنشورات posts.json هو أوّل خطّ لمنع التكرار، فيُعاد رفعه عند خطأ الخادم (أخفق مرّةً بـ500 في 2026-11-04)
+          if ! ls /tmp/xs/*.json >/dev/null 2>&1; then echo "لا حالة جديدة"; exit 0; fi
+          for i in 1 2 3 4; do
+            gh release upload x-stats /tmp/xs/*.json --clobber && { echo "✅ حُفظت الحالة في x-stats"; exit 0; }
+            echo "⚠️ إخفاق الحفظ (محاولة $i)"; sleep $((i * 8))
+          done
+          echo "::error::لم يُحفظ سجلّ المنشورات؛ التحقّق من الحساب قبل النشر يبقى حارساً"; exit 1
       # الحذف أبطأ من شوطٍ واحد (نحو 50 كلّ ربع ساعة)، والرمز يُجدَّد داخل الشوط قبل انتهاء ساعتيه: يُستأنف وحده بشوطٍ جديد حتى يكتمل
       - name: استئناف التنظيف
         if: steps.clean.outputs.rc == '3'
