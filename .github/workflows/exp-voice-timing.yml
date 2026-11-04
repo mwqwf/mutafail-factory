@@ -5,7 +5,7 @@ name: تجربة التوقيت وChatterbox
 on:
   push:
     branches: [claude/project-thread-5fbttc]
-    paths: [".github/workflows/exp-voice-timing.yml", "tools/exp/**"]
+    paths: [".github/workflows/exp-voice-timing.yml", "tools/exp/**", "tools/wordtimes.py", "tools/kinetic.py"]
   workflow_dispatch:
 permissions:
   contents: write
@@ -18,7 +18,7 @@ jobs:
   run:
     strategy:
       fail-fast: false
-      matrix: { exp: [score] }   # التوقيت اكتمل في 41673495822، وChatterbox في 41678699828
+      matrix: { exp: [wordtimes] }   # التوقيت 41673495822، وChatterbox 41678699828، والوضوح 41682756671
     runs-on: ubuntu-latest
     timeout-minutes: 150
     steps:
@@ -47,6 +47,19 @@ jobs:
           mkdir -p out
           if [ "${{ matrix.exp }}" = timing ]; then
             python tools/exp/timing.py proj out/timing.json
+          elif [ "${{ matrix.exp }}" = wordtimes ]; then
+            # التحقّق الكامل من الأداة المعتمدة على فيلمٍ حقيقيّ: تُحسب، ثمّ تُعاد فلا تُسمع كتلةٌ مرّتين، ثمّ تقرؤها kinetic
+            python tools/wordtimes.py proj
+            python tools/wordtimes.py proj | tee /tmp/second.log; grep -q "0 كتلة تُسمع" /tmp/second.log
+            python - <<'PY'
+          import json, sys
+          sys.path.insert(0, 'tools'); import kinetic as k
+          bl = [b for b in json.load(open('proj/blocks.json', encoding='utf-8')) if not b.get('reel_only')]
+          used = sum(1 for b in bl if k.heard_word_times('proj/audio/%s.wav' % b['id'], [w for w, p in k.tokens(b['text']) if not p]))
+          print('kinetic تقرأ الأزمنة المسموعة في %d من %d كتلة' % (used, len(bl)))
+          assert used >= 0.9 * len(bl)
+          PY
+            cp proj/audio/wordtimes.json out/
           elif [ "${{ matrix.exp }}" = score ]; then
             gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p chatterbox.tgz -D /tmp/cb && tar xzf /tmp/cb/chatterbox.tgz -C /tmp/cb
             python tools/exp/asr_score.py proj /tmp/cb/cb out/asr_score.json
