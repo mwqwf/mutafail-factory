@@ -1,0 +1,35 @@
+name: دراسة النافذتين — ما غاب عن تقرير الـ28 يوماً
+
+# طلب المالك 2026-11-06. يقرأ تحليلاتٍ لا يقرؤها channel-stats ويرفعها خاصّةً إلى الإصدار المسوّد channel-stats.
+# الكلفة: العدّاء القياسيّ مجّانيّ في المستودع العامّ، وأسئلة التحليلات لا تمسّ حصّة النشر.
+on:
+  push:
+    paths: ["ops/study/*.json"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 🔑 تفويض يوتيوب
+        uses: ./.github/actions/yt-oauth
+        with:
+          private_key: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
+      - name: الأسئلة
+        env:
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
+        run: |
+          set -euo pipefail
+          python tools/study_window.py out/study_window.json
+          gh release upload channel-stats out/study_window.json --clobber
