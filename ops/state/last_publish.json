@@ -1,24 +1,24 @@
 {
- "slug": "dhulqarnayn",
+ "slug": "kinana",
  "film": {
-  "id": "BEB_BNwleBY",
-  "title": "ذو القرنين ويأجوج ومأجوج: القصة كاملة | ما الذي يحبسهم خلف السدّ إلى اليوم؟",
+  "id": "7n_bLN8Bkmk",
+  "title": "أخفى خالد بن الوليد كتاب عزله… حتى انتصر",
   "publishAt": null
  },
  "reels": [
   {
-   "id": "VxvNRLTitYA",
-   "title": "بابٌ يقرعه حارسٌ كلّ اثنين وخميس",
+   "id": "68INvkCBb4I",
+   "title": "أخفى كتاب عزله… حتى انتصر",
    "file": "r1.mp4"
   },
   {
-   "id": "vDTmeEoGfYY",
-   "title": "ملكٌ ردّ المال وبنى السدّ",
+   "id": "vPvn9YQwU9c",
+   "title": "تسلّق سور دمشق بالحبال",
    "file": "r2.mp4"
   },
   {
-   "id": "qQZyU_9-zs4",
-   "title": "يشربون بحيرةً كاملة",
+   "id": "0M35VVbbbQo",
+   "title": "أمّر خالد نفسه",
    "file": "r3.mp4"
   }
  ],
