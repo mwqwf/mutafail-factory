@@ -87,6 +87,18 @@ jobs:
               assert re.fullmatch(r'[A-Za-z0-9_-]{11}', fv); print('FILM_VIDEO_ID=' + fv)
           if d.get('reels_for_film'):
               assert fv, 'reels_for_film يحتاج film_video_id'; print('REELS_FOR_FILM=1')
+          if d.get('private_all'):
+              print('PRIVATE_ALL=1')   # أمر المالك 2026-10-18: الفيلم والريلزات خاصّةً بلا موعد
+          # أبرهة 2026-10-25: قائمةُ تشغيلٍ صريحة (playlist_id) تغلب السلسلةَ الجارية عند إعادة الرفع
+          pl = d.get('playlist_id', '')
+          if pl:
+              assert re.fullmatch(r'[A-Za-z0-9_-]{10,50}', pl); print('PLAYLIST_ID=' + pl)
+          ft = d.get('film_title')
+          if ft:
+              assert isinstance(ft, str) and 0 < len(ft.strip()) <= 100; print('FILM_TITLE=' + ft.strip())
+          rr = d.get('reels_redo')
+          if rr:
+              assert isinstance(rr, list) and all(re.fullmatch(r'r\d\.mp4', x) for x in rr); print('REELS_REDO=' + ','.join(rr))
           rt = d.get('reel_titles')
           if rt:
               assert isinstance(rt, dict) and all(isinstance(k, str) and isinstance(v, str) and 0 < len(v.strip()) <= 100 for k, v in rt.items())
@@ -108,7 +120,8 @@ jobs:
           gh release download "$TAG" -R "$GITHUB_REPOSITORY" --clobber
           sed -i 's/ \*/  /' SHA256SUMS
           sha256sum -c SHA256SUMS
-          cat part_* > payload.enc && rm part_*
+          # جَرَجة 2026-11-01: جزءٌ قديمٌ بقي من ختمٍ سابق (part_06) أفسد فكّ الختم، فلا يُضمّ إلا ما في SHA256SUMS
+          cat $(awk '{print $2}' SHA256SUMS | grep '^part_' | sort) > payload.enc && rm part_*
 
       - name: فضُّ الختم
         env:
@@ -131,6 +144,26 @@ jobs:
       #    القصّة دون ثلث أوّل 150 ث، أو منهجٌ أو طلبٌ أو تعريفٌ بالقناة قبل الدقيقة الرابعة، أو تحيّةٌ في الافتتاح البارد ⇒ لا نشر.
       #    والتعذّر (حصّةٌ أو خطأ) ليس نجاحاً. ولا بوّابة لحمولة ريلزاتٍ وحدها ولا لاستئنافٍ رُفع فيلمه سلفاً.
       #    والتقرير في العدّاء وحده (فيه تفريغ ما لم يُنشر)، والسجلّ أرقامٌ وأسباب.
+      # ⛔⛔ بوّابة المخالفات (أمر المالك 2026-10-25 بعد رفض الاعتراض على ريلز الفيل): النصّ والعناوين بلا شبكة، ثم يشاهد جيميناي
+      #    كلّ إطارٍ (كلّ ثانيتين) من الفيلم والريلزات والمصغّرة بمعيار سياسات يوتيوب (ops/policy/README.md). مانعٌ ⇒ لا نشر.
+      #    والتعذّر ليس نجاحاً. ولا بوّابة بصرية لاستئنافٍ رُفع فيلمه سلفاً (يُفحص وقت رفعه).
+      - name: بوّابة المخالفات (نصّ)
+        run: python tools/policy_gate.py text proj --out /tmp/policy_text.json && rm -f /tmp/policy_text.json
+      - name: بوّابة المخالفات (صور)
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          pip install -q pillow
+          if python - <<'PY'
+          import json, os, sys
+          sys.path.insert(0, 'tools'); import opening_gate
+          sys.exit(0 if opening_gate.already_up('proj') else 1)
+          PY
+          then echo "↻ الفيلم مرفوعٌ سلفاً (استئناف): فُحص وقت رفعه"; exit 0; fi
+          printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+          rc=0; python tools/policy_gate.py media proj --keys /tmp/keys.json --out /tmp/policy_media.json || rc=$?
+          rm -f /tmp/keys.json /tmp/policy_media.json
+          exit $rc
       - name: بوّابة الافتتاحية
         env:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}

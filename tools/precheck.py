@@ -43,6 +43,15 @@ for tool in ("lint.py", "guard.py"):
     if tool == "lint.py" and "ملاحظة وقائية" in r.stdout:
         bad.append("lint.py عنده ملاحظاتٌ لم تُحكَّم — راجعها ثمّ أعِد")
 
+# ①ب بوّابة المخالفات (أمر المالك 2026-10-25 بعد رفض الاعتراض على ريلز الفيل): السيناريو والبطاقات والريلزات والعناوين
+#     — وطابور كوديكس إن وُجد في MEDIA_DIR أو CODEX_JOB. ما تمسكه يُحذف من المصدر لا يُعاد صوغه.
+codex = os.environ.get("CODEX_JOB") or (os.path.join(os.environ.get("MEDIA_DIR", ""), "codex_job.json") if os.environ.get("MEDIA_DIR") else "")
+args = [sys.executable, os.path.join(HERE, "policy_gate.py"), "text", P] + (["--codex", codex] if codex and os.path.exists(codex) else [])
+r = sp.run(args, capture_output=True, text=True)
+print(r.stdout.strip())
+if r.returncode:
+    bad.append("policy_gate.py ردّ بمخالفة")
+
 # ② البناء
 r = sp.run([sys.executable, os.path.join(HERE, "build.py"), P], capture_output=True, text=True)
 print(r.stdout.strip() or r.stderr.strip())

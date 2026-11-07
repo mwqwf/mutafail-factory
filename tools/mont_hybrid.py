@@ -356,9 +356,22 @@ silent = os.path.join(WORK, 'video_silent.mp4')
 # التدريج السينمائيّ بحسب الفصل (tools/look.py) على كلّ إطار — والنسخة النظيفة للريلزات بالتدريج نفسه
 _lk = {}
 LOOKS = [_lk.setdefault(sec, look.Look(sec)) for sec in SECS]
-nv = transitions.assemble(segs, NF, TP, silent, ENC, looks=LOOKS)
-nc = transitions.assemble(clean, NF, TP, os.path.join(WORK, 'video_clean.mp4'), ENC, looks=LOOKS)
-assert nv == nc == sum(NF), 'عدد إطارات الفيلم لا يساوي مجموع اللقطات (%d، %d، %d)' % (nv, nc, sum(NF))
+# أمر المالك (بطء المونتاج): التجميعان (الفيلم والنسخة النظيفة) يجريان متوازيين في خيطين، والمزج الصوتيّ أثناءهما؛
+#   فالتدريج cv2 وفكّ الترميز وترميزه خارج قفل بايثون. كلّ Look يُنسخ لكلّ خيطٍ فلا تتشارك الحالةُ بينهما
+# والشعار (⛔ لا فيلم بلا شعار) يُختم على إطارات الفيلم أثناء التجميع، فلا يُعاد ترميز الفيلم كلّه في الدمج الأخير
+lg = os.path.join(WORK, 'logo_round.png')
+im = Image.open(envpaths.logo(required=True)).convert('RGBA').resize((120, 120), Image.LANCZOS)
+m = Image.new('L', (480, 480), 0); ImageDraw.Draw(m).ellipse([4, 4, 476, 476], fill=255)
+m = m.filter(ImageFilter.GaussianBlur(3)).resize((120, 120), Image.LANCZOS)
+o = Image.new('RGBA', (120, 120), (0, 0, 0, 0)); o.paste(im, (0, 0), m)
+o.putalpha(o.split()[3].point(lambda v: int(v * 0.72))); o.save(lg)
+ENC_FILM = ['-c:v', 'libx264', '-preset', 'faster', '-crf', '20', '-tune', 'film', '-pix_fmt', 'yuv420p', '-r', '25', '-an']
+from concurrent.futures import ThreadPoolExecutor
+_ASM = ThreadPoolExecutor(2)
+_fv = _ASM.submit(transitions.assemble, segs, NF, TP, silent, ENC_FILM, looks=LOOKS, logo=(o, 1920 - 120 - 46, 46))
+_lk2 = {}
+_fc = _ASM.submit(transitions.assemble, clean, NF, TP, os.path.join(WORK, 'video_clean.mp4'), ENC,
+                  looks=[_lk2.setdefault(sec, look.Look(sec)) for sec in SECS])
 
 # ③ المزج: الصوت + الرياح + المؤثّرات (−18dB تقريباً تحت الكلام)
 # MONT_MUTE_VOICE=1: عيّنةٌ قبل اكتمال الصوت (أمر المالك 2026-10-04: «عيّنةٌ احترافية… ولو بلا صوت أو جزءٌ منها بلا صوت»):
@@ -428,15 +441,10 @@ else:
         LN2 = LN
     sp.run([FF, '-v', 'error', '-y', '-i', raw, '-af', LN2 + ',aresample=48000', '-c:a', 'aac', '-b:a', '192k', mixed], check=True)
 
-# ④ الدمج والشعار (⛔ لا فيلم بلا شعار)
-lg = os.path.join(WORK, 'logo_round.png')
-im = Image.open(envpaths.logo(required=True)).convert('RGBA').resize((120, 120), Image.LANCZOS)
-m = Image.new('L', (480, 480), 0); ImageDraw.Draw(m).ellipse([4, 4, 476, 476], fill=255)
-m = m.filter(ImageFilter.GaussianBlur(3)).resize((120, 120), Image.LANCZOS)
-o = Image.new('RGBA', (120, 120), (0, 0, 0, 0)); o.paste(im, (0, 0), m)
-o.putalpha(o.split()[3].point(lambda v: int(v * 0.72))); o.save(lg)
+# ④ الدمج بلا إعادة ترميز (الشعار خُتم أثناء التجميع) — بعد اكتمال التجميعين
+nv, nc = _fv.result(), _fc.result(); _ASM.shutdown()
+assert nv == nc == sum(NF), 'عدد إطارات الفيلم لا يساوي مجموع اللقطات (%d، %d، %d)' % (nv, nc, sum(NF))
 final = P('film.mp4')
-sp.run([FF, '-v', 'error', '-y', '-i', silent, '-i', mixed, '-i', lg, '-filter_complex', '[0:v][2:v]overlay=W-w-46:46:format=auto[v]',
-        '-map', '[v]', '-map', '1:a', '-c:v', 'libx264', '-preset', 'medium', '-crf', '21', '-tune', 'film', '-pix_fmt', 'yuv420p',
-        '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', '-shortest', final], check=True)
+sp.run([FF, '-v', 'error', '-y', '-i', silent, '-i', mixed, '-map', '0:v', '-map', '1:a', '-c', 'copy',
+        '-movflags', '+faststart', '-shortest', final], check=True)
 print('✅ %s | %.2f د | مؤثّرات: %d' % (final, dur(final) / 60, len(fx)), flush=True)

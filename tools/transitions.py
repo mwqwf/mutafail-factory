@@ -288,12 +288,27 @@ class _Reader:
         self.p.kill(); self.p.wait()
 
 
-def assemble(segs: list, nfr: list, tplan: list, out: str, enc: list, hf: int = HF, size=(1920, 1080), looks=None) -> int:
+def assemble(segs: list, nfr: list, tplan: list, out: str, enc: list, hf: int = HF, size=(1920, 1080), looks=None, logo=None) -> int:
     """يكتب الفيلم الصامت من مقاطع اللقطات بمقابضها: segs[i] فيه hf إطاراً قبل اللقطة ثم nfr[i] ثم hf بعدها.
     tplan[i] انتقال الحدّ (i، i+1). looks[i]: تدريج اللقطة (tools/look.py) يُطبَّق على إطاراتها قبل مزج الانتقال.
+    logo: (صورة RGBA، x، y) يُختم بها كلّ إطارٍ بعد التدريج — يغني عن ترميزٍ ثانٍ للفيلم كلّه لأجل الشعار.
     يعيد عدد الإطارات المكتوبة = مجموع nfr."""
     import numpy as np
     w, h = size
+    if logo is not None:
+        lim, lx, ly = logo
+        la = np.asarray(lim, dtype=np.float32)
+        lrgb, lal = la[..., :3], la[..., 3:] / 255.0
+        lh, lw = la.shape[:2]
+
+        def put(fr):                                  # كمرشّح overlay في ffmpeg: أمامٌ×ألفا + خلفٌ×(1−ألفا)
+            fr = fr.copy()
+            reg = fr[ly:ly + lh, lx:lx + lw].astype(np.float32)
+            fr[ly:ly + lh, lx:lx + lw] = (lrgb * lal + reg * (1 - lal) + 0.5).astype(np.uint8)
+            return fr
+    else:
+        def put(fr):
+            return fr
     half = fit(nfr, tplan, hf)
     names = [p[0] if p and half[i] else None for i, p in enumerate(tplan)]
     e = sp.Popen([envpaths.FF, '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', '%dx%d' % (w, h),
@@ -310,11 +325,11 @@ def assemble(segs: list, nfr: list, tplan: list, out: str, enc: list, hf: int = 
             for k in range(T):
                 B = r.read()
                 fr = blend(names[i - 1], tailA[k], B, (k + 0.5) / T)
-                e.stdin.write(np.ascontiguousarray(fr).tobytes()); wrote += 1
+                e.stdin.write(np.ascontiguousarray(put(fr)).tobytes()); wrote += 1
         else:
             r.skip(hf)
         for _ in range(nfr[i] - hp - hn):             # جسم اللقطة
-            e.stdin.write(r.read().tobytes()); wrote += 1
+            e.stdin.write(put(r.read()).tobytes()); wrote += 1
         tailA = [r.read().copy() for _ in range(2 * hn)] if hn else []
         if r.short:
             short.append((os.path.basename(f), r.short))

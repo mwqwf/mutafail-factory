@@ -5,7 +5,9 @@
 والملفُّ: {"videoId": "...", "public": true,
            "descriptionPrepend": "سطرٌ يُضاف في أوّل الوصف",
            "publishAt": "2026-10-07T13:00:00Z",   ← إعادةُ جدولة فيديو خاصّ (لا مع public)
-           "playlists": ["PL..."]}
+           "playlists": ["PL..."],
+           "playlistNew": {"title": "...", "description": "..."},   ← قائمةٌ جديدة (أو القائمة بعنوانها إن وُجدت) ويُضاف إليها
+           "playlistsRemove": ["PL..."]}   ← إخراجُه من قائمةٍ وُضع فيها خطأً (لا يمسّ الفيديو نفسه)
 
 ⛔ الكلفة من حصّة يوتيوب لا من حصّة التوليد: قراءةُ فيديو (١) + تعديلُه (٥٠)
    + إضافةُ قائمةٍ (٥٠). ولا يمسّ رصيدَ جيميناي البتّة.
@@ -47,6 +49,18 @@ add = CMD.get("descriptionPrepend", "").strip()
 if add and add not in sn.get("description", ""):
     sn["description"] = add + "\n\n" + sn.get("description", "")
     changed = True
+# ⭐ استبدال عبارةٍ في الوصف (أبرهة 2026-10-25: وصف الفيلم المنشور فيه «ضربوا رأسه بالفؤوس» بعد تحذير أذى الحيوان)
+for old, new in (CMD.get("descriptionReplace") or {}).items():
+    if old in sn.get("description", ""):
+        sn["description"] = sn["description"].replace(old, new)
+        changed = True
+        print("✏ استُبدل في الوصف:", old[:40], "→", new[:40], flush=True)
+# ⭐ أمر المالك 2026-10-25 (تحذير أذى الحيوان): «اجعلها غير مدرجة ثمّ أصلح الجميع وأعد الرفع» — privacy: unlisted/private
+pv = CMD.get("privacy", "").strip()
+if pv in ("unlisted", "private") and st.get("privacyStatus") != pv:
+    st["privacyStatus"] = pv
+    st.pop("publishAt", None)
+    changed = True
 if CMD.get("public") and st.get("privacyStatus") != "public":
     st["privacyStatus"] = "public"
     st.pop("publishAt", None)          # ⛔ الجدولةُ تمنع النشرَ الفوريّ فتُرفع
@@ -75,8 +89,10 @@ if changed:
         if wait:
             time.sleep(wait)
         g = svc.videos().list(part="snippet,status", id=vid).execute()["items"][0]
-        ok_pub = (not CMD.get("public")) or g["status"]["privacyStatus"] == "public"
-        ok_des = (not add) or add in g["snippet"].get("description", "")
+        ok_pub = ((not CMD.get("public")) or g["status"]["privacyStatus"] == "public") and \
+                 (pv not in ("unlisted", "private") or g["status"]["privacyStatus"] == pv)
+        ok_des = ((not add) or add in g["snippet"].get("description", "")) and \
+                 not any(o in g["snippet"].get("description", "") for o in (CMD.get("descriptionReplace") or {}))
         ok_at = (not at) or g["status"].get("publishAt", "").replace(".000", "") == at
         if ok_pub and ok_des and ok_at:
             print("✅ تحقّق: الخصوصيّة =", g["status"]["privacyStatus"],
@@ -98,6 +114,31 @@ def ids(pl):
         if not tok:
             return out
 
+
+# أمر المالك 2026-10-22 (أبرهة): «أنشئ قائمةً جديدةً مناسبةً وأضفه فيها»
+NEW = CMD.get("playlistNew")
+if NEW:
+    title, pid, tok = NEW["title"].strip(), None, None
+    while not pid:
+        p = svc.playlists().list(part="snippet", mine=True, maxResults=50, pageToken=tok).execute()
+        pid = next((i["id"] for i in p["items"] if i["snippet"]["title"].strip() == title), None)
+        tok = p.get("nextPageToken")
+        if not tok:
+            break
+    if pid:
+        print("↻ القائمةُ موجودةٌ بعنوانها:", title, "→", pid, flush=True)
+    else:
+        pid = svc.playlists().insert(part="snippet,status", body={
+            "snippet": {"title": title[:150], "description": NEW.get("description", "")[:5000], "defaultLanguage": "ar"},
+            "status": {"privacyStatus": "public"}}).execute()["id"]
+        print("✅ أُنشئت القائمة:", title, "→", pid, flush=True)
+    CMD.setdefault("playlists", []).append(pid)
+
+for pl in CMD.get("playlistsRemove", []):
+    its = [i for i in svc.playlistItems().list(part="snippet", playlistId=pl, videoId=vid, maxResults=50).execute()["items"]]
+    for i in its:
+        svc.playlistItems().delete(id=i["id"]).execute()
+    print(("✅ أُخرج من القائمة: " if its else "↻ ليس في القائمة: ") + pl, flush=True)
 
 for pl in CMD.get("playlists", []):
     if vid in ids(pl):

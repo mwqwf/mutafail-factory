@@ -1,0 +1,41 @@
+{
+ "slug": "walaja",
+ "_ملاحظة": "مختبر راوي «الولجة» (حلقة «سيف الله» الثالثة). الصوت أولويةٌ قصوى (أمر المالك 2026-10-04) فيُحكَم قبل الختم لا يُفترض. المرشّحون هم المرشّحون المحكَّمون في مختبر مؤتة والأرك: Charon وAlgenib (فائز الأرك مرّتين وفائز مؤتة) وSadaltager، لتبقى الحصّة لما يتوقّف عليه الحكم لا لتوسيع القائمة. خريطة الأداء من بنية الفيلم: افتتاحٌ بارد يشدّ من أوّل ثانية (epic)، وذروة الكمين عاجلةٌ مشدودة (urgent)، وصبرٌ ينفد قبل خروج الكمين همسٌ ثقيلٌ متوتّر (suspense). كلّ جملةٍ تُحكَّم مستقلّةً بغرضها، فيُختار صوتٌ واحدٌ للسرد كلّه وأسلوبه لكلّ موضع. والجمل مصوغةٌ من وقائع الطبري المنشورة بصياغةٍ عامّة، لا نقلاً من نصّ الفيلم غير المنشور (المستودع عامّ). ولا دور للاقتباس ولا للإلقاء هنا: فائز الاقتباس (Algieba) محكَّمٌ سلفاً في mutah-voices، وكتل الولجة بلا شعر ولا مواضع «pos».",
+ "voices": [
+  "Charon",
+  "Algenib",
+  "Sadaltager"
+ ],
+ "styles": {
+  "epic": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: an epic battle documentary.\n### DIRECTOR'S NOTES\nStyle: powerful, commanding and epic, with weight and suspense; full chest voice.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+  "urgent": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: the clash of two armies: swords, horses and spears.\n### DIRECTOR'S NOTES\nStyle: urgent, tense and driving; punchy phrasing with rising intensity, never shouting.\nPace: fast but every word clear.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud.",
+  "suspense": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: the stillness before a hidden ambush springs.\n### DIRECTOR'S NOTES\nStyle: low, heavy and tense, with controlled restraint; slow-burning suspense, no whispering and no theatrical drama.\nPace: measured, with deliberate pauses at the ellipses.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+ },
+ "lines": [
+  {
+   "id": "L1",
+   "text": "خَالِدٌ فِي قَلْبِ الْعِرَاقْ… وَجَيْشُ فَارِسَ أَمَامَهْ… وَجَيْشٌ آخَرُ يَزْحَفُ مِنْ خَلْفِهْ.",
+   "purpose": "الافتتاح البارد: أوّل ثلاث ثوانٍ، خطّافٌ ملحميّ يشدّ المشاهد فوراً"
+  },
+  {
+   "id": "L2",
+   "text": "ثُمَّ خَرَجَ الْكَمِينُ… مِنْ خَلْفِ صُفُوفِ فَارِسْ… وَضَاقَتِ الدُّنْيَا عَلَى الْقَوْمْ!",
+   "purpose": "ذروة الكمين: عاجلٌ مشدود، بلا صراخ"
+  },
+  {
+   "id": "L3",
+   "text": "سَاعَةٌ بَعْدَ سَاعَةٍ… وَلَا يَتَرَاجَعُ صَفّْ… وَالصَّبْرُ عِنْدَ الْفَرِيقَيْنِ يَكَادُ يَنْفَدْ.",
+   "purpose": "الصبر ينفد قبل خروج الكمين: منخفضٌ ثقيلٌ متوتّر بلا مبالغة"
+  },
+  {
+   "id": "L4",
+   "text": "وَانْكَسَرَ الْجَمْعُ… وَمَضَى قَائِدُهُمْ فِي الْهَزِيمَةِ… حَتَّى أَهْلَكَهُ الْعَطَشْ.",
+   "purpose": "خاتمة المعركة: إخبارٌ حازمٌ بلا شماتة"
+  }
+ ],
+ "stage1_lines": [
+  "L1",
+  "L2"
+ ],
+ "finalists": 3
+}

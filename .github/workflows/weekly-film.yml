@@ -306,13 +306,15 @@ jobs:
             # from_film: يُقصّ من الفيلم نفسه · shots: لقطات الفيلم المتحرّكة مع ترجمة · وإلا مجسَّم من الصور
             kind=$(python -c "import json;x=[x for x in json.load(open('proj/reels.json',encoding='utf-8')) if x['id']=='$r'][0];print('promo' if x.get('promo') else 'open' if x.get('from_film') else 'film' if x.get('shots') else '3d')")
             # تعثّرُ ريلزٍ واحد (صوتُ كتلته ناقص مثلاً) لا يُسقط الفيلم ولا بقية الريلزات
+            # أمر المالك (بطء المونتاج): الريلزات متوازية، لكلٍّ منها مجلّد عمله proj/reelwork/<id> فلا تتصادم
             case "$kind" in
               promo) python tools/mkreel_promo.py proj "$r" 0.30 || echo "⛔ تعذّر الريلز $r" ;;
               open) python tools/mkreel_open.py proj "$r" || echo "⛔ تعذّر الريلز $r" ;;
               film) python tools/mkreel_film.py proj "$r" || echo "⛔ تعذّر الريلز $r" ;;
               *)    python tools/mkreel3d.py proj "$r" || echo "⛔ تعذّر الريلز $r" ;;
-            esac
+            esac &
           done
+          wait
 
       - name: ④ب عيّنةٌ من أوّل الفيلم للمالك (visuals)
         # أمر المالك 2026-10-04: «أرسل لي عيّنةً عمّا سيكون عليه الفيلم، مقطعاً قصيراً حتى أراه» — اللقطات من أوّل الفيلم ما دام
