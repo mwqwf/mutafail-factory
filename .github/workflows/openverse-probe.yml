@@ -1,0 +1,20 @@
+name: فحص Openverse
+
+# فحصٌ لمرة: هل تصل واجهة Openverse من عدّاء Actions، وما حدود المعدّل، وما جودة النتائج لحاجاتنا.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: الفحص
+        run: |
+          python3 tools/openverse_sfx.py --probe --n 3 --out /tmp/ov
+          ls -la /tmp/ov 2>/dev/null || true
+          for f in /tmp/ov/*; do [ -f "$f" ] && true # -show_entries format=duration,bit_rate -of csv=p=0 "$f" | sed "s|^|$(basename $f): |"; done || true
