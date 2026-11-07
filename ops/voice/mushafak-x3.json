@@ -1,0 +1,129 @@
+{
+ "slug": "mushafak-x3",
+ "variants": {
+  "A": [
+   {
+    "id": "m01",
+    "voice": "Algenib",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "تَحْفَظُ السُّورَةْ… وَبَعْدَ أُسْبُوعٍ تَنْسَاهَا؟"
+   },
+   {
+    "id": "m02",
+    "voice": "Algenib",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "مُصْحَفُكْ… كُلُّ مَا تَحْتَاجُهُ مَعَ الْقُرْآنِ فِي تَطْبِيقٍ وَاحِدْ!"
+   },
+   {
+    "id": "m03",
+    "voice": "Algenib",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "مُصْحَفٌ كَامِلٌ بِسِتِّ رِوَايَاتْ، وَمِئَاتِ الْقُرَّاءْ… تُضَاءُ مَعَهُمُ الْكَلِمَةُ الْمَتْلُوَّةْ."
+   },
+   {
+    "id": "m04",
+    "voice": "Algenib",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "سَمِّعْ مِنْ حِفْظِكْ… فَيَكْشِفُ لَكَ خَطَأَكَ كَلِمَةً كَلِمَةْ، وَلَوْ بِلَا إِنْتَرْنِتْ!"
+   },
+   {
+    "id": "m05",
+    "voice": "Algenib",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "وَخُطَّةُ حِفْظٍ يَوْمِيَّةْ… تُعِيدُ عَلَيْكَ الْآيَةَ قَبْلَ أَنْ تَنْسَاهَا."
+   },
+   {
+    "id": "m06",
+    "voice": "Algenib",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "تَدَرَّبْ: اخْتَبِرْ حِفْظَكْ، وَتَعَلَّمِ التَّجْوِيدَ فِي مُخْتَبَرِ النُّطْقْ."
+   },
+   {
+    "id": "m07",
+    "voice": "Algenib",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "وَاسْأَلِ الْمُسَاعِدَ الذَّكِيّْ… يُجِيبُكَ مِنَ التَّفَاسِيرِ وَمَصَادِرِ التَّطْبِيقْ."
+   },
+   {
+    "id": "m08",
+    "voice": "Algenib",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "وِرْدُكَ الْيَوْمِيّْ، وَالْأَذْكَارْ، وَمَوَاقِيتُ الصَّلَاةِ وَالْقِبْلَةْ."
+   },
+   {
+    "id": "m09",
+    "voice": "Algenib",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "وَالْمُصْحَفُ كَامِلًا مَجَّانًا… بِلَا إِعْلَانْ!"
+   },
+   {
+    "id": "m10",
+    "voice": "Algenib",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "مُصْحَفُكْ… حَمِّلْهُ الْآنْ!"
+   }
+  ],
+  "B": [
+   {
+    "id": "m01",
+    "voice": "Fenrir",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "تَحْفَظُ السُّورَةْ… وَبَعْدَ أُسْبُوعٍ تَنْسَاهَا؟"
+   },
+   {
+    "id": "m02",
+    "voice": "Fenrir",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "مُصْحَفُكْ… كُلُّ مَا تَحْتَاجُهُ مَعَ الْقُرْآنِ فِي تَطْبِيقٍ وَاحِدْ!"
+   },
+   {
+    "id": "m03",
+    "voice": "Fenrir",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "مُصْحَفٌ كَامِلٌ بِسِتِّ رِوَايَاتْ، وَمِئَاتِ الْقُرَّاءْ… تُضَاءُ مَعَهُمُ الْكَلِمَةُ الْمَتْلُوَّةْ."
+   },
+   {
+    "id": "m04",
+    "voice": "Fenrir",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "سَمِّعْ مِنْ حِفْظِكْ… فَيَكْشِفُ لَكَ خَطَأَكَ كَلِمَةً كَلِمَةْ، وَلَوْ بِلَا إِنْتَرْنِتْ!"
+   },
+   {
+    "id": "m05",
+    "voice": "Fenrir",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "وَخُطَّةُ حِفْظٍ يَوْمِيَّةْ… تُعِيدُ عَلَيْكَ الْآيَةَ قَبْلَ أَنْ تَنْسَاهَا."
+   },
+   {
+    "id": "m06",
+    "voice": "Fenrir",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "تَدَرَّبْ: اخْتَبِرْ حِفْظَكْ، وَتَعَلَّمِ التَّجْوِيدَ فِي مُخْتَبَرِ النُّطْقْ."
+   },
+   {
+    "id": "m07",
+    "voice": "Fenrir",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "وَاسْأَلِ الْمُسَاعِدَ الذَّكِيّْ… يُجِيبُكَ مِنَ التَّفَاسِيرِ وَمَصَادِرِ التَّطْبِيقْ."
+   },
+   {
+    "id": "m08",
+    "voice": "Fenrir",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "وِرْدُكَ الْيَوْمِيّْ، وَالْأَذْكَارْ، وَمَوَاقِيتُ الصَّلَاةِ وَالْقِبْلَةْ."
+   },
+   {
+    "id": "m09",
+    "voice": "Fenrir",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "وَالْمُصْحَفُ كَامِلًا مَجَّانًا… بِلَا إِعْلَانْ!"
+   },
+   {
+    "id": "m10",
+    "voice": "Fenrir",
+    "style": "Say this as an energetic, exciting TV advertisement narrator, confident and full of enthusiasm",
+    "text": "مُصْحَفُكْ… حَمِّلْهُ الْآنْ!"
+   }
+  ]
+ }
+}

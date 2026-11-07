@@ -1,0 +1,43 @@
+{
+ "slug": "mushafak-live",
+ "variants": {
+  "B": [
+   {
+    "id": "v01",
+    "voice": "Algenib",
+    "director": "# AUDIO PROFILE: A calm, confident Arabic narrator presenting a real product demo.\n## SCENE: A live screen recording of a Quran app, shown without edits.\n### DIRECTOR'S NOTES\nStyle: warm, assured, with quiet excitement; short pauses at the ellipses. Pace: natural, not rushed. Read only the transcript, in Arabic.",
+    "text": "لَا تَصَامِيمَ… وَلَا وُعُودْ. هَذَا تَسْجِيلٌ حَقِيقِيٌّ لِمُصْحَفِكْ."
+   },
+   {
+    "id": "v02",
+    "voice": "Algenib",
+    "director": "# AUDIO PROFILE: A calm, confident Arabic narrator presenting a real product demo.\n## SCENE: A live screen recording of a Quran app, shown without edits.\n### DIRECTOR'S NOTES\nStyle: warm, assured, with quiet excitement; short pauses at the ellipses. Pace: natural, not rushed. Read only the transcript, in Arabic.",
+    "text": "الْمُصْحَفُ بَيْنَ يَدَيْكْ… وَقُرَّاؤُهُ بِالرِّوَايَاتْ: حَفْصٍ وَوَرْشٍ وَقَالُونْ."
+   },
+   {
+    "id": "v03",
+    "voice": "Algenib",
+    "director": "# AUDIO PROFILE: A calm, confident Arabic narrator presenting a real product demo.\n## SCENE: A live screen recording of a Quran app, shown without edits.\n### DIRECTOR'S NOTES\nStyle: warm, assured, with quiet excitement; short pauses at the ellipses. Pace: natural, not rushed. Read only the transcript, in Arabic.",
+    "text": "تَدَرَّبْ… لِحِفْظِكَ وَوِرْدِكَ وَاخْتِبَارِكْ."
+   },
+   {
+    "id": "v04",
+    "voice": "Algenib",
+    "director": "# AUDIO PROFILE: A calm, confident Arabic narrator presenting a real product demo.\n## SCENE: A live screen recording of a Quran app, shown without edits.\n### DIRECTOR'S NOTES\nStyle: warm, assured, with quiet excitement; short pauses at the ellipses. Pace: natural, not rushed. Read only the transcript, in Arabic.",
+    "text": "وَيَوْمِي… لِمَوَاقِيتِكَ وَقِبْلَتِكَ وَأَذْكَارِكْ."
+   },
+   {
+    "id": "v05",
+    "voice": "Algenib",
+    "director": "# AUDIO PROFILE: A calm, confident Arabic narrator presenting a real product demo.\n## SCENE: A live screen recording of a Quran app, shown without edits.\n### DIRECTOR'S NOTES\nStyle: warm, assured, with quiet excitement; short pauses at the ellipses. Pace: natural, not rushed. Read only the transcript, in Arabic.",
+    "text": "وَتَسْأَلُهُ فِي دِينِكْ… فَيُجِيبُكَ مِنَ الْمَصَادِرْ."
+   },
+   {
+    "id": "v06",
+    "voice": "Algenib",
+    "director": "# AUDIO PROFILE: A calm, confident Arabic narrator presenting a real product demo.\n## SCENE: A live screen recording of a Quran app, shown without edits.\n### DIRECTOR'S NOTES\nStyle: warm, assured, with quiet excitement; short pauses at the ellipses. Pace: natural, not rushed. Read only the transcript, in Arabic.",
+    "text": "مُصْحَفُكْ… جَرِّبْهُ بِنَفْسِكْ."
+   }
+  ]
+ }
+}
