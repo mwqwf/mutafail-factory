@@ -23,6 +23,7 @@
 """
 from __future__ import annotations
 
+import json
 import math
 import os
 import re
@@ -87,12 +88,37 @@ def tokens(text: str) -> list[tuple[str, bool]]:
     return out
 
 
-def block_word_times(text: str, wav: str | None, dur: float) -> list[tuple[str, float, float]]:
-    """أزمنة كلمات الكتلة بالثواني من أوّل ملفّها (قبل تسريع 1.05): [(الكلمة المعروضة، بداية، نهاية)]."""
+_HEARD: dict[str, dict] = {}
+
+
+def heard_word_times(wav: str, words: list[str]) -> list[tuple[str, float, float]] | None:
+    """أزمنة الكلمات المسموعة من audio/wordtimes.json (tools/wordtimes.py) إن طابقت بصمةُ الملفّ وكلماتُه، وإلا None."""
+    d = os.path.dirname(os.path.abspath(wav))
+    if d not in _HEARD:
+        try:
+            _HEARD[d] = json.load(open(os.path.join(d, 'wordtimes.json'), encoding='utf-8'))
+        except (OSError, ValueError):
+            _HEARD[d] = {}
+    e = _HEARD[d].get(os.path.splitext(os.path.basename(wav))[0])
+    if not e or [w for w, _, _ in (e.get('words') or [])] != words:
+        return None
+    import hashlib
+    if hashlib.sha256(open(wav, 'rb').read()).hexdigest()[:16] != e.get('sha'):
+        return None
+    return [(w, float(s), float(t)) for w, s, t in e['words']]
+
+
+def block_word_times(text: str, wav: str | None, dur: float, heard: bool = True) -> list[tuple[str, float, float]]:
+    """أزمنة كلمات الكتلة بالثواني من أوّل ملفّها (قبل تسريع 1.05): [(الكلمة المعروضة، بداية، نهاية)].
+    الأزمنة المسموعة أوّلاً (أمر المالك 2026-11-04)، وإلا فالتقدير من الصمت وعدد الحروف."""
     toks = tokens(text)
     words = [w for w, p in toks if not p]
     if not words:
         return []
+    if heard and wav and os.path.exists(wav):
+        h = heard_word_times(wav, words)
+        if h:
+            return h
     sil, d0 = silences(wav) if wav and os.path.exists(wav) else ([], 0.0)
     dur = d0 or dur
     lead = sil[0][1] if sil and sil[0][0] < 0.05 else 0.0
