@@ -18,7 +18,7 @@ from pathlib import Path
 
 PRIVATE_AUTHORIZATION = {
     'slug': 'salasil', 'private_only': True, 'allow_incomplete_review': True,
-    'revision': 1,
+    'revision': 2,
     'review_archive_sha256': 'b7068d6571d036b3cc7c88a9b9cf52d7ec21da9e67cf4c08dd41d0e105b4c83e',
 }
 
@@ -237,7 +237,7 @@ class DraftReleaseStore:
         return result.stdout
 
     def detail(self):
-        d = json.loads(self.gh('api', 'repos/'+self.repo+'/releases/tags/'+self.release))
+        d = json.loads(self.gh('api', 'repos/'+self.repo+'/releases/441521130'))
         require(d.get('draft') is True and d.get('tag_name') == self.release, 'release_not_draft')
         return d
 

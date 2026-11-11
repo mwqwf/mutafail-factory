@@ -147,6 +147,11 @@ class AdapterTests(unittest.TestCase):
             with self.assertRaises(u.Stop): store.load()
         with patch.object(store,'detail',return_value={}):
             with self.assertRaisesRegex(u.Stop,'asset_listing'): store.load()
+    def test_draft_read_uses_verified_release_id_not_unpublished_tag(self):
+        store=self.make()
+        with patch.object(store,'gh',return_value=json.dumps({'draft':True,'tag_name':'salasil-out'})) as call:
+            self.assertTrue(store.is_private_draft())
+            call.assert_called_once_with('api','repos/owner/repo/releases/441521130')
     def test_published_release_rejected(self):
         store=self.make()
         with patch.object(store,'gh',return_value=json.dumps({'draft':False,'tag_name':'salasil-out'})):
