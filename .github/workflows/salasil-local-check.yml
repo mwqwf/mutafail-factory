@@ -1,0 +1,158 @@
+name: ذات السلاسل — فحص محلي مستقل بلا نشر
+on:
+  push:
+    paths: ['ops/salasil-local-check.json']
+permissions:
+  contents: write
+concurrency:
+  group: mutafail-sealed-publish
+  cancel-in-progress: false
+jobs:
+  local-review-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SALASIL_PRIVATE_LOCK: mutafail-sealed-publish
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 2}
+      - name: تحقق الأمر المحدد
+        run: |
+          set -euo pipefail
+          git show --pretty= --name-only "$GITHUB_SHA" | grep -qx 'ops/salasil-local-check.json'
+          python - <<'PY'
+          import json
+          d=json.load(open('ops/salasil-local-check.json'))
+          assert d == {'slug':'salasil','offline_review_only':True,'revision':1}
+          PY
+          test "$(gh release view salasil-out --json isDraft -q .isDraft)" = true
+          test "$(gh release view salasil-payload --json isDraft -q .isDraft)" = true
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: أدوات الفيديو من سجلات الحزم المعروفة وفحصها محليًا
+        timeout-minutes: 7
+        run: |
+          set -euo pipefail
+          timeout 120 pip install --timeout 20 --retries 2 -q pillow google-auth google-auth-oauthlib google-api-python-client
+          mkdir -p "$RUNNER_TEMP/video-wheels" "$RUNNER_TEMP/video-bin"
+          timeout 120 pip download --timeout 20 --retries 2 --only-binary=:all: --no-deps -q --dest "$RUNNER_TEMP/video-wheels" imageio-ffmpeg==0.6.0
+          echo "c7e46fcec401dd990405049d2e2f475e2b397779df2519b544b8aab515195282  $RUNNER_TEMP/video-wheels/imageio_ffmpeg-0.6.0-py3-none-manylinux2014_x86_64.whl" | sha256sum -c -
+          pip install -q --no-deps --no-index --find-links "$RUNNER_TEMP/video-wheels" imageio-ffmpeg==0.6.0
+          timeout 120 npm install --prefix "$RUNNER_TEMP/video-tools" --ignore-scripts --no-audit --no-fund @ffprobe-installer/linux-x64@5.2.0
+          chmod +x "$RUNNER_TEMP/video-tools/node_modules/@ffprobe-installer/linux-x64/ffprobe"
+          ln -s "$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')" "$RUNNER_TEMP/video-bin/ffmpeg"
+          ln -s "$RUNNER_TEMP/video-tools/node_modules/@ffprobe-installer/linux-x64/ffprobe" "$RUNNER_TEMP/video-bin/ffprobe"
+          export PATH="$RUNNER_TEMP/video-bin:$PATH"
+          echo "$RUNNER_TEMP/video-bin" >> "$GITHUB_PATH"
+          ffmpeg -version
+          ffprobe -version
+          ffmpeg -hide_banner -filters > "$RUNNER_TEMP/video-filters.txt"
+          for f in freezedetect ebur128 silencedetect blackdetect; do grep -q "$f" "$RUNNER_TEMP/video-filters.txt"; done
+          ffmpeg -v error -y -f lavfi -i testsrc2=size=160x90:rate=10 -f lavfi -i sine=frequency=440:sample_rate=48000 -t 2 -c:v libx264 -pix_fmt yuv420p -c:a aac "$RUNNER_TEMP/video-smoke.mp4"
+          ffprobe -v error -show_entries stream=codec_type -of csv=p=0 "$RUNNER_TEMP/video-smoke.mp4"
+          ffmpeg -v error -i "$RUNNER_TEMP/video-smoke.mp4" -vf freezedetect=n=0.003:d=1 -af ebur128=peak=true -f null -
+          rm -f "$RUNNER_TEMP/video-smoke.mp4"
+      - name: استعادة المصدر والوسائط الموجودة فقط
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p source-sealed pub-sealed source pub reports checkpoint
+          cp ops/sealed/salasil/* source-sealed/
+          echo '35a5ccf40e1651245aa6d8373192d963cd6b0ea9446384b235388a1027adb629  source-sealed/part_00' | sha256sum -c -
+          echo '9bff8fbce6e848bf22c28fc9dcf0a3a14e24a4d77251455902f88e6c155abd2f  source-sealed/key.enc' | sha256sum -c -
+          (cd source-sealed; sed -i 's/ \*/  /' SHA256SUMS; sha256sum -c SHA256SUMS; cat $(awk '{print $2}' SHA256SUMS | grep '^part_' | sort) > payload.enc)
+          bash tools/unseal.sh source-sealed "$PWD/source" > reports/source_restore.log 2>&1
+          gh release download salasil-payload --dir pub-sealed --clobber > reports/payload_download.log 2>&1
+          echo '7fc94b272313ce62c288582335cb5375728ae3305f4984cbc191790fd59484bd  pub-sealed/SHA256SUMS' | sha256sum -c -
+          (cd pub-sealed; sed -i 's/ \*/  /' SHA256SUMS; sha256sum -c SHA256SUMS; cat $(awk '{print $2}' SHA256SUMS | grep '^part_' | sort) > payload.enc)
+          bash tools/unseal.sh pub-sealed "$PWD/pub" > reports/payload_restore.log 2>&1
+          gh release download salasil-out --pattern state.tgz.part_00 --dir checkpoint > reports/state_download.log 2>&1
+          echo '496ad867f8fb0a0c78d18d2fb6bc247412558bf974ea9b45641d4ff9c106561c  checkpoint/state.tgz.part_00' | sha256sum -c -
+          python - <<'PY'
+          import tarfile
+          from pathlib import Path
+          root=Path('source').resolve()
+          with tarfile.open('checkpoint/state.tgz.part_00','r:gz') as t:
+              for m in t.getmembers():
+                  p=(root/m.name).resolve()
+                  assert p.is_relative_to(root) and not m.issym() and not m.islnk()
+                  assert m.isfile() or m.isdir()
+              t.extractall(root)
+          PY
+          if [ ! -f source/blocks.json ]; then python tools/build.py source > reports/build_metadata.log 2>&1; fi
+          echo 'استعيدت الوسائط الموجودة داخل المصنع، دون إعادة إنتاج.'
+      - name: استعادة أدلة المراجعة السابقة والتحقق منها
+        run: |
+          set -euo pipefail
+          gh release download salasil-out --pattern salasil-review-43037440590.tgz --dir checkpoint
+          echo 'b7068d6571d036b3cc7c88a9b9cf52d7ec21da9e67cf4c08dd41d0e105b4c83e  checkpoint/salasil-review-43037440590.tgz' | sha256sum -c -
+          python - <<'PY'
+          import json, tarfile
+          from pathlib import Path
+          wanted={'reports/review.json','reports/listen_results.json','reports/listen_reviews.json'}
+          with tarfile.open('checkpoint/salasil-review-43037440590.tgz','r:gz') as t:
+              for m in t.getmembers():
+                  if m.name not in wanted:continue
+                  assert m.isfile() and not m.issym() and not m.islnk()
+                  Path(m.name).write_bytes(t.extractfile(m).read())
+          d=json.loads(Path('reports/review.json').read_text())
+          print('prior_review',json.dumps({k:d.get(k) for k in ('status','checks','error','api_calls','usage')},ensure_ascii=False))
+          p=Path('reports/listen_results.json')
+          if p.exists():
+              d=json.loads(p.read_text());print('prior_audio_counts',json.dumps({'records':len(d),'ok':sum(v.get('ok') is True for v in d.values()),'flags':sum(v.get('ok') is False for v in d.values()),'unknown':sum(not isinstance(v.get('ok'),bool) for v in d.values())}))
+          PY
+      - name: فحص النصوص وتجهيز المراجعة المستقلة
+        timeout-minutes: 5
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          HF_HUB_DISABLE_XET: '1'
+        run: |
+          set -euo pipefail
+          timeout 180 pip install --timeout 20 --retries 2 -q faster-whisper
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          files=[Path('source/script.md')]+sorted(Path('source/audio').glob('*.wav'))
+          checks={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
+          Path('reports/asr_inputs.json').write_text(json.dumps(checks,indent=1))
+          PY
+          python tools/policy_gate.py text source --out reports/policy_text_source.json > reports/policy_text_source.log 2>&1 || test "$?" -eq 1
+          python tools/policy_gate.py text pub --out reports/policy_text_final.json > reports/policy_text_final.log 2>&1 || test "$?" -eq 1
+      - name: تفريغ الصوت المستقل محليًا بلا API
+        timeout-minutes: 35
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          HF_HUB_DISABLE_XET: '1'
+          HF_HUB_DOWNLOAD_TIMEOUT: '60'
+        run: |
+          set -euo pipefail
+          python tools/asr_sweep.py source/audio source/script.md reports/asr_sweep.json 1 > reports/asr_execution.log 2>&1
+      - name: حفظ أدلة الفحص في المسودة الخاصة
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ -d reports ]; then
+            python - <<'PY'
+            import json
+            from pathlib import Path
+            out={'review_kind':'offline_independent_diagnostic','publishing_allowed':False}
+            for f in ('policy_text_source','policy_text_final'):
+                p=Path('reports/'+f+'.json')
+                if p.exists():
+                    d=json.loads(p.read_text());out[f]={'checked':d.get('فُحص'),'blocks':len(d.get('موانع',[])),'warnings':len(d.get('تنبيهات',[]))}
+            p=Path('reports/asr_sweep.json')
+            if p.exists():
+                d=json.loads(p.read_text());out['asr_checked']=len(d);out['asr_low_match']=[{'id':k,'ratio':v.get('ratio')} for k,v in d.items() if v.get('ratio',0)<.9]
+            print(json.dumps(out,ensure_ascii=False))
+            Path('reports/offline_summary.json').write_text(json.dumps(out,ensure_ascii=False,indent=1))
+            PY
+            test "$(gh release view salasil-out --json isDraft -q .isDraft)" = true
+            tar czf "salasil-offline-$GITHUB_RUN_ID.tgz" reports
+            gh release upload salasil-out "salasil-offline-$GITHUB_RUN_ID.tgz" --clobber > /dev/null
+          fi
+      - name: إزالة الوسائط المؤقتة من العدّاء
+        if: always()
+        run: rm -rf source source-sealed pub pub-sealed checkpoint reports salasil-offline-*.tgz
