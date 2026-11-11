@@ -33,3 +33,8 @@ jobs:
           set -euo pipefail
           python tools/study_film.py out/study_film.json
           gh release upload channel-stats out/study_film.json --clobber
+          # المصغّرات الحيّة كما يراها المشاهد (للمقارنة بالعين)
+          for v in 7n_bLN8Bkmk ZSI2NvQp8yc Ah2VnLPpMU0 _OK7JEf9r4s AQW7phGZJUE BEB_BNwleBY; do
+            curl -fsSL -o "out/live_thumb_$v.jpg" "https://i.ytimg.com/vi/$v/maxresdefault.jpg" || curl -fsSL -o "out/live_thumb_$v.jpg" "https://i.ytimg.com/vi/$v/hqdefault.jpg" || true
+          done
+          gh release upload channel-stats out/live_thumb_*.jpg --clobber
