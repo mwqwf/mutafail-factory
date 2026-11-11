@@ -16,6 +16,12 @@ import re
 import sys
 from pathlib import Path
 
+PRIVATE_AUTHORIZATION = {
+    'slug': 'salasil', 'private_only': True, 'allow_incomplete_review': True,
+    'revision': 1,
+    'review_archive_sha256': 'b7068d6571d036b3cc7c88a9b9cf52d7ec21da9e67cf4c08dd41d0e105b4c83e',
+}
+
 class Stop(RuntimeError):
     pass
 
@@ -138,7 +144,7 @@ def run(repo, proj, store, *, legacy=None):
         state = store.load()
         require(isinstance(state, dict) and state.get('slug') == 'salasil', 'checkpoint_slug_mismatch')
         review = state.get('review', {})
-        require(review.get('approved') is True and bool(review.get('evidence')), 'review_not_approved')
+        require((review.get('approved') is True or (review.get('private_upload_authorized') is True and review.get('authorization') == PRIVATE_AUTHORIZATION)) and bool(review.get('evidence')), 'review_not_approved')
         hashes = {name:sha for name, _, _, sha in entries}
         hashes['thumb-a.jpg'] = digest(thumb)
         require(review.get('sha256') == hashes, 'review_hash_mismatch')
@@ -295,30 +301,47 @@ class DraftReleaseStore:
         self.detail()
 
 
+def review_for_upload(report, authorization=None):
+    require(report.get('slug') == 'salasil' and report.get('review_kind') == 'automated', 'wrong_review_identity')
+    passed = report.get('status') == 'passed' and all(report.get('checks', {}).get(k) is True for k in
+        ('audio','clips','technical','final_audio','policy','opening'))
+    waived = authorization == PRIVATE_AUTHORIZATION
+    require(passed or waived, 'review_not_approved')
+    hashes = dict(report.get('files', {}))
+    hashes['thumb-a.jpg'] = report.get('thumbnail_sha256')
+    require(set(hashes) == {'film.mp4','reels/r1.mp4','reels/r2.mp4','reels/r3.mp4','thumb-a.jpg'}, 'invalid_review_inventory')
+    require(all(isinstance(v,str) and re.fullmatch(r'[0-9a-f]{64}',v) for v in hashes.values()), 'invalid_review_hash')
+    return {'approved':passed, 'private_upload_authorized':waived,
+        'authorization':authorization if waived else None, 'sha256':hashes, 'evidence':report}
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--proj',required=True)
     parser.add_argument('--review',required=True)
+    parser.add_argument('--private-authorization-file')
     parser.add_argument('--state-release',default='salasil-out',choices=['salasil-out'])
     parser.add_argument('--repo-root',default='.')
     args = parser.parse_args()
     try:
         report = json.loads(Path(args.review).read_text(encoding='utf-8'))
-        require(report.get('slug') == 'salasil' and report.get('status') == 'passed' and
-                report.get('review_kind') == 'automated' and
-                all(report.get('checks', {}).get(k) is True for k in
-                    ('audio','clips','technical','final_audio','policy','opening')), 'review_not_approved')
-        hashes = dict(report.get('files', {}))
-        hashes['thumb-a.jpg'] = report.get('thumbnail_sha256')
-        require(all(isinstance(v,str) and re.fullmatch(r'[0-9a-f]{64}',v) for v in hashes.values()), 'invalid_review_hash')
-        review = {'approved':True, 'sha256':hashes, 'evidence':report}
+        authorization = None
+        if args.private_authorization_file:
+            auth_path = Path(args.private_authorization_file).resolve()
+            require(auth_path == (Path(args.repo_root).resolve()/'ops/salasil-private-authorized.json'), 'wrong_authorization_path')
+            authorization = json.loads(auth_path.read_text(encoding='utf-8'))
+            require(authorization == PRIVATE_AUTHORIZATION, 'wrong_private_authorization')
+        review = review_for_upload(report, authorization)
+        print(json.dumps({'review_complete':review['approved'], 'upload_authorized_private_only':True}),flush=True)
         run(args.repo_root,args.proj,DraftReleaseStore(args.state_release,review))
-    except Exception:
-        # Do not log SDK/gh exceptions: they may include metadata or secrets.
-        print('{"status":"blocked","code":"private_upload_stopped_check_private_state"}',flush=True)
+    except Exception as exc:
+        # Only our static error codes or an exception class, never SDK payloads.
+        code = str(exc) if isinstance(exc, Stop) else type(exc).__name__
+        print(json.dumps({'status':'blocked','code':code}),flush=True)
         return 1
     return 0
 
 if __name__ == '__main__':
     sys.exit(main())
+

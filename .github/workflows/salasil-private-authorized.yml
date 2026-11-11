@@ -1,0 +1,80 @@
+name: ذات السلاسل — رفع خاص بتفويض المالك
+on:
+  push:
+    paths: ['ops/salasil-private-authorized.json']
+permissions:
+  contents: write
+concurrency:
+  group: mutafail-sealed-publish
+  cancel-in-progress: false
+jobs:
+  private-upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SALASIL_PRIVATE_LOCK: mutafail-sealed-publish
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 2}
+      - name: تحقق تفويض الرفع الخاص والمصدر
+        run: |
+          set -euo pipefail
+          git show --pretty= --name-only "$GITHUB_SHA" | grep -qx 'ops/salasil-private-authorized.json'
+          python - <<'PY'
+          import json, sys
+          sys.path.insert(0,'tools')
+          from private_salasil_upload import PRIVATE_AUTHORIZATION
+          assert json.load(open('ops/salasil-private-authorized.json')) == PRIVATE_AUTHORIZATION
+          PY
+          test "$(gh release view salasil-out --json isDraft -q .isDraft)" = true
+          test "$(gh release view salasil-payload --json isDraft -q .isDraft)" = true
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: أدوات الرفع وفحص أبعاد الريلز
+        timeout-minutes: 4
+        run: |
+          set -euo pipefail
+          timeout 120 pip install --timeout 20 --retries 2 -q google-auth google-auth-oauthlib google-api-python-client
+          timeout 120 npm install --prefix "$RUNNER_TEMP/video-tools" --ignore-scripts --no-audit --no-fund @ffprobe-installer/linux-x64@5.2.0
+          mkdir -p "$RUNNER_TEMP/video-bin"
+          chmod +x "$RUNNER_TEMP/video-tools/node_modules/@ffprobe-installer/linux-x64/ffprobe"
+          ln -s "$RUNNER_TEMP/video-tools/node_modules/@ffprobe-installer/linux-x64/ffprobe" "$RUNNER_TEMP/video-bin/ffprobe"
+          echo "$RUNNER_TEMP/video-bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/video-bin/ffprobe" -version
+      - name: استعادة الأربعة الموجودة وأدلة هويتها
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p pub-sealed pub reports checkpoint
+          gh release download salasil-payload --dir pub-sealed > reports/payload_download.log 2>&1
+          echo '7fc94b272313ce62c288582335cb5375728ae3305f4984cbc191790fd59484bd  pub-sealed/SHA256SUMS' | sha256sum -c -
+          (cd pub-sealed; sed -i 's/ \*/  /' SHA256SUMS; sha256sum -c SHA256SUMS; cat $(awk '{print $2}' SHA256SUMS | grep '^part_' | sort) > payload.enc)
+          bash tools/unseal.sh pub-sealed "$PWD/pub" > reports/payload_restore.log 2>&1
+          gh release download salasil-out --pattern salasil-review-43037440590.tgz --dir checkpoint
+          echo 'b7068d6571d036b3cc7c88a9b9cf52d7ec21da9e67cf4c08dd41d0e105b4c83e  checkpoint/salasil-review-43037440590.tgz' | sha256sum -c -
+          python - <<'PY'
+          import tarfile
+          from pathlib import Path
+          with tarfile.open('checkpoint/salasil-review-43037440590.tgz','r:gz') as t:
+              m=t.getmember('reports/review.json')
+              assert m.isfile() and not m.issym() and not m.islnk()
+              Path('reports/review.json').write_bytes(t.extractfile(m).read())
+          PY
+      - name: تفويض يوتيوب المحفوظ داخل المصنع
+        uses: ./.github/actions/yt-oauth
+        with:
+          private_key: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: رفع خاص دون جدولة والتحقق من الأربعة
+        env:
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
+        run: |
+          set -euo pipefail
+          test -n "$YT_OAUTH_JSON"
+          python tools/private_salasil_upload.py --proj pub --review reports/review.json --private-authorization-file ops/salasil-private-authorized.json --state-release salasil-out --repo-root .
+      - name: إزالة النسخ المؤقتة فقط
+        if: always()
+        run: rm -rf pub pub-sealed checkpoint reports

@@ -74,6 +74,14 @@ class Tests(unittest.TestCase):
         self.run_it(); self.assertEqual(len(self.svc.inserts),4)
         self.assertTrue(self.store.state['complete'])
         for r in self.svc.inserts: self.assertNotIn('publishAt',r['body']['status'])
+    def test_explicit_incomplete_review_keeps_every_upload_private(self):
+        self.store.state['review'].update(approved=False,private_upload_authorized=True,authorization=copy.deepcopy(u.PRIVATE_AUTHORIZATION))
+        ids=self.run_it();self.assertEqual(len(ids),4);self.assertFalse(self.store.state['review']['approved'])
+        self.assertTrue(all(x['body']['status']['privacyStatus']=='private' and 'publishAt' not in x['body']['status'] for x in self.svc.inserts))
+    def test_incomplete_review_wrong_authorization_blocks_run(self):
+        self.store.state['review'].update(approved=False,private_upload_authorized=True,authorization={'private_only':True})
+        with self.assertRaisesRegex(u.Stop,'review_not_approved'):self.run_it()
+        self.assertFalse(self.svc.inserts)
     def test_wrong_slug(self):
         self.meta['slug']='other'; self.write_meta()
         with self.assertRaisesRegex(u.Stop,'wrong_slug'): self.run_it()
@@ -166,4 +174,23 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(len(calls),2)
         self.assertNotIn('--clobber',calls[0]); self.assertIn('--clobber',calls[1])
 
+class AuthorizationTests(unittest.TestCase):
+    def report(self):
+        return {'slug':'salasil','review_kind':'automated','status':'failed','checks':{'technical':True},
+            'files':{k:'a'*64 for k in ('film.mp4','reels/r1.mp4','reels/r2.mp4','reels/r3.mp4')},'thumbnail_sha256':'b'*64}
+    def test_incomplete_still_requires_explicit_private_authorization(self):
+        with self.assertRaisesRegex(u.Stop,'review_not_approved'):u.review_for_upload(self.report())
+    def test_authorization_does_not_mark_review_passed(self):
+        r=u.review_for_upload(self.report(),copy.deepcopy(u.PRIVATE_AUTHORIZATION))
+        self.assertFalse(r['approved']);self.assertTrue(r['private_upload_authorized']);self.assertEqual(r['evidence']['status'],'failed')
+    def test_wrong_scope_and_hashes_rejected(self):
+        a=copy.deepcopy(u.PRIVATE_AUTHORIZATION);a['private_only']=False
+        with self.assertRaises(u.Stop):u.review_for_upload(self.report(),a)
+        r=self.report();r['files']['film.mp4']='bad'
+        with self.assertRaisesRegex(u.Stop,'invalid_review_hash'):u.review_for_upload(r,u.PRIVATE_AUTHORIZATION)
+    def test_missing_file_rejected_even_with_authorization(self):
+        r=self.report();del r['files']['reels/r3.mp4']
+        with self.assertRaisesRegex(u.Stop,'invalid_review_inventory'):u.review_for_upload(r,u.PRIVATE_AUTHORIZATION)
+
 if __name__=='__main__': unittest.main()
+
