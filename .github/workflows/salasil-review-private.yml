@@ -1,0 +1,118 @@
+name: ذات السلاسل — مراجعة ورفع خاص فقط
+on:
+  push:
+    paths: ['ops/salasil-review-request.json']
+permissions:
+  contents: write
+concurrency:
+  group: mutafail-sealed-publish
+  cancel-in-progress: false
+jobs:
+  review-and-private-upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SALASIL_PRIVATE_LOCK: mutafail-sealed-publish
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 2}
+      - name: تحقق الأمر المحدد
+        run: |
+          set -euo pipefail
+          git show --pretty= --name-only "$GITHUB_SHA" | grep -qx 'ops/salasil-review-request.json'
+          python - <<'PY'
+          import json
+          d=json.load(open('ops/salasil-review-request.json'))
+          assert d == {'slug':'salasil','review':True,'upload_private_only':True,'revision':1}
+          PY
+          test "$(gh release view salasil-out --json isDraft -q .isDraft)" = true
+          test "$(gh release view salasil-payload --json isDraft -q .isDraft)" = true
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: أدوات الفحص من المصادر الرسمية
+        run: |
+          pip install -q pillow google-auth google-auth-oauthlib google-api-python-client
+          command -v ffmpeg || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
+      - name: استعادة المصدر والوسائط الموجودة فقط
+        env:
+          CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p source-sealed pub-sealed source pub reports checkpoint
+          cp ops/sealed/salasil/* source-sealed/
+          echo '35a5ccf40e1651245aa6d8373192d963cd6b0ea9446384b235388a1027adb629  source-sealed/part_00' | sha256sum -c -
+          echo '9bff8fbce6e848bf22c28fc9dcf0a3a14e24a4d77251455902f88e6c155abd2f  source-sealed/key.enc' | sha256sum -c -
+          (cd source-sealed; sed -i 's/ \*/  /' SHA256SUMS; sha256sum -c SHA256SUMS; cat $(awk '{print $2}' SHA256SUMS | grep '^part_' | sort) > payload.enc)
+          bash tools/unseal.sh source-sealed "$PWD/source" > reports/source_restore.log 2>&1
+          gh release download salasil-payload --dir pub-sealed --clobber > reports/payload_download.log 2>&1
+          echo '7fc94b272313ce62c288582335cb5375728ae3305f4984cbc191790fd59484bd  pub-sealed/SHA256SUMS' | sha256sum -c -
+          (cd pub-sealed; sed -i 's/ \*/  /' SHA256SUMS; sha256sum -c SHA256SUMS; cat $(awk '{print $2}' SHA256SUMS | grep '^part_' | sort) > payload.enc)
+          bash tools/unseal.sh pub-sealed "$PWD/pub" > reports/payload_restore.log 2>&1
+          gh release download salasil-out --pattern state.tgz.part_00 --dir checkpoint > reports/state_download.log 2>&1
+          echo '496ad867f8fb0a0c78d18d2fb6bc247412558bf974ea9b45641d4ff9c106561c  checkpoint/state.tgz.part_00' | sha256sum -c -
+          python - <<'PY'
+          import tarfile
+          from pathlib import Path
+          root=Path('source').resolve()
+          with tarfile.open('checkpoint/state.tgz.part_00','r:gz') as t:
+              for m in t.getmembers():
+                  p=(root/m.name).resolve()
+                  assert p.is_relative_to(root) and not m.issym() and not m.islnk()
+                  assert m.isfile() or m.isdir()
+              t.extractall(root)
+          PY
+          if [ ! -f source/blocks.json ]; then python tools/build.py source > reports/build_metadata.log 2>&1; fi
+          echo 'استعيدت الوسائط الموجودة داخل المصنع، دون إعادة إنتاج.'
+      - name: مراجعة الصوت وعشرة إطارات لكل مقطع والفيلم النهائي
+        id: review
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "$GEMINI_KEYS_JSON" > "$RUNNER_TEMP/salasil-keys.json"
+          rc=0
+          python tools/salasil_review.py --source source --pub pub --keys "$RUNNER_TEMP/salasil-keys.json" --reports reports > reports/review_execution.log 2>&1 || rc=$?
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('reports/review.json')
+          if p.exists():
+              d=json.loads(p.read_text())
+              print(json.dumps({k:d.get(k) for k in ('status','checks','error','api_calls')},ensure_ascii=False))
+          else: print('لم يكتمل تقرير المراجعة؛ لا رفع.')
+          p=Path('reports/technical.json')
+          if p.exists():
+              d=json.loads(p.read_text())
+              for name,row in d.items():print(name,json.dumps(row,ensure_ascii=False))
+          PY
+          exit "$rc"
+      - name: حفظ نتائج المراجعة في المسودة الخاصة
+        if: always()
+        run: |
+          set -euo pipefail
+          rm -f "$RUNNER_TEMP/salasil-keys.json"
+          if [ -d reports ]; then
+            test "$(gh release view salasil-out --json isDraft -q .isDraft)" = true
+            tar czf "salasil-review-$GITHUB_RUN_ID.tgz" reports
+            gh release upload salasil-out "salasil-review-$GITHUB_RUN_ID.tgz" --clobber > /dev/null
+          fi
+      - name: تفويض يوتيوب داخل المصنع بعد اجتياز المراجعة
+        if: success() && steps.review.outcome == 'success'
+        uses: ./.github/actions/yt-oauth
+        with:
+          private_key: ${{ secrets.CONTENT_PRIVATE_KEY }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: رفع خاص فقط والتحقق من الأربعة
+        if: success() && steps.review.outcome == 'success'
+        env:
+          YT_OAUTH_JSON: ${{ env.YT_OAUTH_SEALED_JSON || secrets.YT_OAUTH_JSON }}
+        run: |
+          set -euo pipefail
+          test -n "$YT_OAUTH_JSON"
+          python tools/private_salasil_upload.py --proj pub --review reports/review.json --state-release salasil-out --repo-root .
+      - name: إزالة الوسائط المؤقتة من العدّاء
+        if: always()
+        run: rm -rf source source-sealed pub pub-sealed checkpoint reports salasil-review-*.tgz
