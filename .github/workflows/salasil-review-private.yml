@@ -6,7 +6,7 @@ permissions:
   contents: write
 concurrency:
   group: mutafail-sealed-publish
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.run_number == 2 }}
 jobs:
   review-and-private-upload:
     runs-on: ubuntu-latest
@@ -24,16 +24,22 @@ jobs:
           python - <<'PY'
           import json
           d=json.load(open('ops/salasil-review-request.json'))
-          assert d == {'slug':'salasil','review':True,'upload_private_only':True,'revision':1}
+          assert d == {'slug':'salasil','review':True,'upload_private_only':True,'revision':2}
           PY
           test "$(gh release view salasil-out --json isDraft -q .isDraft)" = true
           test "$(gh release view salasil-payload --json isDraft -q .isDraft)" = true
       - uses: actions/setup-python@v5
         with: {python-version: '3.11'}
       - name: أدوات الفحص من المصادر الرسمية
+        timeout-minutes: 8
         run: |
-          pip install -q pillow google-auth google-auth-oauthlib google-api-python-client
-          command -v ffmpeg || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
+          set -euo pipefail
+          timeout 120 pip install --timeout 20 --retries 2 -q pillow google-auth google-auth-oauthlib google-api-python-client
+          if ! command -v ffmpeg >/dev/null; then
+            timeout 150 sudo apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update -qq || echo 'تحديث قوائم الحزم لم يكتمل؛ استعمال القوائم المحلية الموقعة.'
+            timeout 300 sudo apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y -qq --no-install-recommends ffmpeg
+          fi
+          ffmpeg -version
       - name: استعادة المصدر والوسائط الموجودة فقط
         env:
           CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
@@ -96,6 +102,9 @@ jobs:
           rm -f "$RUNNER_TEMP/salasil-keys.json"
           if [ -d reports ]; then
             test "$(gh release view salasil-out --json isDraft -q .isDraft)" = true
+            for f in listen_results.json listen_reviews.json; do
+              if [ -f "source/$f" ]; then cp "source/$f" "reports/$f"; fi
+            done
             tar czf "salasil-review-$GITHUB_RUN_ID.tgz" reports
             gh release upload salasil-out "salasil-review-$GITHUB_RUN_ID.tgz" --clobber > /dev/null
           fi
