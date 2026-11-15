@@ -75,7 +75,7 @@ def honorifics(path):
         m = re.match(r'^([A-Za-z0-9]+_\w+)\|(\w)\|(.+)$', raw.rstrip('\n'))   # كلّ معرّفات الكتل (n_ وs_ وh_…)
         if m: lines.append(strip_d(m.group(3)).replace('ـ', '').replace('ٱ', 'ا'))
     text = ' \n '.join(lines)
-    miss = []
+    miss, done = [], []
     for kind, names, forms in (('صحابيّ: ترضَّ عنه', cfg['sahaba'], cfg['taradi']),
                                ('مسلم: ترحَّم عليه', cfg['muslims'], cfg['tarahhum'])):
         for n in sorted(names, key=len, reverse=True):
@@ -86,9 +86,10 @@ def honorifics(path):
             if not pos: continue
             # يكفي موضعٌ واحد يتلوه الدعاء قبل نهاية الجملة (≤ 60 حرفاً بلا نقطة)
             ok = any(any(f in re.split(r'[.؟!\n]', text[e:e + 60])[0] for f in forms) for e in pos)
-            if not ok and not any(n in m and n != m for m, _ in miss):
-                miss.append((n, kind))
-    return miss
+            (done if ok else miss).append((n, kind))
+    # صيغتا العلم الواحد («خالد» و«خالد بن الوليد»): يكفي الدعاء بعد إحداهما
+    miss = [(n, k) for n, k in miss if not any(n in d or d in n for d, _ in done)]
+    return [(n, k) for n, k in miss if not any(n in m and n != m for m, _ in miss)]
 
 def check(path):
     bad = []
