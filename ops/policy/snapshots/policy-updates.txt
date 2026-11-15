@@ -2,6 +2,11 @@ YouTube policy updates
 This article summarizes recent and past updates made to YouTube’s policies. For other updates relevant to YouTube creators, check out our
 Creator updates
 Latest updates
+[November 2026] Updates to GenAI Labels and Disclosure Requirements for YouTube Music:
+We are introducing updated labels for altered and synthetic content in the YouTube Music app. Going forward, artists and labels must disclose the use of AI in their content. To support this, we are clarifying our
+responsible asset management policy
+to include Generative AI information.
+Learn more
 [October 2026]
 We are updating our “Hateful and Derogatory Content” and “Harmful Acts and Unreliable Content” policies to clarify that certain content of public interest (e.g., congressional proceedings, debates over ongoing government actions) will be eligible to earn ad revenue.
 Learn
