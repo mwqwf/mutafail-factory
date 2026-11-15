@@ -63,6 +63,33 @@ def hedge(path):
             if re.search(r'(?<![^\s\W\dوفبلك])' + re.escape(w) + r'(?!\w)', plain): hits.append((m.group(1), w))  # لا «ترويع»
     return hits
 
+# ⛔ أمر المالك 2026-11-15 (دائم): كلّما ذُكر صحابيٌّ يُترضّى عنه ولو مرّةً على الأقلّ، وكلّ مسلمٍ يُترحَّم عليه.
+#    القوائم في ops/policy/honorifics.json وتُوسَّع لكلّ فيلم. والشرط: أن يتلو الاسمَ في موضعٍ واحدٍ على الأقلّ ترضٍّ
+#    أو ترحّمٌ في الجملة نفسها (أو جمعٌ «رضي الله عنهم» يشمله). خطأٌ يوقف التوليد.
+def honorifics(path):
+    import json, os
+    here = os.path.dirname(os.path.abspath(__file__))
+    cfg = json.load(io.open(os.path.join(here, '..', 'ops', 'policy', 'honorifics.json'), encoding='utf-8'))
+    lines = []
+    for raw in io.open(path, encoding='utf-8'):
+        m = re.match(r'^([A-Za-z0-9]+_\w+)\|(\w)\|(.+)$', raw.rstrip('\n'))   # كلّ معرّفات الكتل (n_ وs_ وh_…)
+        if m: lines.append(strip_d(m.group(3)).replace('ـ', '').replace('ٱ', 'ا'))
+    text = ' \n '.join(lines)
+    miss = []
+    for kind, names, forms in (('صحابيّ: ترضَّ عنه', cfg['sahaba'], cfg['taradi']),
+                               ('مسلم: ترحَّم عليه', cfg['muslims'], cfg['tarahhum'])):
+        for n in sorted(names, key=len, reverse=True):
+            pat = r'(?<![^\s\W\dوفبلك])' + re.escape(n) + r'(?!\w)'
+            pos = [x.end() for x in re.finditer(pat, text)
+                   # ما ورد داخل لفظ النبيّ ﷺ المنقول لا يُزاد فيه شيء (لفظ الحديث)
+                   if 'صلى الله عليه وسلم:' not in text[:x.start()].rsplit('\n', 1)[-1]]
+            if not pos: continue
+            # يكفي موضعٌ واحد يتلوه الدعاء قبل نهاية الجملة (≤ 60 حرفاً بلا نقطة)
+            ok = any(any(f in re.split(r'[.؟!\n]', text[e:e + 60])[0] for f in forms) for e in pos)
+            if not ok and not any(n in m and n != m for m, _ in miss):
+                miss.append((n, kind))
+    return miss
+
 def check(path):
     bad = []
     for ln, raw in enumerate(io.open(path, encoding='utf-8'), 1):
@@ -132,6 +159,11 @@ if __name__ == '__main__':
         print('⛔ %d جملة أذىً لحيوان — يوتيوب يزيل المحتوى ويحذّر (أبرهة 2026-10-25) — احذف الجملة ولا تعد صياغتها:' % len(hy))
         for bid, w in hy: print('  %s | «%s»' % (bid, w))
         print(''); hits = hits + hy
+    ho = honorifics(p)
+    if ho:
+        print('⛔ %d اسماً بلا ترضٍّ أو ترحّم ولو مرّة (أمر المالك 2026-11-15) — أضف «رَضِيَ اللَّهُ عَنْهُ» أو «رَحِمَهُ اللَّهُ» بعد أحد مواضعه:' % len(ho))
+        for n, k in ho: print('  «%s» | %s' % (n, k))
+        print(''); hits = hits + ho
     bad = check(p)
     if hits and not bad:
         sys.exit(1)
