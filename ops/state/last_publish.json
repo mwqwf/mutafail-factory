@@ -1,24 +1,24 @@
 {
- "slug": "kinana",
+ "slug": "ukaydir",
  "film": {
-  "id": "7n_bLN8Bkmk",
-  "title": "أخفى خالد بن الوليد كتاب عزله… حتى انتصر",
+  "id": "5AIW3ciPrzY",
+  "title": "خرج يصطاد في الليل… فاصطاده خالد بن الوليد",
   "publishAt": null
  },
  "reels": [
   {
-   "id": "68INvkCBb4I",
-   "title": "أخفى كتاب عزله… حتى انتصر",
+   "id": "uMX3S-iPyKA",
+   "title": "خرج يصطاد في الليل… فاصطاده خالد",
    "file": "r1.mp4"
   },
   {
-   "id": "vPvn9YQwU9c",
-   "title": "تسلّق سور دمشق بالحبال",
+   "id": "0mbVrwSxViE",
+   "title": "ملكٌ أسير قال لخالد: خلّني أفتحها لك",
    "file": "r2.mp4"
   },
   {
-   "id": "0M35VVbbbQo",
-   "title": "أمّر خالد نفسه",
+   "id": "nsmnJD8Xm-8",
+   "title": "جبّة من حرير أعجبت الناس… فقال ﷺ",
    "file": "r3.mp4"
   }
  ],
