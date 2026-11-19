@@ -13,9 +13,11 @@ import os
 import sys
 
 START = '2026-09-25'
-FILMS = {'الكنانة': '7n_bLN8Bkmk', 'جرجة': 'ZSI2NvQp8yc', 'ذو_القرنين': 'BEB_BNwleBY', 'النمرود': 'SztW3evU0uI',
+FILMS = {'السلاسل': 'W1UtJ-W3YqI', 'أكيدر': '5AIW3ciPrzY', 'الكنانة': '7n_bLN8Bkmk', 'جرجة': 'ZSI2NvQp8yc', 'ذو_القرنين': 'BEB_BNwleBY', 'النمرود': 'SztW3evU0uI',
          'ذات_العيون': 'ilFEoE-JGa4', 'أبرهة': 'XRyU7Y5-Krc', 'أليس': 'Ah2VnLPpMU0', 'الأرك': '_OK7JEf9r4s'}
-REELS = {'ك_r1': '68INvkCBb4I', 'ك_r2': 'vPvn9YQwU9c', 'ك_r3': '0M35VVbbbQo'}
+REELS = {'ك_r1': '68INvkCBb4I', 'ك_r2': 'vPvn9YQwU9c', 'ك_r3': '0M35VVbbbQo',
+         'س_r1': 'qbrm7B-fCws', 'س_r2': 'n-w3P8jaxMw', 'س_r3': 'wFEkFDCsIDg',
+         'أ_r1': 'uMX3S-iPyKA', 'أ_r2': '0mbVrwSxViE', 'أ_r3': 'nsmnJD8Xm-8'}
 DETAIL = ['RELATED_VIDEO', 'SHORTS', 'END_SCREEN', 'YT_SEARCH', 'YT_CHANNEL', 'EXT_URL', 'PLAYLIST', 'SUBSCRIBER',
           'NOTIFICATION', 'YT_OTHER_PAGE', 'VIDEO_REMIXES', 'SHORTS_CONTENT_LINKS', 'HASHTAGS', 'CAMPAIGN_CARD']
 
