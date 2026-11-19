@@ -23,6 +23,12 @@ W, H, GAP, CUT = 1080, 1920, 0.25, 1.7
 FG_H, FG_Y = 1350, 330                              # الإطار الأفقي مكبَّراً في الوسط (يملأ 70٪ من الشاشة)
 GOLD, WHITE = (247, 199, 74, 255), (255, 255, 255, 255)
 R = {r['id']: r for r in json.load(open(P('reels.json'), encoding='utf-8'))}[RID]
+# ⭐ الجيل الرابع (المفازة 2026-11-19 — سؤال المالك «لماذا لا تجلب شورتاتنا مشاهدات؟»): layout='full' إطارٌ عموديٌّ كاملٌ 9:16
+#    بلا خلفيةٍ مموّهة ولا بطاقة عنوانٍ ولا خطّافٍ مكتوبٍ يحجب الصورة ولا شعار: الحركة تملأ الشاشة من الثانية صفر،
+#    والخطّاف منطوقٌ في أوّل جملة، والترجمة أكبر. هيئةُ الإعلان المعاد رفعه هي ما يجعل المشاهد يمرّر في الثانية الأولى.
+FULL = R.get('layout') == 'full'
+if FULL:
+    FG_H, FG_Y = H, 0
 TL = json.load(open(P('timeline.json'), encoding='utf-8'))
 TXT = {b['id']: b['text'] for b in json.load(open(P('blocks.json'), encoding='utf-8'))}
 WORK = P('reelwork', RID); os.makedirs(WORK, exist_ok=True); os.makedirs(P('reels'), exist_ok=True)
@@ -79,7 +85,7 @@ run(['-f', 'concat', '-safe', '0', '-i', os.path.join(WORK, 'v.txt'), '-c', 'cop
 import cards, kinetic  # noqa: E402
 RC = {k: kinetic.card(PROJ, c['key']) for k, c in cards.reel_cards(R).items()}
 COMPLETE = bool(R.get('complete'))   # ريلزٌ كامل: لا بطاقة ختامٍ ولا دعوة، والنهاية تدور إلى أوّله (دراسة 2026-10-31)
-for k in ('end', 'cta1', 'cta2'):
+for k in ('title', 'hook', 'end', 'cta1', 'cta2'):
     RC.setdefault(k, None)
 
 
@@ -92,15 +98,17 @@ def put(canvas, im, cy, maxw, maxh):
 
 
 top = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(top)
-put(top, RC['title'], 100, W - 80, 330)
-lg = Image.open(envpaths.logo()).convert('RGBA').resize((110, 110))
-m = Image.new('L', (110, 110), 0); ImageDraw.Draw(m).ellipse([2, 2, 108, 108], fill=255); top.paste(lg, ((W - 110) // 2, H - 150), m)
+if not FULL:
+    put(top, RC['title'], 100, W - 80, 330)
+lg = None if FULL else Image.open(envpaths.logo()).convert('RGBA').resize((110, 110))
+if lg is not None:
+    m = Image.new('L', (110, 110), 0); ImageDraw.Draw(m).ellipse([2, 2, 108, 108], fill=255); top.paste(lg, ((W - 110) // 2, H - 150), m)
 top.save(os.path.join(WORK, 'top.png'))
 
 # ⭐ الجيل الثالث (الأرك 2026-10-04 — «ريلزات بقوة لم يسبق لنا مثلها»): الخطّاف فوق الحركة نفسها بلا تعتيمٍ يحجبها،
 #    وارتجاجٌ في أوّل 0.7 ث يجعل الثانية الأولى ضربةً لا عنواناً ساكناً
 hook = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-if RC['hook'] is not None:
+if RC['hook'] is not None and not FULL:
     hi = kinetic.fit(RC['hook'], W - 100, 560)
     hook.alpha_composite(hi, ((W - hi.width) // 2, (H - hi.height) // 2))
 hook.save(os.path.join(WORK, 'hook.png'))
@@ -113,7 +121,7 @@ end.save(os.path.join(WORK, 'end.png'))
 
 # ④ الترجمة كلمةً بكلمة: ثلاث كلماتٍ في السطر، والكلمة المنطوقة ذهبيّة — صورٌ متتابعة بمُددها في مسارٍ واحد
 DIAC = re.compile('[ً-ْٰ]')
-fc = envpaths.arfont(76, path=FB); frames = []
+fc = envpaths.arfont(96 if FULL else 76, path=FB); frames = []
 blank = os.path.join(WORK, 'cap_blank.png'); Image.new('RGBA', (W, 300), (0, 0, 0, 0)).save(blank)
 tcur = 0.0
 for b, st, d_ in times:
@@ -172,7 +180,7 @@ inp = ['-i', fg] + ain + ['-loop', '1', '-i', os.path.join(WORK, 'top.png'), '-f
 iT, iC, iH, iE = k0, k0 + 1, k0 + 2, k0 + 3
 flt = ['[0:v]split[a][b]', '[a]scale=%d:%d:force_original_aspect_ratio=increase,crop=%d:%d,boxblur=30:3,eq=brightness=-0.2[bg]' % (W, H, W, H),
        '[bg][b]overlay=0:%d:shortest=1[v0]' % FG_Y, '[v0][%d:v]overlay=0:0:shortest=1[v1]' % iT,
-       '[%d:v]format=rgba[cap]' % iC, '[v1][cap]overlay=0:%d:eof_action=pass[v2]' % (FG_Y + FG_H - 200),
+       '[%d:v]format=rgba[cap]' % iC, '[v1][cap]overlay=0:%d:eof_action=pass[v2]' % (int(H * 0.62) if FULL else FG_Y + FG_H - 200),
        "[v2]drawbox=x=0:y=0:w='iw*t/%.3f':h=12:color=0xF7C74A@1:t=fill[v3]" % VD,
        '[%d:v]format=rgba,fade=t=out:st=%.2f:d=0.25:alpha=1[hk]' % (iH, HOOK_T - 0.25),
        "[v3][hk]overlay=0:0:enable='lte(t,%.2f)'[v4]" % HOOK_T,
