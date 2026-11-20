@@ -120,6 +120,15 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-workflow-runners.cjs\""
           }
         ]
+      },
+      {
+        "matcher": "Bash|PowerShell|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-mcp-deprecated.cjs\""
+          }
+        ]
       }
     ],
     "SessionStart": [
