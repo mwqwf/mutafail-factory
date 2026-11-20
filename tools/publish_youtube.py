@@ -53,6 +53,10 @@ def reel_shape(path):
 
 
 def upload(svc, path, meta, publish_at=None, public_now=False):
+    # ⭐ أمر المالك 2026-10-18 (أُلّيس): «ارفعها خاصّة كلّها» ⇒ PRIVATE_ALL=1 يرفع الفيلم والريلزات خاصّةً بلا موعد،
+    #    ويغلب publicNow وpublishAt في الحمولة وفي ملفّ النشر؛ والمالك يعرضها بنفسه من الاستوديو بعد مراجعتها.
+    if PRIVATE_ALL:
+        publish_at, public_now = None, False
     status = {
         "privacyStatus": "public" if public_now else "private",
         "selfDeclaredMadeForKids": False,      # ⛔ لازمٌ وإلا رُفض الحفظ صامتاً (درس 09-13)
@@ -104,8 +108,13 @@ def verify(svc, vid):
         raise SystemExit("⛔ صُنّف للأطفال على الخادم: " + json.dumps(st))
     if kids is None and declared is None:
         raise SystemExit("⛔ لا حقلَ أطفالٍ في الردّ أصلاً: " + json.dumps(st))
+    # ⛔ أمر المالك 2026-11-02 (ذو القرنين: رُفعت الريلزات عامّةً والفيلم خاصّاً، «توهمني بأنكم فعلتم ذلك»):
+    #    الخصوصيّة تُقرأ من الخادم وتُطبع لكلّ فيديو، وPRIVATE_ALL مع فيديو غير خاصٍّ يُسقط الشوط فلا يُدّعى رفعٌ خاصّ.
+    privacy = st.get("privacyStatus")
+    if PRIVATE_ALL and privacy != "private":
+        raise SystemExit("⛔ طُلب رفعٌ خاصّ والفيديو %s على الخادم %s" % (vid, privacy))
     synth = st.get("containsSyntheticMedia")
-    print("✅ تحقّق", vid, "| للأطفال=False | وسمُ الذكاء الاصطناعي:",
+    print("✅ تحقّق", vid, "| الخصوصيّة=%s" % privacy, "| للأطفال=False | وسمُ الذكاء الاصطناعي:",
           "true" if synth is True else "أُرسل ولا تُرجعه الواجهة (يُراجَع في الاستوديو)",
           flush=True)
     return st
@@ -133,9 +142,14 @@ def recent_uploads(svc, limit=50):
         return {}
 
 
+PRIVATE_ALL = os.environ.get("PRIVATE_ALL", "").strip() == "1"
+
+
 def reschedule(svc, vid, at):
     """يعدّل موعدَ فيديو مرفوعٍ ما دام خاصّاً (تصحيحُ موعدٍ بعد رفعه، بلا نسخةٍ ثانية)؛
     وبلا موعدٍ (at=None) يجعله عامّاً الآن."""
+    if PRIVATE_ALL:
+        print("↻", vid, "يبقى خاصّاً (PRIVATE_ALL) — لا موعد ولا عرض", flush=True); return
     st = svc.videos().list(part="status", id=vid).execute()["items"][0]["status"]
     if st.get("privacyStatus") == "public":
         print("↻", vid, "عامٌّ سلفاً — لا يُعاد جدولته", flush=True); return
