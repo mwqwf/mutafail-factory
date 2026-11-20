@@ -32,5 +32,16 @@
   "الختم بـ--media وstage animate",
   "عشرة إطارات لكلّ مقطع وmedia_qa",
   "الرفع خاصّاً مع الاختبار والمقارنة كاملاً"
- ]
+ ],
+ "stage": "uploaded_private",
+ "uploaded_at": "2026-11-20T04:20Z",
+ "film_id": "plR9p3AN7YI",
+ "reels": {
+  "r1": "jytYkh_v5yI",
+  "r2": "LuQ0r-O1JHU",
+  "r3": "9_xun0EHsq8"
+ },
+ "animation_usd": 12.95,
+ "publish_run": 44672244429,
+ "note_frames": "370 إطاراً بالعين؛ S013 ساكنة لظهور وجوه المعسكر"
 }
