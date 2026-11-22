@@ -19,7 +19,7 @@
 **ج) بوّابات أخرى في المسار (بلا إنفاق):**
 - التشويق واسم السلسلة/القناة وصيغ التمريض في أول 4 دقائق: `tools/thrill_gate.py` (قبل الصوت).
 - طول الصوت بعد TTS مقابل تقدير اللقطة: `tools/audio_checks.py`.
-- إكمال الإصغاء بـfaster-whisper عند نفاد المفاتيح: `tools/asr_fill.py` (من `style_leak.py`).
+- إكمال الإصغاء بـfaster-whisper عند نفاد المفاتيح: `tools/asr_fill.py` (من `style_leak.py`، وفي `weekly-film.yml` بعد الإصغاء إن بقيت كتل `nokeys`).
 - فحص بصري مبكر للمقاطع قبل المونتاج: `tools/clip_policy.py`.
 - الرفع خاصّ افتراضاً (`tools/publish_youtube.py`) إلا إذا طُلب `public` أو `publish_at` صراحةً. لا يُعدَّل `.github/workflows/sealed-publish.yml` لتجاوز لمرّة واحدة؛ إن لزم التجاوز فبحقل `owner_skip_opening_gate` + `owner_decision` في الحمولة للرفع الخاصّ وحده (`tools/opening_gate.py`). الأفلام التالية تجتاز البوابات بلا تجاوز.
 - المدّة بحقّ المادّة: `tools/duration_policy.py`.

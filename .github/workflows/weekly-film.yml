@@ -276,6 +276,44 @@ jobs:
           # ⛔ الشوط 87 (الأرك): كان التقرير يعدّ نتائج صوتٍ قديم مفحوصةً ⇒ لا يُحسب إلا ما طابقت بصمتُه الصوتَ الحاليّ
           python tools/listen_report.py proj
 
+      # ⭐ أمر المالك 2026-11-22: إن بقيت كتل nokeys بعد سلسلة نماذج الإصغاء يُكمَل التفريغ
+      #    محلياً بـfaster-whisper (medium int8، مجاني). الخطوة رخيصة إن لم تُحتج: فحص التقرير
+      #    وحده بلا تنزيل ولا pip. النموذج يُخزَّن بـactions/cache فلا يُعاد تنزيله في الأشواط التالية.
+      #    لا تغيير في زناد هذا السير (يبقى workflow_dispatch ودفع ops/run/** فقط).
+      - name: هل بقي إصغاء معلّق لنفاد المفاتيح؟
+        id: asr_fill
+        if: env.STAGE != 'animate' && env.STAGE != 'visuals' && env.STAGE != 'preview' && !contains(github.event.head_commit.message, '[موازٍ]')
+        run: |
+          python - <<'PY'
+          import os, sys
+          sys.path.insert(0, "tools")
+          import asr_fill
+          needed = asr_fill.needed("proj")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write("needed=%s\n" % ("yes" if needed else "no"))
+          print("asr_fill: %s" % ("يُستدعى — كتل بلا مفاتيح" if needed else "لا حاجة (لا يُحمَّل نموذج)"))
+          PY
+
+      - name: استعادة نموذج faster-whisper
+        id: asr_cache
+        if: steps.asr_fill.outputs.needed == 'yes'
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/.cache/huggingface
+          key: faster-whisper-medium-int8-${{ runner.os }}-v1
+          restore-keys: |
+            faster-whisper-medium-int8-${{ runner.os }}-
+
+      - name: إكمال الإصغاء المحلي (faster-whisper medium int8)
+        if: steps.asr_fill.outputs.needed == 'yes'
+        env:
+          HF_HOME: /home/runner/.cache/huggingface
+          HF_HUB_DISABLE_TELEMETRY: "1"
+        run: |
+          pip install -q 'faster-whisper==1.2.1'
+          python tools/asr_fill.py proj
+          python tools/listen_report.py proj
+
       - name: ③ التحريك (Kling عبر fal بسقف الميزانية) + بوّابة صوته + العمق
         if: env.STAGE != 'audio'
         env:
