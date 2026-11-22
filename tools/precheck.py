@@ -12,6 +12,10 @@ import os
 import subprocess as sp
 import sys
 from duration_policy import audit_duration
+import cta_gate
+import meta_gate
+import make_subs
+import pinned_comment
 
 P = os.path.abspath(sys.argv[1])
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -54,6 +58,12 @@ if r.returncode:
     raise SystemExit("⛔ build.py سقط")
 
 blocks = J("blocks.json")
+# نداء الاشتراك بعد الدقيقة الرابعة (أمر المالك 2026-11-23) — بعد البناء حتى تتوفر الكتل
+e_cta, w_cta = cta_gate.check_blocks(blocks)
+for w in w_cta:
+    print("⚠️", w)
+for e in e_cta:
+    bad.append(e)
 imgs = {i["id"] for i in J("images.json")}
 shots = J("shots.json")
 film = [b["id"] for b in blocks if not b.get("reel_only")]
@@ -143,6 +153,13 @@ for th in pub.get("thumbs", []):
 if len(pub.get("thumbs", [])) < 2:
     bad.append("مصغّرتان (أ/ب) للاختبار")
 
+# ⑥ج بيانات البحث ومواعيد العلن (أمر المالك 2026-11-23)
+e_meta, w_meta = meta_gate.check_pub(pub)
+for w in w_meta:
+    print("⚠️", w)
+for e in e_meta:
+    bad.append(e)
+
 # ⑥ب القائمة — تُفحَص هنا مجّاناً لا بعد ساعاتٍ من التوليد
 # ⛔⛔ «لا يُنشر فيلمٌ خارج قائمته» (أمر المالك 2026-09-14). وخطوةُ النشر آخرُ
 #    الشوط، فسقوطُها هناك يُهدر حصّةَ يومٍ كاملة. ⇒ يُتحقَّق من وجود سبيلٍ إلى
@@ -182,6 +199,21 @@ print("ميزانيةُ TTS المحافظة: %d محاولة (أحدثُ معا
 print("ميزانيةُ الاستماع المجمّع: %d نداءً (أربعةُ مقاطع/نداء + هامش عشرين)" % listen_budget)
 for problem in audit_duration(mins, J("meta.json")):
     bad.append(problem + ": %.1f دقيقة / %d حرف بلا تشكيل" % (mins, n))
+
+# حزمة ما بعد الإنتاج: ترجمة من السيناريو، وتعليق مثبت لسلسلة سيف الله (أمر المالك 2026-11-23)
+try:
+    vtt, srt = make_subs.generate(P)
+    print("✅ ترجمة:", vtt)
+    print("✅ ترجمة:", srt)
+except ValueError as exc:
+    bad.append("توليد الترجمة: " + str(exc))
+_series = pub.get("series") or pub.get("السلسلة")
+if pinned_comment.is_khalid_series(pub, J("meta.json") if os.path.exists(os.path.join(P, "meta.json")) else {}):
+    try:
+        path, _ = pinned_comment.generate(P)
+        print("✅ تعليق مثبت:", path)
+    except ValueError as exc:
+        bad.append("التعليق المثبت لسلسلة سيف الله: " + str(exc))
 
 print()
 if bad:

@@ -122,6 +122,7 @@ class ThrillGateTests(unittest.TestCase):
 
     def test_animation_cost_must_fit_budget(self):
         long_ = [B(f"L{i}", " ".join(["كَلِمَةٌ"] * 15) + "؟") for i in range(60)]
+        long_[40] = B("L40", "اشْتَرِكْ وَفَعِّلِ الْجَرَسَ.")  # بعد الدقيقة الرابعة (أمر 2026-11-23)
         blocks = GOOD + long_ + RB
         shots = [{"id": f"S{i}", "kind": "حيّة", "blocks": [f"L{i}"]} for i in range(60)]
         d = proj(blocks, SECS, REELS, shots=shots)

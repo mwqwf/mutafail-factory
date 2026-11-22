@@ -21,6 +21,7 @@
 
 ⭐⭐ حكم المالك 2026-10-05 بعد «بحث الاحتفاظ بالمشاهد» (ops/research/mutah/00-retention-plan.md §١٠) — موانع لا تنبيهات:
   ✗ لا منهج ولا مصادر ولا طلب اشتراكٍ أو تعليقٍ قبل الدقيقة الرابعة · لا سؤال ولا تحيّة قبل الثانية 25 (الافتتاح البارد) · لا اسم سلسلة أو قناة ولا صيغة تمريض في أول أربع دقائق (أمر المالك 2026-11-22)
+  ✗ نداء اشتراكٍ وتفعيلِ جرس بعد الدقيقة الرابعة عند وقفة في الوسط، وغيابه قبلها (أمر المالك 2026-11-23: tools/cta_gate.py)
   ✗ رقمٌ واحد على الأكثر ولا تاريخ في أوّل 30 ث · 12 لقطةً فأكثر تبدأ في أوّل 30 ث
   ✗ إعادة شدٍّ كلّ ≤ 45 ث في الدقائق 1–6 (موضع النزيف في منحنياتنا) · خطّاف الحلقة التالية في آخر دقيقةٍ من فيلمٍ في سلسلة
   ✗ الكلمات المأثورة (كتلةٌ فيها speaker) لا تُقبل بلا رقم دعواها في السجلّ (claim).
@@ -547,8 +548,10 @@ def check(proj: Path, thumbs: Path | None) -> tuple[list[str], list[str]]:
     e2, w2 = pacing(proj, blocks, film, sections, pub)
     e3, w3 = owner_1005(blocks, film, load(proj, "shots.json") or [], pub)
     e4, w4 = first_minute(proj, blocks, film, load(proj, "shots.json") or [], sections, pub)
+    import cta_gate
+    e5, w5 = cta_gate.check_blocks(blocks)
     errs += e4; warns += w4
-    return errs + e2 + e3, warns + w2 + w3
+    return errs + e2 + e3 + e5, warns + w2 + w3 + w5
 
 
 def main() -> int:
