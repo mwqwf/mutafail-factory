@@ -91,12 +91,6 @@ jobs:
           if rt:
               assert isinstance(rt, dict) and all(isinstance(k, str) and isinstance(v, str) and 0 < len(v.strip()) <= 100 for k, v in rt.items())
               print('REEL_TITLES=' + json.dumps(rt, ensure_ascii=False))
-          # تجاوز بوّابة الافتتاحية مرّةً واحدة بإذن المالك الصريح، وفي الرفع الخاصّ وحده
-          #    (سابقة حديقة الموت 2026-10-09، الشوط 37913150870: owner_skip_opening_gate)
-          #    هذا الشوط مقصور على أجنادين-payload ثم يُعاد الملف كما كان.
-          if d.get('owner_skip_opening_gate'):
-              assert not d.get('public') and not d.get('publish_at') and d.get('release_tag') == 'ajnadayn-payload', 'التجاوز في هذا الشوط لأجنادين الخاصّ وحده'
-              print('SKIP_OPENING_GATE=1')
           PY
           fi
       - uses: actions/setup-python@v5
@@ -142,7 +136,6 @@ jobs:
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
         run: |
           printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
-          if [ "${SKIP_OPENING_GATE:-}" = 1 ]; then echo "::warning::بوّابة الافتتاحية مُتجاوَزة بإذن المالك لهذا الرفع الخاصّ"; rm -f /tmp/keys.json; exit 0; fi
           rc=0; python tools/opening_gate.py proj --keys /tmp/keys.json --out /tmp/opening_gate.json || rc=$?
           rm -f /tmp/keys.json /tmp/opening_gate.json proj/*.gate.mp4
           exit $rc
