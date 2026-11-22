@@ -4,6 +4,7 @@
 ١) الترويسة: لا RIFF مكرّرة (طقطقة كل كتلة) ولا ضجيج في أوّل 240 عيّنة.
 ٢) الإيقاع: ث/حرف بين 0.09 و0.19 (توجيه الأداء المنطوق يضاعفه) — والشعر 3–10 ث للبيت.
 ٣) النقرات المعزولة: قفزة > 8000 بعد صمت.
+٤) الطول: لا يتجاوز تقدير اللقطة بأكثر من ثانيتين ونسبة 1.15 (أمر 2026-11-22).
 يكتب <proj>/audio_checks.json ويخرج بـ1 إن وُجد خلل (الكتل المعيبة تُحذف لتُعاد)."""
 import io, json, os, re, sys, wave
 import numpy as np
@@ -57,6 +58,54 @@ for b in blocks:
         dd = np.abs(np.diff(a)); idx = np.where(dd > 8000)[0]
         iso = [i for i in idx if i > 240 and np.abs(a[i - 240:i - 24]).max() < 2000]
     if len(iso) > 1: bad.setdefault(b['id'], 'نقرات معزولة %d' % len(iso))
+# ⭐ أمر المالك 2026-11-22: بوّابة الطول بعد TTS (أجنادين: 71 كتلة قُدّرت 499 ث وجاءت 616.8 ث)
+#    الكتلة التي تتجاوز تقديرها بأكثر من LENGTH_SLACK ثانية وLENGTH_RATIO تُعاد. بلا تقدير تُتخطّى (اختبارات الوحدة).
+LENGTH_SLACK = float(os.environ.get("AUDIO_LENGTH_SLACK", "2.0"))
+LENGTH_RATIO = float(os.environ.get("AUDIO_LENGTH_RATIO", "1.15"))
+
+def _block_est(b, shots):
+    if b.get("est_dur") or b.get("target_dur") or b.get("duration"):
+        try:
+            return float(b.get("est_dur") or b.get("target_dur") or b.get("duration"))
+        except (TypeError, ValueError):
+            pass
+    if not shots:
+        return None
+    tot = 0.0
+    hit = False
+    for s in shots:
+        if b["id"] in (s.get("blocks") or []):
+            hit = True
+            try:
+                tot += float(s.get("est_dur") or s.get("duration") or s.get("hold") or 0)
+            except (TypeError, ValueError):
+                pass
+    return tot if hit and tot > 0 else None
+
+_shots = []
+_sp = os.path.join(PROJ, "shots.json")
+if os.path.exists(_sp):
+    try:
+        _shots = json.load(io.open(_sp, encoding="utf-8"))
+    except ValueError:
+        _shots = []
+_over = {}
+for b in blocks:
+    if b["id"] in bad or b.get("lead_cut") or b.get("role") == "P":
+        continue
+    f = os.path.join(PROJ, "audio", b["id"] + ".wav")
+    if not os.path.exists(f):
+        continue
+    est = _block_est(b, _shots)
+    if not est:
+        continue
+    w = wave.open(f); act = w.getnframes() / float(w.getframerate()); w.close()
+    if act > est + LENGTH_SLACK and act > est * LENGTH_RATIO:
+        bad[b["id"]] = "أطول من التقدير %.1f ث (الصوت %.1f ث)" % (est, act)
+        _over[b["id"]] = (est, act)
+if _over:
+    print("⚠ بوّابة الطول: %d كتلة تجاوزت التقدير" % len(_over))
+
 json.dump(bad, io.open(os.path.join(PROJ, 'audio_checks.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 if os.path.isdir(os.path.dirname(TRIES_F)):
     json.dump(tries, io.open(TRIES_F, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)

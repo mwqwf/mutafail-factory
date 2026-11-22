@@ -8,6 +8,13 @@
 import json, os, re, sys
 
 P = lambda *a: os.path.join(os.path.abspath(sys.argv[1]), *a)
+# ⭐ أمر المالك 2026-11-22: إن نفدت مفاتيح الإصغاء تُكمَّل الكتل بـfaster-whisper قبل حارس التسريب
+try:
+    import asr_fill
+    if asr_fill.needed(sys.argv[1]):
+        asr_fill.fill(sys.argv[1])
+except Exception as _e:
+    print('⚠ تعذّر إكمال الإصغاء المحلي:', _e)
 res = json.load(open(P('listen_results.json'), encoding='utf-8')) if os.path.exists(P('listen_results.json')) else {}
 LATIN = re.compile(r'[A-Za-z]{3,}')
 leak = []
