@@ -86,7 +86,8 @@ jobs:
       - name: الأدوات
         run: |
           sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg fonts-hosny-amiri >/dev/null
-          pip install -q pillow numpy opencv-python-headless requests arabic-reshaper python-bidi google-auth google-api-python-client
+          date +%s > /tmp/job_start
+          pip install -q pillow numpy opencv-python-headless requests arabic-reshaper python-bidi google-auth google-api-python-client faster-whisper
           pip install -q torch --index-url https://download.pytorch.org/whl/cpu && pip install -q transformers
 
       - name: جلبُ المصدر المختوم وفكّه
@@ -275,6 +276,21 @@ jobs:
           # ⛔ الشوط 87 (الأرك): كان التقرير يعدّ نتائج صوتٍ قديم مفحوصةً ⇒ لا يُحسب إلا ما طابقت بصمتُه الصوتَ الحاليّ
           python tools/listen_report.py proj
 
+      - name: ②ج أزمنة الكلمات المسموعة للكتابة المتحرّكة (tools/wordtimes.py)
+        # أمر المالك 2026-11-04 بعد تجربة جرجة: التقدير من الصمت يُظهر الكلمة بعد نطقها بوسيط 0.20 ث.
+        # يُسمع صوت كلّ كتلةٍ مرّةً (بصمةُ الملفّ) ويُحفظ في audio/wordtimes.json مع الحالة. وفي غير شوط الصوت يجري
+        # بالتوازي مع ③ (انتظار fal) فلا يؤخّر المونتاج، وينتظره ④ و⑤. وتعذّرُه لا يوقف شيئاً: تبقى الكتابة على التقدير.
+        if: env.STAGE != 'visuals' && env.STAGE != 'preview'
+        run: |
+          el=$(( ( $(date +%s) - $(cat /tmp/job_start 2>/dev/null || date +%s) ) / 60 ))
+          if [ "$el" -gt 270 ]; then echo "⏭ أزمنة الكلمات: مضت $el د من الشوط — تُترك لشوطٍ تالٍ"; exit 0; fi
+          if [ "$STAGE" = audio ]; then
+            timeout 45m python tools/wordtimes.py proj || echo "⛔ تعذّرت أزمنة الكلمات — تبقى الكتابة على التقدير"
+          else
+            ( timeout 45m python tools/wordtimes.py proj > /tmp/wordtimes.log 2>&1 || echo "⛔ تعذّرت أزمنة الكلمات — تبقى الكتابة على التقدير" >> /tmp/wordtimes.log ) &
+            echo $! > /tmp/wordtimes.pid
+          fi
+
       - name: ③ التحريك (Kling عبر fal بسقف الميزانية) + بوّابة صوته + العمق
         if: env.STAGE != 'audio'
         env:
@@ -299,6 +315,8 @@ jobs:
         # clips = تحريكٌ فقط ثم حفظُ المقاطع لفحصها قبل المونتاج (أمر المالك 2026-09-27)
         if: env.STAGE != 'audio' && env.STAGE != 'clips' && env.STAGE != 'visuals' && env.STAGE != 'preview'
         run: |
+          # أزمنة الكلمات (②ج) تُنتظر قبل أن تُقرأ أو تُحفظ
+          if [ -f /tmp/wordtimes.pid ]; then while kill -0 "$(cat /tmp/wordtimes.pid)" 2>/dev/null; do sleep 5; done; tail -3 /tmp/wordtimes.log 2>/dev/null || true; rm -f /tmp/wordtimes.pid; fi
           python tools/mont_hybrid.py proj 0.30
           # فصول يوتيوب من مدد الصوت (publish_youtube يرفض {CHAPTERS} بلا الفصول.txt)
           [ -f proj/sections.json ] && python tools/chapters.py proj proj/sections.json 0.30
@@ -333,6 +351,8 @@ jobs:
         if: always()
         run: |
           set -euo pipefail
+          # أزمنة الكلمات (②ج) تُنتظر قبل أن تُقرأ أو تُحفظ
+          if [ -f /tmp/wordtimes.pid ]; then while kill -0 "$(cat /tmp/wordtimes.pid)" 2>/dev/null; do sleep 5; done; tail -3 /tmp/wordtimes.log 2>/dev/null || true; rm -f /tmp/wordtimes.pid; fi
           mkdir -p out
           # ⛔ حدّ الأصل في GitHub 2 غ.ب ⇒ أجزاءٌ من 1.9 غ.ب (tools/state_fetch.sh يجمعها)
           tar czf - -C proj $(cd proj && ls -d audio audio_prev_* listen_results.json audio_checks.json fal_ledger.json fal_pending.json clips 2>/dev/null) | split -b 1900m -d - out/state.tgz.part_
