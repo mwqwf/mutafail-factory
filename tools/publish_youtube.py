@@ -53,6 +53,10 @@ def reel_shape(path):
 
 
 def upload(svc, path, meta, publish_at=None, public_now=False):
+    # ⭐ أمر المالك 2026-10-18 (أُلّيس): «ارفعها خاصّة كلّها» ⇒ PRIVATE_ALL=1 يرفع الفيلم والريلزات خاصّةً بلا موعد،
+    #    ويغلب publicNow وpublishAt في الحمولة وفي ملفّ النشر؛ والمالك يعرضها بنفسه من الاستوديو بعد مراجعتها.
+    if PRIVATE_ALL:
+        publish_at, public_now = None, False
     status = {
         "privacyStatus": "public" if public_now else "private",
         "selfDeclaredMadeForKids": False,      # ⛔ لازمٌ وإلا رُفض الحفظ صامتاً (درس 09-13)
@@ -133,9 +137,14 @@ def recent_uploads(svc, limit=50):
         return {}
 
 
+PRIVATE_ALL = os.environ.get("PRIVATE_ALL", "").strip() == "1"
+
+
 def reschedule(svc, vid, at):
     """يعدّل موعدَ فيديو مرفوعٍ ما دام خاصّاً (تصحيحُ موعدٍ بعد رفعه، بلا نسخةٍ ثانية)؛
     وبلا موعدٍ (at=None) يجعله عامّاً الآن."""
+    if PRIVATE_ALL:
+        print("↻", vid, "يبقى خاصّاً (PRIVATE_ALL) — لا موعد ولا عرض", flush=True); return
     st = svc.videos().list(part="status", id=vid).execute()["items"][0]["status"]
     if st.get("privacyStatus") == "public":
         print("↻", vid, "عامٌّ سلفاً — لا يُعاد جدولته", flush=True); return
@@ -391,6 +400,12 @@ def main():
             raise SystemExit("⛔ الوصفُ ينتظر الفصول ولا ملفَّ فصولٍ — لا يُرفع فيلمٌ بلا فصول")
         meta["film"]["description"] = meta["film"]["description"].replace("{CHAPTERS}", chapters)
 
+    # ⭐ عنوانٌ معدَّل للفيلم من ملفّ النشر (أبرهة 2026-10-25: إعادة رفع نسخةٍ مصحّحة والقديمة غير مدرجة بعنوانها)
+    if os.environ.get("FILM_TITLE", "").strip():
+        meta["film"]["title"] = os.environ["FILM_TITLE"].strip()
+    # ⭐ أبرهة 2026-10-25: قائمةٌ صريحة من ملفّ النشر (PLAYLIST_ID) تغلب ما في الحمولة والسلسلةَ الجارية
+    if os.environ.get("PLAYLIST_ID", "").strip():
+        meta["playlistId"] = os.environ["PLAYLIST_ID"].strip()
     svc = yt()
     # ⭐ ريلزٌ دعائيٌّ وحده (ريلز السلسلة 2026-09-30): لا فيلم يُرفع ولا مصغّرة ولا قائمة؛ و{FILM_URL} يُحال إلى قائمة السلسلة
     reels_only = bool(meta.get("reels_only"))
@@ -487,7 +502,15 @@ def main():
     reels = []
     # ⭐ عنوانٌ مُعدَّل لريلزٍ بعينه من ملفّ النشر (reel_titles): حارس العنوان أعلاه يمنع رفع نسخةٍ مصحّحة بعنوان القديمة نفسه
     titles = json.loads(os.environ.get("REEL_TITLES") or "{}")
+    # ⭐ إعادة رفع ريلزٍ بعينه نسخةً جديدة (أبرهة 2026-10-25: أزال يوتيوب ريلز الفيل بتحذيرٍ فأُعيد بنصٍّ معدَّل):
+    #    reels_redo في ملفّ النشر ⇒ تُرفع هذه الملفّات وحدها ولو سُجّلت منشورةً، ويُسجَّل المعرّف الجديد مكان القديم
+    redo = {x for x in os.environ.get("REELS_REDO", "").split(",") if x}
+    if redo:
+        reels = [x for x in prev.get("reels", []) if x.get("file") not in redo]
+        done = {k: v for k, v in done.items() if k not in redo}
     for r in meta.get("reels", []):
+        if redo and r["file"] not in redo:
+            continue
         if r.get("file") in titles:
             r = dict(r, title=titles[r["file"]])
         if r["file"] in done:                      # ↻ استئناف: لا يُرفع مرّتين
