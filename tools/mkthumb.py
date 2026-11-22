@@ -13,6 +13,11 @@ from envpaths import ar
 BG, OUT = sys.argv[1], sys.argv[2]
 L1 = sys.argv[3]; L2 = sys.argv[4]
 BADGE = sys.argv[5] if len(sys.argv) > 5 else ""
+import text_gate
+if text_gate.check_lines(
+        [('thumb:L1', L1), ('thumb:L2', L2)] + ([('thumb:badge', BADGE)] if BADGE else []),
+        require_tashkeel=False):
+    raise SystemExit(1)
 FB = envpaths.font(bold=True)
 LOGO = envpaths.logo()
 W, H = 1280, 720

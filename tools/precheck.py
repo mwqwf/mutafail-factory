@@ -33,7 +33,11 @@ if bad:
     print("\n".join("⛔ " + b for b in bad))
     raise SystemExit(1)
 
-# ① البوّابتان
+# ① البوّابتان + النصّ والتشويق قبل أي توليد (أمر المالك 2026-11-22)
+sys.path.insert(0, HERE)
+import pre_generate
+if pre_generate.run(P):
+    bad.append("pre_generate ردّ بمخالفة — لا ختم حتى تُصلح النصّ/الافتتاحية")
 for tool in ("lint.py", "guard.py"):
     r = sp.run([sys.executable, os.path.join(HERE, tool), os.path.join(P, "script.md")],
                capture_output=True, text=True)

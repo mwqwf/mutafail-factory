@@ -104,7 +104,9 @@ def main(argv=None) -> int:
         if bad:
             print('⛔ أصوات المختبر لم تُطبَّق على %d كتلة (tools/apply_voices.py قبل الختم): %s' % (len(bad), ' · '.join(bad[:6])))
             return 1
-        return 0
+        # ⭐ أمر المالك 2026-11-22: بوّابات النصّ والتشويق قبل أي TTS (لا تُشغَّل على تثبيت اختبار الوحدة)
+        import pre_generate
+        return pre_generate.run(argv[1])
     proj, paths = argv[0], argv[1:]
     blocks = load(os.path.join(proj, 'blocks.json'))
     try:

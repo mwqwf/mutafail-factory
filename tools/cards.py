@@ -270,6 +270,16 @@ def main() -> int:
         print(__doc__)
         return 2
     film, media, folder = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
+    # ⭐ أمر 2026-11-22: لا بطاقات قبل اجتياز بوّابة النصّ
+    import text_gate
+    man0 = manifest(film)
+    pairs = []
+    for cid, c in man0.items():
+        txt = " ".join(str(c.get(k) or "") for k in ("text", "sub", "title", "hl") if c.get(k))
+        if txt.strip():
+            pairs.append((cid, txt))
+    if pairs and text_gate.check_lines(pairs, require_tashkeel=False):
+        return 1
     man = manifest(film)
     (film / 'cards.json').write_text(json.dumps(man, ensure_ascii=False, indent=1), encoding='utf-8')
     n = queue(media, folder, man)
