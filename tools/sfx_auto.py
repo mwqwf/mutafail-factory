@@ -3,8 +3,9 @@
 
 كانت جداول لقطات مؤتة واليمامة (المولَّدة من `_src/mk_codex.py`) تخرج بلا حقل `sfx`، فلم تدخل الفيلمَ إلا الرياح
 وصوتُ Kling في ثلاثة مقاطع. هنا يُشتقّ المؤثّر من كلمات نصّ الكتلة العربيّ ومن وصف الحركة الإنجليزيّ (`move`)،
-ثمّ من فصل اللقطة (`phase`) إن لم تدلّ الكلمات على شيء. ⛔ لا موسيقى ولا آلات: الطبول ممنوعة (آلة)، والأصناف كلّها
-أصواتٌ طبيعية في `assets/sfx/<صنف>_*.ogg`.
+ثمّ من فصل اللقطة (`phase`) إن لم تدلّ الكلمات على شيء. ⛔ لا موسيقى ولا آلات: الطبول والأبواق الحربية النغمية وأيّ فراش لحني ممنوعة.
+أمر المالك 2026-11-22: طبقة المحيط والمؤثّرات إلزامية في كل فيلم حيث يناسب المشهد.
+الأصناف كلّها أصواتٌ طبيعية في `assets/sfx/<صنف>_*.ogg` (CC0).
 
 يستعمله `mont_hybrid.py` للقطةٍ بلا `sfx`، و`thrill_gate.py` ليقيس تنوّع مؤثّرات المعركة (≥ 60٪ بغير «wind»)،
 ومولِّدات الجداول (`mk_codex.py`) لتكتب `sfx` من البداية.
@@ -20,7 +21,7 @@ import sys
 
 HARAKAT = re.compile(r"[ً-ْٰـ]")
 # الأصناف المتاحة في المكتبة (assets/sfx) — الموجودة من Freesound CC0؛ وما لا ملفّ له بعد يقع على بديله في FALLBACK
-CATEGORIES = ('swords', 'armor', 'bowstring', 'hooves', 'breath', 'shout', 'horses', 'arrows', 'battle', 'crowd',
+CATEGORIES = ('swords', 'armor', 'bowstring', 'hooves', 'footsteps', 'breath', 'shout', 'horses', 'arrows', 'battle', 'crowd',
               'fire', 'night', 'marching', 'elephants', 'wind')
 # الترتيب مهمّ: الأخصّ أوّلاً (صليل قبل معركة عامّة)، والكلمات العربيّة بلا تشكيل، والإنجليزيّة من وصف الحركة
 RULES: list[tuple[str, re.Pattern, re.Pattern]] = [
@@ -43,6 +44,8 @@ RULES: list[tuple[str, re.Pattern, re.Pattern]] = [
      re.compile(r"(shout|shouts|cry|cries|yell|roar|calls out|bellow)")),
     ('crowd', re.compile(r"(الله أكبر|كبّروا|كبروا|تكبير|هتاف|جموع|الجموع|صفوف|الصفوف|جيش|الجيش|جيوش|الحشد|حشد|آلاف|ألف)"),
      re.compile(r"(army|ranks|crowd|host|thousands|men raise|raise their|assembl|council|gather)")),
+    ('footsteps', re.compile(r"(قدم|أقدام|خطوات|خطوة|مشى|يمشي|مشي |وطء|يسير على)"),
+     re.compile(r"(footstep|footsteps|boots|steps|walking)")),
     ('marching', re.compile(r"(مسير|المسير|زحف|يزحف|سار |ساروا|طريق|الطريق|رحل|الركب|قافلة)"),
      re.compile(r"(march|column|walk|road|leav|depart|withdraw|retreat|procession)")),
     ('night', re.compile(r"(ليل|الليل|ليلة|نجوم|النجوم|فجر|الفجر|سحر|ظلام|معسكر)"),
@@ -53,8 +56,8 @@ RULES: list[tuple[str, re.Pattern, re.Pattern]] = [
      re.compile(r"(wind|dust drifts|desert|silence|still|calm|lonely|empty)")),
 ]
 # صنفٌ ليس له ملفّ في المكتبة بعد يقع على أقرب صنفٍ حقيقيّ موجود (لا يُسقط المؤثّر إلى الريح)
-FALLBACK = {'swords': 'battle', 'armor': 'battle', 'bowstring': 'arrows', 'hooves': 'horses', 'breath': 'wind',
-            'shout': 'crowd'}
+FALLBACK = {'swords': 'battle', 'armor': 'battle', 'bowstring': 'arrows', 'hooves': 'horses', 'footsteps': 'marching',
+            'breath': 'wind', 'shout': 'crowd'}
 PHASE_DEFAULT = {'battle': 'battle', 'buildup': 'crowd', 'setup': 'wind', 'aftermath': 'wind', None: 'wind'}
 
 
@@ -102,6 +105,34 @@ def phases_of(shots: list, sections: list) -> list:
             cur = first[b]
         out.append(cur)
     return out
+
+
+
+IMPACT_CATS = ('swords', 'battle', 'armor', 'hooves')
+
+
+def is_impact(shot: dict, texts: dict | None = None, phase: str | None = None) -> bool:
+    """هل اللقطة ضربة/التحام تستحق ارتطاماً (ثقيل أو متوسط)؟"""
+    if shot.get('slam') or shot.get('title'):
+        return True
+    return derive(shot, texts, phase) in IMPACT_CATS
+
+
+def impact_times(shot: dict, span: float, texts: dict | None = None, phase: str | None = None, tier: str = 'medium') -> list:
+    """أزمنة ارتطام داخل اللقطة إن لم يكتبها kinetic. قائمة (ثانية، طبقة)."""
+    if not is_impact(shot, texts, phase) or span <= 0.3:
+        return []
+    t = min(max(0.35, span * 0.42), max(0.2, span - 0.15))
+    return [(round(t, 3), tier)]
+
+
+def require_layers(cats: list[str], n_shots: int) -> list[str]:
+    """موانع إن غابت طبقة المحيط/المؤثّرات عن الفيلم."""
+    errs = []
+    real = [c for c in cats if c and c != 'none']
+    if n_shots and not real:
+        errs.append("لا مؤثّر صوت في أي لقطة — الطبقة إلزامية (أمر المالك 2026-11-22)")
+    return errs
 
 
 def main() -> int:

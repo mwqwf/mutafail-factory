@@ -2,7 +2,8 @@
 """المونتاج الهجين (معمَّم من «اليرموك» 2026-09-27): صوت الكتل + لقطات Kling حيث وُجدت وkb3d للباقي
 + **طبقة مؤثّرات لكل لقطة** (assets/sfx/<فئة>_*.ogg حسب حقل sfx) + صوت Kling الطبيعي إن وُجد + رياح + شعار.
 الاستعمال: python tools/mont_hybrid.py <proj> [GAP]
-⛔ لا موسيقى: المؤثّرات طبيعية CC0، وصوتُ Kling لا يدخل إلا إن اجتاز sfx_gate (clips/<id>.ok)."""
+⛔ لا موسيقى ولا آلات ولا أبواق نغمية: المؤثّرات طبيعية CC0، وطبقة المحيط إلزامية (أمر 2026-11-22).
+وصوتُ Kling لا يدخل إلا إن اجتاز sfx_gate (clips/<id>.ok). الارتطام الثقيل يُشتق إن غاب الحقل slam."""
 import json, os, sys, glob, random, subprocess as sp
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cards, envpaths, kb3d, kinetic, look, sfx_auto, sfx_synth, transitions   # kinetic: الكتابة المتحرّكة (أمر المالك 2026-10-04)
@@ -18,6 +19,16 @@ P = lambda *a: os.path.join(PROJ, *a)
 WORK = P('work'); SEG = os.path.join(WORK, 'seg'); os.makedirs(SEG, exist_ok=True)
 blocks = [b for b in json.load(open(P('blocks.json'), encoding='utf-8')) if not b.get('reel_only')]
 shots = json.load(open(P('shots.json'), encoding='utf-8'))
+# ⭐ فحص بصري مبكر للمقاطع الحيّة قبل المونتاج (أمر المالك 2026-11-22)
+if os.path.isdir(P('clips')) and os.environ.get('SKIP_CLIP_POLICY') != '1':
+    import clip_policy
+    _ce, _cw = clip_policy.check(PROJ)
+    for _w in _cw:
+        print('⚠️', _w, flush=True)
+    if _ce:
+        for _e in _ce:
+            print('✗', _e, flush=True)
+        raise SystemExit('⛔ بوّابة المقاطع منعت المونتاج')
 STILL = {s['id'] for s in shots if s.get('still')}
 SHOT = {s['id']: s for s in shots}
 # عنوانُ كلّ فصلٍ (عدا الافتتاحية) يُكتب أعلى أوّل لقطةٍ فيه — kinetic.chapter_els
@@ -116,13 +127,7 @@ OCC = lambda s: bool((s.get('kt') or {}).get('style') == 'center' or (s.get('sla
 MATTE = lambda s: ANIM(s)[:-4] + '.matte.mp4' if OCC(s) else None
 need_matte = lambda s: OCC(s) and not (os.path.exists(MATTE(s)) or os.path.exists(MATTE(s) + '.none'))
 
-# درجات الارتطام (بحث 2026-10-04: «لا تفاوت في الشدّة» من علامات الهواية): الثقيلة ثلاثٌ في الفيلم كلّه — اسم الفيلم، وأوّل ضربةٍ
-# مكتوبة، وأوّل ضربةٍ في المعركة — والبقيّة متوسّطة
-_heavy = [s['id'] for s in shots if s.get('title')][:1]
-_heavy += [s['id'] for s in shots if s.get('slam') and s['id'] not in _heavy][:1]
-_heavy += [s['id'] for n_, s in enumerate(shots) if s.get('slam') and SECS[n_] == 'battle' and s['id'] not in _heavy][:1]
-for _s in shots:
-    _s['_tier'] = 'heavy' if _s['id'] in _heavy[:3] else 'medium'
+# درجات الارتطام تُحسب بعد TEXTS/PHASES (أسفل) كي تُشتق من المضمون إن غاب حقل slam — درس أجنادين: 0 ثقيلة
 
 # ①ب تصييرُ مشاهد kb3d مسبقاً بالتوازي على كلّ الأنوية (درس القادسية: تسلسلياً أخذ ساعاتٍ على عدّاء GitHub)
 def _pre(job):
@@ -271,6 +276,26 @@ SLOW_MAX = 1.15
 TL = {}             # بداية كل لقطة ومدتها في الفيلم — يقرؤها mkreel_open.py لقصّ ريلز الافتتاحية
 TEXTS = {b['id']: b['text'] for b in blocks}
 PHASES = sfx_auto.phases_of(shots, _secs)
+# ⭐ أمر 2026-11-22: الارتطام الثقيل يُشتق من مضمون اللقطة (صليل/التحام/حوافر) لا من حقل slam وحده
+_heavy = [s['id'] for s in shots if s.get('title')][:1]
+for n_, s in enumerate(shots):
+    if s['id'] in _heavy:
+        continue
+    if sfx_auto.is_impact(s, TEXTS, PHASES[n_] if n_ < len(PHASES) else None):
+        _heavy.append(s['id'])
+    if len(_heavy) >= 3:
+        break
+if len(_heavy) < 3:
+    for n_, s in enumerate(shots):
+        if s['id'] in _heavy:
+            continue
+        ph = PHASES[n_] if n_ < len(PHASES) else None
+        if ph == 'battle' and sfx_auto.derive(s, TEXTS, ph) not in ('wind', 'none', None):
+            _heavy.append(s['id'])
+        if len(_heavy) >= 3:
+            break
+for _s in shots:
+    _s['_tier'] = 'heavy' if _s['id'] in _heavy[:3] else 'medium'
 for n, s in enumerate(shots):
     span = NF[n] / 25.0                            # مدّة اللقطة مؤطَّرةً (تختلف عن span_of بأقلّ من نصف إطار)
     L, NT = LEN(n), NF[n] + 2 * HF
@@ -370,6 +395,16 @@ if os.environ.get('MONT_MUTE_VOICE') == '1':
 # ③أ ارتطامٌ وحفيف (tools/sfx_synth.py — ضجيجٌ مرشَّح بلا نغمة): حفيفٌ قبل كلّ ضربةٍ مكتوبة وارتطامٌ لحظة هبوطها (الثقيلة أعلى)،
 #     وارتطامٌ خفيف للختم، وحفيفٌ تقع ذروته على القطع في الانتقالات الخاطفة، وحفيفٌ عميقٌ طويل عند التعتيم بين الفصول
 SB = sfx_synth.bank(WORK)
+# إن لم يكتب kinetic ضربات، تُشتق أزمنة ارتطام من المضمون (وإلا بقي الارتطام الثقيل صفراً)
+for n, s in enumerate(shots):
+    ev = kinetic.EVENTS.setdefault(s['id'], {})
+    if ev.get('slam'):
+        continue
+    for ts, tier in sfx_auto.impact_times(s, span_of(s), TEXTS, PHASES[n] if n < len(PHASES) else None, s.get('_tier', 'medium')):
+        ev.setdefault('slam', []).append((ts, tier))
+_cats = [s.get('sfx') or sfx_auto.derive(s, TEXTS, PHASES[n] if n < len(PHASES) else None) for n, s in enumerate(shots)]
+for _err in sfx_auto.require_layers(_cats, len(shots)):
+    raise SystemExit('⛔ ' + _err)
 hits, heavy_t = [], []
 for n, s in enumerate(shots):
     ev = kinetic.EVENTS.get(s['id']) or {}
@@ -393,6 +428,13 @@ for i, p_ in enumerate(TP):
         hits.append((cut - 0.70, 'whoosh_slow', 0.28))
 HITS = sfx_synth.mix(hits, VD, SB, os.path.join(WORK, 'hits.wav'))
 print('③أ الارتطام والحفيف: %d مؤثّراً (منها %d ثقيلة)' % (len(hits), len(heavy_t)), flush=True)
+if _heavy and not heavy_t:
+    raise SystemExit('⛔ لقطات صدام بلا ارتطام ثقيل — راجعة sfx_auto.impact_times')
+# فحص نغمي محلي لطبقة الارتطام المركّبة (لا جيميناي)
+import tonal_gate
+if os.path.exists(os.path.join(WORK, 'hits.wav')) and os.environ.get('SKIP_TONAL_GATE') != '1':
+    if tonal_gate.check_paths([os.path.join(WORK, 'hits.wav')]):
+        raise SystemExit('⛔ طبقة الارتطام بدت نغمية — الموسيقى ممنوعة')
 # ③ب المزج (بحث 2026-10-04 في تصميم صوت الوثائقيات): جوّ اللقطة يسبقها بنصف ثانية (قطع J)، والرياح والجوّ تنخفض تحت الكلام
 #     بضاغطٍ يقوده الكلام نفسه وترتفع بين الجمل، وتصمت قبيل الارتطام الثقيل فيدوّي، ثم تسوية الجهارة إلى −14 LUFS (معيار يوتيوب)
 inp = [FF, '-v', 'error', '-y', '-i', voice, '-f', 'lavfi', '-t', str(VD), '-i', 'anoisesrc=c=pink:r=48000', '-i', HITS]
