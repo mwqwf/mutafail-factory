@@ -1,18 +1,21 @@
-"""سياسة مدة قابلة للاختبار قبل استهلاك أي حصة."""
+"""سياسة المدّة بحقّ المادّة — أمر المالك (العقد الأسبوعي) وحُدّث 2026-11-22.
+
+المدّة لا يحدّدها حدّ أدنى ولا أقصى مسبق (30–40 دقيقة أُلغيت كقيد). يحكمها دسامة
+المادّة الموثّقة وندرتها وجودتها. يبقى مانع وحيد للفيلم التامّ القصير جداً (< دقيقتين)
+إن لم يكن ريلز/تشويقاً ولم يُعلَّل في durationNote.
+"""
+
 
 def audit_duration(minutes, meta):
     errors = []
-    target = meta.get("targetMinutes", 30)
-    exception = meta.get("durationException")
-    if not isinstance(target, (int, float)) or not 30 <= target <= 40:
-        errors.append("targetMinutes يجب أن يكون بين 30 و40")
-    if minutes > 55:
-        errors.append("المدّة تتجاوز 55 دقيقة")
-    if exception:
-        if not isinstance(exception, str) or len(exception.strip()) < 20:
-            errors.append("durationException يحتاج تعليلاً بحثياً محدداً")
-        if minutes < 18:
-            errors.append("حتى الاستثناء لا ينزل عن 18 دقيقة")
-    elif minutes < 30:
-        errors.append("المدّة دون هدف 30–40 دقيقة بلا استثناء بحثي")
+    meta = meta or {}
+    if not isinstance(minutes, (int, float)) or minutes <= 0:
+        errors.append("المدّة غير صالحة")
+        return errors
+    kind = (meta.get("kind") or meta.get("type") or "").lower()
+    short_ok = kind in ("teaser", "reel", "short", "promo", "reels")
+    note = meta.get("durationNote") or meta.get("durationException")
+    if minutes < 2 and not short_ok:
+        if not (isinstance(note, str) and len(note.strip()) >= 20):
+            errors.append("فيلم أقصر من دقيقتين يحتاج تعليل مادّته في durationNote")
     return errors

@@ -55,7 +55,7 @@ def reel_shape(path):
 def upload(svc, path, meta, publish_at=None, public_now=False):
     # ⭐ أمر المالك 2026-10-18 (أُلّيس): «ارفعها خاصّة كلّها» ⇒ PRIVATE_ALL=1 يرفع الفيلم والريلزات خاصّةً بلا موعد،
     #    ويغلب publicNow وpublishAt في الحمولة وفي ملفّ النشر؛ والمالك يعرضها بنفسه من الاستوديو بعد مراجعتها.
-    if PRIVATE_ALL:
+    if private_all(public_requested=bool(public_now or publish_at)):
         publish_at, public_now = None, False
     status = {
         "privacyStatus": "public" if public_now else "private",
@@ -137,14 +137,30 @@ def recent_uploads(svc, limit=50):
         return {}
 
 
-PRIVATE_ALL = os.environ.get("PRIVATE_ALL", "").strip() == "1"
+def private_all(public_requested=False):
+    """افتراض 2026-11-22: الرفع خاصّ إلا إذا طُلب علناً صراحةً (public / publish_at / PUBLISH_AT).
+
+    راية PRIVATE_ALL=1 (من حقل private_all في ملف النشر) تغلب وتُبقي الرفع خاصّاً بلا موعد.
+    PRIVATE_ALL=0 يلغي الافتراض.
+    """
+    flag = os.environ.get("PRIVATE_ALL", "").strip().lower()
+    if flag == "1":
+        return True
+    if public_requested or os.environ.get("PUBLISH_AT", "").strip() or os.environ.get("PUBLIC", "").strip() in ("1", "true", "yes"):
+        return False
+    if flag in ("0", "false", "no"):
+        return False
+    return True
 
 
 def reschedule(svc, vid, at):
     """يعدّل موعدَ فيديو مرفوعٍ ما دام خاصّاً (تصحيحُ موعدٍ بعد رفعه، بلا نسخةٍ ثانية)؛
     وبلا موعدٍ (at=None) يجعله عامّاً الآن."""
-    if PRIVATE_ALL:
+    # at=None مع طلب علني صريح يُنفَّذ؛ PRIVATE_ALL=1 الصريح يمنعه
+    if os.environ.get("PRIVATE_ALL", "").strip() == "1":
         print("↻", vid, "يبقى خاصّاً (PRIVATE_ALL) — لا موعد ولا عرض", flush=True); return
+    if at is None and private_all(public_requested=False) and os.environ.get("PUBLISH_AT", "").strip() != "now" and os.environ.get("PUBLIC", "").strip() not in ("1", "true", "yes"):
+        print("↻", vid, "يبقى خاصّاً (الافتراض 2026-11-22) — حدّد publish_at أو public لإعلانه", flush=True); return
     st = svc.videos().list(part="status", id=vid).execute()["items"][0]["status"]
     if st.get("privacyStatus") == "public":
         print("↻", vid, "عامٌّ سلفاً — لا يُعاد جدولته", flush=True); return

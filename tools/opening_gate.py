@@ -106,6 +106,30 @@ def verdict(a: dict) -> tuple[list[str], list[str], dict]:
     return errs, warns, facts
 
 
+
+def owner_skip(proj: str) -> str:
+    """تجاوز مقيّد من الحمولة لا من تعديل سير العمل.
+
+    يُشترط: owner_skip_opening_gate مع owner_decision (≥ 20 حرفاً)، وأن يكون الرفع خاصّاً
+    بلا publish_at/public/PUBLISH_AT. خلاف ذلك تُرفض المحاولة ('refuse'). بلا طلب: ''.
+    """
+    path = os.path.join(proj, 'publish.json')
+    try:
+        d = json.load(io.open(path, encoding='utf-8')) if os.path.exists(path) else {}
+    except ValueError:
+        d = {}
+    if not d.get('owner_skip_opening_gate'):
+        return ''
+    public = bool(d.get('public') or d.get('publicNow') or d.get('publish_at') or d.get('publishAt')
+                  or os.environ.get('PUBLISH_AT', '').strip() or os.environ.get('PUBLIC', '').strip() in ('1', 'true', 'yes'))
+    if public:
+        print('⛔ لا يُتجاوز باب الافتتاحية لرفعٍ علنيّ أو مجدول — لا يُعدَّل سير العمل للالتفاف'); return 'refuse'
+    decision = (d.get('owner_decision') or '').strip()
+    if len(decision) < 20:
+        print('⛔ التجاوز يحتاج owner_decision صريحاً من المالك (≥ 20 حرفاً)'); return 'refuse'
+    return decision
+
+
 def already_up(proj: str, state: str = os.path.join('ops', 'state', 'last_publish.json')) -> str:
     """معرّف فيلم هذه الحمولة إن رُفع في شوطٍ سابق (استئناف): FILM_VIDEO_ID، أو حالة النشر من master بالمعرّف نفسه."""
     vid = os.environ.get('FILM_VIDEO_ID', '').strip()
@@ -130,6 +154,14 @@ def main(argv=None) -> int:
         print('لا فيلم في الحمولة (ريلزاتٌ وحدها): لا بوّابة افتتاحية'); return 0
     if already_up(a.proj):
         print('↻ الفيلم مرفوعٌ سلفاً (استئناف): اجتاز البوّابة قبل رفعه'); return 0
+    # ⭐ أمر المالك 2026-11-22: إن لزم التجاوز فيكون من الحمولة (owner_skip_opening_gate + owner_decision)
+    #    للرفع الخاصّ وحده بلا موعد ولا علني — ولا يُعدَّل ملف سير العمل لأجل شوط واحد. الأفلام التالية تجتاز بلا تجاوز.
+    sk = owner_skip(a.proj)
+    if sk == 'refuse':
+        return 1
+    if sk:
+        print('⚠️ بوّابة الافتتاحية مُتجاوَزة من الحمولة بإذن المالك — لا تُعدَّل ملفات workflow:', sk[:120])
+        return 0
     keys = openings.keys_from(a.keys)
     if not keys:
         print('⛔ لا مفاتيح جيميناي: الحالة المجهولة ليست نجاحاً'); return 2

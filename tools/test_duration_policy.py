@@ -2,16 +2,21 @@ import unittest
 from duration_policy import audit_duration
 
 class DurationPolicyTests(unittest.TestCase):
-    def test_default_rejects_eighteen_minutes(self):
-        self.assertTrue(audit_duration(18.09, {}))
-    def test_default_accepts_thirty_to_forty(self):
+    def test_material_accepts_short_feature_and_long_films(self):
+        self.assertEqual(audit_duration(9.5, {}), [])
+        self.assertEqual(audit_duration(18.09, {}), [])
         self.assertEqual(audit_duration(30, {}), [])
         self.assertEqual(audit_duration(40, {"targetMinutes": 40}), [])
-    def test_thin_topic_needs_specific_exception(self):
-        self.assertTrue(audit_duration(24, {"durationException": "قصير"}))
-        self.assertEqual(audit_duration(24, {"durationException": "نفدت المادة الموثقة بعد بحث المحاور كلها"}), [])
-    def test_invalid_target_and_hard_bounds(self):
-        self.assertTrue(audit_duration(31, {"targetMinutes": 25}))
-        self.assertTrue(audit_duration(56, {"targetMinutes": 35}))
+        self.assertEqual(audit_duration(56, {}), [])
 
-if __name__ == '__main__': unittest.main()
+    def test_tiny_film_needs_a_note_unless_it_is_a_reel(self):
+        self.assertTrue(audit_duration(1.5, {}))
+        self.assertEqual(audit_duration(1.5, {"durationNote": "مادّة موثّقة قصيرة اكتملت في هذا الحيّز"}), [])
+        self.assertEqual(audit_duration(1.2, {"kind": "reel"}), [])
+
+    def test_invalid_duration(self):
+        self.assertTrue(audit_duration(0, {}))
+        self.assertTrue(audit_duration(-3, {}))
+
+if __name__ == '__main__':
+    unittest.main()
