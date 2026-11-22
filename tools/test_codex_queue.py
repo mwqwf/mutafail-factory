@@ -1,4 +1,5 @@
 import json
+import os
 import struct
 import subprocess
 import sys
@@ -21,8 +22,14 @@ def png(path, w=1920, h=1080):
     Image.new("RGB", (w, h), (38, 75, 112)).save(path, format="PNG")
 
 
-def run(*args):
-    return subprocess.run([sys.executable, str(TOOL), *map(str, args)], capture_output=True, text=True)
+def run(*args, unfreeze=True):
+    # الاختبارات تمرّن المسار المجمّد بعد رفع التجميد صراحةً؛ الملف محفوظ ولم يُحذف.
+    env = os.environ.copy()
+    if unfreeze:
+        env["UNFREEZE_CODEX"] = "1"
+    else:
+        env.pop("UNFREEZE_CODEX", None)
+    return subprocess.run([sys.executable, str(TOOL), *map(str, args)], capture_output=True, text=True, env=env)
 
 
 class CodexQueueTests(unittest.TestCase):
@@ -32,6 +39,12 @@ class CodexQueueTests(unittest.TestCase):
         self.tmp = Path(directory.name)
         self.prompts = self.tmp / "prompts.json"
         self.prompts.write_text(json.dumps({"F001": "a", "F002": "b", "F003": "c"}), encoding="utf-8")
+
+    def test_write_is_frozen_unless_unfreeze_flag_is_set(self):
+        r = run("write", self.tmp, "film", self.prompts, unfreeze=False)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("مجمّد", (r.stderr or "") + (r.stdout or ""))
+        self.assertFalse((self.tmp / "film" / "codex_job.json").exists())
 
     def test_write_status_and_shards_cover_every_missing_image_once(self):
         self.assertEqual(run("write", self.tmp, "film", self.prompts).returncode, 0)

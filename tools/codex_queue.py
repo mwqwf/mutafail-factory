@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """🧾 طابور كوديكس — أمرٌ ثابتٌ واحد بدل أوامر تُلصق لكل فيلم (أمر المالك 2026-10-01).
 
+⛔ مجمّد 2026-11-22 — أمر المالك: توليد الصور يتم حصراً بجروك. أمر «write» (دفع الطابور) لا يعمل
+إلا إذا UNFREEZE_CODEX=1 بعد أمر مالك صريح. الملف محفوظ ولم يُحذف. «status» و«shard» يبقيان للقراءة.
+
 **لماذا؟** كانت كلّ حلقة تُنتج 3–6 أوامر طويلة يلصقها المالك بيده في كوديكس. والمالك يريد ألّا
 يتدخّل إلا باختيار الموضوع. فصارت الجلسة تكتب **ملفّ مهمّة** في مستودع الصور الدائم
 `mwqwf/yarmouk-media` (‏`<المجلد>/codex_job.json`)، وكوديكس يُعطى أمراً ثابتاً لا يتغيّر:
@@ -25,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 import warnings
@@ -99,6 +103,10 @@ def shard(items: list[dict], k: int, n: int) -> list[dict]:
 
 
 def cmd_write(a) -> int:
+    # ⛔ مجمّد 2026-11-22 — أمر المالك: توليد الصور حصراً بجروك. المسار محفوظ لا محذوف.
+    if os.environ.get("UNFREEZE_CODEX") != "1":
+        sys.exit("⛔ طابور صور كوديكس مجمّد (أمر المالك 2026-11-22). توليد الصور يتم حصراً بجروك. "
+                 "لا يُلغى التجميد إلا برفع المتغيّر UNFREEZE_CODEX=1 بعد أمر مالك صريح. لم يُحذف شيء.")
     media, folder = Path(a.media), a.folder
     w, h = (int(x) for x in a.size.lower().split("x"))
     items = load_items(Path(a.prompts), [w, h])

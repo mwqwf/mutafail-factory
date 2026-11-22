@@ -8,6 +8,7 @@ run-name: 🎬 ${{ inputs.slug || github.event.head_commit.message }} · ${{ inp
 #         وإصدار <slug>-payload مختوم جاهز لـ sealed-publish.yml بعد مراجعة الجلسة.
 # المستودع عامّ والعدّاء قياسي ⇒ مجاني. والإصدارات المسوّدة لا يراها إلا صاحب المستودع.
 # ⛔ الصوت: نموذجٌ واحد في الفيلم — gemini-3.8-flash-tts افتراضاً، وغيرُه بحقل model في ملفّ الأمر (أمر المالك 2026-10-06) — بلا توجيه أداء (درسا اليرموك). ⛔ fal لا يتجاوز budget_usd.
+# ⛔ مجمّد 2026-11-22 — أمر المالك: تحريك الصور حصراً بجروك. خطوة ③ لا تستدعي fal_animate ما دام FROZEN_FAL=1 (الافتراض). العمق (kb3d) يبقى.
 on:
   workflow_dispatch:
     inputs:
@@ -278,16 +279,25 @@ jobs:
       - name: ③ التحريك (Kling عبر fal بسقف الميزانية) + بوّابة صوته + العمق
         if: env.STAGE != 'audio'
         env:
+          # ⛔ مجمّد 2026-11-22 — أمر المالك: توليد الصور وتحريكها حصراً بجروك.
+          # FROZEN_FAL=1 (الافتراض هنا) يتخطّى tools/fal_animate.py فلا إنفاق على fal.
+          # العمق (kb3d) ونسخ الصور إلى img/ يبقيان لأن مقاطع جروك والمونتاج يحتاجانهما.
+          # لإلغاء التجميد بعد أمر مالك صريح فقط: FROZEN_FAL=0 وUNFREEZE_FAL=1 عند استدعاء الأداة.
+          FROZEN_FAL: "1"
           FAL_KEY: ${{ secrets.FAL_KEY }}
           GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
           FAL_PAR: "10"   # كان 6: الفيلم كلّه حيّ صار ≈ 110 مقطعاً (طلب المالك التسريع 2026-10-03)
         run: |
           # preview (مؤتة 2026-10-06): عيّنةٌ قبل أيّ إنفاق — لا fal، والمونتاج يملأ كلّ لقطةٍ حيّة بالمجسّم (mont_hybrid)
           if [ "$STAGE" != preview ]; then
-            # trial_usd في ملفّ الأمر = تجربةٌ محدودة: سقف إنفاق هذا الشوط وحده (مؤتة 2026-10-06)، ثم شوطٌ بلا الحقل يكمل بما بقي
-            T=$(python3 -c "import json,sys;v=json.load(open(sys.argv[1],encoding='utf-8')).get('trial_usd');print(float(v) if v else '')" "ops/run/$SLUG.json" 2>/dev/null || true)
-            [ -n "$T" ] && export FAL_TRIAL_USD="$T" && echo "تجربة تحريكٍ محدودة: $T\$"
-            python tools/fal_animate.py proj
+            if [ "${FROZEN_FAL:-1}" = "1" ]; then
+              echo "⛔ تحريك Kling عبر fal مجمّد (أمر المالك 2026-11-22). يُكتفى بمقاطع جروك إن وُجدت، ثم تُفحص أصواتها ويُحسب العمق."
+            else
+              # trial_usd في ملفّ الأمر = تجربةٌ محدودة: سقف إنفاق هذا الشوط وحده (مؤتة 2026-10-06)، ثم شوطٌ بلا الحقل يكمل بما بقي
+              T=$(python3 -c "import json,sys;v=json.load(open(sys.argv[1],encoding='utf-8')).get('trial_usd');print(float(v) if v else '')" "ops/run/$SLUG.json" 2>/dev/null || true)
+              [ -n "$T" ] && export FAL_TRIAL_USD="$T" && echo "تجربة تحريكٍ محدودة: $T\$"
+              python tools/fal_animate.py proj
+            fi
             python tools/sfx_gate.py proj || true
           fi
           mkdir -p proj/img && cp proj/images/*.jpg proj/img/ 2>/dev/null || true
