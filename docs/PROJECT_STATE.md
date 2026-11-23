@@ -17,5 +17,6 @@
 - 7 طلبات مفتوحة، منها [#49](https://github.com/mwqwf/mutafail-factory/pull/49) منع النشر المكرّر على X و[#48](https://github.com/mwqwf/mutafail-factory/pull/48) الكتابة المتحرّكة بأزمنة الكلمات.
 
 ## السجلّ (الأحدث أولاً، سطر لكل تغيير)
+- 2026-11-23 — أُزيل جدول `x.yml` و`policy-watch.yml` (صارا روتينات Grok Bot)، وأُزيل محفّز المسائل من `owner-dispatch.yml` و`cancel-run.yml`.
 - 2026-11-22 — قواعد مراجعة القناة.
 - 2026-11-23 — إضافة الفهرس الحيّ (`PROJECT_INDEX.md` + سير `project-index`) وتوحيد `AGENTS.md` ومزامنة المهارات من [mwqwf/agent-skills](https://github.com/mwqwf/agent-skills).
