@@ -1,4 +1,4 @@
-# فهرس المهارات (مولَّد بـ`tools/sync-to-project.py` من mwqwf/agent-skills@383fe5c)
+# فهرس المهارات (مولَّد بـ`tools/sync-to-project.py` من mwqwf/agent-skills@e475b22)
 
 طابِق المهمة بالمهارة واقرأ `SKILL.md` قبل العمل. «مركزية» = لا تُعدَّل هنا.
 
