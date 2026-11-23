@@ -1,7 +1,9 @@
 ---
-name: arabic-rtl-and-islamic-typography
-description: Arabic-first UI and text integrity — RTL layout in Jetpack Compose/Android Views and web (LayoutDirection, start/end, mirrored icons, bidi isolation of numbers/Latin), Arabic fonts and diacritics clipping (lineHeight, includeFontPadding), Arabic-Indic vs Western digits, plural/gender strings, and STRICT integrity of Quran and hadith text (no normalization, no auto-diacritics, no tatweel, exact codepoint comparison, rasm/riwaya awareness, sourcing). Use when building or reviewing any Arabic screen, string, font, or layout, and whenever touching Quran/hadith/fiqh source text, translations, tafsir, or audio-text alignment data. واجهات عربية RTL وسلامة النص القرآنيّ والحديثيّ.
+name: arabic-text-integrity
+description: "Arabic RTL UI, diacritics, fonts, plurals, and Quran/hadith/tafsir text integrity in apps, data, videos. العربية والاتجاه والتشكيل وسلامة نصّ القرآن والحديث في التطبيق والبيانات والفيديو"
 license: Proprietary (mwqwf) — internal
+metadata:
+  renamed-from: "arabic-rtl-and-islamic-typography (2026-11-23)"
 ---
 
 # العربية أوّلاً: الاتجاه والخطّ وسلامة النصّ الشرعيّ
