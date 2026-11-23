@@ -30,3 +30,6 @@
 | crowd_1.ogg | crowd | 22.8 | R24-01-Men Rallying.wav | craigsmith | https://freesound.org/people/craigsmith/sounds/480809/ | CC0 1.0 Universal (Public Domain Dedication) |
 | crowd_2.ogg | crowd | 12.5 | R15-73-Small Group of Men Shouting.wav | craigsmith | https://freesound.org/people/craigsmith/sounds/480805/ | CC0 1.0 Universal (Public Domain Dedication) |
 | crowd_3.ogg | crowd | 24.2 | S11-14 Group of men yelling with sword fight clicking.wav | craigsmith | https://freesound.org/people/craigsmith/sounds/675091/ | CC0 1.0 Universal (Public Domain Dedication) |
+
+## Openverse (بحثٌ إضافي)
+`tools/openverse_sfx.py` يبحث في فهرس Openverse (يشمل Freesound) بترخيص CC0/PDM افتراضياً. ما يُنزَّل منه يُضاف إلى الجدول أعلاه بسطر `credit_line` نفسه (العنوان — المؤلف — الرخصة — الرابط)، وما كان BY يُنسب في وصف يوتيوب لا في الفيلم.
