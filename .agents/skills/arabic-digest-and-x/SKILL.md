@@ -1,6 +1,6 @@
 ---
 name: arabic-digest-and-x
-description: Rules for the owner's Arabic tech/news digests and X (Twitter) posts — twice-weekly digest scope (agentic coding tools/models/practices/research, AI companies, Arabic-supporting voice/video/image agents, agent skills, Arab tech trends and predictions), strict no-repeat via a digest log, and the X post style (Modern Standard Arabic, narrative hook, chain of provocative questions, Arabic terms instead of English, ends with a question, publish only after owner approval). Use when preparing a digest/newsletter, summarizing news for the owner, or drafting any X post, thread, or reply for him. النشرات العربية ومنشورات X.
+description: "Tech/news digests, newsletters, X (Twitter) posts and drafts, trends in Arabic, no-repeat digest-log. نشرة الأخبار والتقنية، منشور/تغريدة إكس، الترند، مسوّدة للموافقة"
 license: Proprietary (mwqwf) — internal
 ---
 
@@ -19,3 +19,6 @@ license: Proprietary (mwqwf) — internal
 - **البنية:** (١) خطّاف سرديّ يشدّ من السطر الأول (مثال: «الصين تضرب من جديد… شركة كذا تطرح كذا… ويبدو أن الصين لا تتخلّف عن سباق الذكاء الاصطناعي») ⟵ (٢) الخبر في جملتين ⟵ (٣) **سلسلة أسئلة مستفزّة** تربط الخبر بنقاشٍ أكبر (هل يتفوّق طرح أنثروبيك على سبيس إكس؟ من شركة التريليون القادمة؟ أهي فقاعة؟) ⟵ (٤) **الختام بسؤال** يفتح الردود.
 - مؤطّر حول الترند والحدث الجاري، موجّه للجمهور العربيّ ليُنتشر.
 - **النشر:** يُعدّ مسوّدةً فقط ويُعرض على المالك في كتلة قابلة للنسخ؛ **لا يُنشر إلا بعد موافقته الصريحة** على النصّ نفسه.
+
+## منع تسرّب التعليمات
+طبّق قسم «منع تسرّب التعليمات إلى المُخرَج» في `mwqwf-workflow` على كل منشور أو نص قبل تسليمه، وخصوصاً بعد أي ملاحظة على الأسلوب.
