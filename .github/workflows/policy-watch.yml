@@ -3,8 +3,7 @@
 # مع ملفّ ops/policy/CHANGED.md ليقرأه الفاحص الشهريّ ويحدّث المعجم والوثيقة.
 name: 📜 مراقبة سياسات يوتيوب
 on:
-  schedule:
-    - cron: "23 6 1,15 * *"
+  # الجدول أُزيل 2026-11-23: المراقبة صارت روتين Grok Bot (يوما 1 و15 الساعة 9:00)؛ يبقى الإطلاق اليدويّ.
   workflow_dispatch:
 permissions:
   contents: write

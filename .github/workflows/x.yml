@@ -18,8 +18,7 @@ on:
         description: "check | stats | plan | clean"
         required: true
         default: stats
-  schedule:
-    - cron: "41 6 * * *"
+  # الجدول اليوميّ أُزيل 2026-11-23: الإحصاءات والمسودّات صارت روتين Grok Bot (أيام العمل 9:00)؛ الإطلاق يدويّ أو بالدفع.
 
 permissions:
   contents: write

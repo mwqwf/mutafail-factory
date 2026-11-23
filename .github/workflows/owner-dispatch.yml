@@ -1,8 +1,8 @@
 name: مصنع المتفائل — صوت مبكر موثّق
 
 on:
-  issues:
-    types: [opened]
+  # محفّز المسائل (issues) أُزيل 2026-11-23: الأوامر تُعطى لبوت Grok مباشرة. الوظائف مشروطة بعنوان المسألة فلا تعمل يدوياً.
+  workflow_dispatch:
 
 permissions:
   actions: read
