@@ -263,26 +263,19 @@ def captions(s, seg, span, L):
     return res
 
 
-# ⭐ أمر المالك 2026-10-14 (دراسة المغادرة بالثانية): يبدأ الهبوط الكبير حين تتوقّف الحركة الحيّة في الدقيقة الأولى
-#    (الأرك: مقاطعه الأربعة في أوّل 18 ث ثمّ أسئلةٌ على صورٍ ثابتة ⇒ خسر 45 نقطة بين 20 و60 ث).
-#    ⇒ كلّ لقطةٍ تبدأ قبل LIVE_UNTIL بلا مقطعٍ حيّ ولا خريطة تأخذ مقطعاً مدفوعاً من لقطةٍ أخرى (clip/clip_ss) بلا كلفة،
-#    بالتناوب وبنقطة بدءٍ مختلفة كلّ مرّة. ويُعطَّل لفيلمٍ بـ"live_open": false في publish.json.
-LIVE_UNTIL = 60.0
+# ⛔ أمر المالك 2026-11-27 (إسلام خالد): «مشهدٌ في غير موضعه خطأٌ في المعنى لا يُقبل».
+#    أُلغيت قاعدة 2026-10-14 (LIVE_UNTIL=60: استعارة مقطعٍ حيّ من لقطةٍ أخرى لكلّ لقطةٍ ساكنة في الدقيقة الأولى) من جذورها:
+#    كانت تُظهر رجل الباب والجاثي والفرسان في مواضع لا تخصّهم. القاعدة الآن بلا استثناء ولا خيار:
+#    كلّ لقطةٍ تستعمل مقطعها الحيّ الخاصّ إن وُجد، وإلّا تحريك كاميرا قوياً (kb3d) على صورتها هي؛ ولا تُستعار لقطةٌ أو مقطعٌ من موضعٍ آخر أبداً.
+#    حقل clip مسموحٌ فقط لمقطعٍ على الصورة نفسها (جزءٌ لاحقٌ من لقطةٍ قُسمت)، ويُرفض غيره هنا؛ و"live_open" في publish.json يُتجاهَل.
+#    والفحص الآليّ بعد الإخراج: tools/shot_image_gate.py (يفشل إن ظهرت صورة لقطةٍ في غير كتلتها).
 _pub = json.load(open(P('publish.json'), encoding='utf-8')) if os.path.exists(P('publish.json')) else {}
-if _pub.get('live_open', True):
-    _pool = [x['id'] for x in shots if x['id'] not in STILL and not x.get('clip') and not x.get('lipsync')
-             and os.path.exists(P('clips', '%s.mp4' % x['id']))]
-    _k = 0
-    for _n, _s in enumerate(shots):
-        if FST[_n] / 25.0 >= LIVE_UNTIL or not _pool:
-            break
-        if _s['id'] in STILL or _s.get('map') or _s.get('clip') or clip(_s['id']):
-            continue
-        _src = _pool[_k % len(_pool)]
-        _s['clip'], _s['clip_ss'] = _src, round(((_k // len(_pool)) * 1.7) % 3.0, 2)
-        _k += 1
-    if _k:
-        print('①ج حركةٌ حيّة حتى الثانية %.0f: %d لقطةً أخذت مقطعاً مدفوعاً معاداً' % (LIVE_UNTIL, _k), flush=True)
+if _pub.get('live_open'):
+    print('⚠️ live_open في publish.json مُلغى منذ 2026-11-27 ويُتجاهَل: لا استعارة مقاطع', flush=True)
+_stem = lambda s: os.path.splitext(os.path.basename(image_of(s) or ''))[0].replace('ym_', '')
+_borrow = [(x['id'], x['clip']) for x in shots if x.get('clip') and x['clip'] in SHOT and _stem(SHOT[x['clip']]) != _stem(x)]
+if _borrow:
+    raise SystemExit('⛔ لقطاتٌ تستعير مقطعاً من موضعٍ آخر (أمر المالك 2026-11-27): ' + ', '.join('%s←%s' % b for b in _borrow))
 
 # ② اللقطات + جدول المؤثّرات — كلّ مقطعٍ بمقبضيه: NF[n] + 2×HF إطاراً، وبداية اللقطة فيه عند HEAD
 segs, fx = [], []   # fx: (بداية، مدة، ملف، مستوى)
@@ -519,3 +512,7 @@ sp.run([FF, '-v', 'error', '-y', '-i', silent, '-i', mixed, '-i', lg, '-filter_c
         '-map', '[v]', '-map', '1:a', '-c:v', 'libx264', '-preset', 'medium', '-crf', '21', '-tune', 'film', '-pix_fmt', 'yuv420p',
         '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', '-shortest', final], check=True)
 print('✅ %s | %.2f د | مؤثّرات: %d' % (final, dur(final) / 60, len(CUES['cues']) if CUES is not None else len(fx)), flush=True)
+# ⛔ 2026-11-27: صورة كلّ لقطةٍ في كتلتها وحدها — فحصٌ آليّ على الفيلم نفسه
+_g = sp.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shot_image_gate.py'), PROJ])
+if _g.returncode:
+    raise SystemExit('⛔ shot_image_gate: صورة لقطةٍ في غير كتلتها — راجع الإخراج')
