@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """اختيار الأصوات لكلّ سيناريو (أمر المالك 2026-11-27): لا صوت امرأة، ولكلّ شخصية صوتٌ مستقلّ بسبب، وثبات السلسلة،
-ولا توليد كامل قبل إجازة العيّنات."""
+والوكيل يختار الأصوات بنفسه (لا إجازة عيّنات من المالك)."""
 import os
 import sys
 import unittest
@@ -41,11 +41,13 @@ class Casting(unittest.TestCase):
         errs = casting.check(cast(), BLOCKS, {'s': {'characters': {'khalid': {'voice': 'Iapetus'}}}})
         self.assertTrue(any('السلسلة' in e for e in errs))
 
-    def test_render_requires_approved_samples(self):
+    def test_render_does_not_need_owner_sample_approval(self):
         c = cast(); c['samples']['status'] = 'pending'
-        self.assertEqual(casting.check(c, BLOCKS), [])
-        self.assertTrue(any('العيّنات' in e for e in casting.check(c, BLOCKS, render=True)))
+        self.assertEqual(casting.check(c, BLOCKS, render=True), [])
 
+    def test_render_needs_reasons(self):
+        c = cast(); c['characters']['amr']['reason'] = ''
+        self.assertTrue(any('سبب' in e for e in casting.check(c, BLOCKS, render=True)))
 
 if __name__ == '__main__':
     unittest.main()

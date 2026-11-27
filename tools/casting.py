@@ -2,7 +2,7 @@
 """اختيار الأصوات لكلّ سيناريو (casting) — أمر المالك 2026-11-27 (دائم لكلّ فيلم):
 الصوت يُختار لكلّ سيناريو بعد قراءته: الراوي بنبرةٍ وسنٍّ وإيقاعٍ تناسب القصّة (ملحمة معركة أم تأمّل)، ولكلّ شخصيةٍ متكلّمة
 صوتٌ مستقلّ مناسب (خالد، عمرو بن العاص، قادة العدوّ…) ثابتٌ في السلسلة كلّها، ولا صوت امرأة أبداً، ويُسجَّل في
-`casting.md` لكلّ فيلم بأسبابه، وتُجرَّب عيّنات قبل التوليد الكامل.
+`casting.md` لكلّ فيلم بأسبابه؛ الوكيل يختار الأصوات بنفسه ولا يُطلب من المالك سماع عيّنات.
 
 ما كان (أجنادين): الراوي يتناوب Orus وCharon كتلةً كتلة، وصوت الاقتباس الواحد لشخصياتٍ متعدّدة.
 
@@ -11,10 +11,10 @@
      "narrator": {"voice": "Algenib", "style": "epic", "pos_styles": {"medina": "reverent"}, "reason": "…"},
      "characters": {"khalid": {"name": "خالد بن الوليد", "voice": "Algieba", "style": "quote", "reason": "…"}},
      "blocks": {"d_008": "khalid"},                # كلّ كتلة Q/P ⇒ شخصيتها
-     "samples": {"status": "pending|approved", "notes": "…"}}
+     "samples": {"status": "agent-chosen|approved", "notes": "…"}}  # اختياري؛ لا يُشترط
 وثبات السلسلة في `ops/series/voice_casting.json` ({"sayf-allah": {"narrator": …, "characters": {"khalid": …}}}).
 
-    python3 tools/casting.py check  <proj> [--render]   # --render: يشترط عيّنات مُجازة قبل التوليد الكامل
+    python3 tools/casting.py check  <proj> [--render]   # --render: يشترط وجود casting.md بأسباب كلّ صوت (لا إجازة مالك)
     python3 tools/casting.py md     <proj>              # يكتب casting.md من casting.json
     python3 tools/casting.py apply  <proj>              # يكتب voice/speaker في blocks.json (بعد check --render)
 """
@@ -78,8 +78,7 @@ def check(cast: dict, blocks: list[dict], series: dict | None = None, render: bo
             sv = ((ser.get('characters') or {}).get(k) or {}).get('voice')
             if sv and sv != c.get('voice') and not c.get('override_reason'):
                 errs.append('%s: %s يخالف صوته في السلسلة %s' % (k, c.get('voice'), sv))
-    if render and (cast.get('samples') or {}).get('status') != 'approved':
-        errs.append('العيّنات لم تُجَز بعد — لا توليد كامل قبل سماع عيّنة لكلّ صوت (voice_lab)')
+    # أمر المالك 2026-11-27 (لاحقاً): لا إجازة عيّنات من المالك؛ الوكيل يختار الأصوات بنفسه، والشرط وجود casting.md بأسبابه
     return errs
 
 
@@ -88,7 +87,7 @@ def md(cast: dict, blocks: list[dict]) -> str:
     nar = cast['narrator']
     out = ['# اختيار الأصوات (casting) — %s' % cast.get('title', cast.get('series', '')), '',
            '> أمر المالك 2026-11-27: الصوت يُختار لكلّ سيناريو، ولكلّ شخصية صوتٌ مستقلّ ثابت في السلسلة، ولا صوت امرأة، '
-           'وعيّنات قبل التوليد الكامل. مولَّد من `casting.json` بـ`tools/casting.py md`.', '',
+           'والوكيل يختار الأصوات بنفسه بلا إجازة من المالك. مولَّد من `casting.json` بـ`tools/casting.py md`.', '',
            '| الدور | الصوت | الأسلوب | السبب |', '|---|---|---|---|',
            '| الراوي | %s | %s%s | %s |' % (nar['voice'], nar.get('style', ''),
                                          ''.join(' · %s@%s' % (v, k) for k, v in (nar.get('pos_styles') or {}).items()),
@@ -130,6 +129,8 @@ def main(argv=None) -> int:
             f.write(md(cast, blocks))
         print('✓ casting.md'); return 0
     errs = check(cast, blocks, series, render=(cmd == 'apply' or '--render' in a))
+    if (cmd == 'apply' or '--render' in a) and not os.path.exists(os.path.join(proj, 'casting.md')):
+        errs.append('لا casting.md في المشروع — يُولَّد بـ casting.py md قبل التصيير الكامل (أسباب كلّ صوت)')
     for e in errs:
         print('⛔', e)
     if errs:
