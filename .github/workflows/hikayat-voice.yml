@@ -29,18 +29,17 @@ jobs:
         with: { node-version: "20" }
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - name: بذرة الصوت من شوطٍ سابق (لا يُعاد ما وُجد)
-        id: seed
+      - name: بذرة الصوت من أشواطٍ سابقة (لا يُعاد ما وُجد؛ اللاحق يغلب السابق)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/hikayat-voice/[^/]*\.json$' | head -1 || true)
-          [ -n "$F" ] && echo "run=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('seed_run',''))" "$F")" >> "$GITHUB_OUTPUT" || true
-      - uses: actions/download-artifact@v4
-        if: steps.seed.outputs.run != ''
-        with:
-          name: hikayat-voice
-          path: seed
-          run-id: ${{ steps.seed.outputs.run }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          [ -n "$F" ] || exit 0
+          mkdir -p seed/audio
+          for R in $(python3 -c "import json,sys;d=json.load(open(sys.argv[1]));r=d.get('seed_runs') or ([d['seed_run']] if d.get('seed_run') else []);print(' '.join(map(str,r)))" "$F"); do
+            gh run download "$R" -R "$GITHUB_REPOSITORY" -n hikayat-voice -D "s_$R" && cp s_$R/audio/*.wav seed/audio/
+          done
+          ls seed/audio | wc -l
       - name: الأدوات
         run: |
           sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg >/dev/null
@@ -70,7 +69,13 @@ jobs:
           node tools/key_projects.js --keys /tmp/keys.json --files --out /tmp/groups.json || true
           [ -s /tmp/groups.json ] && export GEN_GROUPS=/tmp/groups.json
           mkdir -p proj/audio
-          [ -d seed/audio ] && cp seed/audio/*.wav proj/audio/ && echo "بذرة: $(ls seed/audio | wc -l) كتلة"
+          ls seed/audio/*.wav >/dev/null 2>&1 && cp seed/audio/*.wav proj/audio/ && echo "بذرة: $(ls seed/audio | wc -l) كتلة"
+          NEED=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1]));print(1 if d.get('listen_only') else 0)" "$F")
+          if [ "$NEED" = 1 ]; then
+            for id in $(python3 -c "import json;print(' '.join(b['id'] for b in json.load(open('proj/blocks.json'))))"); do
+              [ -f "proj/audio/$id.wav" ] || { echo "::error::إصغاء فقط: الكتلة $id غائبة من البذرة — لا توليد"; exit 1; }
+            done
+          fi
           for i in 1 2 3; do
             node tools/gen25.js proj 4 --keys /tmp/keys.json --model "$MODEL" && break || true
           done
@@ -78,7 +83,8 @@ jobs:
           rm -rf chk && mkdir -p chk && cp proj/blocks.json chk/ && cp -r proj/audio chk/audio
           python3 tools/audio_checks.py chk || true
           cp chk/audio_checks.json proj/audio_checks_report.json || true
-          node tools/listen.js proj 3 --batch 4 --keys /tmp/keys.json || true
+          LB=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('listen_batch',4))" "$F")
+          node tools/listen.js proj 3 --batch "$LB" --keys /tmp/keys.json || true
           node tools/adjudicate_listen.js proj --keys /tmp/keys.json || true
           rm -f /tmp/keys.json
           ls proj/audio | wc -l

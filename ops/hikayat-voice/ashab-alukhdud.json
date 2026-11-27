@@ -683,11 +683,11 @@
    "est_dur": 5.0
   }
  ],
- "only": [
-  "d_024",
-  "d_046",
-  "d_056",
-  "d_077",
-  "sh_cta"
- ]
+ "only": [],
+ "seed_runs": [
+  45985910668,
+  45992839994
+ ],
+ "listen_batch": 1,
+ "listen_only": true
 }
