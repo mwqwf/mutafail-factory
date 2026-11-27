@@ -18,6 +18,44 @@
   "ease": "in"
  },
  {
+  "id": "S01_2",
+  "blocks": [
+   "d_001_2"
+  ],
+  "subject": "A lone veiled rider seen from behind on a high dune ridge at Usfan, his horse restless, and far below him long rows of worshippers seen from behind standing in prayer on open sand",
+  "size": "wide",
+  "angle": "over",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "slow push past the rider's shoulder toward the distant rows, horse tail flicks, dust drifts; camera steady, no shake",
+  "tr": "fade",
+  "move3d": "push_tilt",
+  "energy": 1.25,
+  "ease": "soft",
+  "file": "S01.jpg",
+  "clip": "S01",
+  "clip_ss": 4.72
+ },
+ {
+  "id": "S01_3",
+  "blocks": [
+   "d_001_3"
+  ],
+  "subject": "A lone veiled rider seen from behind on a high dune ridge at Usfan, his horse restless, and far below him long rows of worshippers seen from behind standing in prayer on open sand",
+  "size": "wide",
+  "angle": "over",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "slow push past the rider's shoulder toward the distant rows, horse tail flicks, dust drifts; camera steady, no shake",
+  "tr": "fade",
+  "move3d": "dolly_in",
+  "energy": 1.25,
+  "ease": "soft",
+  "file": "S01.jpg"
+ },
+ {
   "id": "S02",
   "blocks": [
    "d_002"
@@ -54,6 +92,24 @@
   "file": "S02.jpg"
  },
  {
+  "id": "S02_3",
+  "blocks": [
+   "d_002_3"
+  ],
+  "subject": "A line of Quraysh horsemen seen from behind on the ridge, lances upright, cloaks snapping in the wind, the prayer rows small in the valley",
+  "size": "wide",
+  "angle": "low",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "cloaks and horse manes move in the wind, riders shift in saddles, camera locked off then a very slow push",
+  "tr": "fade",
+  "move3d": "push_tilt",
+  "energy": 1.2,
+  "ease": "soft",
+  "file": "S02.jpg"
+ },
+ {
   "id": "S03",
   "blocks": [
    "d_003"
@@ -70,6 +126,26 @@
   "move3d": "crane_up",
   "energy": 1.1,
   "ease": "out"
+ },
+ {
+  "id": "S03_2",
+  "blocks": [
+   "d_003_2"
+  ],
+  "subject": "Silhouette of the veiled rider from behind, sword still sheathed at his side, sun behind him",
+  "size": "medium",
+  "angle": "low",
+  "light": "golden",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "slow dolly in on the sheathed sword hilt, rim light flares softly",
+  "tr": "fade",
+  "move3d": "dolly_in",
+  "energy": 1.1,
+  "ease": "soft",
+  "file": "S03.jpg",
+  "clip": "S03",
+  "clip_ss": 2.21
  },
  {
   "id": "S04",
@@ -104,6 +180,42 @@
   "move3d": "dolly_out",
   "energy": 0.8,
   "ease": "inout"
+ },
+ {
+  "id": "S05_2",
+  "blocks": [
+   "d_005_2"
+  ],
+  "subject": "Open plain of Usfan between noon and afternoon, heat haze, distant black goat-hair tents and tethered camels",
+  "size": "wide",
+  "angle": "eye",
+  "light": "day",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "heat haze shimmers, a camel turns its head; slow lateral truck",
+  "tr": "fade",
+  "move3d": "dolly_in",
+  "energy": 0.8,
+  "ease": "soft",
+  "file": "S05.jpg"
+ },
+ {
+  "id": "S05_3",
+  "blocks": [
+   "d_005_3"
+  ],
+  "subject": "Open plain of Usfan between noon and afternoon, heat haze, distant black goat-hair tents and tethered camels",
+  "size": "wide",
+  "angle": "eye",
+  "light": "day",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "heat haze shimmers, a camel turns its head; slow lateral truck",
+  "tr": "fade",
+  "move3d": "dolly_out",
+  "energy": 0.8,
+  "ease": "soft",
+  "file": "S05.jpg"
  },
  {
   "id": "S06",

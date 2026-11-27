@@ -17,14 +17,14 @@ def rd(f):
     w = wave.open(f); a = np.frombuffer(w.readframes(w.getnframes()), np.int16); return a, w.getframerate()
 def wr(f, a, sr):
     w = wave.open(f, 'wb'); w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes(a.astype(np.int16).tobytes()); w.close()
-def pauses(a, sr):
+def pauses(a, sr, thr=.28):
     x = a.astype(float) / 32768; hop = int(.02 * sr)
     e = np.array([np.sqrt(np.mean(x[i:i + hop] ** 2)) for i in range(0, len(x) - hop, hop)]); s = e < .01; out = []; i = 0
     while i < len(s):
         if s[i]:
             j = i
             while j < len(s) and s[j]: j += 1
-            if (j - i) * .02 >= .28 and i > 0 and j < len(s): out.append(((i + j) / 2 * .02, (j - i) * .02))
+            if (j - i) * .02 >= thr and i > 0 and j < len(s): out.append(((i + j) / 2 * .02, (j - i) * .02))
             i = j
         else: i += 1
     return out
@@ -38,10 +38,11 @@ for b in blocks:
         if re.fullmatch(re.escape(b['id']) + r'_\d+\.wav', f): os.remove(os.path.join(A, f))
     a, sr = rd(os.path.join(AF, b['id'] + '.wav')); d = len(a) / sr
     cuts, rem, last = [], [], 0.0
-    pz = pauses(a, sr)
-    while (d - last) / T > 7.0:
-        R = (d - last) / T; tgt = R / -(-R // 6.0)
-        c = [(p, l) for p, l in pz if MINP <= (p - last) / T <= 7.5 and (d - p) / T >= MINP]
+    op = orig_bt[b['id']][0] < 30.0      # الافتتاح (thrill_gate: ≥12 لقطة في أوّل 30 ث): قطعٌ عند كلّ وقفةٍ ولو قصيرة
+    pz = pauses(a, sr, .18 if op else .28); mn, cap, ch = (1.4, 2.6, 2.6) if op else (MINP, 7.0, 6.0)
+    while (d - last) / T > cap:
+        R = (d - last) / T; tgt = R / -(-R // ch)
+        c = [(p, l) for p, l in pz if mn <= (p - last) / T <= 7.5 and (d - p) / T >= mn]
         if not c: break
         p, l = min(c, key=lambda x: abs((x[0] - last) / T - tgt)); cuts.append(p); rem.append(min(GAP, l - .04)); last = p
     ws = b['text'].split(); edges = [0.0] + cuts + [d]
