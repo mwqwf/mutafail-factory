@@ -126,7 +126,7 @@ jobs:
       - name: فضُّ الختم
         env:
           CONTENT_PRIVATE_KEY: ${{ secrets.CONTENT_PRIVATE_KEY }}
-        run: bash tools/unseal.sh sealed "$PWD/proj" && rm -rf sealed && ls -la proj proj/reels
+        run: bash tools/unseal.sh sealed "$PWD/proj" && rm -rf sealed && ls -la proj && { ls -la proj/reels 2>/dev/null || echo "لا ريلز في الحمولة (فيلمٌ وحده)"; }
 
       - name: ⛔ إن غاب سرُّ النشر فلا شوطَ كاذب
         env:
