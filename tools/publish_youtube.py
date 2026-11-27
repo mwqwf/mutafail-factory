@@ -10,7 +10,7 @@
 
 الحصّة: للرفع حصّةٌ مستقلّة منذ 2026-06-01، مئة رفعةٍ في اليوم، وسائر الطرق من العشرة آلاف (tools/quota.py).
 """
-import json, io, os, sys, datetime
+import json, io, os, sys, datetime, time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import quota
@@ -163,24 +163,31 @@ def reschedule(svc, vid, at):
         print("↻", vid, "يبقى خاصّاً (PRIVATE_ALL) — لا موعد ولا عرض", flush=True); return
     if at is None and private_all(public_requested=False) and os.environ.get("PUBLISH_AT", "").strip() != "now" and os.environ.get("PUBLIC", "").strip() not in ("1", "true", "yes"):
         print("↻", vid, "يبقى خاصّاً (الافتراض 2026-11-22) — حدّد publish_at أو public لإعلانه", flush=True); return
-    st = svc.videos().list(part="status", id=vid).execute()["items"][0]["status"]
+    item = svc.videos().list(part="snippet,status", id=vid).execute()["items"][0]
+    st, sn = item["status"], item["snippet"]
     if st.get("privacyStatus") == "public":
         print("↻", vid, "عامٌّ سلفاً — لا يُعاد جدولته", flush=True); return
     if not at:
-        svc.videos().update(part="status", body={"id": vid, "status": {
-            "privacyStatus": "public",
-            "selfDeclaredMadeForKids": False, "containsSyntheticMedia": True}}).execute()
+        st["privacyStatus"] = "public"
+        st.pop("publishAt", None)
+        svc.videos().update(part="snippet,status", body={"id": vid, "snippet": sn, "status": st}).execute()
         print("🌐 صار عامّاً الآن", vid, flush=True); return
     if st.get("publishAt", "").replace(".000", "") == at:
         print("🕒", vid, "موعده مطابق سلفاً", at, flush=True)
         return
-    svc.videos().update(part="status", body={"id": vid, "status": {
-        "privacyStatus": "private", "publishAt": at,
-        "selfDeclaredMadeForKids": False, "containsSyntheticMedia": True}}).execute()
-    st2 = svc.videos().list(part="status", id=vid).execute()["items"][0]["status"]
-    got = (st2.get("publishAt") or "").replace(".000", "")
-    print("🕒 أُعيدت جدولة", vid, "إلى", got or at, "الحالة=", st2.get("privacyStatus"), flush=True)
-    if got != at:
+    st["privacyStatus"] = "private"
+    st["publishAt"] = at
+    svc.videos().update(part="snippet,status", body={"id": vid, "snippet": sn, "status": st}).execute()
+    got = ""
+    for wait in (0, 3, 5, 8):
+        if wait:
+            time.sleep(wait)
+        st2 = svc.videos().list(part="status", id=vid).execute()["items"][0]["status"]
+        got = (st2.get("publishAt") or "").replace(".000", "")
+        if got == at and st2.get("privacyStatus") == "private":
+            print("🕒 أُعيدت جدولة", vid, "إلى", got, "الحالة=", st2.get("privacyStatus"), flush=True)
+            break
+    else:
         raise SystemExit("⛔ الموعد المقروء بعد التعديل ليس المطلوب: %s ← %s (المطلوب %s)" % (vid, got, at))
 
 

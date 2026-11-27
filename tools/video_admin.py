@@ -24,6 +24,13 @@ svc = build("youtube", "v3", credentials=Credentials(
     token_uri="https://oauth2.googleapis.com/token",
     scopes=["https://www.googleapis.com/auth/youtube"]), cache_discovery=False)
 
+EXPECTED_CHANNEL = "UCda-VgyvZwAH5_Pl1elVEnw"
+FORBIDDEN_CHANNELS = {"UC7owFa1Z0P8vv5tSzhRYfPw"}
+_ch = svc.channels().list(part="id", mine=True).execute()["items"][0]["id"]
+if _ch in FORBIDDEN_CHANNELS or _ch != EXPECTED_CHANNEL:
+    raise SystemExit("⛔ تفويض يوتيوب لقناةٍ غير قناة المتفائل (%s) — لا تعديل" % _ch)
+print("✅ القناة:", _ch, flush=True)
+
 vid = CMD["videoId"]
 r = svc.videos().list(part="snippet,status", id=vid).execute()
 if not r.get("items"):
