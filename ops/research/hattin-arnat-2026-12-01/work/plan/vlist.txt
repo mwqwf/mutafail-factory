@@ -1,0 +1,112 @@
+S001 5 the frosted cup is slowly held out, cold vapour curls off its rim, lamp flames flicker; slow push in. +SUF
+O01 6 the cup passes slowly from hand to hand, lamp flames flicker, silk hangings breathe; slow push in. +SUF
+S002 4 the seated captive lifts the cup and drinks, shoulders heave with thirst, lamp flames flicker; camera slowly drifts right. +SUF
+S003 5 the seated silhouette turns his head slightly toward the interpreter, lamp light flickers; slow dolly in. +SUF
+S004 6 the interpreter leans in and speaks, the captive holding the cup freezes; slow push in, flames flicker. +SUF
+O02 5 the hand slowly withdraws and settles on the sword hilt, lamplight wavers; very slow push in. +SUF
+S005 8 the cup is lowered slowly, a drop of water falls from it, lamp light trembles; very slow push in. +SUF
+S006 7 guards shift their lances, tent cloth breathes in the wind, the captive stays still; slow dolly in. +SUF
+S007 6 oars dip in unison, sails fill with wind, wake trails behind; slow aerial truck along the coast. +SUF
+S008 5 campfires flicker, camels shift, dark riders move in from the edges; slow crane down. +SUF
+S009 6 his cloak moves in the wind, dust blows along the road far below; slow push past his shoulder. +SUF
+O03 6 the caravan plods forward along the road, dust drifts in the low sun; slow aerial drift forward. +SUF
+S010 7 dust drifts in the light shaft, the prisoner slowly lifts his head; very slow dolly in. +SUF
+S011 9 dust clouds roll, distant columns advance; slow aerial push forward. +SUF
+S012 5 banners snap in the wind, horses stamp and toss their heads; slow push past the riders. +SUF
+S013 8 columns of riders cross and wheel, dust rises; slow aerial truck. +SUF
+S014 7 riders plod slowly away into the haze, wind blows sand; slow dolly out. +SUF
+S015 10 the lamp flame sways, its light moves across the leather; very slow push in. +SUF
+S016 9 his cloak lifts in the wind, the last light fades behind him; slow crane up. +SUF
+S017 7 men lift and fit a curved rib, sawdust drifts in the sun; slow crane down. +SUF
+S018 7 hammers strike, a plank is lifted into place; slow truck left. +SUF
+S019 8 camels sway down the pass, dust rises, the gulf glitters ahead; slow aerial push. +SUF
+S020 7 galleys circle slowly, oars dip, waves lap against the rocks; slow truck right. +SUF
+S021 9 the dhow heels in the wind, galleys close in with oars beating; aerial tracking shot. +SUF
+S022 9 heat shimmers, the distant galley slides across the horizon; very slow push in. +SUF
+S023 11 first light spreads over the mountains, dust lifts on the road; slow aerial push along the road. +SUF
+S024 6 sails are hoisted, men haul ropes, water ripples; slow crane down. +SUF
+S025 5 his cloak moves, sails fill, the fleet moves out; slow push past his shoulder. +SUF
+S026 9 galleys surge forward, spray flies; aerial tracking shot. +SUF
+S027 7 men scramble up the rocks, stones tumble; slow tilt up. +SUF
+S028 7 horses climb hard, dust and stones kick up; camera tracks behind them. +SUF
+S029 5 dust settles, riders gather on the ridge; slow aerial pull back. +SUF
+S030 5 the fist tightens, the lamp flame sways; slow dolly in. +SUF
+S031 4 lamplight slides along the scabbard; very slow push in. +SUF
+S032 7 clouds race over the twin peaks, dry grass bends in the wind; slow push in. +SUF
+S033 6 mangonel arms swing, stones fly, smoke drifts; slow truck right. +SUF
+S034 8 riders gallop across the fields, smoke rises; aerial tracking shot. +SUF
+S035 5 the horse walks forward, the gate slowly opens; slow push past the rider. +SUF
+S036 8 camels sway along the road, bells swing; slow aerial truck. +SUF
+S037 11 the caravan winds slowly toward the castle, heat haze shimmers; slow aerial push. +SUF
+S038 7 riders close the ring, fires flare, camels rear; slow push in. +SUF
+S039 5 the heavy door swings shut, dust falls from the frame, torchlight flickers; static camera. +SUF
+S040 6 the shadow stands still, torchlight wavers; very slow dolly in. +SUF
+S041 7 dust drifts in the thin light, the prisoners barely move; slow crane down. +SUF
+S042 9 the horse gallops away, dust trails; camera follows behind. +SUF
+S043 5 wind blows dust past the shut gate, the horse shifts; slow push in. +SUF
+S044 8 his cloak stirs in the wind, the lamp behind him flickers; slow push past his shoulder. +SUF
+S045 6 morning mist drifts off the plateau; slow aerial push toward the hill. +SUF
+S046 9 the columns advance, banners ripple, dust rises; slow aerial crane forward. +SUF
+S047 9 the shadows lean and gesture, flames flicker; slow truck left. +SUF
+S048 7 the raised hand comes down firmly, the commanders stir; slow push in. +SUF
+S049 9 campfires flicker to the horizon, the tent flap moves; slow push past him. +SUF
+S050 6 horses drink, water ripples, banners hang limp; slow crane down. +SUF
+S051 7 flames leap, ladders rise against the wall; slow push in. +SUF
+S052 4 smoke drifts, water laps the shore; slow truck right. +SUF
+S053 8 grass bends in the wind, a horse tosses its head; slow push past the scouts. +SUF
+S054 9 candle flames flicker, shadows lean in; slow truck right. +SUF
+S055 9 he leans on the table, candles flicker; slow push in. +SUF
+S056 9 the hand presses down, the candle flame bends; very slow push in. +SUF
+S057 4 he stands up, his shadow grows across the canvas; slow dolly in. +SUF
+S058 8 he leans forward aggressively, candles waver; slow push in. +SUF
+S059 6 flames climb and consume the wood, sparks rise; very slow push in. +SUF
+S060 8 the column snakes forward into the dry hills, dust rises; slow aerial truck. +SUF
+S061 5 heat haze ripples, dry grass trembles; slow push in. +SUF
+S062 7 water glints and flows, horses shift; slow push past the riders. +SUF
+S063 7 an empty waterskin is shaken, nothing falls, dust blows; slow dolly in. +SUF
+S064 9 hundreds of fires flicker around the dark centre; slow aerial crane forward. +SUF
+S065 6 dust blows across the empty jars, firelight flickers in the distance; very slow push in. +SUF
+S066 6 he sits still, the distant fires flicker; slow dolly out. +SUF
+S067 9 archers loose together, the arrow cloud rises and darkens the sky; slow tilt up. +SUF
+S068 8 torches touch the grass, flames catch and spread; camera tracks with them. +SUF
+S069 6 fire races forward, smoke billows toward the knights; slow push in. +SUF
+S070 11 smoke swirls, a knight stumbles, heat shimmers; slow dolly in. +SUF
+S071 7 the knights charge forward, dust explodes from hooves; tracking shot. +SUF
+S072 7 the ranks open, riders pour through, the ranks close again; aerial shot. +SUF
+S073 6 men climb the slope wearily, smoke drifts; slow tilt up. +SUF
+S074 6 the red tent cloth snaps in the wind, smoke drifts past; slow push in. +SUF
+S075 5 horses shift, the boy leans forward, wind carries smoke; slow push past them. +SUF
+S076 5 the boy grips the reins tighter, his horse tosses its head; slow push in. +SUF
+S077 6 knights thunder downhill, dust and smoke explode; tracking shot. +SUF
+S078 7 he surges forward, men rally around him; camera follows behind. +SUF
+S079 6 riders fall back up the slope, dust swirls; aerial tracking shot. +SUF
+S080 8 the boy lifts his arm, the red tent still stands in the wind; slow push in. +SUF
+S081 8 the sultan turns his head toward the boy, wind and smoke; near-static, slow push. +SUF
+S082 5 the tent sways and collapses slowly to the ground, smoke rises; static camera. +SUF
+S083 8 smoke drifts across the horizon, the horse lowers its head; very slow push in. +SUF
+S084 7 smoke drifts slowly over the burnt field; slow aerial pull back. +SUF
+S085 6 the lines of captives walk slowly away, dust rises; slow crane up. +SUF
+S086 9 guards lead them forward, the tent flap is drawn open, lamplight spills out; slow push in. +SUF
+S087 10 the king slumps with exhaustion, lamp flames flicker; slow dolly in. +SUF
+S088 7 the cup passes from hand to hand, cold vapour rises; slow push in. +SUF
+S089 5 lamplight moves softly over the tray; very slow push in. +SUF
+S090 8 the captive breathes out, shoulders relax, lamp flames flicker; slow dolly out. +SUF
+S091 5 the silhouette turns slightly, lamplight flickers; slow dolly in. +SUF
+S092 8 the interpreter leans in, the captive with the cup goes still; slow push in. +SUF
+S093 9 lamp flames waver, the standing captive does not move; slow push in. +SUF
+S094 5 the shadow sways slightly with the lamp flame; very slow dolly in. +SUF
+S095 4 his hand tightens on his knee, lamplight flickers; slow push in. +SUF
+S096 7 he rises slowly to full height, lamp flames bend; slow push past his shoulder. +SUF
+S097 11 the tent cloth shudders in the wind, guards stand still, lamplight wavers inside; static camera. +SUF
+S098 6 his shoulders tremble, lamp flames flicker; slow dolly in. +SUF
+S099 7 the hand settles on the shoulder, the king's shoulders ease; very slow push in. +SUF
+S100 7 the lamp flames settle, the two sit still; slow dolly out. +SUF
+S101 6 the lamp flame flickers over the empty carpet; very slow push in. +SUF
+S102 11 the shadows sway gently with the flame; slow truck left. +SUF
+S103 11 the lamp glow pulses softly, the tent breathes in the wind; slow dolly out. +SUF
+S104 6 morning mist drifts across the plain; slow aerial push. +SUF
+S105 8 dawn light slowly moves across the book; very slow push in. +SUF
+S106 9 wind ripples the burnt grass, light rises; slow push in. +SUF
+S107 7 the army advances, dust glows in dawn light; slow aerial crane forward. +SUF
+S108 5 the lamp flames burn low and flicker, the cup stands still; slow dolly in. +SUF
+S109 7 the lamp flame gutters and goes out, the cup remains in the dark; static camera. +SUF
