@@ -1,0 +1,128 @@
+{
+ "slug": "islam-khalid-samples",
+ "note": "عيّنات أصوات فيلم إسلام خالد (2026-11-27) حسب proj/casting.md — بلا توليد كامل",
+ "variants": {
+  "narrator-epic-primary": [
+   {
+    "id": "d_001",
+    "voice": "Algenib",
+    "text": "عَلَى خَيْلِ الْمُشْرِكِينَ كَانَ خَالِدُ بْنُ الْوَلِيدِ… وَالْمُسْلِمُونَ أَمَامَهُ يُصَلُّونَ، فَقَالَ الْمُشْرِكُونَ:",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: an epic battle documentary.\n### DIRECTOR'S NOTES\nStyle: powerful, commanding and epic, with weight and suspense; full chest voice.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "d_003",
+    "voice": "Algenib",
+    "text": "فَهَلْ حَمَلَ خَالِدٌ؟ وَكَيْفَ صَارَ سَيْفًا مِنْ سُيُوفِ اللَّهِ؟",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: an epic battle documentary.\n### DIRECTOR'S NOTES\nStyle: powerful, commanding and epic, with weight and suspense; full chest voice.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   }
+  ],
+  "narrator-epic-alt": [
+   {
+    "id": "d_001",
+    "voice": "Sadaltager",
+    "text": "عَلَى خَيْلِ الْمُشْرِكِينَ كَانَ خَالِدُ بْنُ الْوَلِيدِ… وَالْمُسْلِمُونَ أَمَامَهُ يُصَلُّونَ، فَقَالَ الْمُشْرِكُونَ:",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: an epic battle documentary.\n### DIRECTOR'S NOTES\nStyle: powerful, commanding and epic, with weight and suspense; full chest voice.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "d_003",
+    "voice": "Sadaltager",
+    "text": "فَهَلْ حَمَلَ خَالِدٌ؟ وَكَيْفَ صَارَ سَيْفًا مِنْ سُيُوفِ اللَّهِ؟",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: an epic battle documentary.\n### DIRECTOR'S NOTES\nStyle: powerful, commanding and epic, with weight and suspense; full chest voice.\nPace: natural and brisk, never slow.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   }
+  ],
+  "narrator-reverent-primary": [
+   {
+    "id": "d_044",
+    "voice": "Algenib",
+    "text": "فَقَالَ لَهُ النَّبِيُّ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: الْحَمْدُ لِلَّهِ الَّذِي هَدَاكَ. قَدْ كُنْتُ أَرَى لَكَ عَقْلًا، رَجَوْتُ أَلَّا يُسْلِمَكَ إِلَّا إِلَى خَيْرْ.",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: in the city, news of the fallen is told to the people.\n### DIRECTOR'S NOTES\nStyle: calm, reverent and dignified; a soft, steady voice with no emotion, no crying and no drama.\nPace: measured and unhurried.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   }
+  ],
+  "narrator-reverent-alt": [
+   {
+    "id": "d_044",
+    "voice": "Sadaltager",
+    "text": "فَقَالَ لَهُ النَّبِيُّ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ: الْحَمْدُ لِلَّهِ الَّذِي هَدَاكَ. قَدْ كُنْتُ أَرَى لَكَ عَقْلًا، رَجَوْتُ أَلَّا يُسْلِمَكَ إِلَّا إِلَى خَيْرْ.",
+    "director": "# AUDIO PROFILE: an Arabic historical documentary narrator with a deep, powerful voice.\n## THE SCENE: in the city, news of the fallen is told to the people.\n### DIRECTOR'S NOTES\nStyle: calm, reverent and dignified; a soft, steady voice with no emotion, no crying and no drama.\nPace: measured and unhurried.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   }
+  ],
+  "khalid-primary": [
+   {
+    "id": "d_010",
+    "voice": "Algieba",
+    "text": "قَدْ شَهِدْتُ هَذِهِ الْمَوَاطِنَ كُلَّهَا عَلَى مُحَمَّدٍ، وَمَا مِنْ مَوْطِنٍ شَهِدْتُهُ إِلَّا انْصَرَفْتُ وَأَنَا أَرَى فِي نَفْسِي أَنِّي مُوضِعٌ فِي غَيْرِ شَيْءٍ، وَأَنَّ مُحَمَّدًا سَيَظْهَرْ.",
+    "director": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "d_035",
+    "voice": "Algieba",
+    "text": "وَاللَّهِ لَقَدِ اسْتَقَامَ الْمَنْسِمُ، وَإِنَّ الرَّجُلَ لَنَبِيٌّ! أَذْهَبُ وَاللَّهِ أُسْلِمُ… فَحَتَّى مَتَى؟",
+    "director": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   }
+  ],
+  "khalid-alt": [
+   {
+    "id": "d_010",
+    "voice": "Iapetus",
+    "text": "قَدْ شَهِدْتُ هَذِهِ الْمَوَاطِنَ كُلَّهَا عَلَى مُحَمَّدٍ، وَمَا مِنْ مَوْطِنٍ شَهِدْتُهُ إِلَّا انْصَرَفْتُ وَأَنَا أَرَى فِي نَفْسِي أَنِّي مُوضِعٌ فِي غَيْرِ شَيْءٍ، وَأَنَّ مُحَمَّدًا سَيَظْهَرْ.",
+    "director": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "d_035",
+    "voice": "Iapetus",
+    "text": "وَاللَّهِ لَقَدِ اسْتَقَامَ الْمَنْسِمُ، وَإِنَّ الرَّجُلَ لَنَبِيٌّ! أَذْهَبُ وَاللَّهِ أُسْلِمُ… فَحَتَّى مَتَى؟",
+    "director": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   }
+  ],
+  "amr-primary": [
+   {
+    "id": "d_034",
+    "voice": "Charon",
+    "text": "أَيْنَ يَا أَبَا سُلَيْمَانَ؟",
+    "director": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "d_037",
+    "voice": "Charon",
+    "text": "وَاللَّهِ مَا جِئْتُ إِلَّا لِأُسْلِمَ.",
+    "director": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "d_048",
+    "voice": "Charon",
+    "text": "يَا رَسُولَ اللَّهِ، إِنِّي أُبَايِعُكَ عَلَى أَنْ تَغْفِرَ لِي مَا تَقَدَّمَ مِنْ ذَنْبِي.",
+    "director": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   }
+  ],
+  "walid-primary": [
+   {
+    "id": "d_020",
+    "voice": "Umbriel",
+    "text": "لَمْ أَرَ أَعْجَبَ مِنْ ذَهَابِ رَأْيِكَ عَنِ الْإِسْلَامِ! وَعَقْلُكَ عَقْلُكَ! وَقَدْ سَأَلَنِي النَّبِيُّ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ عَنْكَ، وَقَالَ: أَيْنَ خَالِدٌ؟ فَقُلْتُ: يَأْتِي اللَّهُ بِهِ.",
+    "director": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   }
+  ],
+  "najashi-primary": [
+   {
+    "id": "d_029",
+    "voice": "Rasalgethi",
+    "text": "يَا عَمْرُو، تَسْأَلُنِي أَنْ أُعْطِيَكَ رَسُولَ مَنْ يَأْتِيهِ النَّامُوسُ الْأَكْبَرُ، الَّذِي كَانَ يَأْتِي مُوسَى وَعِيسَى، لِتَقْتُلَهُ؟!",
+    "director": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   },
+   {
+    "id": "d_031",
+    "voice": "Rasalgethi",
+    "text": "فَأَطِعْنِي وَاتَّبِعْهُ، فَوَاللَّهِ إِنَّهُ لَعَلَى الْحَقِّ.",
+    "director": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   }
+  ],
+  "quraysh-primary": [
+   {
+    "id": "d_002",
+    "voice": "Fenrir",
+    "text": "لَقَدْ أَصَبْنَا غِرَّةً… لَقَدْ أَصَبْنَا غَفْلَةً! لَوْ كُنَّا حَمَلْنَا عَلَيْهِمْ وَهُمْ فِي الصَّلَاةِ!",
+    "director": "# AUDIO PROFILE: a grave Arabic voice reading the recorded words of an early Muslim companion.\n## THE SCENE: a historical documentary quotes an eyewitness.\n### DIRECTOR'S NOTES\nStyle: firm, sincere and dignified; read the words exactly, no acting, no theatrical emotion.\nPace: natural.\nLanguage: clear classical Arabic (fusha), every case ending exactly as voweled.\nRead ONLY the transcript below. Do not read these notes aloud."
+   }
+  ]
+ }
+}
