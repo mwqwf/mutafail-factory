@@ -1,0 +1,1748 @@
+[
+ {
+  "id": "S001",
+  "subject": "Extreme close shot of a silver cup beaded with frost and melting ice, held out in a hand inside a silk pavilion tent at night, a seated captive in dusty plain mail seen from behind beyond it",
+  "size": "close",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "the frosted cup is slowly held out, cold vapour curls off its rim, lamp flames flicker; slow push in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_001"
+  ],
+  "file": "S001.jpg",
+  "tr": "fade"
+ },
+ {
+  "subject": "Silhouette of the sultan seen from behind seated on cushions in a silk pavilion at night, his arm extended passing a silver cup toward a seated captive in plain mail, brass oil lamps glowing between them",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "video_prompt": "the cup passes slowly from hand to hand, lamp flames flicker, silk hangings breathe; slow push in",
+  "id": "O01",
+  "kind": "live",
+  "blocks": [
+   "d_001_2"
+  ],
+  "file": "O01.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S002",
+  "subject": "A captive Frankish king in dusty plain mail seen from behind, seated on a carpet, raising the silver cup to drink, another captive seated behind him in shadow, lamplight",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "the seated captive lifts the cup and drinks, shoulders heave with thirst, lamp flames flicker; camera slowly drifts right",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_001_3"
+  ],
+  "file": "S002.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S003",
+  "subject": "Silhouette of the sultan seated at the head of the pavilion tent, backlit by brass oil lamps, face lost in deep shadow, a standing interpreter seen from behind beside him",
+  "size": "medium",
+  "angle": "low",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "the seated silhouette turns his head slightly toward the interpreter, lamp light flickers; slow dolly in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_002"
+  ],
+  "file": "S003.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S004",
+  "subject": "Over-the-shoulder from behind an interpreter leaning toward a seated captive in plain mail, inside the lamplit pavilion, the silver cup now in the second captive's hands",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "the interpreter leans in and speaks, the captive holding the cup freezes; slow push in, flames flicker",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_003"
+  ],
+  "file": "S004.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "subject": "Close detail of the sultan's hand in a dark embroidered sleeve withdrawing from the cup and coming to rest on the hilt of a sheathed straight sword lying on the carpet, lamplight",
+  "size": "detail",
+  "angle": "high",
+  "light": "night",
+  "emotion": "revelation",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "video_prompt": "the hand slowly withdraws and settles on the sword hilt, lamplight wavers; very slow push in",
+  "id": "O02",
+  "kind": "live",
+  "blocks": [
+   "d_003_2"
+  ],
+  "file": "O02.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S005",
+  "subject": "Close shot of the second captive's hands in plain mail gauntlets lowering the empty silver cup, ice melting on the carpet, face out of frame",
+  "size": "close",
+  "angle": "high",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "the cup is lowered slowly, a drop of water falls from it, lamp light trembles; very slow push in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_004"
+  ],
+  "file": "S005.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S006",
+  "subject": "A tall captive knight in plain dusty mail seen from behind standing alone in the dark pavilion entrance, guards seen from behind with lances at either side, lamplit",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "guards shift their lances, tent cloth breathes in the wind, the captive stays still; slow dolly in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_004_2"
+  ],
+  "file": "S006.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S007",
+  "subject": "Wooden galleys with plain sails sailing south along the barren Red Sea coast of Arabia at dawn, desert mountains, very clear blue water",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "dawn",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "oars dip in unison, sails fill with wind, wake trails behind; slow aerial truck along the coast",
+  "era": "12th-century Red Sea: wooden lateen-sailed galleys and small Arab merchant dhows, plain undyed sails without any emblem",
+  "blocks": [
+   "d_005"
+  ],
+  "file": "S007.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S008",
+  "subject": "A long merchant camel caravan resting by campfires at night beneath a stone castle on a hill, riders in plain mail seen at distance emerging from darkness around it",
+  "size": "wide",
+  "angle": "high",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "campfires flicker, camels shift, dark riders move in from the edges; slow crane down",
+  "era": "late 12th-century crusader-era stone castle architecture, plain walls without any emblem",
+  "blocks": [
+   "d_005_2"
+  ],
+  "file": "S008.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S009",
+  "subject": "The great stone castle of Kerak on its steep mountain spur at sunset, a lone knight in plain mail seen from behind on the battlements looking over the caravan road",
+  "size": "wide",
+  "angle": "over",
+  "light": "golden",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "his cloak moves in the wind, dust blows along the road far below; slow push past his shoulder",
+  "era": "late 12th-century crusader-era stone castle architecture, plain walls without any emblem",
+  "blocks": [
+   "d_006"
+  ],
+  "file": "S009.jpg",
+  "tr": "fade"
+ },
+ {
+  "subject": "A long camel caravan winding along a desert road through rocky hills at dusk, a distant stone castle watching from a mountain spur above it",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "golden",
+  "emotion": "journey",
+  "era": "late 12th-century merchant caravan: camels with bales and bundles, drivers in plain robes and head cloths; crusader-era stone castle with plain walls",
+  "video_prompt": "the caravan plods forward along the road, dust drifts in the low sun; slow aerial drift forward",
+  "id": "O03",
+  "kind": "live",
+  "blocks": [
+   "d_006_2"
+  ],
+  "file": "O03.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S010",
+  "subject": "A dungeon cell in the citadel of Aleppo, a prisoner in rags seen from behind sitting chained against a stone wall, a single shaft of light from a high slit",
+  "size": "medium",
+  "angle": "high",
+  "light": "interior",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "dust drifts in the light shaft, the prisoner slowly lifts his head; very slow dolly in",
+  "era": "12th-century stone citadel dungeon",
+  "blocks": [
+   "d_007"
+  ],
+  "file": "S010.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S011",
+  "subject": "Open rolling plain of Ramla with dust rising on the horizon, two distant armies approaching each other, plain banners",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "day",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "dust clouds roll, distant columns advance; slow aerial push forward",
+  "blocks": [
+   "d_008"
+  ],
+  "file": "S011.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S012",
+  "subject": "Muslim cavalry ranks seen from behind facing a distant line of Frankish knights in plain mail on the plain of Ramla, plain banners lifting in the wind",
+  "size": "wide",
+  "angle": "over",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "banners snap in the wind, horses stamp and toss their heads; slow push past the riders",
+  "blocks": [
+   "d_008_2"
+  ],
+  "file": "S012.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S013",
+  "subject": "Muslim cavalry squadrons seen from high above in the middle of shifting position, columns crossing each other in confusion on the dusty plain",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "columns of riders cross and wheel, dust rises; slow aerial truck",
+  "blocks": [
+   "d_009"
+  ],
+  "file": "S013.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S014",
+  "subject": "Scattered lone riders seen from behind lost in an empty sandy desert at dusk, broken lances, no road",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "grief",
+  "kind": "live",
+  "video_prompt": "riders plod slowly away into the haze, wind blows sand; slow dolly out",
+  "blocks": [
+   "d_009_2"
+  ],
+  "file": "S014.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S015",
+  "subject": "An inkwell, a reed pen and a closed leather-bound book beside a brass oil lamp on a low wooden desk at night, no writing visible",
+  "size": "detail",
+  "angle": "high",
+  "light": "night",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "the lamp flame sways, its light moves across the leather; very slow push in",
+  "era": "12th-century scholar's study",
+  "blocks": [
+   "d_010"
+  ],
+  "file": "S015.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S016",
+  "subject": "Silhouette of a knight in plain mail seen from behind standing on the castle wall of Kerak at dusk, the vast valley below darkening",
+  "size": "medium",
+  "angle": "low",
+  "light": "golden",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "his cloak lifts in the wind, the last light fades behind him; slow crane up",
+  "era": "late 12th-century crusader-era stone castle architecture, plain walls without any emblem",
+  "blocks": [
+   "d_011"
+  ],
+  "file": "S016.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S017",
+  "subject": "Inside a mountain fortress courtyard, carpenters seen from behind fitting curved timber ribs of a dismantled galley, planks stacked, far from any sea",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "men lift and fit a curved rib, sawdust drifts in the sun; slow crane down",
+  "era": "late 12th-century crusader-era stone castle architecture, plain walls without any emblem",
+  "blocks": [
+   "d_012"
+  ],
+  "file": "S017.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S018",
+  "subject": "Workmen seen from behind hammering plain timber sections of a ship hull inside a stone castle yard, mountains beyond",
+  "size": "medium",
+  "angle": "over",
+  "light": "day",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "hammers strike, a plank is lifted into place; slow truck left",
+  "era": "late 12th-century crusader-era stone castle architecture, plain walls without any emblem",
+  "blocks": [
+   "d_013"
+  ],
+  "file": "S018.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S019",
+  "subject": "A long camel train seen from behind carrying large curved ship hull sections down a desert mountain pass toward a blue gulf",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "golden",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "camels sway down the pass, dust rises, the gulf glitters ahead; slow aerial push",
+  "blocks": [
+   "d_013_2"
+  ],
+  "file": "S019.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S020",
+  "subject": "A small stone fortress on a rocky island in the Gulf of Ayla surrounded by galleys with plain sails, empty clay water jars at its gate",
+  "size": "wide",
+  "angle": "eye",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "galleys circle slowly, oars dip, waves lap against the rocks; slow truck right",
+  "era": "12th-century Red Sea: wooden lateen-sailed galleys and small Arab merchant dhows, plain undyed sails without any emblem",
+  "blocks": [
+   "d_014"
+  ],
+  "file": "S020.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S021",
+  "subject": "Galleys with plain sails chasing a small Arab merchant dhow along a rocky Red Sea coast",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "the dhow heels in the wind, galleys close in with oars beating; aerial tracking shot",
+  "era": "12th-century Red Sea: wooden lateen-sailed galleys and small Arab merchant dhows, plain undyed sails without any emblem",
+  "blocks": [
+   "d_014_2"
+  ],
+  "file": "S021.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S022",
+  "subject": "An empty, crystal-clear Red Sea under a white sun, a single galley with a plain sail far away on the horizon, desert cliffs",
+  "size": "wide",
+  "angle": "eye",
+  "light": "day",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "heat shimmers, the distant galley slides across the horizon; very slow push in",
+  "era": "12th-century Red Sea: wooden lateen-sailed galleys and small Arab merchant dhows, plain undyed sails without any emblem",
+  "blocks": [
+   "d_015"
+  ],
+  "file": "S022.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S023",
+  "subject": "An empty desert road through the black volcanic mountains of the Hijaz at dawn, stretching south toward the horizon, no buildings",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "dawn",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "first light spreads over the mountains, dust lifts on the road; slow aerial push along the road",
+  "blocks": [
+   "d_016"
+  ],
+  "file": "S023.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S024",
+  "subject": "An Egyptian harbour on the Nile delta: shipwrights seen from behind readying a fleet of galleys with plain white sails",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "sails are hoisted, men haul ropes, water ripples; slow crane down",
+  "era": "12th-century Red Sea: wooden lateen-sailed galleys and small Arab merchant dhows, plain undyed sails without any emblem",
+  "blocks": [
+   "d_017"
+  ],
+  "file": "S024.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S025",
+  "subject": "A naval commander seen from behind in a turban and mail on the deck of a lead galley, the white-sailed fleet behind him",
+  "size": "medium",
+  "angle": "over",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "his cloak moves, sails fill, the fleet moves out; slow push past his shoulder",
+  "era": "12th-century Red Sea: wooden lateen-sailed galleys and small Arab merchant dhows, plain undyed sails without any emblem",
+  "blocks": [
+   "d_017_2"
+  ],
+  "file": "S025.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S026",
+  "subject": "A fleet of white-sailed galleys swooping on dark galleys anchored near a rocky coast, oars churning",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "galleys surge forward, spray flies; aerial tracking shot",
+  "era": "12th-century Red Sea: wooden lateen-sailed galleys and small Arab merchant dhows, plain undyed sails without any emblem",
+  "blocks": [
+   "d_018"
+  ],
+  "file": "S026.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S027",
+  "subject": "Men in plain mail seen from behind abandoning beached galleys and climbing into narrow rocky mountain ravines",
+  "size": "wide",
+  "angle": "eye",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "men scramble up the rocks, stones tumble; slow tilt up",
+  "blocks": [
+   "d_018_2"
+  ],
+  "file": "S027.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S028",
+  "subject": "Riders seen from behind on Arabian horses climbing a steep rocky ravine in the Hijaz mountains, dust in the sun",
+  "size": "wide",
+  "angle": "low",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "horses climb hard, dust and stones kick up; camera tracks behind them",
+  "blocks": [
+   "d_019"
+  ],
+  "file": "S028.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S029",
+  "subject": "Distant view of a ravine where the pursuit ends, riders at distance on the ridge, captives at distance below, dust settling",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "golden",
+  "emotion": "aftermath",
+  "kind": "live",
+  "video_prompt": "dust settles, riders gather on the ridge; slow aerial pull back",
+  "blocks": [
+   "d_019_2"
+  ],
+  "file": "S029.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S030",
+  "subject": "Silhouette of the sultan seated alone in his tent at night, one hand closed into a fist on his knee, a letter on the carpet, lamp light",
+  "size": "medium",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "the fist tightens, the lamp flame sways; slow dolly in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_020"
+  ],
+  "file": "S030.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S031",
+  "subject": "Close shot of a straight sword in a dark leather scabbard with a short down-curved guard, laid on a carpet beside a brass oil lamp in the dark tent",
+  "size": "detail",
+  "angle": "high",
+  "light": "night",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "lamplight slides along the scabbard; very slow push in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_020_2"
+  ],
+  "file": "S031.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S032",
+  "subject": "A dark twin-peaked hill above a dry plateau at dusk, storm light, empty of people",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "clouds race over the twin peaks, dry grass bends in the wind; slow push in",
+  "blocks": [
+   "d_021"
+  ],
+  "file": "S032.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S033",
+  "subject": "Siege of the castle of Kerak: mangonels seen from behind hurling stones, smoke rising against the walls",
+  "size": "wide",
+  "angle": "over",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "mangonel arms swing, stones fly, smoke drifts; slow truck right",
+  "era": "late 12th-century crusader-era stone castle architecture, plain walls without any emblem",
+  "blocks": [
+   "d_022"
+  ],
+  "file": "S033.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S034",
+  "subject": "Muslim horsemen at distance raiding across farmland below a castle, dust and smoke from burning fields",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "riders gallop across the fields, smoke rises; aerial tracking shot",
+  "blocks": [
+   "d_022_2"
+  ],
+  "file": "S034.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S035",
+  "subject": "A messenger seen from behind on horseback carrying a sealed letter rolled in leather toward the castle gate",
+  "size": "medium",
+  "angle": "over",
+  "light": "day",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "the horse walks forward, the gate slowly opens; slow push past the rider",
+  "era": "late 12th-century crusader-era stone castle architecture, plain walls without any emblem",
+  "blocks": [
+   "d_023"
+  ],
+  "file": "S035.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S036",
+  "subject": "A peaceful camel caravan seen from behind travelling along the desert road between Egypt and Syria in golden light",
+  "size": "wide",
+  "angle": "high",
+  "light": "golden",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "camels sway along the road, bells swing; slow aerial truck",
+  "era": "12th-century Levant trade caravan: laden camels with bales and chests, merchants in plain robes and turbans, no soldiers",
+  "blocks": [
+   "d_023_2"
+  ],
+  "file": "S036.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S037",
+  "subject": "A huge rich caravan: hundreds of laden camels and many riders seen from behind under a blazing desert sun, a stone castle in the distance",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "day",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "the caravan winds slowly toward the castle, heat haze shimmers; slow aerial push",
+  "era": "12th-century Levant trade caravan: laden camels with bales and chests, merchants in plain robes and turbans, no soldiers",
+  "blocks": [
+   "d_024"
+  ],
+  "file": "S037.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S038",
+  "subject": "Night: knights in plain mail seen from behind surrounding a caravan camp by its campfires, merchants at distance raising their hands",
+  "size": "wide",
+  "angle": "over",
+  "light": "night",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "riders close the ring, fires flare, camels rear; slow push in",
+  "blocks": [
+   "d_025"
+  ],
+  "file": "S038.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S039",
+  "subject": "A heavy iron-bound door of an underground dungeon slamming shut in a dark stone corridor, torchlight",
+  "size": "detail",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "the heavy door swings shut, dust falls from the frame, torchlight flickers; static camera",
+  "era": "late 12th-century crusader-era stone castle architecture, plain walls without any emblem",
+  "blocks": [
+   "d_025_2"
+  ],
+  "file": "S039.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S040",
+  "subject": "The tall shadow of a knight thrown across a rough stone dungeon wall by torchlight, no person visible, only the shadow",
+  "size": "medium",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "the shadow stands still, torchlight wavers; very slow dolly in",
+  "era": "late 12th-century crusader-era stone castle architecture, plain walls without any emblem",
+  "blocks": [
+   "d_026"
+  ],
+  "file": "S040.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S041",
+  "subject": "Prisoners seen from behind sitting in a cramped dark underground pit, a grate high above letting in thin light",
+  "size": "wide",
+  "angle": "high",
+  "light": "interior",
+  "emotion": "grief",
+  "kind": "live",
+  "video_prompt": "dust drifts in the thin light, the prisoners barely move; slow crane down",
+  "era": "late 12th-century crusader-era stone castle architecture, plain walls without any emblem",
+  "blocks": [
+   "d_026_2"
+  ],
+  "file": "S041.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S042",
+  "subject": "A rider seen from behind galloping away from the sultan's camp toward a distant castle with a letter, dust behind him",
+  "size": "wide",
+  "angle": "over",
+  "light": "golden",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "the horse gallops away, dust trails; camera follows behind",
+  "blocks": [
+   "d_027"
+  ],
+  "file": "S042.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S043",
+  "subject": "The closed gate of the castle of Kerak at dusk, the messenger seen from behind waiting outside alone, the gate staying shut",
+  "size": "medium",
+  "angle": "low",
+  "light": "golden",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "wind blows dust past the shut gate, the horse shifts; slow push in",
+  "era": "late 12th-century crusader-era stone castle architecture, plain walls without any emblem",
+  "blocks": [
+   "d_027_2"
+  ],
+  "file": "S043.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S044",
+  "subject": "Silhouette of the sultan standing at the open entrance of his tent at night, looking toward a distant castle on a hill, lamplit interior behind him",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "his cloak stirs in the wind, the lamp behind him flickers; slow push past his shoulder",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_028"
+  ],
+  "file": "S044.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S045",
+  "subject": "The twin-peaked Horns of Hattin above the plateau and the distant glint of the Sea of Galilee at dawn, empty and silent",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "dawn",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "morning mist drifts off the plateau; slow aerial push toward the hill",
+  "blocks": [
+   "d_029"
+  ],
+  "file": "S045.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S046",
+  "subject": "A vast Ayyubid army seen from behind crossing the Hauran plateau, thousands of horsemen, plain coloured banners without symbols",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "day",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "the columns advance, banners ripple, dust rises; slow aerial crane forward",
+  "blocks": [
+   "d_030"
+  ],
+  "file": "S046.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S047",
+  "subject": "War council: shadows of seated commanders cast on the silk wall of a great tent, lamplit, their figures hidden",
+  "size": "medium",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "the shadows lean and gesture, flames flicker; slow truck left",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_031"
+  ],
+  "file": "S047.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S048",
+  "subject": "Silhouette of the sultan seen from behind standing before his seated commanders in the lamplit war tent, his hand raised",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "the raised hand comes down firmly, the commanders stir; slow push in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_032"
+  ],
+  "file": "S048.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S049",
+  "subject": "The sultan's silhouette seen from behind at the tent entrance looking out over the endless campfires of his army at night",
+  "size": "wide",
+  "angle": "over",
+  "light": "night",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "campfires flicker to the horizon, the tent flap moves; slow push past him",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_032_2"
+  ],
+  "file": "S049.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S050",
+  "subject": "A Frankish army camp with plain tents among green trees and springs at Saffuriya, knights in plain mail at distance watering horses",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "horses drink, water ripples, banners hang limp; slow crane down",
+  "blocks": [
+   "d_033"
+  ],
+  "file": "S050.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S051",
+  "subject": "The walls of Tiberias on the lake shore at night, fires inside the town, Muslim soldiers seen from behind scaling the walls",
+  "size": "wide",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "flames leap, ladders rise against the wall; slow push in",
+  "era": "late 12th-century crusader-era stone castle architecture, plain walls without any emblem",
+  "blocks": [
+   "d_033_2"
+  ],
+  "file": "S051.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S052",
+  "subject": "The citadel of Tiberias by the lake at dawn with a thin column of smoke, the lake calm",
+  "size": "wide",
+  "angle": "eye",
+  "light": "dawn",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "smoke drifts, water laps the shore; slow truck right",
+  "era": "late 12th-century crusader-era stone castle architecture, plain walls without any emblem",
+  "blocks": [
+   "d_034"
+  ],
+  "file": "S052.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S053",
+  "subject": "Muslim scouts seen from behind on a ridge watching the distant green Frankish camp, waiting",
+  "size": "medium",
+  "angle": "over",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "grass bends in the wind, a horse tosses its head; slow push past the scouts",
+  "blocks": [
+   "d_034_2"
+  ],
+  "file": "S053.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S054",
+  "subject": "Frankish council in a plain tent: shadows of knights around a wooden table lit by candles, faces hidden",
+  "size": "medium",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "candle flames flicker, shadows lean in; slow truck right",
+  "era": "12th-century Frankish camp tent: plain canvas, wooden table, candles",
+  "blocks": [
+   "d_035"
+  ],
+  "file": "S054.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S055",
+  "subject": "An old grey-haired Frankish count seen from behind standing at the council table, his hand on the table, other knights in shadow",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "he leans on the table, candles flicker; slow push in",
+  "era": "12th-century Frankish camp tent: plain canvas, wooden table, candles",
+  "blocks": [
+   "d_036"
+  ],
+  "file": "S055.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S056",
+  "subject": "Close shot of an old man's hand pressing on a wooden table, a plain sword hilt beside it, candlelight",
+  "size": "detail",
+  "angle": "high",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "the hand presses down, the candle flame bends; very slow push in",
+  "era": "12th-century Frankish camp tent",
+  "blocks": [
+   "d_036_2"
+  ],
+  "file": "S056.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S057",
+  "subject": "A tall knight in plain mail seen from behind rising to his feet at the council table, his shadow thrown large on the tent canvas",
+  "size": "medium",
+  "angle": "low",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "he stands up, his shadow grows across the canvas; slow dolly in",
+  "era": "12th-century Frankish camp tent: plain canvas, wooden table, candles",
+  "blocks": [
+   "d_037"
+  ],
+  "file": "S057.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S058",
+  "subject": "The same tall knight seen from behind leaning over the council table toward the old count, candles between them",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "he leans forward aggressively, candles waver; slow push in",
+  "era": "12th-century Frankish camp tent",
+  "blocks": [
+   "d_038"
+  ],
+  "file": "S058.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S059",
+  "subject": "Extreme close shot of glowing embers devouring a heap of dry firewood in the dark",
+  "size": "detail",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "flames climb and consume the wood, sparks rise; very slow push in",
+  "blocks": [
+   "d_038_2"
+  ],
+  "file": "S059.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S060",
+  "subject": "A long Frankish army column in plain mail seen from behind marching out of the green spring camp into dry bare hills",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "day",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "the column snakes forward into the dry hills, dust rises; slow aerial truck",
+  "blocks": [
+   "d_039"
+  ],
+  "file": "S060.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S061",
+  "subject": "A barren rocky plateau under a merciless July sun, heat haze, dry yellow grass, no shade",
+  "size": "wide",
+  "angle": "eye",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "heat haze ripples, dry grass trembles; slow push in",
+  "blocks": [
+   "d_040"
+  ],
+  "file": "S061.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S062",
+  "subject": "Muslim horsemen seen from behind guarding a stream and springs below the plateau, the water glinting",
+  "size": "wide",
+  "angle": "over",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "water glints and flows, horses shift; slow push past the riders",
+  "blocks": [
+   "d_040_2"
+  ],
+  "file": "S062.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S063",
+  "subject": "Frankish soldiers in plain mail seen from behind turning empty leather waterskins upside down on the dry plateau",
+  "size": "medium",
+  "angle": "over",
+  "light": "day",
+  "emotion": "grief",
+  "kind": "live",
+  "video_prompt": "an empty waterskin is shaken, nothing falls, dust blows; slow dolly in",
+  "blocks": [
+   "d_041"
+  ],
+  "file": "S063.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S064",
+  "subject": "Night: a ring of Muslim campfires surrounding a dark plateau, the Frankish camp dark in the middle",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "hundreds of fires flicker around the dark centre; slow aerial crane forward",
+  "blocks": [
+   "d_041_2"
+  ],
+  "file": "S064.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S065",
+  "subject": "Close shot of empty clay water jars lying tipped over on dry ground beside a plain kite shield at night",
+  "size": "detail",
+  "angle": "high",
+  "light": "night",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "dust blows across the empty jars, firelight flickers in the distance; very slow push in",
+  "blocks": [
+   "d_042"
+  ],
+  "file": "S065.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S066",
+  "subject": "A knight in plain mail seen from behind sitting alone on a rock on the dark plateau, distant fires all around",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "grief",
+  "kind": "live",
+  "video_prompt": "he sits still, the distant fires flicker; slow dolly out",
+  "blocks": [
+   "d_042_2"
+  ],
+  "file": "S066.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S067",
+  "subject": "Dawn: a dense cloud of arrows rising like a swarm of locusts over the plateau, archers seen from behind in the foreground",
+  "size": "wide",
+  "angle": "low",
+  "light": "dawn",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "archers loose together, the arrow cloud rises and darkens the sky; slow tilt up",
+  "blocks": [
+   "d_043"
+  ],
+  "file": "S067.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S068",
+  "subject": "Muslim volunteers seen from behind setting fire to the dry grass with torches at the edge of the plateau",
+  "size": "medium",
+  "angle": "over",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "torches touch the grass, flames catch and spread; camera tracks with them",
+  "blocks": [
+   "d_044"
+  ],
+  "file": "S068.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S069",
+  "subject": "Wind driving a wall of fire and thick smoke across the dry grass toward a line of Frankish knights in plain mail",
+  "size": "wide",
+  "angle": "eye",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "fire races forward, smoke billows toward the knights; slow push in",
+  "blocks": [
+   "d_044_2"
+  ],
+  "file": "S069.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S070",
+  "subject": "Frankish knights in plain mail seen from behind staggering in thick smoke and heat, the sun a pale disc",
+  "size": "medium",
+  "angle": "over",
+  "light": "day",
+  "emotion": "grief",
+  "kind": "live",
+  "video_prompt": "smoke swirls, a knight stumbles, heat shimmers; slow dolly in",
+  "blocks": [
+   "d_045"
+  ],
+  "file": "S070.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S071",
+  "subject": "A wing of Frankish knights in plain mail charging toward the Muslim right wing on the plateau, dust and smoke",
+  "size": "wide",
+  "angle": "eye",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "the knights charge forward, dust explodes from hooves; tracking shot",
+  "blocks": [
+   "d_046"
+  ],
+  "file": "S071.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S072",
+  "subject": "Muslim ranks seen from behind parting to open a corridor, Frankish riders galloping through and away, the ranks closing behind them",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "the ranks open, riders pour through, the ranks close again; aerial shot",
+  "blocks": [
+   "d_046_2"
+  ],
+  "file": "S072.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S073",
+  "subject": "Remaining Frankish soldiers seen from behind climbing the slope of the twin-peaked hill of Hattin in smoke",
+  "size": "wide",
+  "angle": "low",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "men climb the slope wearily, smoke drifts; slow tilt up",
+  "blocks": [
+   "d_047"
+  ],
+  "file": "S073.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S074",
+  "subject": "A single red pavilion tent pitched on the summit of the twin-peaked hill, smoke around it, no other tents",
+  "size": "wide",
+  "angle": "eye",
+  "light": "day",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "the red tent cloth snaps in the wind, smoke drifts past; slow push in",
+  "blocks": [
+   "d_047_2"
+  ],
+  "file": "S074.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S075",
+  "subject": "Silhouette of the sultan on horseback seen from behind on a rise, a young boy on a smaller horse beside him, the hill with the red tent ahead",
+  "size": "wide",
+  "angle": "over",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "horses shift, the boy leans forward, wind carries smoke; slow push past them",
+  "blocks": [
+   "d_048"
+  ],
+  "file": "S075.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S076",
+  "subject": "Close shot from behind of a teenage boy's shoulders in mail on horseback, gripping the reins, the battle ahead in smoke",
+  "size": "close",
+  "angle": "over",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "the boy grips the reins tighter, his horse tosses its head; slow push in",
+  "blocks": [
+   "d_048_2"
+  ],
+  "file": "S076.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S077",
+  "subject": "Frankish knights in plain mail charging furiously downhill from the twin-peaked hill toward the Muslim lines",
+  "size": "wide",
+  "angle": "low",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "knights thunder downhill, dust and smoke explode; tracking shot",
+  "blocks": [
+   "d_049"
+  ],
+  "file": "S077.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S078",
+  "subject": "Silhouette of the sultan seen from behind spurring his horse forward among his men, sword raised",
+  "size": "medium",
+  "angle": "over",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "he surges forward, men rally around him; camera follows behind",
+  "blocks": [
+   "d_049_2"
+  ],
+  "file": "S078.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S079",
+  "subject": "The Frankish charge broken and pushed back up the slope of the hill, dust and smoke, seen from distance",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "riders fall back up the slope, dust swirls; aerial tracking shot",
+  "blocks": [
+   "d_050"
+  ],
+  "file": "S079.jpg",
+  "tr": "whip"
+ },
+ {
+  "id": "S080",
+  "subject": "The boy on horseback seen from behind raising his arm in joy, the hill with the red tent still standing ahead",
+  "size": "medium",
+  "angle": "over",
+  "light": "day",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "the boy lifts his arm, the red tent still stands in the wind; slow push in",
+  "blocks": [
+   "d_050_2"
+  ],
+  "file": "S080.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S081",
+  "subject": "Silhouette of the sultan on horseback turning toward the boy, both seen from behind, the red tent on the hill beyond",
+  "size": "medium",
+  "angle": "over",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "the sultan turns his head toward the boy, wind and smoke; near-static, slow push",
+  "blocks": [
+   "d_051"
+  ],
+  "file": "S081.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S082",
+  "subject": "The red pavilion tent on the summit of the hill collapsing, its poles falling, cloth billowing down in smoke",
+  "size": "wide",
+  "angle": "eye",
+  "light": "day",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "the tent sways and collapses slowly to the ground, smoke rises; static camera",
+  "blocks": [
+   "d_052"
+  ],
+  "file": "S082.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S083",
+  "subject": "Distant silhouette of a man who has dismounted, bowed in prostration on the horizon of the plateau, his horse beside him, smoke behind",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "smoke drifts across the horizon, the horse lowers its head; very slow push in",
+  "blocks": [
+   "d_053"
+  ],
+  "file": "S083.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S084",
+  "subject": "The battlefield after the battle seen from far above: abandoned plain shields and broken lances on burnt grass, smoke drifting, no bodies",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "golden",
+  "emotion": "aftermath",
+  "kind": "live",
+  "video_prompt": "smoke drifts slowly over the burnt field; slow aerial pull back",
+  "blocks": [
+   "d_054"
+  ],
+  "file": "S084.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S085",
+  "subject": "Long lines of captives in plain mail seen from behind being led away across the plateau by riders, at distance",
+  "size": "wide",
+  "angle": "high",
+  "light": "golden",
+  "emotion": "aftermath",
+  "kind": "live",
+  "video_prompt": "the lines of captives walk slowly away, dust rises; slow crane up",
+  "blocks": [
+   "d_054_2"
+  ],
+  "file": "S085.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S086",
+  "subject": "Captives in dusty plain mail seen from behind being brought to the lamplit entrance of the sultan's great pavilion at night",
+  "size": "wide",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "guards lead them forward, the tent flap is drawn open, lamplight spills out; slow push in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_055"
+  ],
+  "file": "S086.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S087",
+  "subject": "Inside the pavilion: a captive king in dusty plain mail seen from behind seated beside the sultan's shadowed silhouette on cushions",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "the king slumps with exhaustion, lamp flames flicker; slow dolly in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_056"
+  ],
+  "file": "S087.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S088",
+  "subject": "Close shot of a hand passing a frosted silver cup of iced drink to another hand in plain mail, inside the lamplit tent",
+  "size": "close",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "the cup passes from hand to hand, cold vapour rises; slow push in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_056_2"
+  ],
+  "file": "S088.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S089",
+  "subject": "A brass tray with bread, dates and a water ewer offered on a carpet inside a lamplit tent, hands at the edge of frame",
+  "size": "detail",
+  "angle": "high",
+  "light": "night",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "lamplight moves softly over the tray; very slow push in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_057"
+  ],
+  "file": "S089.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S090",
+  "subject": "A seated captive in plain mail seen from behind lowering his head after drinking, safe, a guard's silhouette behind",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "the captive breathes out, shoulders relax, lamp flames flicker; slow dolly out",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_057_2"
+  ],
+  "file": "S090.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S091",
+  "subject": "Silhouette of the sultan seated at the head of the pavilion, turning toward an interpreter seen from behind",
+  "size": "medium",
+  "angle": "low",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "the silhouette turns slightly, lamplight flickers; slow dolly in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_058"
+  ],
+  "file": "S091.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S092",
+  "subject": "Over-the-shoulder from behind the interpreter facing the seated captive king, the second captive behind him holding the empty silver cup",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "the interpreter leans in, the captive with the cup goes still; slow push in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_059"
+  ],
+  "file": "S092.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S093",
+  "subject": "A tall captive knight in plain mail seen from behind standing alone before the seated silhouette of the sultan in a larger lamplit pavilion",
+  "size": "wide",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "lamp flames waver, the standing captive does not move; slow push in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_060"
+  ],
+  "file": "S093.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S094",
+  "subject": "The large shadow of the standing captive knight thrown on the silk wall of the pavilion, lamplit, nobody visible",
+  "size": "medium",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "the shadow sways slightly with the lamp flame; very slow dolly in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_061"
+  ],
+  "file": "S094.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S095",
+  "subject": "Silhouette of the sultan seated, seen from the side in deep shadow, one hand on his knee, face hidden",
+  "size": "close",
+  "angle": "low",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "his hand tightens on his knee, lamplight flickers; slow push in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_062"
+  ],
+  "file": "S095.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S096",
+  "subject": "Silhouette of the sultan rising to his feet in the lamplit pavilion, seen from behind, the standing captive before him",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "he rises slowly to full height, lamp flames bend; slow push past his shoulder",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_063"
+  ],
+  "file": "S096.jpg",
+  "tr": "fadewhite"
+ },
+ {
+  "id": "S097",
+  "subject": "Outside the great pavilion at night: its silk walls shaking in a gust of wind, guards seen from behind at the entrance, lamplight inside",
+  "size": "wide",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "aftermath",
+  "kind": "live",
+  "video_prompt": "the tent cloth shudders in the wind, guards stand still, lamplight wavers inside; static camera",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_064"
+  ],
+  "file": "S097.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S098",
+  "subject": "The captive king in plain mail seen from behind seated, trembling, inside the lamplit tent, alone on the carpet",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "grief",
+  "kind": "live",
+  "video_prompt": "his shoulders tremble, lamp flames flicker; slow dolly in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_065"
+  ],
+  "file": "S098.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S099",
+  "subject": "A hand placed gently on the shoulder of the seated captive king, seen from behind, inside the lamplit pavilion",
+  "size": "close",
+  "angle": "over",
+  "light": "night",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "the hand settles on the shoulder, the king's shoulders ease; very slow push in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_065_2"
+  ],
+  "file": "S099.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S100",
+  "subject": "Two figures seated together seen from behind in the lamplit pavilion, the sultan's silhouette and the captive king, calm",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "the lamp flames settle, the two sit still; slow dolly out",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_066"
+  ],
+  "file": "S100.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S101",
+  "subject": "The empty spot on the carpet where the tall captive had stood, a fallen silver cup beside it, lamplight",
+  "size": "detail",
+  "angle": "high",
+  "light": "night",
+  "emotion": "aftermath",
+  "kind": "live",
+  "video_prompt": "the lamp flame flickers over the empty carpet; very slow push in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_066_2"
+  ],
+  "file": "S101.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S102",
+  "subject": "Two shadows on the silk wall of the pavilion, one seated, one seated beside it, lamplit",
+  "size": "medium",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "the shadows sway gently with the flame; slow truck left",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_067"
+  ],
+  "file": "S102.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S103",
+  "subject": "Exterior of the great pavilion at pre-dawn, a single lamp still glowing inside, the camp quiet",
+  "size": "wide",
+  "angle": "eye",
+  "light": "dawn",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "the lamp glow pulses softly, the tent breathes in the wind; slow dolly out",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_068"
+  ],
+  "file": "S103.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S104",
+  "subject": "The open plain of Ramla at dawn, empty, soft light, the same plain where the armies once met",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "dawn",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "morning mist drifts across the plain; slow aerial push",
+  "blocks": [
+   "d_069"
+  ],
+  "file": "S104.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S105",
+  "subject": "Close shot of the closed leather-bound book and reed pen on the desk at dawn light, no writing visible",
+  "size": "detail",
+  "angle": "high",
+  "light": "dawn",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "dawn light slowly moves across the book; very slow push in",
+  "era": "12th-century scholar's study",
+  "blocks": [
+   "d_069_2"
+  ],
+  "file": "S105.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S106",
+  "subject": "The empty twin-peaked Horns of Hattin at dawn, wind moving over burnt black grass",
+  "size": "wide",
+  "angle": "eye",
+  "light": "dawn",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "wind ripples the burnt grass, light rises; slow push in",
+  "blocks": [
+   "d_070"
+  ],
+  "file": "S106.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S107",
+  "subject": "The stone walls and gates of Jerusalem at dawn seen from a distant hill, an army seen from behind approaching, no domes",
+  "size": "wide",
+  "angle": "over",
+  "light": "dawn",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "the army advances, dust glows in dawn light; slow aerial crane forward",
+  "era": "12th-century Jerusalem city walls and gates only, no domes or towers with symbols",
+  "blocks": [
+   "d_071"
+  ],
+  "file": "S107.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S108",
+  "subject": "The interior of the same silk pavilion, empty, a silver cup standing on the carpet, brass lamps burning low",
+  "size": "medium",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "aftermath",
+  "kind": "live",
+  "video_prompt": "the lamp flames burn low and flicker, the cup stands still; slow dolly in",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_072"
+  ],
+  "file": "S108.jpg",
+  "tr": "fade"
+ },
+ {
+  "id": "S109",
+  "subject": "Extreme close shot of the silver cup on the carpet, the last frost melting, a lamp flame going out behind it",
+  "size": "detail",
+  "angle": "eye",
+  "light": "night",
+  "emotion": "aftermath",
+  "kind": "live",
+  "video_prompt": "the lamp flame gutters and goes out, the cup remains in the dark; static camera",
+  "era": "late 12th-century Ayyubid sultan pavilion interior: patterned silk hangings, carpets, cushions, brass oil lamps",
+  "blocks": [
+   "d_072_2"
+  ],
+  "file": "S109.jpg",
+  "tr": "fade"
+ }
+]
