@@ -1,0 +1,13 @@
+{
+ "_note": "ثبات أصوات السلاسل (أمر المالك 2026-11-27): الشخصية نفسها بالصوت نفسه في كلّ حلقة؛ العدول بـoverride_reason في casting.json للفيلم. أصوات Gemini TTS الرجالية وحدها (tools/casting.py).",
+ "sayf-allah": {
+  "narrator": {"voice": "Algenib", "style": "epic", "since": "mutah (فائز مختبر الأصوات في مؤتة واليمامة)"},
+  "characters": {
+   "khalid": {"name": "خالد بن الوليد", "voice": "Algieba", "since": "mutah (فائز دور الاقتباس على قول خالد «انقطعت في يدي تسعة أسياف»)"},
+   "amr": {"name": "عمرو بن العاص", "voice": "Charon", "since": "islam-khalid 2026-11-27 (يُثبَّت بعد إجازة العيّنة)"},
+   "walid": {"name": "الوليد بن الوليد", "voice": "Umbriel", "since": "islam-khalid 2026-11-27 (يُثبَّت بعد إجازة العيّنة)"},
+   "najashi": {"name": "النجاشي", "voice": "Rasalgethi", "since": "islam-khalid 2026-11-27 (يُثبَّت بعد إجازة العيّنة)"},
+   "quraysh": {"name": "فرسان قريش (جماعة)", "voice": "Fenrir", "since": "islam-khalid 2026-11-27 (يُثبَّت بعد إجازة العيّنة)"}
+  }
+ }
+}
