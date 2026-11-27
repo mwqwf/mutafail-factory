@@ -119,7 +119,7 @@
    "role": "Q",
    "voice": "Charon",
    "text": "الْيَوْمَ أَعْلَمُ: آلسَّاحِرُ أَفْضَلُ أَمِ الرَّاهِبُ أَفْضَلُ؟",
-   "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+   "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nPronunciation: آلسَّاحِرُ begins with a LONG istifham hamza: say 'ā-ssāḥiru' (as if أَاَلسَّاحِرُ), never a short connecting alif 'as-sāḥiru'.\nRead ONLY the transcript below. Do not read these notes aloud.",
    "est_dur": 5.7
   },
   {
@@ -683,11 +683,9 @@
    "est_dur": 5.0
   }
  ],
- "only": [],
- "seed_runs": [
-  45985910668,
-  45992839994
+ "only": [
+  "d_015"
  ],
  "listen_batch": 1,
- "listen_only": true
+ "listen_only": false
 }
