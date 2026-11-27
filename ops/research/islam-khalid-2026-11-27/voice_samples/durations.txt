@@ -1,0 +1,17 @@
+narrator-epic-primary/d_001: 9.110000 ث
+narrator-epic-primary/d_003: 5.850000 ث
+narrator-epic-alt/d_001: 8.610000 ث
+narrator-epic-alt/d_003: 5.400000 ث
+narrator-reverent-primary/d_044: 14.750000 ث
+narrator-reverent-alt/d_044: 12.970000 ث
+khalid-primary/d_010: 15.300000 ث
+khalid-primary/d_035: 10.580000 ث
+khalid-alt/d_010: 18.040000 ث
+khalid-alt/d_035: 9.420000 ث
+amr-primary/d_034: 2.630000 ث
+amr-primary/d_037: 3.480000 ث
+amr-primary/d_048: 7.370000 ث
+walid-primary/d_020: 16.130000 ث
+najashi-primary/d_029: 11.310000 ث
+najashi-primary/d_031: 5.220000 ث
+quraysh-primary/d_002: 8.500000 ث
