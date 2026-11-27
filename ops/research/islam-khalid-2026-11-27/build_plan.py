@@ -163,6 +163,27 @@ for _s in SH:
     if _s['id'] in LIVE_FALLBACK:
         _s['move3d'], _s['energy'], _s['ease'] = LIVE_FALLBACK[_s['id']]
     _s.update(QA_FIX.get(_s['id'], {}))
+# ── إيقاع اللقطات (thrill_gate: المتوسّط 10.4 ث > 6): كل لقطةٍ متعدّدة الكتل طولها ≥ 12 ث تُقسَم لقطةً لكل كتلة
+#    على الصورة نفسها (حقل file) بحركةٍ مختلفة — بلا صور جديدة ولا صوت جديد. الأجزاء kb3d بلا key (الأصل يحمل الأهمية).
+SPLIT_MIN = 12.0
+_out = []
+for _i, _s in enumerate(SH):
+    _len = bt[_s['blocks'][-1]][1] - bt[_s['blocks'][0]][0]
+    if len(_s['blocks']) < 2 or _len < SPLIT_MIN:
+        _out.append(_s); continue
+    _moves = mp.EMOTIONS[_s['emotion']][0]
+    _nxt = SH[_i + 1].get('move3d') if _i + 1 < len(SH) else None
+    _first = dict(_s, blocks=[_s['blocks'][0]]); _out.append(_first)
+    _prev = _first.get('move3d') if _first.get('kind') != 'live' else None
+    for _k, _b in enumerate(_s['blocks'][1:], 1):
+        _last = _k == len(_s['blocks']) - 1
+        _m = next((m for m in _moves if m != _prev and not (_last and m == _nxt)), _moves[0])
+        _sub = {k: v for k, v in _s.items() if k not in ('key', 'hook', 'climax', 'video_prompt', 'qa')}
+        _sub.update(id='%s%s' % (_s['id'], 'bcdefg'[_k - 1]), blocks=[_b], file=_s['id'] + '.jpg', kind='kb3d',
+                    move3d=_m, ease='soft', energy=max(0.8, _s.get('energy', 0.8)), tr='fade')
+        _out.append(_sub); _prev = _m
+SH[:] = _out
+starts = [bt[s['blocks'][0]][0] for s in SH]
 json.dump(SH, open(os.path.join(P, 'shots.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 
 # ── البوّابات ────────────────────────────────────────────────────────────────────────────────────

@@ -127,8 +127,7 @@
  {
   "id": "S08",
   "blocks": [
-   "d_009",
-   "d_010"
+   "d_009"
   ],
   "subject": "A lone rider seen from behind riding away from a dusty field at dusk, a column of riders far ahead of him",
   "size": "wide",
@@ -140,6 +139,23 @@
   "ease": "inout",
   "energy": 0.55,
   "tr": "fade"
+ },
+ {
+  "id": "S08b",
+  "blocks": [
+   "d_010"
+  ],
+  "subject": "A lone rider seen from behind riding away from a dusty field at dusk, a column of riders far ahead of him",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_out",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S08.jpg"
  },
  {
   "id": "S09",
@@ -227,8 +243,7 @@
  {
   "id": "S14",
   "blocks": [
-   "d_016",
-   "d_017"
+   "d_016"
   ],
   "subject": "A man seen from behind standing at the doorway of a Meccan mudbrick house at night, clay oil lamp on a niche, long shadow on the ground",
   "size": "medium",
@@ -240,6 +255,23 @@
   "ease": "soft",
   "energy": 1.15,
   "tr": "fade"
+ },
+ {
+  "id": "S14b",
+  "blocks": [
+   "d_017"
+  ],
+  "subject": "A man seen from behind standing at the doorway of a Meccan mudbrick house at night, clay oil lamp on a niche, long shadow on the ground",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "kb3d",
+  "move3d": "truck_l",
+  "ease": "soft",
+  "energy": 1.15,
+  "tr": "fade",
+  "file": "S14.jpg"
  },
  {
   "id": "S15",
@@ -276,8 +308,7 @@
  {
   "id": "S17",
   "blocks": [
-   "d_019",
-   "d_020"
+   "d_019"
   ],
   "subject": "Close shot of a man's hand holding a folded parchment by an oil lamp, the writing not legible, warm flame light",
   "size": "detail",
@@ -293,10 +324,26 @@
   "qa": "كتابة زائفة: الصورة مموّهة في منطقة الرقّ (images_src/ الأصل)"
  },
  {
+  "id": "S17b",
+  "blocks": [
+   "d_020"
+  ],
+  "subject": "Close shot of a man's hand holding a folded parchment by an oil lamp, the writing not legible, warm flame light",
+  "size": "detail",
+  "angle": "eye",
+  "light": "interior",
+  "emotion": "revelation",
+  "kind": "kb3d",
+  "tr": "fade",
+  "move3d": "dolly_in",
+  "energy": 0.8,
+  "ease": "soft",
+  "file": "S17.jpg"
+ },
+ {
   "id": "S18",
   "blocks": [
-   "d_020",
-   "d_021"
+   "d_020"
   ],
   "subject": "A row of horsemen seen from behind on a ridge with one gap in the line where a rider is missing, an empty space",
   "size": "wide",
@@ -310,10 +357,26 @@
   "tr": "fade"
  },
  {
+  "id": "S18b",
+  "blocks": [
+   "d_021"
+  ],
+  "subject": "A row of horsemen seen from behind on a ridge with one gap in the line where a rider is missing, an empty space",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "grief",
+  "kind": "kb3d",
+  "move3d": "crane_up",
+  "ease": "soft",
+  "energy": 1.3,
+  "tr": "fade",
+  "file": "S18.jpg"
+ },
+ {
   "id": "S19",
   "blocks": [
-   "d_022",
-   "d_023"
+   "d_022"
   ],
   "subject": "The man seen from behind stepping out of the doorway into the moonlit street, lamp left burning behind him",
   "size": "medium",
@@ -327,10 +390,26 @@
   "tr": "fade"
  },
  {
+  "id": "S19b",
+  "blocks": [
+   "d_023"
+  ],
+  "subject": "The man seen from behind stepping out of the doorway into the moonlit street, lamp left burning behind him",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "journey",
+  "kind": "kb3d",
+  "move3d": "truck_l",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S19.jpg"
+ },
+ {
   "id": "S20",
   "blocks": [
-   "d_024",
-   "d_025"
+   "d_024"
   ],
   "subject": "Two men seen from behind sitting at the edge of a dark courtyard at night, one gesturing toward a small rock hollow",
   "size": "medium",
@@ -342,6 +421,23 @@
   "ease": "in",
   "energy": 0.9,
   "tr": "fade"
+ },
+ {
+  "id": "S20b",
+  "blocks": [
+   "d_025"
+  ],
+  "subject": "Two men seen from behind sitting at the edge of a dark courtyard at night, one gesturing toward a small rock hollow",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "kb3d",
+  "move3d": "truck_l",
+  "ease": "soft",
+  "energy": 0.9,
+  "tr": "fade",
+  "file": "S20.jpg"
  },
  {
   "id": "S21",
@@ -412,8 +508,7 @@
  {
   "id": "S25",
   "blocks": [
-   "d_028",
-   "d_029"
+   "d_028"
   ],
   "subject": "A king seen from behind on a carved wooden throne in a dim hall, one raised hand, a visitor kneeling far away in shadow, no religious symbols",
   "size": "medium",
@@ -427,11 +522,26 @@
   "tr": "fade"
  },
  {
+  "id": "S25b",
+  "blocks": [
+   "d_029"
+  ],
+  "subject": "A king seen from behind on a carved wooden throne in a dim hall, one raised hand, a visitor kneeling far away in shadow, no religious symbols",
+  "size": "medium",
+  "angle": "over",
+  "light": "interior",
+  "emotion": "tension",
+  "kind": "kb3d",
+  "move3d": "push_tilt",
+  "ease": "soft",
+  "energy": 0.9,
+  "tr": "fade",
+  "file": "S25.jpg"
+ },
+ {
   "id": "S26",
   "blocks": [
-   "d_030",
-   "d_031",
-   "d_032"
+   "d_030"
   ],
   "subject": "A man seen from behind leaving a palace gate at dusk toward the harbour, his shadow long ahead of him",
   "size": "wide",
@@ -443,6 +553,40 @@
   "ease": "soft",
   "energy": 1.15,
   "tr": "fadewhite"
+ },
+ {
+  "id": "S26b",
+  "blocks": [
+   "d_031"
+  ],
+  "subject": "A man seen from behind leaving a palace gate at dusk toward the harbour, his shadow long ahead of him",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "revelation",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "ease": "soft",
+  "energy": 1.15,
+  "tr": "fade",
+  "file": "S26.jpg"
+ },
+ {
+  "id": "S26c",
+  "blocks": [
+   "d_032"
+  ],
+  "subject": "A man seen from behind leaving a palace gate at dusk toward the harbour, his shadow long ahead of him",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "revelation",
+  "kind": "kb3d",
+  "move3d": "reveal",
+  "ease": "soft",
+  "energy": 1.15,
+  "tr": "fade",
+  "file": "S26.jpg"
  },
  {
   "id": "S27",
@@ -585,9 +729,7 @@
  {
   "id": "S35",
   "blocks": [
-   "d_044",
-   "d_045",
-   "d_046"
+   "d_044"
   ],
   "subject": "The empty palm-leaf mat in the light shaft, a cloaked man seen from behind kneeling before it with bowed head",
   "size": "medium",
@@ -601,11 +743,43 @@
   "tr": "fade"
  },
  {
+  "id": "S35b",
+  "blocks": [
+   "d_045"
+  ],
+  "subject": "The empty palm-leaf mat in the light shaft, a cloaked man seen from behind kneeling before it with bowed head",
+  "size": "medium",
+  "angle": "high",
+  "light": "interior",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S35.jpg"
+ },
+ {
+  "id": "S35c",
+  "blocks": [
+   "d_046"
+  ],
+  "subject": "The empty palm-leaf mat in the light shaft, a cloaked man seen from behind kneeling before it with bowed head",
+  "size": "medium",
+  "angle": "high",
+  "light": "interior",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_out",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S35.jpg"
+ },
+ {
   "id": "S36",
   "blocks": [
-   "d_047",
-   "d_048",
-   "d_049"
+   "d_047"
   ],
   "subject": "Two more men seen from behind waiting their turn in the courtyard shade, palm-trunk pillars, soft dust in the air",
   "size": "medium",
@@ -619,10 +793,43 @@
   "tr": "fade"
  },
  {
+  "id": "S36b",
+  "blocks": [
+   "d_048"
+  ],
+  "subject": "Two more men seen from behind waiting their turn in the courtyard shade, palm-trunk pillars, soft dust in the air",
+  "size": "medium",
+  "angle": "eye",
+  "light": "interior",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_out",
+  "ease": "soft",
+  "energy": 1.1,
+  "tr": "fade",
+  "file": "S36.jpg"
+ },
+ {
+  "id": "S36c",
+  "blocks": [
+   "d_049"
+  ],
+  "subject": "Two more men seen from behind waiting their turn in the courtyard shade, palm-trunk pillars, soft dust in the air",
+  "size": "medium",
+  "angle": "eye",
+  "light": "interior",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "ease": "soft",
+  "energy": 1.1,
+  "tr": "fade",
+  "file": "S36.jpg"
+ },
+ {
   "id": "S37",
   "blocks": [
-   "d_050",
-   "d_051"
+   "d_050"
   ],
   "subject": "The man seen from behind standing among a group of companions also seen from behind in a palm grove, at ease",
   "size": "wide",
@@ -634,6 +841,23 @@
   "ease": "out",
   "energy": 0.8,
   "tr": "fade"
+ },
+ {
+  "id": "S37b",
+  "blocks": [
+   "d_051"
+  ],
+  "subject": "The man seen from behind standing among a group of companions also seen from behind in a palm grove, at ease",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "awe",
+  "kind": "kb3d",
+  "move3d": "reveal",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S37.jpg"
  },
  {
   "id": "S38",
@@ -724,8 +948,7 @@
  {
   "id": "S43",
   "blocks": [
-   "d_057",
-   "d_058"
+   "d_057"
   ],
   "subject": "Mirror of the opening: the same dune ridge and the same veiled rider seen from behind, now in warm dawn light facing the open horizon",
   "size": "wide",
@@ -739,5 +962,22 @@
   "move3d": "dolly_out",
   "energy": 0.9,
   "ease": "out"
+ },
+ {
+  "id": "S43b",
+  "blocks": [
+   "d_058"
+  ],
+  "subject": "Mirror of the opening: the same dune ridge and the same veiled rider seen from behind, now in warm dawn light facing the open horizon",
+  "size": "wide",
+  "angle": "over",
+  "light": "dawn",
+  "emotion": "awe",
+  "kind": "kb3d",
+  "tr": "fade",
+  "move3d": "crane_up",
+  "energy": 0.9,
+  "ease": "soft",
+  "file": "S43.jpg"
  }
 ]
