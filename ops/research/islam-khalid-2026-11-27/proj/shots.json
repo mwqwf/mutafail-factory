@@ -36,6 +36,24 @@
   "ease": "soft"
  },
  {
+  "id": "S02_2",
+  "blocks": [
+   "d_002_2"
+  ],
+  "subject": "A line of Quraysh horsemen seen from behind on the ridge, lances upright, cloaks snapping in the wind, the prayer rows small in the valley",
+  "size": "wide",
+  "angle": "low",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "video_prompt": "cloaks and horse manes move in the wind, riders shift in saddles, camera locked off then a very slow push",
+  "tr": "fade",
+  "move3d": "dolly_in",
+  "energy": 1.2,
+  "ease": "soft",
+  "file": "S02.jpg"
+ },
+ {
   "id": "S03",
   "blocks": [
    "d_003"
@@ -106,10 +124,47 @@
   "ease": "out"
  },
  {
+  "id": "S06_2",
+  "blocks": [
+   "d_006_2"
+  ],
+  "subject": "Two rows of worshippers seen from behind: one row bowing in prayer, the second row standing guard behind them with sheathed swords, no leader visible in frame",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "near-static, only robes stirring in the wind; extremely slow crane up",
+  "tr": "fade",
+  "move3d": "reveal",
+  "energy": 1.15,
+  "ease": "soft",
+  "file": "S06.jpg",
+  "clip": "S06",
+  "clip_ss": 5.1
+ },
+ {
+  "id": "S06_3",
+  "blocks": [
+   "d_006_3"
+  ],
+  "subject": "Two rows of worshippers seen from behind: one row bowing in prayer, the second row standing guard behind them with sheathed swords, no leader visible in frame",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "near-static, only robes stirring in the wind; extremely slow crane up",
+  "tr": "fade",
+  "move3d": "crane_up",
+  "energy": 1.15,
+  "ease": "soft",
+  "file": "S06.jpg"
+ },
+ {
   "id": "S07",
   "blocks": [
-   "d_007",
-   "d_008"
+   "d_007"
   ],
   "subject": "The veiled rider seen from behind on the ridge, shoulders lowered, hand loosening on the reins",
   "size": "medium",
@@ -123,6 +178,24 @@
   "move3d": "dolly_out",
   "energy": 0.8,
   "ease": "inout"
+ },
+ {
+  "id": "S07_2",
+  "blocks": [
+   "d_008"
+  ],
+  "subject": "The veiled rider seen from behind on the ridge, shoulders lowered, hand loosening on the reins",
+  "size": "medium",
+  "angle": "over",
+  "light": "day",
+  "emotion": "aftermath",
+  "kind": "live",
+  "video_prompt": "static frame, only wind in the cloak; a slow breath of the horse",
+  "tr": "fade",
+  "move3d": "crane_up",
+  "energy": 0.8,
+  "ease": "soft",
+  "file": "S07.jpg"
  },
  {
   "id": "S08",
@@ -152,6 +225,57 @@
   "emotion": "reflection",
   "kind": "kb3d",
   "move3d": "dolly_out",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S08.jpg"
+ },
+ {
+  "id": "S08b_2",
+  "blocks": [
+   "d_010_2"
+  ],
+  "subject": "A lone rider seen from behind riding away from a dusty field at dusk, a column of riders far ahead of him",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S08.jpg"
+ },
+ {
+  "id": "S08b_3",
+  "blocks": [
+   "d_010_3"
+  ],
+  "subject": "A lone rider seen from behind riding away from a dusty field at dusk, a column of riders far ahead of him",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_out",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S08.jpg"
+ },
+ {
+  "id": "S08b_4",
+  "blocks": [
+   "d_010_4"
+  ],
+  "subject": "A lone rider seen from behind riding away from a dusty field at dusk, a column of riders far ahead of him",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
   "ease": "soft",
   "energy": 0.8,
   "tr": "fade",
@@ -207,6 +331,40 @@
   "tr": "fade"
  },
  {
+  "id": "S11_2",
+  "blocks": [
+   "d_013_2"
+  ],
+  "subject": "Simple top-down relief map of the road to Hudaybiyya, plain sand texture, one arrow of fine dust curving to the right, no writing",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "day",
+  "emotion": "journey",
+  "kind": "kb3d",
+  "move3d": "truck_r",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S11.jpg"
+ },
+ {
+  "id": "S11_3",
+  "blocks": [
+   "d_013_3"
+  ],
+  "subject": "Simple top-down relief map of the road to Hudaybiyya, plain sand texture, one arrow of fine dust curving to the right, no writing",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "day",
+  "emotion": "journey",
+  "kind": "kb3d",
+  "move3d": "truck_l",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S11.jpg"
+ },
+ {
   "id": "S12",
   "blocks": [
    "d_014"
@@ -224,6 +382,24 @@
   "ease": "soft"
  },
  {
+  "id": "S12_2",
+  "blocks": [
+   "d_014_2"
+  ],
+  "subject": "A rider seen from behind galloping along a valley floor toward distant hills, a wall of dust rising on the horizon behind him",
+  "size": "wide",
+  "angle": "low",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "gallop away from camera, dust kicks up, camera tracks low and steady",
+  "tr": "cut",
+  "move3d": "truck_r",
+  "energy": 1.4,
+  "ease": "soft",
+  "file": "S12.jpg"
+ },
+ {
   "id": "S13",
   "blocks": [
    "d_015"
@@ -239,6 +415,23 @@
   "energy": 0.5,
   "tr": "fade",
   "qa": "أشخاص صغار بعيدون: لا تقريب"
+ },
+ {
+  "id": "S13_2",
+  "blocks": [
+   "d_015_2"
+  ],
+  "subject": "Empty open plain at Hudaybiyya at dusk, an acacia tree alone, a tethered camel resting",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S13.jpg"
  },
  {
   "id": "S14",
@@ -274,9 +467,26 @@
   "file": "S14.jpg"
  },
  {
+  "id": "S14b_2",
+  "blocks": [
+   "d_017_2"
+  ],
+  "subject": "A man seen from behind standing at the doorway of a Meccan mudbrick house at night, clay oil lamp on a niche, long shadow on the ground",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "kb3d",
+  "move3d": "push_tilt",
+  "ease": "soft",
+  "energy": 1.15,
+  "tr": "fade",
+  "file": "S14.jpg"
+ },
+ {
   "id": "S15",
   "blocks": [
-   "d_017"
+   "d_017_3"
   ],
   "subject": "Three dark roads branching from a single point in a moonlit desert, one toward the sea, one north, one back toward a sleeping town",
   "size": "wide",
@@ -288,6 +498,23 @@
   "ease": "inout",
   "energy": 0.55,
   "tr": "fade"
+ },
+ {
+  "id": "S15_2",
+  "blocks": [
+   "d_017_4"
+  ],
+  "subject": "Three dark roads branching from a single point in a moonlit desert, one toward the sea, one north, one back toward a sleeping town",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "night",
+  "emotion": "aftermath",
+  "kind": "kb3d",
+  "move3d": "crane_up",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S15.jpg"
  },
  {
   "id": "S16",
@@ -304,6 +531,23 @@
   "ease": "inout",
   "energy": 0.5,
   "tr": "fade"
+ },
+ {
+  "id": "S16_2",
+  "blocks": [
+   "d_018_2"
+  ],
+  "subject": "Distant view of Mecca's valley of mudbrick houses at dawn, a long column of pilgrims in white entering from the far side, one house's doorway closed and dark in the foreground",
+  "size": "wide",
+  "angle": "high",
+  "light": "dawn",
+  "emotion": "grief",
+  "kind": "kb3d",
+  "move3d": "crane_up",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S16.jpg"
  },
  {
   "id": "S17",
@@ -335,7 +579,7 @@
   "emotion": "revelation",
   "kind": "kb3d",
   "tr": "fade",
-  "move3d": "dolly_in",
+  "move3d": "reveal",
   "energy": 0.8,
   "ease": "soft",
   "file": "S17.jpg"
@@ -343,7 +587,7 @@
  {
   "id": "S18",
   "blocks": [
-   "d_020"
+   "d_020_2"
   ],
   "subject": "A row of horsemen seen from behind on a ridge with one gap in the line where a rider is missing, an empty space",
   "size": "wide",
@@ -357,6 +601,23 @@
   "tr": "fade"
  },
  {
+  "id": "S18_2",
+  "blocks": [
+   "d_020_3"
+  ],
+  "subject": "A row of horsemen seen from behind on a ridge with one gap in the line where a rider is missing, an empty space",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "aftermath",
+  "kind": "kb3d",
+  "move3d": "truck_l",
+  "ease": "soft",
+  "energy": 1.3,
+  "tr": "fade",
+  "file": "S18.jpg"
+ },
+ {
   "id": "S18b",
   "blocks": [
    "d_021"
@@ -368,6 +629,57 @@
   "emotion": "grief",
   "kind": "kb3d",
   "move3d": "crane_up",
+  "ease": "soft",
+  "energy": 1.3,
+  "tr": "fade",
+  "file": "S18.jpg"
+ },
+ {
+  "id": "S18b_2",
+  "blocks": [
+   "d_021_2"
+  ],
+  "subject": "A row of horsemen seen from behind on a ridge with one gap in the line where a rider is missing, an empty space",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "grief",
+  "kind": "kb3d",
+  "move3d": "dolly_out",
+  "ease": "soft",
+  "energy": 1.3,
+  "tr": "fade",
+  "file": "S18.jpg"
+ },
+ {
+  "id": "S18b_3",
+  "blocks": [
+   "d_021_3"
+  ],
+  "subject": "A row of horsemen seen from behind on a ridge with one gap in the line where a rider is missing, an empty space",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "grief",
+  "kind": "kb3d",
+  "move3d": "crane_up",
+  "ease": "soft",
+  "energy": 1.3,
+  "tr": "fade",
+  "file": "S18.jpg"
+ },
+ {
+  "id": "S18b_4",
+  "blocks": [
+   "d_021_4"
+  ],
+  "subject": "A row of horsemen seen from behind on a ridge with one gap in the line where a rider is missing, an empty space",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "grief",
+  "kind": "kb3d",
+  "move3d": "dolly_out",
   "ease": "soft",
   "energy": 1.3,
   "tr": "fade",
@@ -407,6 +719,23 @@
   "file": "S19.jpg"
  },
  {
+  "id": "S19b_2",
+  "blocks": [
+   "d_023_2"
+  ],
+  "subject": "The man seen from behind stepping out of the doorway into the moonlit street, lamp left burning behind him",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "journey",
+  "kind": "kb3d",
+  "move3d": "truck_r",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S19.jpg"
+ },
+ {
   "id": "S20",
   "blocks": [
    "d_024"
@@ -421,6 +750,23 @@
   "ease": "in",
   "energy": 0.9,
   "tr": "fade"
+ },
+ {
+  "id": "S20_2",
+  "blocks": [
+   "d_024_2"
+  ],
+  "subject": "Two men seen from behind sitting at the edge of a dark courtyard at night, one gesturing toward a small rock hollow",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "kb3d",
+  "move3d": "push_tilt",
+  "ease": "soft",
+  "energy": 0.9,
+  "tr": "fade",
+  "file": "S20.jpg"
  },
  {
   "id": "S20b",
@@ -442,7 +788,7 @@
  {
   "id": "S21",
   "blocks": [
-   "d_025"
+   "d_025_2"
   ],
   "subject": "A fox curled inside a narrow rock burrow, water running into the mouth of the burrow",
   "size": "close",
@@ -473,6 +819,60 @@
   "ease": "soft"
  },
  {
+  "id": "S22_2",
+  "blocks": [
+   "d_026_2"
+  ],
+  "subject": "Two camels kneeling saddled in a dark valley before dawn, two cloaked men seen from behind approaching them, stars above",
+  "size": "wide",
+  "angle": "eye",
+  "light": "dawn",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "a camel rises slowly, men walk toward it, stars fade; camera static",
+  "tr": "fade",
+  "move3d": "truck_r",
+  "energy": 1.0,
+  "ease": "soft",
+  "file": "S22.jpg"
+ },
+ {
+  "id": "S22_3",
+  "blocks": [
+   "d_026_3"
+  ],
+  "subject": "Two camels kneeling saddled in a dark valley before dawn, two cloaked men seen from behind approaching them, stars above",
+  "size": "wide",
+  "angle": "eye",
+  "light": "dawn",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "a camel rises slowly, men walk toward it, stars fade; camera static",
+  "tr": "fade",
+  "move3d": "truck_l",
+  "energy": 1.0,
+  "ease": "soft",
+  "file": "S22.jpg"
+ },
+ {
+  "id": "S22_4",
+  "blocks": [
+   "d_026_4"
+  ],
+  "subject": "Two camels kneeling saddled in a dark valley before dawn, two cloaked men seen from behind approaching them, stars above",
+  "size": "wide",
+  "angle": "eye",
+  "light": "dawn",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "a camel rises slowly, men walk toward it, stars fade; camera static",
+  "tr": "fade",
+  "move3d": "dolly_in",
+  "energy": 1.0,
+  "ease": "soft",
+  "file": "S22.jpg"
+ },
+ {
   "id": "S23",
   "blocks": [
    "d_027"
@@ -487,6 +887,40 @@
   "ease": "soft",
   "energy": 0.8,
   "tr": "fade"
+ },
+ {
+  "id": "S23_2",
+  "blocks": [
+   "d_027_2"
+  ],
+  "subject": "The two riders seen from behind on camels in a wide valley at first light, path stretching to the horizon",
+  "size": "wide",
+  "angle": "high",
+  "light": "dawn",
+  "emotion": "journey",
+  "kind": "kb3d",
+  "move3d": "truck_l",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S23.jpg"
+ },
+ {
+  "id": "S23_3",
+  "blocks": [
+   "d_027_3"
+  ],
+  "subject": "The two riders seen from behind on camels in a wide valley at first light, path stretching to the horizon",
+  "size": "wide",
+  "angle": "high",
+  "light": "dawn",
+  "emotion": "journey",
+  "kind": "kb3d",
+  "move3d": "truck_r",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S23.jpg"
  },
  {
   "id": "S24",
@@ -506,9 +940,26 @@
   "qa": "أشخاص صغار بعيدون: لا تقريب"
  },
  {
+  "id": "S24_2",
+  "blocks": [
+   "d_028_2"
+  ],
+  "subject": "An ancient Red Sea harbour in Abyssinia with a wooden ship far off, palms and mudbrick warehouses, seen from a hill",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "journey",
+  "kind": "kb3d",
+  "move3d": "truck_r",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S24.jpg"
+ },
+ {
   "id": "S25",
   "blocks": [
-   "d_028"
+   "d_028_3"
   ],
   "subject": "A king seen from behind on a carved wooden throne in a dim hall, one raised hand, a visitor kneeling far away in shadow, no religious symbols",
   "size": "medium",
@@ -522,6 +973,40 @@
   "tr": "fade"
  },
  {
+  "id": "S25_2",
+  "blocks": [
+   "d_028_4"
+  ],
+  "subject": "A king seen from behind on a carved wooden throne in a dim hall, one raised hand, a visitor kneeling far away in shadow, no religious symbols",
+  "size": "medium",
+  "angle": "over",
+  "light": "interior",
+  "emotion": "tension",
+  "kind": "kb3d",
+  "move3d": "push_tilt",
+  "ease": "soft",
+  "energy": 0.9,
+  "tr": "fade",
+  "file": "S25.jpg"
+ },
+ {
+  "id": "S25_3",
+  "blocks": [
+   "d_028_5"
+  ],
+  "subject": "A king seen from behind on a carved wooden throne in a dim hall, one raised hand, a visitor kneeling far away in shadow, no religious symbols",
+  "size": "medium",
+  "angle": "over",
+  "light": "interior",
+  "emotion": "tension",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "ease": "soft",
+  "energy": 0.9,
+  "tr": "fade",
+  "file": "S25.jpg"
+ },
+ {
   "id": "S25b",
   "blocks": [
    "d_029"
@@ -533,6 +1018,23 @@
   "emotion": "tension",
   "kind": "kb3d",
   "move3d": "push_tilt",
+  "ease": "soft",
+  "energy": 0.9,
+  "tr": "fade",
+  "file": "S25.jpg"
+ },
+ {
+  "id": "S25b_2",
+  "blocks": [
+   "d_029_2"
+  ],
+  "subject": "A king seen from behind on a carved wooden throne in a dim hall, one raised hand, a visitor kneeling far away in shadow, no religious symbols",
+  "size": "medium",
+  "angle": "over",
+  "light": "interior",
+  "emotion": "tension",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
   "ease": "soft",
   "energy": 0.9,
   "tr": "fade",
@@ -589,10 +1091,26 @@
   "file": "S26.jpg"
  },
  {
+  "id": "S26c_2",
+  "blocks": [
+   "d_032_2"
+  ],
+  "subject": "A man seen from behind leaving a palace gate at dusk toward the harbour, his shadow long ahead of him",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "revelation",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "ease": "soft",
+  "energy": 1.15,
+  "tr": "fade",
+  "file": "S26.jpg"
+ },
+ {
   "id": "S27",
   "blocks": [
-   "d_033",
-   "d_034"
+   "d_033"
   ],
   "subject": "Three riders seen from behind meeting at a desert crossroads at dawn, camels and a horse, soft mist",
   "size": "wide",
@@ -605,6 +1123,24 @@
   "move3d": "truck_l",
   "energy": 1.0,
   "ease": "soft"
+ },
+ {
+  "id": "S27_2",
+  "blocks": [
+   "d_034"
+  ],
+  "subject": "Three riders seen from behind meeting at a desert crossroads at dawn, camels and a horse, soft mist",
+  "size": "wide",
+  "angle": "high",
+  "light": "dawn",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "two riders converge from left and right toward a third, slow lateral move",
+  "tr": "fade",
+  "move3d": "truck_r",
+  "energy": 1.0,
+  "ease": "soft",
+  "file": "S27.jpg"
  },
  {
   "id": "S28",
@@ -625,10 +1161,29 @@
   "ease": "out"
  },
  {
+  "id": "S28_2",
+  "blocks": [
+   "d_035_2"
+  ],
+  "subject": "The veiled rider seen from behind lifting his head toward a horizon that bursts with gold light, the path ahead lit",
+  "size": "medium",
+  "angle": "low",
+  "light": "golden",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "slow push toward the horizon as the light grows, cloak lifts in the breeze; camera smooth",
+  "tr": "fade",
+  "move3d": "dolly_in",
+  "energy": 1.2,
+  "ease": "soft",
+  "file": "S28.jpg",
+  "clip": "S28",
+  "clip_ss": 5.11
+ },
+ {
   "id": "S29",
   "blocks": [
-   "d_036",
-   "d_037"
+   "d_036"
   ],
   "subject": "Two riders seen from behind side by side on the lit road, their shadows merging",
   "size": "wide",
@@ -640,6 +1195,23 @@
   "ease": "soft",
   "energy": 0.8,
   "tr": "fade"
+ },
+ {
+  "id": "S29_2",
+  "blocks": [
+   "d_037"
+  ],
+  "subject": "Two riders seen from behind side by side on the lit road, their shadows merging",
+  "size": "wide",
+  "angle": "over",
+  "light": "golden",
+  "emotion": "journey",
+  "kind": "kb3d",
+  "move3d": "truck_l",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S29.jpg"
  },
  {
   "id": "S30",
@@ -676,6 +1248,44 @@
   "ease": "out"
  },
  {
+  "id": "S31_2",
+  "blocks": [
+   "d_039_2"
+  ],
+  "subject": "Three riders seen from behind kneeling their camels on black lava ground outside a palm-filled Medina at golden afternoon, a simple mosque of mudbrick walls and palm-trunk pillars in the distance",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "camels kneel slowly, palms sway, warm light; camera crane down gently",
+  "tr": "fade",
+  "move3d": "crane_up",
+  "energy": 1.2,
+  "ease": "soft",
+  "file": "S31.jpg",
+  "clip": "S31",
+  "clip_ss": 4.57
+ },
+ {
+  "id": "S31_3",
+  "blocks": [
+   "d_039_3"
+  ],
+  "subject": "Three riders seen from behind kneeling their camels on black lava ground outside a palm-filled Medina at golden afternoon, a simple mosque of mudbrick walls and palm-trunk pillars in the distance",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "camels kneel slowly, palms sway, warm light; camera crane down gently",
+  "tr": "fade",
+  "move3d": "reveal",
+  "energy": 1.2,
+  "ease": "soft",
+  "file": "S31.jpg"
+ },
+ {
   "id": "S32",
   "blocks": [
    "d_040"
@@ -694,8 +1304,7 @@
  {
   "id": "S33",
   "blocks": [
-   "d_041",
-   "d_042"
+   "d_041"
   ],
   "subject": "A shaft of golden light on a plain palm-leaf mat in a simple courtyard of palm-trunk pillars; a man seen from behind lowering himself respectfully at its edge",
   "size": "medium",
@@ -709,6 +1318,26 @@
   "move3d": "crane_up",
   "energy": 1.0,
   "ease": "out"
+ },
+ {
+  "id": "S33_2",
+  "blocks": [
+   "d_042"
+  ],
+  "subject": "A shaft of golden light on a plain palm-leaf mat in a simple courtyard of palm-trunk pillars; a man seen from behind lowering himself respectfully at its edge",
+  "size": "medium",
+  "angle": "over",
+  "light": "interior",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "dust motes drift in the light shaft, the man bows his head slowly; camera static",
+  "tr": "fade",
+  "move3d": "reveal",
+  "energy": 1.0,
+  "ease": "soft",
+  "file": "S33.jpg",
+  "clip": "S33",
+  "clip_ss": 4.52
  },
  {
   "id": "S34",
@@ -727,6 +1356,40 @@
   "tr": "fadewhite"
  },
  {
+  "id": "S34_2",
+  "blocks": [
+   "d_043_2"
+  ],
+  "subject": "Close shot of a man's right hand extended forward in pledge, seen from behind his shoulder, warm light",
+  "size": "close",
+  "angle": "over",
+  "light": "interior",
+  "emotion": "revelation",
+  "kind": "kb3d",
+  "move3d": "reveal",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S34.jpg"
+ },
+ {
+  "id": "S34_3",
+  "blocks": [
+   "d_043_3"
+  ],
+  "subject": "Close shot of a man's right hand extended forward in pledge, seen from behind his shoulder, warm light",
+  "size": "close",
+  "angle": "over",
+  "light": "interior",
+  "emotion": "revelation",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S34.jpg"
+ },
+ {
   "id": "S35",
   "blocks": [
    "d_044"
@@ -741,6 +1404,40 @@
   "ease": "inout",
   "energy": 0.55,
   "tr": "fade"
+ },
+ {
+  "id": "S35_2",
+  "blocks": [
+   "d_044_2"
+  ],
+  "subject": "The empty palm-leaf mat in the light shaft, a cloaked man seen from behind kneeling before it with bowed head",
+  "size": "medium",
+  "angle": "high",
+  "light": "interior",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S35.jpg"
+ },
+ {
+  "id": "S35_3",
+  "blocks": [
+   "d_044_3"
+  ],
+  "subject": "The empty palm-leaf mat in the light shaft, a cloaked man seen from behind kneeling before it with bowed head",
+  "size": "medium",
+  "angle": "high",
+  "light": "interior",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_out",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S35.jpg"
  },
  {
   "id": "S35b",
@@ -777,6 +1474,40 @@
   "file": "S35.jpg"
  },
  {
+  "id": "S35c_2",
+  "blocks": [
+   "d_046_2"
+  ],
+  "subject": "The empty palm-leaf mat in the light shaft, a cloaked man seen from behind kneeling before it with bowed head",
+  "size": "medium",
+  "angle": "high",
+  "light": "interior",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S35.jpg"
+ },
+ {
+  "id": "S35c_3",
+  "blocks": [
+   "d_046_3"
+  ],
+  "subject": "The empty palm-leaf mat in the light shaft, a cloaked man seen from behind kneeling before it with bowed head",
+  "size": "medium",
+  "angle": "high",
+  "light": "interior",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_out",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S35.jpg"
+ },
+ {
   "id": "S36",
   "blocks": [
    "d_047"
@@ -791,6 +1522,23 @@
   "ease": "soft",
   "energy": 1.1,
   "tr": "fade"
+ },
+ {
+  "id": "S36_2",
+  "blocks": [
+   "d_047_2"
+  ],
+  "subject": "Two more men seen from behind waiting their turn in the courtyard shade, palm-trunk pillars, soft dust in the air",
+  "size": "medium",
+  "angle": "eye",
+  "light": "interior",
+  "emotion": "aftermath",
+  "kind": "kb3d",
+  "move3d": "crane_up",
+  "ease": "soft",
+  "energy": 1.1,
+  "tr": "fade",
+  "file": "S36.jpg"
  },
  {
   "id": "S36b",
@@ -813,6 +1561,40 @@
   "id": "S36c",
   "blocks": [
    "d_049"
+  ],
+  "subject": "Two more men seen from behind waiting their turn in the courtyard shade, palm-trunk pillars, soft dust in the air",
+  "size": "medium",
+  "angle": "eye",
+  "light": "interior",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "ease": "soft",
+  "energy": 1.1,
+  "tr": "fade",
+  "file": "S36.jpg"
+ },
+ {
+  "id": "S36c_2",
+  "blocks": [
+   "d_049_2"
+  ],
+  "subject": "Two more men seen from behind waiting their turn in the courtyard shade, palm-trunk pillars, soft dust in the air",
+  "size": "medium",
+  "angle": "eye",
+  "light": "interior",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_out",
+  "ease": "soft",
+  "energy": 1.1,
+  "tr": "fade",
+  "file": "S36.jpg"
+ },
+ {
+  "id": "S36c_3",
+  "blocks": [
+   "d_049_3"
   ],
   "subject": "Two more men seen from behind waiting their turn in the courtyard shade, palm-trunk pillars, soft dust in the air",
   "size": "medium",
@@ -862,8 +1644,7 @@
  {
   "id": "S38",
   "blocks": [
-   "d_052",
-   "d_053"
+   "d_052"
   ],
   "subject": "Callback: the prayer rows of Usfan seen from the ridge again, quieter light, the rider's place on the ridge empty",
   "size": "wide",
@@ -875,6 +1656,40 @@
   "ease": "inout",
   "energy": 0.55,
   "tr": "fade"
+ },
+ {
+  "id": "S38_2",
+  "blocks": [
+   "d_053"
+  ],
+  "subject": "Callback: the prayer rows of Usfan seen from the ridge again, quieter light, the rider's place on the ridge empty",
+  "size": "wide",
+  "angle": "high",
+  "light": "golden",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_out",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S38.jpg"
+ },
+ {
+  "id": "S38_3",
+  "blocks": [
+   "d_053_2"
+  ],
+  "subject": "Callback: the prayer rows of Usfan seen from the ridge again, quieter light, the rider's place on the ridge empty",
+  "size": "wide",
+  "angle": "high",
+  "light": "golden",
+  "emotion": "reflection",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S38.jpg"
  },
  {
   "id": "S39",
@@ -897,7 +1712,7 @@
  {
   "id": "S40",
   "blocks": [
-   "d_054"
+   "d_054_2"
   ],
   "subject": "A hand seen from behind raising a banner high above the dust, light breaking through",
   "size": "medium",
@@ -911,6 +1726,26 @@
   "move3d": "reveal",
   "energy": 1.3,
   "ease": "out"
+ },
+ {
+  "id": "S40_2",
+  "blocks": [
+   "d_054_3"
+  ],
+  "subject": "A hand seen from behind raising a banner high above the dust, light breaking through",
+  "size": "medium",
+  "angle": "low",
+  "light": "golden",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "the banner rises and unfurls in the wind; slow crane up",
+  "tr": "fade",
+  "move3d": "crane_up",
+  "energy": 1.3,
+  "ease": "soft",
+  "file": "S40.jpg",
+  "clip": "S40",
+  "clip_ss": 5.41
  },
  {
   "id": "S41",
@@ -929,6 +1764,40 @@
   "tr": "fade"
  },
  {
+  "id": "S41_2",
+  "blocks": [
+   "d_055_2"
+  ],
+  "subject": "Medina at dusk from a distance, palm groves and mudbrick houses, a quiet gathering of men seen from behind",
+  "size": "wide",
+  "angle": "high",
+  "light": "golden",
+  "emotion": "grief",
+  "kind": "kb3d",
+  "move3d": "crane_up",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S41.jpg"
+ },
+ {
+  "id": "S41_3",
+  "blocks": [
+   "d_055_3"
+  ],
+  "subject": "Medina at dusk from a distance, palm groves and mudbrick houses, a quiet gathering of men seen from behind",
+  "size": "wide",
+  "angle": "high",
+  "light": "golden",
+  "emotion": "grief",
+  "kind": "kb3d",
+  "move3d": "dolly_out",
+  "ease": "soft",
+  "energy": 0.8,
+  "tr": "fade",
+  "file": "S41.jpg"
+ },
+ {
   "id": "S42",
   "blocks": [
    "d_056"
@@ -944,6 +1813,42 @@
   "move3d": "crane_up",
   "energy": 0.8,
   "ease": "inout"
+ },
+ {
+  "id": "S42_2",
+  "blocks": [
+   "d_056_2"
+  ],
+  "subject": "Nine broken straight swords lying on sand in a row, and one intact Yemeni blade at the end catching the light",
+  "size": "detail",
+  "angle": "high",
+  "light": "golden",
+  "emotion": "aftermath",
+  "kind": "live",
+  "video_prompt": "very slow lateral move along the broken blades, dust settling",
+  "tr": "fade",
+  "move3d": "dolly_out",
+  "energy": 0.8,
+  "ease": "soft",
+  "file": "S42.jpg"
+ },
+ {
+  "id": "S42_3",
+  "blocks": [
+   "d_056_3"
+  ],
+  "subject": "Nine broken straight swords lying on sand in a row, and one intact Yemeni blade at the end catching the light",
+  "size": "detail",
+  "angle": "high",
+  "light": "golden",
+  "emotion": "aftermath",
+  "kind": "live",
+  "video_prompt": "very slow lateral move along the broken blades, dust settling",
+  "tr": "fade",
+  "move3d": "crane_up",
+  "energy": 0.8,
+  "ease": "soft",
+  "file": "S42.jpg"
  },
  {
   "id": "S43",
