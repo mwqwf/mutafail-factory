@@ -109,7 +109,7 @@ jobs:
         with: { python-version: "3.11" }
       - run: pip install -q google-auth google-auth-oauthlib google-api-python-client
       # ffprobe لحارس الريلز reel_shape (عين جالوت 2026-09-29: سقط الرفع بعد الفيلم لغيابه عن العدّاء)
-      - run: command -v ffprobe || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
+      - run: command -v ffprobe || { sudo rm -f /etc/apt/sources.list.d/microsoft*; sudo apt-get update -qq || true; sudo apt-get install -y -qq ffmpeg; }
 
       - name: جلبُ الأجزاء والتحقّق من بصماتها
         env:

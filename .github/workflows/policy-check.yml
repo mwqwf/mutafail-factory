@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
-      - run: pip install -q pillow && (command -v ffmpeg || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; })
+      - run: pip install -q pillow && (command -v ffmpeg || { sudo rm -f /etc/apt/sources.list.d/microsoft*; sudo apt-get update -qq || true; sudo apt-get install -y -qq ffmpeg; })
       - name: جلب الإصدار
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
