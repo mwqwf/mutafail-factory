@@ -1,0 +1,112 @@
+{
+  "_doc": "إعداد قناة الحكايات فوق خطّ إنتاج التاريخ نفسه (لا خطّ موازٍ). يقرؤه tools/hk_run.py وtools/parity_gate.py. لا أرقام استوديو هنا (المستودع عامّ).",
+  "channel": {
+    "id": "UC7owFa1Z0P8vv5tSzhRYfPw",
+    "handle": "@Al-Mutafail-Hikayat",
+    "name": "المتفائل | حكايات إسلامية بمصادرها",
+    "sister": {
+      "id": "UCda-VgyvZwAH5_Pl1elVEnw",
+      "handle": "@Al-Mutafail"
+    },
+    "never_touch": "15 إعلاناً غير مدرج لمصحفك على هذه القناة"
+  },
+  "pipeline": {
+    "inherits": "history",
+    "montage": "tools/mont_hybrid.py (عبر ops/channels/hikayat/tools/hk_run.py حتى يُقبل طلب تعديل envpaths.logo)",
+    "required_project_files": [
+      "blocks.json",
+      "shots.json",
+      "timeline.json",
+      "sfx_cues.json",
+      "casting.md",
+      "style_bible.json",
+      "shotlist.json"
+    ],
+    "forbidden": [
+      "مونتاج Ken Burns محلّي بـ zoompan",
+      "أدوات مونتاج خارج tools/ للفيلم الطويل",
+      "حذف الصور والمقاطع قبل مراجعة المالك"
+    ]
+  },
+  "logo": {
+    "asset": "ops/branding/2026-11-27-v2/hikayat/hikayat_youtube_icon_800x800.png",
+    "history_asset": "assets/logo.png",
+    "_doc": "المواصفات منقولة حرفياً من أدوات التاريخ (اقرأها من الكود عند الشك): الفيلم tools/mont_hybrid.py §④، المصغّرة tools/mkthumb.py، الريلز tools/mkreel3d.py. الأبعاد بالبكسل على الإطار المرجعي.",
+    "film": {
+      "ref_frame": [
+        1920,
+        1080
+      ],
+      "size": 120,
+      "x": "W-46-120",
+      "y": 46,
+      "corner": "top-right",
+      "opacity": 0.72,
+      "shape": "circle",
+      "duration": "whole film"
+    },
+    "thumb": {
+      "ref_frame": [
+        1280,
+        720
+      ],
+      "size": 132,
+      "x": 46,
+      "y": "H-178",
+      "corner": "bottom-left",
+      "opacity": 1.0,
+      "shape": "circle"
+    },
+    "reel": {
+      "ref_frame": [
+        1080,
+        1920
+      ],
+      "size": 118,
+      "x": "(W-118)/2",
+      "y": "H-158",
+      "corner": "bottom-centre",
+      "opacity": 1.0,
+      "shape": "circle"
+    }
+  },
+  "motion": {
+    "min_live_share": 0.5,
+    "_doc": "أمر المالك 2026-11-27 (t43u): «يجب أن يكون أغلب الفيلم متحركاً حتى لو استهلك من حصتي، لا كاميرا فقط». live = مقطع GenerateVideo حقيقيّ على صورة اللقطة نفسها؛ kb3d حركة كاميرا لا تُحسب. لا بديل kb3d صامت للّقطة الحيّة: الناقص يُسجَّل في proj/live_waivers.json بسببه ويُحسب ضدّ النسبة.",
+    "kb3d_only_for": [
+      "خرائط",
+      "لقطة رُفض مقطعها بعد ثلاث محاولات (وجه/نساء/كتابة)",
+      "أقلّ من 2.5 ث"
+    ]
+  },
+  "audio": {
+    "voice_model": "gemini-3.1-flash-tts-preview",
+    "narrator": "Charon",
+    "lufs": -14.0,
+    "lufs_tol": 1.0,
+    "true_peak_max": -1.0,
+    "sfx_cues_required": true,
+    "music": false
+  },
+  "video": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 25
+  },
+  "publish": {
+    "captions_required": "ملف ترجمة عربي مرفوع يدوياً (captions_ar.srt) لا الآلية وحدها",
+    "thumbnails": 2,
+    "description_must_match": [
+      "⏱️\\s*الفصول",
+      "(^|\\n)0?0:00",
+      "المصادر",
+      "الذكاء الاصطناعي",
+      "اشترك",
+      "(@Al-Mutafail(?!-)|UCda-VgyvZwAH5_Pl1elVEnw)"
+    ]
+  },
+  "cleanup": {
+    "rule": "لا حذف لصور الفيلم ومقاطعه وprojـه قبل مراجعة المالك للفيلم المنشور ووجود proj/OWNER_REVIEW.ok وأرشيف بـsha256 على GitHub",
+    "check": "python3 ops/channels/hikayat/tools/parity_gate.py cleanup <proj>"
+  }
+}
