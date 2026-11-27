@@ -3,9 +3,9 @@
 ويشغّل بوّابات المصنع الجديدة عليها. لا توليد ولا نشر."""
 import json, os, re, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
-FAC = os.environ.get('MF_TOOLS', '/workspace/mutafail-factory/tools')
+FAC = os.environ.get('MF_TOOLS', os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(HERE))), 'tools'))
 sys.path.insert(0, FAC)
-import sfx_cues, image_prompts as ip, motion_plan as mp, casting  # noqa: E402
+import sfx_cues, image_prompts as ip, motion_plan as mp, casting, live_share  # noqa: E402
 
 P = os.path.join(HERE, 'proj')
 L = [l.rstrip('\n') for l in open(os.path.join(HERE, 'script.md'), encoding='utf-8') if re.match(r'd_\d+\|', l)]
@@ -140,10 +140,10 @@ SH = [
 json.dump(SH, open(os.path.join(P, 'shotlist.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 mp.apply(SH)
 starts = [bt[s['blocks'][0]][0] for s in SH]
-# ── حركة احتياطية قوية للّقطات الحيّة (2026-11-27): GenerateVideo غير متاح للوكيل المنفّذ، فإن غاب المقطع الحيّ
-#    صيّر mont_hybrid اللقطة kb3d بهذه الحركة (عمق وتزيّح قويّان، طاقة أعلى) بدل السكون؛ وحين يصل المقطع الحيّ يُستعمل هو.
+# ── حركة احتياطية للّقطات الحيّة — كانت تُطبَّق صامتةً (ثغرة «إسلام خالد»: خُطّط 28٪ وظهر نحو 5٪).
+#    لا تُطبَّق الآن إلا مع ALLOW_LIVE_FALLBACK=1 أو إعفاء في live_waivers.json، ومع تحذير واضح. kb3d لا يُحسب حيّاً.
 #    ملاحظات المراجعة: S13 وS24 فيهما أشخاص صغار بعيدون مواجهون ⇒ حركة لا تكبّرهم؛ S17 كتابة زائفة ⇒ تُموَّه ولا يُقرَّب منها؛ لا تكبير لوجه.
-LIVE_FALLBACK = {
+LIVE_KB3D_RESERVE = {
  'S01': ('dolly_in', 1.25, 'in'),    'S02': ('truck_r', 1.2, 'soft'),    'S03': ('crane_up', 1.1, 'out'),
  'S04': ('reveal', 1.2, 'out'),      'S05': ('dolly_out', 0.8, 'inout'), 'S06': ('crane_up', 1.15, 'out'),
  'S07': ('dolly_out', 0.8, 'inout'), 'S09': ('truck_l', 1.4, 'soft'),    'S12': ('push_tilt', 1.4, 'soft'),
@@ -160,9 +160,11 @@ ENERGY_FIX = {'S14': 1.15, 'S18': 1.3, 'S26': 1.15, 'S36': 1.1}
 for _s in SH:
     if _s['id'] in ENERGY_FIX:
         _s['energy'] = ENERGY_FIX[_s['id']]; _s['ease'] = 'soft'   # inout يقف عند الطرفين في اللقطة الطويلة
-    if _s['id'] in LIVE_FALLBACK:
-        _s['move3d'], _s['energy'], _s['ease'] = LIVE_FALLBACK[_s['id']]
     _s.update(QA_FIX.get(_s['id'], {}))
+_applied, _fw = live_share.apply_kb3d_reserve(SH, LIVE_KB3D_RESERVE, waivers=live_share.load_waivers(P))
+for _w in _fw:
+    print(_w, flush=True)
+
 # ── إيقاع اللقطات (thrill_gate: المتوسّط 10.4 ث > 6): كل لقطةٍ متعدّدة الكتل طولها ≥ 12 ث تُقسَم لقطةً لكل كتلة
 #    على الصورة نفسها (حقل file) بحركةٍ مختلفة — بلا صور جديدة ولا صوت جديد. الأجزاء kb3d بلا key (الأصل يحمل الأهمية).
 SPLIT_MIN = 12.0

@@ -7,6 +7,7 @@
 import json, os, sys, glob, random, subprocess as sp
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cards, envpaths, kb3d, kinetic, look, sfx_auto, sfx_synth, transitions   # kinetic: الكتابة المتحرّكة (أمر المالك 2026-10-04)
+import live_share
 import battlemap   # خريطة المعركة الحيّة: حقل map في اللقطة (أمر المالك 2026-10-04، بحث الإبهار §١)
 from sfx_verdict import ok as sfx_ok   # صوت Kling يدخل بحكمٍ مطابقٍ لبصمة المقطع الحاليّ (MF-07)
 from envpaths import FF, FP
@@ -277,6 +278,14 @@ _borrow = [(x['id'], x['clip']) for x in shots if x.get('clip') and x['clip'] in
 if _borrow:
     raise SystemExit('⛔ لقطاتٌ تستعير مقطعاً من موضعٍ آخر (أمر المالك 2026-11-27): ' + ', '.join('%s←%s' % b for b in _borrow))
 
+# ⛔ لا بديل kb3d صامت للّقطة الحيّة (أمر المالك 2026-11-27، حدّ النسبة في live_share.MIN_LIVE_SHARE):
+#    بلا مقطع GenerateVideo يُرفض المونتاج إلا مع ALLOW_LIVE_FALLBACK=1 (معاينة غير صالحة للنشر) أو إعفاء في live_waivers.json.
+_allow_fb = os.environ.get('ALLOW_LIVE_FALLBACK') == '1'
+_fb_ids, _wv_ids, _ls_warns = live_share.enforce_live_clips(PROJ, shots, lambda sid: bool(clip(sid)), allow=_allow_fb)
+for _w in _ls_warns:
+    print(_w, flush=True)
+SEG_SRC = {}  # sid → live | kb3d | waiver | fallback
+
 # ② اللقطات + جدول المؤثّرات — كلّ مقطعٍ بمقبضيه: NF[n] + 2×HF إطاراً، وبداية اللقطة فيه عند HEAD
 segs, fx = [], []   # fx: (بداية، مدة، ملف، مستوى)
 clean = []          # المقاطع قبل الكتابة المتحرّكة والبطاقات — تُصنع منها الريلزات العمودية فلا يُقصّ نصٌّ محروق
@@ -312,6 +321,14 @@ for n, s in enumerate(shots):
     t = FST[n] / 25.0
     out = os.path.join(SEG, 's%03d_v%d.mp4' % (n, kb3d.VERSION))   # بإصدار المجسّم: تغيّره يعيد بناء المقطع
     kl = clip(s['id']); img = image_of(s)
+    if kl:
+        SEG_SRC[s['id']] = 'live'
+    elif s.get('kind') == 'live' and s['id'] in _wv_ids:
+        SEG_SRC[s['id']] = 'waiver'
+    elif s.get('kind') == 'live':
+        SEG_SRC[s['id']] = 'fallback'
+    else:
+        SEG_SRC[s['id']] = 'kb3d'
     if not (os.path.exists(out) and abs(dur(out) - L) < 0.03):
         if kl:
             kd = dur(kl)
@@ -516,3 +533,26 @@ print('✅ %s | %.2f د | مؤثّرات: %d' % (final, dur(final) / 60, len(CUE
 _g = sp.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shot_image_gate.py'), PROJ])
 if _g.returncode:
     raise SystemExit('⛔ shot_image_gate: صورة لقطةٍ في غير كتلتها — راجع الإخراج')
+
+# سجلّ المصدر الفعلي لكل لقطة، وعلامة النشر، والنسبة الحيّة الظاهرة
+_segments = []
+for _s in shots:
+    _st, _du = TL.get(_s['id'], [None, None])
+    _segments.append({'id': _s['id'], 'start': _st, 'duration': _du, 'source': SEG_SRC.get(_s['id'], 'kb3d')})
+try:
+    _meas = live_share.measure_film(PROJ, final, TL, shots)
+    _share = _meas['share']
+    print('النسبة الحيّة الظاهرة: %.1f%% من %.0f ث (المطلوب ≥ %.0f٪، kb3d لا يُحسب)' % (
+        100 * _share, _meas['total_sec'], 100 * live_share.MIN_LIVE_SHARE), flush=True)
+except SystemExit as _e:
+    print('⚠️ قياس النسبة الحيّة: %s' % _e, flush=True)
+    _live_sec = sum(v[1] for sid, v in TL.items() if SEG_SRC.get(sid) == 'live')
+    _tot = sum(v[1] for v in TL.values()) or 1.0
+    _share = _live_sec / _tot
+_meta = live_share.write_film_meta(
+    P('film.mp4.json'), share=_share, fallback_ids=_fb_ids, waiver_ids=_wv_ids,
+    allow=_allow_fb, segments=_segments, warnings=_ls_warns)
+if not _meta['publishable']:
+    print('⚠️ film.mp4.json: غير صالح للنشر (نسبة حيّة أو بديل ALLOW_LIVE_FALLBACK)', flush=True)
+    if not _allow_fb:
+        raise SystemExit('⛔ النسبة الحيّة الظاهرة دون العتبة — لا نشر حتى تُستكمل مقاطع GenerateVideo')

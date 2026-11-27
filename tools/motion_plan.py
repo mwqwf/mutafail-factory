@@ -9,7 +9,7 @@
   • `tr` الانتقال إليها من الانتقالات المسموحة للشعور (لا خطفة في سكينة، ولا ذوبان بطيء في التحام).
   • اللقطة المهمّة (`key`، أو في أوّل 30 ث، أو ذروة) ⇒ `live` (جروك GenerateVideo) إلزاماً؛ kb3d للمستثنى فقط.
 البوّابة `lint` تفشل عند: شعورٍ غائب أو مجهول، حركةٍ خارج المسموح، حركتين متطابقتين متجاورتين في kb3d، لقطةٍ مهمّة غير حيّة،
-انتقالٍ غير مسوَّغ للشعور. و`clip_check` على المقطع المصيَّر تفشل عند الرعشة (تسارعٌ متقطّع في الحركة الكلّية) أو التجمّد.
+انتقالٍ غير مسوَّغ للشعور، أو نسبة حيّة (GenerateVideo فقط، لا kb3d) دون `MIN_LIVE_SHARE`. و`clip_check` على المقطع المصيَّر تفشل عند الرعشة (تسارعٌ متقطّع في الحركة الكلّية) أو التجمّد.
 
     python3 tools/motion_plan.py apply <proj>        # يملأ move3d/ease/energy/tr الناقصة من emotion (لا يغيّر ما كُتب يدوياً)
     python3 tools/motion_plan.py lint  <proj>
@@ -22,6 +22,9 @@ import os
 import sys
 
 import numpy as np
+
+import live_share
+MIN_LIVE_SHARE = live_share.MIN_LIVE_SHARE  # الثابت الواحد في live_share.py (75٪)
 
 # الشعور ⇒ (الحركات المسموحة بالترتيب المفضّل، منحنى التسارع، الشدّة، الانتقالات المسموحة إلى اللقطة)
 EMOTIONS = {
@@ -67,7 +70,8 @@ def important(s: dict, start: float | None) -> bool:
     return bool(s.get('key') or s.get('climax') or s.get('hook') or (start is not None and start < LIVE_FIRST_S))
 
 
-def lint(shots: list, starts: list | None = None) -> list[str]:
+def lint(shots: list, starts: list | None = None, durations: list | None = None,
+         waivers: dict | None = None) -> list[str]:
     errs = []
     prev = None
     for i, s in enumerate(shots):
@@ -98,6 +102,8 @@ def lint(shots: list, starts: list | None = None) -> list[str]:
         if i > 0 and tr != 'auto' and name not in trs:
             errs.append('%s: الانتقال «%s» غير مسوَّغ لشعور %s (المسموح: %s)' % (sid, name or 'cut', em,
                                                                           ' '.join(x or 'cut' for x in trs)))
+    if durations is not None:
+        errs.extend(live_share.plan_errors(shots, durations, waivers))
     return errs
 
 
@@ -157,11 +163,19 @@ def main(argv=None) -> int:
             json.dump(apply(shots), open(sp, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
             print('✓ مُلئت حقول التحريك من الشعور'); return 0
         starts = None
+        durations = None
         tl = os.path.join(a[1], 'timeline.json')
+        t = None
         if os.path.exists(tl):
             t = json.load(open(tl, encoding='utf-8'))
             starts = [t.get(s['id'], [None])[0] for s in shots]
-        errs = lint(shots, starts)
+        rt = None
+        rtp = os.path.join(a[1], 'real_timing.json')
+        if os.path.exists(rtp):
+            rt = json.load(open(rtp, encoding='utf-8'))
+        durations = live_share.shot_durations(shots, t, rt)
+        waivers = live_share.load_waivers(a[1])
+        errs = lint(shots, starts, durations=durations, waivers=waivers)
     for e in errs:
         print('⛔', e)
     if not errs:
