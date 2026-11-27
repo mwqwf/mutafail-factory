@@ -1,0 +1,23 @@
+{
+ "id": "S3",
+ "path": "/workspace/hikayat-factory/shorts/out/S3.mp4",
+ "duration": 29.08,
+ "title": "قال الغلام للملك: «إنك لست بقاتلي حتى تفعل ما آمرك به»",
+ "blocks": [
+  "d_055",
+  "d_056",
+  "d_057"
+ ],
+ "bdur": {
+  "d_055": 5.88,
+  "d_056": 10.86,
+  "d_057": 8.03
+ },
+ "narr_end": 25.129999999999995,
+ "cta_dur": 3.95,
+ "cta_audio_start": 25.13,
+ "duration_ok": true,
+ "cta_in_last_5s": true,
+ "no_music": true,
+ "audio_hz": 48000
+}

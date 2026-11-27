@@ -1,0 +1,241 @@
+{
+ "channel_id": "UC7owFa1Z0P8vv5tSzhRYfPw",
+ "film_title": "قصة أصحاب الأخدود كما في صحيح مسلم | سهمٌ واحد جعل الناس كلهم يؤمنون",
+ "cta_text": "شَاهِدِ الْقِصَّةَ كَامِلَةً… الرَّابِطُ أَسْفَلَ الشَّاشَةِ.",
+ "cta_audio": "shorts/work/sh_cta.wav",
+ "description": "القصة كاملة في الفيلم:\nالمصدر: صحيح مسلم، الحديث ٣٠٠٥، عن صهيب رضي الله عنه، عن النبي صلى الله عليه وسلم.\nلفظ الحديث في المقطع منقول من المصدر كما هو.\nℹ️ الصور تمثيل فنيّ مولَّد بالذكاء الاصطناعي، ولا تُظهر وجوه الأشخاص احترامًا للقصة. والصوت للراوي.\n#قصص_إسلامية #أصحاب_الأخدود",
+ "source_tag": "صحيح مسلم ٣٠٠٥",
+ "audio_src": "film1/audio_paced",
+ "audio_tight": "shorts/work/audio_tight",
+ "images_dir": "shorts/images",
+ "film_images_dir": "film1/images",
+ "output_dir": "shorts/out",
+ "maxgap": 0.45,
+ "gap_between_blocks": 0.12,
+ "target_w": 1080,
+ "target_h": 1920,
+ "fps": 30,
+ "lufs": -14,
+ "safe_zone": {
+  "x0": 60,
+  "y0": 290,
+  "x1": 890,
+  "y1": 1540
+ },
+ "font": "/usr/share/fonts/truetype/sand-box/google/Cairo/Cairo-VariableFont_slnt,wght.ttf",
+ "needed_blocks": [
+  "d_001",
+  "d_002",
+  "d_003",
+  "d_028",
+  "d_029",
+  "d_030",
+  "d_055",
+  "d_056",
+  "d_057"
+ ],
+ "audio_ready_requires": "كل كتل الشورتات في listen_results.json بعد دمج overlays الإعادة (listen_results_regen.json وlisten_results_d015_regen.json وlisten_results_d030_regen.json) بـ ok=true، وملف إشارة shorts/work/AUDIO_READY أو film1/audio/_reports/LISTEN_COMPLETE.txt. المصدر الصوتي: film1/audio_paced (لا يُمسّ أصل film1/audio ولا يُعاد atempo).",
+ "shorts": [
+  {
+   "id": "S1",
+   "enabled": true,
+   "title": "لماذا دلّ الغلامُ الملكَ على الطريقة الوحيدة لقتله؟ | قصة أصحاب الأخدود",
+   "blocks": [
+    "d_001",
+    "d_002",
+    "d_003"
+   ],
+   "shots": [
+    {
+     "block": "d_001",
+     "image": "V01_crowd_trunk.jpg",
+     "kb": "in"
+    },
+    {
+     "block": "d_001",
+     "image": "V01b_trunk_closer.jpg",
+     "kb": "in",
+     "split": "half"
+    },
+    {
+     "block": "d_002",
+     "image": "V02_quiver.jpg",
+     "kb": "in"
+    },
+    {
+     "block": "d_002",
+     "image": "V03_bow_arrow.jpg",
+     "kb": "in",
+     "split": "half"
+    },
+    {
+     "block": "d_003",
+     "image": "V04_crown_throne.jpg",
+     "kb": "in"
+    },
+    {
+     "block": "d_003",
+     "image": "V04b_crown_close.jpg",
+     "kb": "out",
+     "split": "half"
+    }
+   ],
+   "hook_text": "أَمَامَهُمْ، إِلَى جِذْعٍ، شُدَّ الْغُلَامُ",
+   "hook_src": "d_001",
+   "hook_until": 2.6,
+   "mid_text": "فَلِمَاذَا دَلَّهُ الْغُلَامُ بِنَفْسِهِ عَلَى الطَّرِيقَةِ الْوَحِيدَةِ الَّتِي يَقْتُلُهُ بِهَا؟",
+   "mid_block": "d_003",
+   "cta_image": "V03_bow_arrow.jpg",
+   "source_on_q": false,
+   "schedule": "الأحد 29-11 · 18:30 الجزائر (ي+1 بعد علنية الفيلم)",
+   "blocks_text": {
+    "d_001": "جَمَعَ الْمَلِكُ النَّاسَ فِي صَعِيدٍ وَاحِدٍ… وَأَمَامَهُمْ، إِلَى جِذْعٍ، شُدَّ الْغُلَامُ.",
+    "d_002": "وَأَخَذَ الْمَلِكُ سَهْمًا، لَا مِنْ كِنَانَتِهِ هُوَ، بَلْ مِنْ كِنَانَةِ الْغُلَامِ نَفْسِهِ… وَوَضَعَهُ فِي كَبِدِ الْقَوْسِ.",
+    "d_003": "مَلِكٌ عَجَزَ عَنْ قَتْلِهِ مَرَّتَيْنِ… فَلِمَاذَا دَلَّهُ الْغُلَامُ بِنَفْسِهِ عَلَى الطَّرِيقَةِ الْوَحِيدَةِ الَّتِي يَقْتُلُهُ بِهَا؟"
+   },
+   "blocks_role": {
+    "d_001": "N",
+    "d_002": "N",
+    "d_003": "N"
+   }
+  },
+  {
+   "id": "S2",
+   "enabled": true,
+   "title": "سؤالٌ واحدٌ كشف الملكَ: «ولك ربٌّ غيري؟» | قصة أصحاب الأخدود",
+   "blocks": [
+    "d_028",
+    "d_029",
+    "d_030"
+   ],
+   "shots": [
+    {
+     "block": "d_028",
+     "image": "V18_hall_courtier_back.jpg",
+     "kb": "in"
+    },
+    {
+     "block": "d_028",
+     "image": "V31_throne_tiny_figure.jpg",
+     "kb": "in",
+     "split": "half"
+    },
+    {
+     "block": "d_029",
+     "image": "V04_crown_throne.jpg",
+     "kb": "in"
+    },
+    {
+     "block": "d_029",
+     "image": "V31_throne_tiny_figure.jpg",
+     "kb": "out",
+     "split": "half"
+    },
+    {
+     "block": "d_030",
+     "image": "V04b_crown_close.jpg",
+     "kb": "in"
+    },
+    {
+     "block": "d_030",
+     "image": "V18_hall_courtier_back.jpg",
+     "kb": "out",
+     "split": "half"
+    }
+   ],
+   "hook_text": "جَلِيسٌ لِلْمَلِكِ كَانَ قَدْ عَمِيَ",
+   "hook_src": "d_023",
+   "hook_until": 2.4,
+   "mid_text": "وَلَكَ رَبٌّ غَيْرِي؟",
+   "mid_block": "d_029",
+   "cta_image": "V18_hall_courtier_back.jpg",
+   "source_on_q": true,
+   "schedule": "الاثنين 30-11 · 18:30 الجزائر (ي+2)",
+   "blocks_text": {
+    "d_028": "ثُمَّ أَتَى الْمَلِكَ، فَجَلَسَ إِلَيْهِ كَمَا كَانَ يَجْلِسُ… لَكِنَّهُ الْآنَ يُبْصِرُ.",
+    "d_029": "فَسَأَلَهُ الْمَلِكُ عَمَّنْ أَعَادَ إِلَيْهِ بَصَرَهُ، فَقَالَ: «رَبِّي». قَالَ: «وَلَكَ رَبٌّ غَيْرِي؟» قَالَ: «رَبِّي وَرَبُّكَ اللَّهُ».",
+    "d_030": "سُؤَالٌ وَاحِدٌ كَشَفَ الْمَلِكَ: «وَلَكَ رَبٌّ غَيْرِي؟»… فَهُوَ لَا يَرَى نَفْسَهُ مَلِكًا فَحَسْبُ."
+   },
+   "blocks_role": {
+    "d_028": "N",
+    "d_029": "N",
+    "d_030": "N"
+   }
+  },
+  {
+   "id": "S3",
+   "enabled": true,
+   "title": "قال الغلام للملك: «إنك لست بقاتلي حتى تفعل ما آمرك به»",
+   "blocks": [
+    "d_055",
+    "d_056",
+    "d_057"
+   ],
+   "shots": [
+    {
+     "block": "d_055",
+     "image": "V31_throne_tiny_figure.jpg",
+     "kb": "in"
+    },
+    {
+     "block": "d_055",
+     "image": "V04_crown_throne.jpg",
+     "kb": "in",
+     "split": "half"
+    },
+    {
+     "block": "d_056",
+     "image": "V02_quiver.jpg",
+     "kb": "in"
+    },
+    {
+     "block": "d_056",
+     "image": "V03_bow_arrow.jpg",
+     "kb": "in",
+     "split": "third"
+    },
+    {
+     "block": "d_056",
+     "image": "V35_crowd_plain.jpg",
+     "kb": "in",
+     "split": "third"
+    },
+    {
+     "block": "d_057",
+     "image": "V03_bow_arrow.jpg",
+     "kb": "in"
+    },
+    {
+     "block": "d_057",
+     "image": "V35_crowd_plain.jpg",
+     "kb": "out",
+     "split": "half"
+    }
+   ],
+   "hook_text": "إِنَّكَ لَسْتَ بِقَاتِلِي حَتَّى تَفْعَلَ مَا آمُرُكَ بِهِ",
+   "hook_src": "d_055",
+   "hook_until": 2.8,
+   "mid_text": null,
+   "mid_block": null,
+   "cta_image": "V35_crowd_plain.jpg",
+   "source_on_q": true,
+   "schedule": "الثلاثاء 01-12 · 18:30 الجزائر (ي+3)",
+   "blocks_text": {
+    "d_055": "«إِنَّكَ لَسْتَ بِقَاتِلِي حَتَّى تَفْعَلَ مَا آمُرُكَ بِهِ». قَالَ: «وَمَا هُوَ؟»",
+    "d_056": "قَالَ: «تَجْمَعُ النَّاسَ فِي صَعِيدٍ وَاحِدٍ، وَتَصْلُبُنِي عَلَى جِذْعٍ، ثُمَّ خُذْ سَهْمًا مِنْ كِنَانَتِي، ثُمَّ ضَعِ السَّهْمَ فِي كَبِدِ الْقَوْسِ،",
+    "d_057": "ثُمَّ قُلْ: بِاسْمِ اللَّهِ، رَبِّ الْغُلَامِ، ثُمَّ ارْمِنِي، فَإِنَّكَ إِذَا فَعَلْتَ ذَلِكَ قَتَلْتَنِي»."
+   },
+   "blocks_role": {
+    "d_055": "Q",
+    "d_056": "Q",
+    "d_057": "Q"
+   }
+  }
+ ],
+ "pre_cta_gap": 0.12,
+ "edge": 0.1,
+ "min_dur": 25,
+ "max_dur": 33,
+ "cta_window": 5,
+ "no_music": true
+}

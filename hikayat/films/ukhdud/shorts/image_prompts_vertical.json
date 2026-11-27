@@ -1,0 +1,142 @@
+{
+ "style": "cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, tall vertical 9:16 composition. Important subjects sit in the middle 60 percent of the frame.",
+ "negative": "no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols, no fleur-de-lis, no domes, no minarets; no text, no letters, no writing, no calligraphy, no glyphs, no logos, no watermark",
+ "aspect": "9:16",
+ "accepted": [
+  {
+   "id": "V01",
+   "file": "images/V01_crowd_trunk.jpg",
+   "used_in": [
+    "S1"
+   ],
+   "subject": "جموع من الخلف وجذع خالٍ في السهل عند الفجر",
+   "ref": "film1/images/I01.jpg",
+   "verdict": "قبول (المحاولة 2)",
+   "note": "رُفضت v1 لأن الجموع واجهت الكاميرا. v2: ظهور وظهور الرؤوس من الخلف فقط، والجذع خالٍ، بلا وجوه."
+  },
+  {
+   "id": "V01b",
+   "file": "images/V01b_trunk_closer.jpg",
+   "used_in": [
+    "S1"
+   ],
+   "subject": "نفس المشهد أقرب إلى الجذع، والظهور في الثلث الأسفل",
+   "ref": "images/V01_crowd_trunk.jpg",
+   "verdict": "قبول",
+   "note": "ظهور من الخلف، بلا وجوه، والجذع خالٍ."
+  },
+  {
+   "id": "V02",
+   "file": "images/V02_quiver.jpg",
+   "used_in": [
+    "S1",
+    "S3"
+   ],
+   "subject": "جعبة أسهم على عمود خشبي، بلا أيدٍ",
+   "ref": "film1/images/I02.jpg",
+   "verdict": "قبول (المحاولة 1)",
+   "note": "لا أشخاص ولا نص مقروء ولا دم."
+  },
+  {
+   "id": "V03",
+   "file": "images/V03_bow_arrow.jpg",
+   "used_in": [
+    "S1",
+    "S3"
+   ],
+   "subject": "قوس مذهّب وسهم على حافة حجرية",
+   "ref": "film1/images/I03.jpg",
+   "verdict": "قبول (المحاولة 1)",
+   "note": "زخرفة الحافة حلزونية غير حرفية. لا أشخاص ولا صليب ولا دم."
+  },
+  {
+   "id": "V04",
+   "file": "images/V04_crown_throne.jpg",
+   "used_in": [
+    "S1",
+    "S2",
+    "S3"
+   ],
+   "subject": "تاج بسيط على عرش خالٍ، ضوء نافذة",
+   "ref": "film1/images/I04.jpg",
+   "verdict": "قبول (المحاولة 3)",
+   "note": "رُفضت v1 وv2 لتاج بنهايات زهرة الزنبق (فleur-de-lis، رمز أوروبي/مسيحي محتمل). v3: إكليل بتسنان مثلثية ونقوش زجزاج فقط."
+  },
+  {
+   "id": "V04b",
+   "file": "images/V04b_crown_close.jpg",
+   "used_in": [
+    "S1",
+    "S2"
+   ],
+   "subject": "لقطة أقرب للتاج البسيط على العرش",
+   "ref": "images/V04_crown_throne.jpg",
+   "verdict": "قبول",
+   "note": "نفس تصميم التاج المقبول، بلا وجوه ولا نص ولا صليب."
+  },
+  {
+   "id": "V18",
+   "file": "images/V18_hall_courtier_back.jpg",
+   "used_in": [
+    "S2"
+   ],
+   "subject": "جليس من الخلف في قاعة الأعمدة، والعرش أمامه",
+   "ref": "film1/images/I18.jpg",
+   "verdict": "قبول",
+   "note": "من الخلف تماماً. يظهر طرف لحية من اليمين بلا عين ولا أنف ولا فم؛ كحكم I18 في الفيلم. رجل لا امرأة. لا نص ولا صليب."
+  },
+  {
+   "id": "V31",
+   "file": "images/V31_throne_tiny_figure.jpg",
+   "used_in": [
+    "S2",
+    "S3"
+   ],
+   "subject": "عرش وتاج في المقدّمة، وغلام نقطة من الخلف في عمق القاعة",
+   "ref": "film1/images/I31.jpg",
+   "verdict": "قبول (المحاولة 3)",
+   "note": "رُفضت v1 لنقوش تشبه الكتابة على العرش، وv2 لأشكال صليبية/عقدية على المساند. v3: زجزاج ومثلثات فقط، والتاج بسيط، والغلام من الخلف بلا وجه."
+  },
+  {
+   "id": "V35",
+   "file": "images/V35_crowd_plain.jpg",
+   "used_in": [
+    "S3"
+   ],
+   "subject": "جموع عظيمة من الخلف، وجذع بعيد، ومظلّة ملكية",
+   "ref": "film1/images/I35.jpg",
+   "verdict": "قبول",
+   "note": "الظهور من الخلف. المظلّة بلا كتابة، وداخلها مظلم بلا وجه واضح. الأعمدة رماح خيام لا مآذن."
+  }
+ ],
+ "rejected": [
+  {
+   "file": "images/rejected/V01_v1_front_facing.jpg",
+   "reason": "جموع تواجه الكاميرا (وإن غُطّيت الوجوه). يخالف: no front-facing people."
+  },
+  {
+   "file": "images/rejected/V04_v1_fleur_de_lis_crown.jpg",
+   "reason": "تاج بنهايات زهرة الزنبق (فleur-de-lis)."
+  },
+  {
+   "file": "images/rejected/V04_v2_fleur_de_lis_crown.jpg",
+   "reason": "نفس العلّة بعد إعادة التوليد."
+  },
+  {
+   "file": "images/rejected/V31_v1_throne_glyphs.jpg",
+   "reason": "نقوش على العرش تشبه الكتابة/الأشكال."
+  },
+  {
+   "file": "images/rejected/V31_v2_crosslike_carving.jpg",
+   "reason": "زخارف على المساند تشبه صلباناً أو حروفاً."
+  },
+  {
+   "file": "images/rejected/V32_v1_inscription_band.jpg",
+   "reason": "شريط على فم الجعبة يشبه الكتابة. لم تُعتمد صورة V32؛ يُستعمل V02."
+  },
+  {
+   "file": "images/rejected/V32_v2_inscription_band.jpg",
+   "reason": "الشريط أخفّ لكن ما زال يشبه نقشاً كتابياً."
+  }
+ ]
+}

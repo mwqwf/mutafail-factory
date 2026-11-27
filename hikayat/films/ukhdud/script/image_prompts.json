@@ -1,0 +1,289 @@
+{
+ "style": "cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition",
+ "negative": "no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark",
+ "shots": [
+  {
+   "image": "I01",
+   "block": "d_001",
+   "prompt": "vast flat plain at misty dawn, a huge crowd of people seen strictly from behind in the foreground, far ahead a single bare wooden tree trunk standing upright with nobody on it, silent tense atmosphere. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I02",
+   "block": "d_002",
+   "prompt": "close still life: a simple worn leather quiver full of arrows hanging on a rough wooden post, one arrow lifted halfway out, dust in a shaft of morning light, no hands, no people. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I03",
+   "block": "d_002",
+   "prompt": "an ornate gilded royal bow with a single arrow resting at the middle of its grip, mounted on a carved stand, a blurred crowd far behind, dramatic rim light, no people near. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I04",
+   "block": "d_003",
+   "prompt": "a golden royal crown resting on an empty carved throne in a dark stone hall, one narrow shaft of light from a high window, ominous mood. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I05",
+   "block": "d_004",
+   "prompt": "wide aerial view of an ancient walled desert city at dusk, palm groves, winding streets, smoke from rooftops, distant mountains and a dark sea on the horizon. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I06",
+   "block": "d_006",
+   "prompt": "dim chamber of an old court sorcerer: hanging dried herbs, clay jars, smoking incense, a hunched old man seen only from behind in a dark robe, candlelight. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I07",
+   "block": "d_007",
+   "prompt": "a small boy seen from behind walking alone on a dusty lane between mud-brick houses toward a dark tower, long morning shadows. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I08",
+   "block": "d_008",
+   "prompt": "a humble stone hermitage by a desert path, an old man in a plain undyed hooded robe sitting at its door seen from behind, a small boy sitting near him also seen from behind, warm late light, simple and peaceful. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I09",
+   "block": "d_010",
+   "prompt": "a lonely dusty path that forks in two: one branch leads to a dark tower with smoke, the other to a small lit stone hut; a small boy seen from behind standing at the fork, tiny in frame. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I10",
+   "block": "d_012",
+   "prompt": "night view from outside: a small stone hut with a glowing doorway, two dark silhouettes inside seen from behind, starry sky. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I11",
+   "block": "d_013",
+   "prompt": "a road blocked by a gigantic dark shadow of an unseen beast cast across dust and walls, a crowd of tiny people seen from behind halted in fear, haze, the beast itself never visible. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I12",
+   "block": "d_016",
+   "prompt": "over-the-shoulder view from behind of a small boy holding a rough stone in his hand, facing a dusty road with a looming dark shadow ahead, shallow depth of field. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I13",
+   "block": "d_018",
+   "prompt": "the same road now open, dust settling in sunlight, people seen from behind walking onward through the road, relief, wide shot. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I14",
+   "block": "d_019",
+   "prompt": "a small boy seen from behind approaching a humble stone hermitage at dusk, lamp light in the doorway. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I15",
+   "block": "d_022",
+   "prompt": "a modest courtyard where many people wait, all seen from behind, some leaning on staffs, warm hopeful light falling into the courtyard. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I16",
+   "block": "d_023",
+   "prompt": "a richly dressed courtier seen strictly from behind, led by a servant, arriving at a modest house with servants carrying wooden chests of gifts, late afternoon. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I17",
+   "block": "d_027",
+   "prompt": "golden sunlight breaking through dark clouds over the desert city, rays falling on rooftops, sense of grace and healing. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I18",
+   "block": "d_028",
+   "prompt": "a grand palace hall with tall columns, the throne seen from the side with a crown resting on it, a courtier in fine robes seated near it seen strictly from behind. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I19",
+   "block": "d_031",
+   "prompt": "a long dark palace corridor lit by torches, armored guards seen from behind as silhouettes walking away, heavy menace. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I20",
+   "block": "d_035",
+   "prompt": "a heavy wooden door closed in a bare stone chamber, a single torch on the wall burning low, smoke curling, somber. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I21",
+   "block": "d_036",
+   "prompt": "a second closed door in a dark stone corridor, an extinguished torch with a thin trail of smoke, silence. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I22",
+   "block": "d_039",
+   "prompt": "a steep rocky mountain at dusk with a narrow path, a group of tiny distant figures climbing it, seen from far below, storm clouds gathering. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I23",
+   "block": "d_040",
+   "prompt": "mountain summit against a stormy sky, a few tiny dark silhouettes standing at the edge seen from far away behind them, wind and dust. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I24",
+   "block": "d_042",
+   "prompt": "the mountain shaking: rockfall and a huge dust cloud pouring down the slope, boulders tumbling, dramatic lightning, no people visible. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I25",
+   "block": "d_043",
+   "prompt": "a single small figure seen from behind walking calmly along a road toward huge palace gates, dust settling behind, late light. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I26",
+   "block": "d_044",
+   "prompt": "peaceful wide desert landscape at golden hour with an ancient road winding toward a distant city, calm and inviting. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I27",
+   "block": "d_046",
+   "prompt": "a small wooden boat on a dark open sea, tiny figures aboard seen from far away, heavy clouds, growing waves. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I28",
+   "block": "d_049",
+   "prompt": "far wide shot of a small wooden boat overturning in a large dark wave at sea, spray and foam, no people detail visible. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I29",
+   "block": "d_050",
+   "prompt": "a calm shoreline at dawn, a single small figure seen from behind walking from the sea toward the distant city. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I30",
+   "block": "d_052",
+   "prompt": "huge closed palace doors of carved wood and bronze, a very small figure seen from behind standing before them, dramatic scale. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I31",
+   "block": "d_054",
+   "prompt": "a throne room seen from behind an empty throne with a golden crown on its seat, far across the hall a small figure seen from behind standing, torches, tension. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I32",
+   "block": "d_056",
+   "prompt": "close still life of arrows in a leather quiver resting on a stone ledge, sharp light and deep shadow, no people. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I33",
+   "block": "d_057",
+   "prompt": "aerial view of crowds streaming from all city streets toward one vast open plain, all tiny figures, morning haze. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I34",
+   "block": "d_059",
+   "prompt": "a golden crown on a dark throne, half in shadow, half lit by a cold window light, brooding. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I35",
+   "block": "d_061",
+   "prompt": "enormous crowd on a flat plain seen from behind and above, far in the distance a lone wooden trunk, a royal canopy with banners at one side, held-breath silence. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I36",
+   "block": "d_062",
+   "prompt": "a single arrow in flight against a pale bright sky, motion blur, birds scattering, nothing else visible. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I37",
+   "block": "d_064",
+   "prompt": "a vast crowd seen from behind raising their hands toward the sky at sunrise, golden light flooding the plain. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I38",
+   "block": "d_066",
+   "prompt": "first light of sunrise spreading across the plain and the crowd seen from behind, long shadows, solemn hope. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I39",
+   "block": "d_069",
+   "prompt": "inside the palace a court official seen from behind bowing before an empty throne with a crown on it, cold blue light, alarm. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I40",
+   "block": "d_070",
+   "prompt": "far wide shot at dusk: many tiny silhouettes digging long deep trenches across the entrances of narrow city streets, piles of earth. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I41",
+   "block": "d_071",
+   "prompt": "night aerial view of an ancient city with long trenches of fire glowing orange at the mouths of its streets, smoke rising, dark blue surroundings, no people visible in the fire. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I42",
+   "block": "d_073",
+   "prompt": "the edge of a glowing fire trench at night seen from a distance, a crowd of dark silhouettes standing far back seen from behind, smoke and embers. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I43",
+   "block": "d_075",
+   "prompt": "embers and sparks rising from a trench of fire into a dark night sky, only smoke and light, no people. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I44",
+   "block": "d_078",
+   "prompt": "a starry night sky over the silent desert city, a faint glow fading on the horizon, stillness. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "I45",
+   "block": "d_080",
+   "prompt": "peaceful dawn over the desert city and plain, soft light, a gentle breeze moving the palm trees, serene ending. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "TA",
+   "block": "thumbnail",
+   "prompt": "high-contrast dramatic thumbnail composition: an ornate gilded royal bow with a single arrow nocked at its grip, pointed toward a lone bare wooden trunk on a misty plain far away, silhouettes of a crowd seen from behind at the bottom edge, deep dark-teal sky with golden rim light, empty negative space on the right third for text. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  },
+  {
+   "image": "TB",
+   "block": "thumbnail",
+   "prompt": "high-contrast dramatic thumbnail composition: night aerial view of long trenches of fire glowing intense orange across the entrances of dark city streets, deep navy blue surroundings, smoke rising, no people visible in the fire, empty negative space on the left third for text. Style: cinematic painterly matte painting, ancient Near-Eastern desert kingdom before Islam, mud-brick and stone architecture, earth tones with deep shadows and warm low-key light, volumetric haze, subtle film grain, documentary realism, 16:9 composition. Constraints: no clear human face, no front-facing people; any person only seen from behind, as a dark silhouette, or as a tiny distant figure; no women; no blood, no wounds, no injury, no violence on screen; no crosses, no churches, no religious symbols; no text, no letters, no writing, no calligraphy, no logos, no watermark.",
+   "aspect": "16:9"
+  }
+ ],
+ "note": "هذه الأوصاف الأساسية. والأوصاف الفعلية عند التوليد شُدِّدت ممنوعاتها لكل لقطة (لا أيدٍ في القوس والجعبة، ولا قباب ولا مآذن في المدن، ولا نقوش ولا كتابة على العرش). وI34 أُلغيت فاستُعملت I04 مكانها. وI03 وI04 وI26 أُعيد توليدها مرة، والنسخ الأولى في images/rejected."
+}
