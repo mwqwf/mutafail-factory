@@ -1,0 +1,173 @@
+{
+  "version": "2026-11-27",
+  "canvas": 800,
+  "center": [
+    400,
+    400
+  ],
+  "supersample": 4,
+  "wordmark": "المتفائل",
+  "wordmark_font": "assets/Amiri-Bold.ttf",
+  "tagline_font": "Noto Naskh Arabic variable wght=700",
+  "shaping": "RAQM + logical text, direction=rtl, language=ar",
+  "youtube_icon_has_wordmark": false,
+  "ring": {
+    "outer": 376,
+    "inner": 336,
+    "stroke": 40,
+    "groove_out": 368,
+    "groove_in": 344,
+    "groove_w": 2.5,
+    "edge_w": 2.0,
+    "accent_r": 326,
+    "accent_w": 3.0,
+    "studs": 8,
+    "stud_r": 356,
+    "stud_size": 9,
+    "stud_start_deg": -90
+  },
+  "gold_stops": [
+    [
+      0.0,
+      [
+        255,
+        241,
+        184
+      ]
+    ],
+    [
+      0.3,
+      [
+        242,
+        199,
+        92
+      ]
+    ],
+    [
+      0.52,
+      [
+        184,
+        134,
+        43
+      ]
+    ],
+    [
+      0.7,
+      [
+        232,
+        192,
+        100
+      ]
+    ],
+    [
+      1.0,
+      [
+        154,
+        111,
+        34
+      ]
+    ]
+  ],
+  "gold_dark": [
+    58,
+    40,
+    10
+  ],
+  "banner": {
+    "size": [
+      2560,
+      1440
+    ],
+    "safe": [
+      507,
+      508,
+      2053,
+      931
+    ],
+    "inner_pad": 24,
+    "wordmark_size": 196,
+    "tagline_size": 64,
+    "mark_size": 318,
+    "gap": 70
+  },
+  "channels": {
+    "history": {
+      "id": "UCda-VgyvZwAH5_Pl1elVEnw",
+      "field_center": [
+        14,
+        38,
+        76
+      ],
+      "field_edge": [
+        4,
+        12,
+        30
+      ],
+      "glow": [
+        40,
+        170,
+        180
+      ],
+      "accent": [
+        59,
+        195,
+        201
+      ],
+      "corner": [
+        4,
+        12,
+        30
+      ],
+      "tag": "معارك الإسلام وبطولات أبطاله",
+      "tag_color": [
+        236,
+        241,
+        238
+      ],
+      "symbol_fit": [
+        560,
+        600,
+        396
+      ]
+    },
+    "hikayat": {
+      "id": "UC7owFa1Z0P8vv5tSzhRYfPw",
+      "field_center": [
+        18,
+        92,
+        70
+      ],
+      "field_edge": [
+        5,
+        38,
+        29
+      ],
+      "glow": [
+        243,
+        233,
+        210
+      ],
+      "accent": [
+        243,
+        233,
+        210
+      ],
+      "corner": [
+        5,
+        38,
+        29
+      ],
+      "tag": "حكايات إسلامية بمصادرها",
+      "tag_color": [
+        243,
+        233,
+        210
+      ],
+      "symbol_fit": [
+        630,
+        580,
+        418
+      ]
+    }
+  }
+}

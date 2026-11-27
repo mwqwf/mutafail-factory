@@ -1,0 +1,45 @@
+{
+  "canvas": [
+    2560,
+    1440
+  ],
+  "safe_area": [
+    507,
+    508,
+    2053,
+    931
+  ],
+  "content_bbox": [
+    730,
+    530,
+    1825,
+    908
+  ],
+  "safe_margin": [
+    223,
+    22,
+    228,
+    23
+  ],
+  "mark": {
+    "x": 1507,
+    "y": 561,
+    "size": 318
+  },
+  "wordmark": {
+    "text": "المتفائل",
+    "font": "Amiri-Bold",
+    "size": 230,
+    "x": 876,
+    "y": 532
+  },
+  "tagline": {
+    "text": "معارك الإسلام وبطولات أبطاله",
+    "font": "Noto Naskh Arabic wght700",
+    "size": 74,
+    "x": 734,
+    "y": 819
+  },
+  "rule_y": 785,
+  "order": "L0_background → L1_scrim → L2_mark → L3_text"
+}
