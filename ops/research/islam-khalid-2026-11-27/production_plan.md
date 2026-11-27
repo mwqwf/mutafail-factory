@@ -351,11 +351,11 @@ Mirror of the opening: the same dune ridge and the same veiled rider seen from b
 | S11 | 1:21 | map | kb3d | dolly_in | inout | 0.4 | fade | — |
 | S12 | 1:35 | action | live | push_tilt | soft | 1.4 | whip | gallop away from camera, dust kicks up, camera tracks low and steady |
 | S13 | 1:42 | reflection | kb3d | dolly_out | inout | 0.5 | fade | — |
-| S14 | 1:55 | tension | kb3d | push_tilt | in | 0.9 | fade | — |
+| S14 | 1:55 | tension | kb3d | push_tilt | soft | 1.15 | fade | — |
 | S15 | 1:59 | reflection | kb3d | dolly_in | inout | 0.55 | fade | — |
 | S16 | 2:20 | grief | kb3d | dolly_out | inout | 0.5 | fade | — |
 | S17 | 2:29 | revelation | live | dolly_in | inout | 0.5 | fadewhite | the folded parchment stays closed in the hand, only the lamp flame flickers and dust drifts; camera static, no writing ever visible |
-| S18 | 2:33 | grief | kb3d | dolly_out | inout | 0.5 | fade | — |
+| S18 | 2:33 | grief | kb3d | dolly_out | soft | 1.3 | fade | — |
 | S19 | 3:12 | journey | kb3d | truck_r | soft | 0.8 | fade | — |
 | S20 | 3:25 | tension | kb3d | dolly_in | in | 0.9 | fade | — |
 | S21 | 3:33 | tension | kb3d | push_tilt | in | 0.9 | fade | — |
@@ -363,7 +363,7 @@ Mirror of the opening: the same dune ridge and the same veiled rider seen from b
 | S23 | 3:54 | journey | kb3d | truck_r | soft | 0.8 | fade | — |
 | S24 | 4:09 | journey | kb3d | truck_l | soft | 0.5 | fade | — |
 | S25 | 4:09 | tension | kb3d | dolly_in | in | 0.9 | fade | — |
-| S26 | 4:45 | revelation | kb3d | reveal | out | 0.75 | fadewhite | — |
+| S26 | 4:45 | revelation | kb3d | reveal | soft | 1.15 | fadewhite | — |
 | S27 | 5:09 | journey | live | truck_l | soft | 1.0 | fade | two riders converge from left and right toward a third, slow lateral move |
 | S28 | 5:18 | revelation | live | crane_up | out | 1.2 | fadewhite | slow push toward the horizon as the light grows, cloak lifts in the breeze; camera smooth |
 | S29 | 5:27 | journey | kb3d | truck_r | soft | 0.8 | fade | — |
@@ -373,7 +373,7 @@ Mirror of the opening: the same dune ridge and the same veiled rider seen from b
 | S33 | 6:01 | revelation | live | crane_up | out | 1.0 | fadewhite | dust motes drift in the light shaft, the man bows his head slowly; camera static |
 | S34 | 6:10 | revelation | kb3d | dolly_in | out | 0.75 | fadewhite | — |
 | S35 | 6:23 | reflection | kb3d | dolly_out | inout | 0.55 | fade | — |
-| S36 | 7:03 | reflection | kb3d | dolly_in | inout | 0.55 | fade | — |
+| S36 | 7:03 | reflection | kb3d | dolly_in | soft | 1.1 | fade | — |
 | S37 | 7:36 | awe | kb3d | crane_up | out | 0.8 | fade | — |
 | S38 | 7:51 | reflection | kb3d | dolly_in | inout | 0.55 | fade | — |
 | S39 | 8:01 | grief | live | crane_up | inout | 1.0 | fade | banners fall one after another in the dust far away; camera slow push |

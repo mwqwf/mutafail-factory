@@ -155,7 +155,11 @@ LIVE_FALLBACK = {
 QA_FIX = {'S13': {'move3d': 'dolly_out', 'energy': 0.5, 'qa': 'أشخاص صغار بعيدون: لا تقريب'},
           'S24': {'energy': 0.5, 'qa': 'أشخاص صغار بعيدون: لا تقريب'},
           'S17': {'qa': 'كتابة زائفة: الصورة مموّهة في منطقة الرقّ (images_src/ الأصل)'}}
+# motion_plan.py clip على المقاطع المصيَّرة: تجمّد في اللقطات الطويلة (S14 6.2 ث، S18 10 ث، S26 2.1، S36 1.9) ⇒ طاقة أعلى
+ENERGY_FIX = {'S14': 1.15, 'S18': 1.3, 'S26': 1.15, 'S36': 1.1}
 for _s in SH:
+    if _s['id'] in ENERGY_FIX:
+        _s['energy'] = ENERGY_FIX[_s['id']]; _s['ease'] = 'soft'   # inout يقف عند الطرفين في اللقطة الطويلة
     if _s['id'] in LIVE_FALLBACK:
         _s['move3d'], _s['energy'], _s['ease'] = LIVE_FALLBACK[_s['id']]
     _s.update(QA_FIX.get(_s['id'], {}))
