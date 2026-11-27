@@ -48,7 +48,8 @@ for b in blocks:
     # النصّ: نسبة الزمن الصوتيّ → حدّ كلمة، يُفضَّل حدٌّ بعد علامة ترقيم قريبة
     wb = [0]
     for c in cuts:
-        k = round(len(ws) * c / d); cand = [i for i in range(max(1, k - 4), min(len(ws), k + 5)) if re.search(r'[.،,؛:!؟…»]$', ws[i - 1])]
+        cum = np.cumsum([len(w) + 1 for w in ws]); k = int(np.searchsorted(cum, cum[-1] * c / d)) + 1   # نسبة الحروف لا الكلمات
+        cand = [i for i in range(max(1, k - 2), min(len(ws), k + 3)) if re.search(r'[.،,؛:!؟…»]$', ws[i - 1])]
         k = min(cand, key=lambda i: abs(i - k)) if cand else k; wb.append(max(wb[-1] + 1, min(k, len(ws) - 1)))
     wb.append(len(ws)); sub_of[b['id']] = []
     for j in range(len(edges) - 1):
