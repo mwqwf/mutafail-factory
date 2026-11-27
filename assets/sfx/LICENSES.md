@@ -30,3 +30,27 @@
 | crowd_1.ogg | crowd | 22.8 | R24-01-Men Rallying.wav | craigsmith | https://freesound.org/people/craigsmith/sounds/480809/ | CC0 1.0 Universal (Public Domain Dedication) |
 | crowd_2.ogg | crowd | 12.5 | R15-73-Small Group of Men Shouting.wav | craigsmith | https://freesound.org/people/craigsmith/sounds/480805/ | CC0 1.0 Universal (Public Domain Dedication) |
 | crowd_3.ogg | crowd | 24.2 | S11-14 Group of men yelling with sword fight clicking.wav | craigsmith | https://freesound.org/people/craigsmith/sounds/675091/ | CC0 1.0 Universal (Public Domain Dedication) |
+| camels_1.ogg | camels | 23.0 | G12-05-Camel Grunt.wav | craigsmith | https://freesound.org/people/craigsmith/sounds/437937/ | CC0 1.0 Universal (Public Domain Dedication) |
+| camels_2.ogg | camels | 27.0 | S30-27 Camels grunt and call; birds in bg.wav | craigsmith | https://freesound.org/people/craigsmith/sounds/675449/ | CC0 1.0 Universal (Public Domain Dedication) |
+| footsteps_1.ogg | footsteps | 30.0 | Footsteps on sand.wav | Daphne_in_Wonderland | https://freesound.org/people/Daphne_in_Wonderland/sounds/383490/ | CC0 1.0 Universal (Public Domain Dedication) |
+| footsteps_2.ogg | footsteps | 30.0 | Footsteps wearing sneakers and jeans walking on dry sand in the desert | felix.blume | https://freesound.org/people/felix.blume/sounds/705743/ | CC0 1.0 Universal (Public Domain Dedication) |
+| footsteps_3.ogg | footsteps | 30.0 | Footsteps_Mountain_Boots_Wet_Sand_Sequence_Mono.wav | Nox_Sound | https://freesound.org/people/Nox_Sound/sounds/564893/ | CC0 1.0 Universal (Public Domain Dedication) |
+| sworddraw_1.ogg | sworddraw | 3.0 | Sword draw unsheathe | SamsterBirdies | https://freesound.org/people/SamsterBirdies/sounds/581594/ | CC0 1.0 Universal (Public Domain Dedication) |
+| sworddraw_2.ogg | sworddraw | 2.8 | Sword Unsheath | lucabia | https://freesound.org/people/lucabia/sounds/276872/ | CC0 1.0 Universal (Public Domain Dedication) |
+| sworddraw_3.ogg | sworddraw | 1.7 | Sword Fast Unsheath.wav | ethanchase7744 | https://freesound.org/people/ethanchase7744/sounds/468695/ | CC0 1.0 Universal (Public Domain Dedication) |
+| swords_1.ogg | swords | 10.0 | Single Sword Clash.MP3 | FunWithSound | https://freesound.org/people/FunWithSound/sounds/361482/ | CC0 1.0 Universal (Public Domain Dedication) |
+| banner_1.ogg | banner | 30.0 | A flag flapping in the wind, at the small village of Assem Souk, in the High Atlas (Morocco). | felix.blume | https://freesound.org/people/felix.blume/sounds/154794/ | CC0 1.0 Universal (Public Domain Dedication) |
+| banner_2.ogg | banner | 30.0 | A flag flapping in the wind in the Mojave Desert (California) | felix.blume | https://freesound.org/people/felix.blume/sounds/187364/ | CC0 1.0 Universal (Public Domain Dedication) |
+| sea_1.ogg | sea | 30.0 | NorthSeaWaves.wav | derjuli | https://freesound.org/people/derjuli/sounds/824106/ | CC0 1.0 Universal (Public Domain Dedication) |
+| sea_2.ogg | sea | 30.0 | Ocean Lake Sea Shore Waves.wav | GLM_KG | https://freesound.org/people/GLM_KG/sounds/240645/ | CC0 1.0 Universal (Public Domain Dedication) |
+| horsesnort_1.ogg | horsesnort | 10.0 | horse snort.wav | bruno.auzet | https://freesound.org/people/bruno.auzet/sounds/538697/ | CC0 1.0 Universal (Public Domain Dedication) |
+| horsesnort_2.ogg | horsesnort | 3.0 | Horse Snort.wav | black_trillium | https://freesound.org/people/black_trillium/sounds/397236/ | CC0 1.0 Universal (Public Domain Dedication) |
+| horsesnort_3.ogg | horsesnort | 2.5 | Horse(snort)_3.wav | o_ciz | https://freesound.org/people/o_ciz/sounds/475483/ | CC0 1.0 Universal (Public Domain Dedication) |
+| hooves_1.ogg | hooves | 22.0 | SFX - Horse - Trot.wav | MrFizzywig | https://freesound.org/people/MrFizzywig/sounds/581834/ | CC0 1.0 Universal (Public Domain Dedication) |
+| hooves_2.ogg | hooves | 30.0 | Passing horses.wav | BeeProductive | https://freesound.org/people/BeeProductive/sounds/389410/ | CC0 1.0 Universal (Public Domain Dedication) |
+| leather_1.ogg | leather | 20.0 | Creaking leather.wav | guitargeorge-2 | https://freesound.org/people/guitargeorge-2/sounds/611460/ | CC0 1.0 Universal (Public Domain Dedication) |
+| leather_2.ogg | leather | 9.0 | Leather Creak / Stretching | IENBA | https://freesound.org/people/IENBA/sounds/536187/ | CC0 1.0 Universal (Public Domain Dedication) |
+| tent_1.ogg | tent | 30.0 | Tent Fabric Blow in Light Wind.wav | bmacphail | https://freesound.org/people/bmacphail/sounds/569538/ | CC0 1.0 Universal (Public Domain Dedication) |
+| tent_2.ogg | tent | 30.0 | Tent Fabric Flapping in Wind Ambient.wav | bmacphail | https://freesound.org/people/bmacphail/sounds/569537/ | CC0 1.0 Universal (Public Domain Dedication) |
+| wind_3.ogg | wind | 30.0 | Looping Gentle Wind Ambience on an Open Desert Plain.wav | dhallcomposer | https://freesound.org/people/dhallcomposer/sounds/697217/ | CC0 1.0 Universal (Public Domain Dedication) |
+| breath_1.ogg | breath | 21.0 | Heavy breath male.WAV | AdrianoAnjos | https://freesound.org/people/AdrianoAnjos/sounds/538870/ | CC0 1.0 Universal (Public Domain Dedication) |

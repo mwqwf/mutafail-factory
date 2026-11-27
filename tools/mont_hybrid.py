@@ -93,6 +93,22 @@ with open(os.path.join(WORK, 'alist.txt'), 'w', encoding='utf-8') as fh:
         a = P('audio', x + '.wav'); durs[x] = dur(a)
         fh.write("file '%s'\nfile '%s'\n" % (a.replace('\\', '/'), sil.replace('\\', '/')))
 span_of = lambda s: float(s['hold']) if s['id'] in HOLD else sum(durs[b] + GAP for b in s['blocks']) / 1.05
+# ⭐ أمر المالك 2026-11-27 («كلّ مؤثّر في مكانه المناسب لا عشوائياً»): ورقة الإشارات <proj>/sfx_cues.json إلزامية للأفلام الجديدة
+#    (tools/sfx_cues.py). بدونها يتوقّف المونتاج؛ SFX_LEGACY=1 لإعادة تصيير فيلمٍ منشور قبل 2026-11-27 فقط.
+import sfx_cues
+CUES = sfx_cues.json.load(open(P('sfx_cues.json'), encoding='utf-8')) if os.path.exists(P('sfx_cues.json')) else None
+if CUES is None and os.environ.get('SFX_LEGACY') != '1':
+    raise SystemExit('⛔ لا ورقة إشارات مؤثّرات (sfx_cues.json) — كلّ مؤثّر بحدثٍ مسمّى وسبب؛ المسودّة: python3 tools/sfx_cues.py draft <proj>')
+FILM_BT, _t = {}, 0.0                                # أزمنة الكتل في الفيلم بعد atempo=1.05
+for x in order:
+    d_ = dur(x) if x in HOLD.values() else durs[x]
+    if x not in HOLD.values():
+        FILM_BT[x] = (_t / 1.05, (_t + d_) / 1.05)
+    _t += d_ + (0 if x in HOLD.values() else GAP)
+if CUES is not None:
+    _ce = sfx_cues.lint(CUES, blocks, FILM_BT)
+    if _ce:
+        raise SystemExit('⛔ ورقة الإشارات: ' + ' · '.join(_ce))
 voice = os.path.join(WORK, 'voice.wav')
 # سلسلة معالجة الصوت: الافتراضية، أو ما اختاره مختبر الأصوات للفيلم (publish.json: voice_filter — الأرك 2026-10-04)
 VF = 'atempo=1.05,adeclick,dynaudnorm'
@@ -119,7 +135,8 @@ NF = [FST[i + 1] - FST[i] for i in range(len(shots))]
 LEN = lambda n: (NF[n] + 2 * HF) / 25.0          # مدّة مقطع اللقطة بمقبضيه
 ENERGY = {'battle': 1.35, 'buildup': 1.1, None: 1.15}   # شدّة الحركة المجسّمة: المعركة أقوى، والافتتاحية حماسية
 energy = lambda n: ENERGY.get(SECS[n], 1.0)
-ANIM = lambda s: P('anim', '%s.v%d.mp4' % (s['id'], kb3d.VERSION))   # لا تُعاد مقاطع إصدارٍ أقدم
+ANIM = lambda s: P('anim', '%s.v%d%s.mp4' % (s['id'], kb3d.VERSION,                # لا تُعاد مقاطع إصدارٍ أقدم
+                                            ''.join('.' + str(s[k]) for k in ('move3d', 'ease') if s.get(k))))
 # «النصّ خلف العنصر» (طلب المالك 2026-10-04: «أقوى وأكثر إبهاراً»): لقطةٌ مجسّمة فيها كتابةٌ كبيرة (عبارةٌ وسطى، ضربة، عنوان فصل)
 # يكتب لها kb3d قناع الطبقة القريبة إطاراً بإطار، فتمرّ الكتابة خلف القريب من الصورة إن حجب منها جزءاً معتدلاً
 OCC = lambda s: bool((s.get('kt') or {}).get('style') == 'center' or (s.get('slam') and not s.get('cards')) or s.get('_chapter')
@@ -334,7 +351,7 @@ for n, s in enumerate(shots):
             else:
                 a, b2 = out[:-4] + '_a.mp4', out[:-4] + '_b.mp4'
                 sp.run([FF, '-v', 'error', '-y', '-i', kl, '-vf', 'setpts=%.2f*PTS,scale=1920:1080,fps=25' % SLOW_MAX, '-t', '%.3f' % (kd * SLOW_MAX)] + ENC + [a], check=True)
-                kb3d.render(img, b2, L - kd * SLOW_MAX + 0.12, n, None, energy(n))
+                kb3d.render(img, b2, L - kd * SLOW_MAX + 0.12, n, None, s.get('energy', energy(n)), None, s.get('move3d'), s.get('ease') or 'soft')
                 lst = out[:-4] + '.txt'
                 open(lst, 'w', encoding='utf-8').write("file '%s'\nfile '%s'\n" % (a.replace('\\', '/'), b2.replace('\\', '/')))
                 sp.run([FF, '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', lst, '-vf', 'fps=25,tpad=stop_mode=clone:stop=4',
@@ -349,7 +366,7 @@ for n, s in enumerate(shots):
         else:
             an = ANIM(s)
             if not (os.path.exists(an) and dur(an) >= L - 0.02) or need_matte(s):
-                kb3d.render(img, an, L + 0.04, n, None, energy(n), MATTE(s))
+                kb3d.render(img, an, L + 0.04, n, None, s.get('energy', energy(n)), MATTE(s), s.get('move3d'), s.get('ease') or 'soft')
             sp.run([FF, '-v', 'error', '-y', '-i', an, '-vf', 'tpad=stop_mode=clone:stop=4,fps=25',
                     '-frames:v', str(NT)] + ENC + [out], check=True)
     clean.append(out)
@@ -362,7 +379,9 @@ for n, s in enumerate(shots):
         out = kinetic.apply(PROJ, s, out, span, TEXTS, durs, GAP, WORK, ENC, HEAD, L, mt if mt and os.path.exists(mt) else None)
     segs.append(out)
     # صوتُ Kling الطبيعي (إن اجتاز الفحص) وإلا مؤثّرُ المكتبة
-    if kl and sfx_ok(kl):
+    if CUES is not None:
+        pass                                       # لا مؤثّر بلقطة ولا صوت مقطعٍ حيّ: المسموع ما في ورقة الإشارات وحده
+    elif kl and sfx_ok(kl):
         fx.append((t, min(span, dur(kl)), kl, 0.35))
     else:
         # المؤثّر من الحقل، وإلا يُشتقّ من مضمون اللقطة (tools/sfx_auto.py — مؤتة واليمامة خرجتا بلا sfx فلم يُسمع إلا الريح)
@@ -371,7 +390,7 @@ for n, s in enumerate(shots):
             c = sfx_auto.files(SFX, cat)
             if c: fx.append((t, span, random.Random(n).choice(c), float(s.get('sfx_vol', 0.22))))
     TL[s['id']] = [round(t, 3), round(span, 3)]
-    print('  [%d/%d] %s · %.1f ث · %s' % (n + 1, len(shots), s['id'], span, s.get('sfx') or sfx_auto.derive(s, TEXTS, PHASES[n])), flush=True)
+    print('  [%d/%d] %s · %.1f ث · %s' % (n + 1, len(shots), s['id'], span, 'إشارات' if CUES is not None else (s.get('sfx') or sfx_auto.derive(s, TEXTS, PHASES[n]))), flush=True)
 
 json.dump(TL, open(P('timeline.json'), 'w', encoding='utf-8'))
 # ②ب الانتقالات المتداخلة بحسب الموقف (أمر المالك 2026-10-04: «صورٌ متداخلة احترافية» — tools/transitions.py)
@@ -398,7 +417,7 @@ SB = sfx_synth.bank(WORK)
 # إن لم يكتب kinetic ضربات، تُشتق أزمنة ارتطام من المضمون (وإلا بقي الارتطام الثقيل صفراً)
 for n, s in enumerate(shots):
     ev = kinetic.EVENTS.setdefault(s['id'], {})
-    if ev.get('slam'):
+    if ev.get('slam') or CUES is not None:       # في وضع الإشارات لا ارتطام مشتقّ من الكلمات؛ الضربة المكتوبة وحدها
         continue
     for ts, tier in sfx_auto.impact_times(s, span_of(s), TEXTS, PHASES[n] if n < len(PHASES) else None, s.get('_tier', 'medium')):
         ev.setdefault('slam', []).append((ts, tier))
@@ -419,7 +438,7 @@ for n, s in enumerate(shots):
     for ts in ev.get('stamp', []):
         hits.append((t0 + ts - 0.02, 'thud_soft', 0.32))
 for i, p_ in enumerate(TP):
-    if not p_:
+    if not p_ or CUES is not None:                # حفيفٌ على كلّ قطعٍ كان حشواً؛ في وضع الإشارات لا يُسمع إلا المسوَّغ
         continue
     cut = FST[i + 1] / 25.0
     if p_[0] in ('whip', 'whipr', 'push', 'zoom', 'flash'):
@@ -428,7 +447,7 @@ for i, p_ in enumerate(TP):
         hits.append((cut - 0.70, 'whoosh_slow', 0.28))
 HITS = sfx_synth.mix(hits, VD, SB, os.path.join(WORK, 'hits.wav'))
 print('③أ الارتطام والحفيف: %d مؤثّراً (منها %d ثقيلة)' % (len(hits), len(heavy_t)), flush=True)
-if _heavy and not heavy_t:
+if _heavy and not heavy_t and CUES is None:
     raise SystemExit('⛔ لقطات صدام بلا ارتطام ثقيل — راجعة sfx_auto.impact_times')
 # فحص نغمي محلي لطبقة الارتطام المركّبة (لا جيميناي)
 import tonal_gate
@@ -437,6 +456,23 @@ if os.path.exists(os.path.join(WORK, 'hits.wav')) and os.environ.get('SKIP_TONAL
         raise SystemExit('⛔ طبقة الارتطام بدت نغمية — الموسيقى ممنوعة')
 # ③ب المزج (بحث 2026-10-04 في تصميم صوت الوثائقيات): جوّ اللقطة يسبقها بنصف ثانية (قطع J)، والرياح والجوّ تنخفض تحت الكلام
 #     بضاغطٍ يقوده الكلام نفسه وترتفع بين الجمل، وتصمت قبيل الارتطام الثقيل فيدوّي، ثم تسوية الجهارة إلى −14 LUFS (معيار يوتيوب)
+if CUES is not None:
+    # ③ب' المزج بالإشارات: مسارٌ واحد مصيَّر مدكوكٌ تحت الكلام (sfx_cues.render) ثم بوّابته، بلا ضجيجٍ ورديّ دائم
+    _vp = sfx_cues._pcm(voice)
+    STEM = os.path.join(WORK, 'sfx_stem.wav')
+    _stem = sfx_cues.render(CUES, blocks, FILM_BT, _vp, STEM)
+    _keys = sfx_cues.key_blocks(CUES, blocks)
+    _ge = sfx_cues.mix_gate(_vp, _stem, [FILM_BT[k] for k in _keys if k in FILM_BT])
+    if _ge:
+        raise SystemExit('⛔ بوّابة المؤثّرات: ' + ' · '.join(_ge[:8]))
+    if tonal_gate.check_paths([STEM]) and os.environ.get('SKIP_TONAL_GATE') != '1':
+        raise SystemExit('⛔ مسار المؤثّرات بدا نغمياً — الموسيقى ممنوعة')
+    raw = os.path.join(WORK, 'audio_mix.wav')
+    sp.run([FF, '-v', 'error', '-y', '-i', voice, '-i', STEM, '-i', HITS, '-filter_complex',
+            '[0:a]aresample=48000,aformat=channel_layouts=mono[v];[1:a]aresample=48000,aformat=channel_layouts=mono[s];'
+            '[2:a]aresample=48000,aformat=channel_layouts=mono[h];[v][s][h]amix=inputs=3:duration=first:normalize=0[a]',
+            '-map', '[a]', '-c:a', 'pcm_s16le', '-ar', '48000', raw], check=True)
+    print('③ب\' المؤثّرات بالإشارات: %d إشارة، بوّابة المزج سليمة' % len(CUES['cues']), flush=True)
 inp = [FF, '-v', 'error', '-y', '-i', voice, '-f', 'lavfi', '-t', str(VD), '-i', 'anoisesrc=c=pink:r=48000', '-i', HITS]
 flt = ['[0:a]aresample=48000,aformat=channel_layouts=mono,asplit=2[v][vsc]',
        '[1:a]lowpass=520,highpass=60,volume=0.10[w]', '[2:a]aresample=48000,aformat=channel_layouts=mono[h]']
@@ -453,8 +489,9 @@ dip = '+'.join('between(t,%.3f,%.3f)' % (ht - 0.28, ht) for ht in heavy_t)
 flt.append('[amb][vsc]sidechaincompress=threshold=0.025:ratio=5:attack=50:release=450:makeup=1[ambd]')
 flt.append("[ambd]volume='max(0.3,1-0.7*(%s))':eval=frame[amb2]" % (dip or '0'))
 flt.append('[v][amb2][h]amix=inputs=3:duration=first:normalize=0[a]')
-raw = os.path.join(WORK, 'audio_mix.wav')
-sp.run(inp + ['-filter_complex', ';'.join(flt), '-map', '[a]', '-c:a', 'pcm_s16le', '-ar', '48000', raw], check=True)
+if CUES is None:
+    raw = os.path.join(WORK, 'audio_mix.wav')
+    sp.run(inp + ['-filter_complex', ';'.join(flt), '-map', '[a]', '-c:a', 'pcm_s16le', '-ar', '48000', raw], check=True)
 mixed = os.path.join(WORK, 'audio_final.m4a')
 LN = 'loudnorm=I=-14:TP=-1.0:LRA=11'
 if os.environ.get('MONT_MUTE_VOICE') == '1':                   # بلا كلام: لا تُرفع الرياح إلى جهارة الكلام
@@ -481,4 +518,4 @@ final = P('film.mp4')
 sp.run([FF, '-v', 'error', '-y', '-i', silent, '-i', mixed, '-i', lg, '-filter_complex', '[0:v][2:v]overlay=W-w-46:46:format=auto[v]',
         '-map', '[v]', '-map', '1:a', '-c:v', 'libx264', '-preset', 'medium', '-crf', '21', '-tune', 'film', '-pix_fmt', 'yuv420p',
         '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', '-shortest', final], check=True)
-print('✅ %s | %.2f د | مؤثّرات: %d' % (final, dur(final) / 60, len(fx)), flush=True)
+print('✅ %s | %.2f د | مؤثّرات: %d' % (final, dur(final) / 60, len(CUES['cues']) if CUES is not None else len(fx)), flush=True)

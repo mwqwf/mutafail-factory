@@ -128,7 +128,19 @@ def _guided(I, p, r, eps):
     return mean(a) * I + mean(b)
 
 
-def render(src, out, dur=6.0, seed=0, size=None, energy=1.0, matte=None):
+# منحنيات التسارع (أمر المالك 2026-11-27: «التحريك بأقصى احترافية»): الحركة تختارها خطّة التحريك بحسب الشعور
+# (tools/motion_plan.py) لا البذرة. 'soft' = الافتراض القديم شبه الخطّيّ (يناسب التداخل الطويل بين لقطتين متحرّكتين)،
+# 'inout' = يبدأ ويهدأ (لقطة بين قطعين حادّين)، 'out' = يندفع ثم يستقرّ (كشف/وصول)، 'in' = يتسارع (توتّر يتصاعد).
+EASES = {
+    'soft': lambda t: 0.75 * t + 0.25 * t * t * (3 - 2 * t),
+    'inout': lambda t: t * t * t * (t * (6 * t - 15) + 10),
+    'out': lambda t: 1 - (1 - t) ** 3,
+    'in': lambda t: t ** 2.2,
+}
+MOVE_NAMES = [m[0] for m in MOVES]
+
+
+def render(src, out, dur=6.0, seed=0, size=None, energy=1.0, matte=None, move=None, ease='soft'):
     """يصيّر مقطعًا مجسَّمًا واحدًا. يحتاج <src>_depth.png بجانب الصورة أو في <proj>/img.
     size=(عرض,ارتفاع) للريلزات العمودية (1080,1920)؛ والافتراض أفقيّ 1920×1080.
     energy: شدّة الحركة (المعركة أقوى من التمهيد) — تضرب الإزاحة والتكبير.
@@ -174,7 +186,8 @@ def render(src, out, dur=6.0, seed=0, size=None, energy=1.0, matte=None):
     if matte and mp is None:
         open(matte + '.none', 'w').close()                   # حُسم: لا طبقة قريبة بارزة، فلا يُعاد التصيير لأجل القناع
 
-    name, fn = MOVES[seed % len(MOVES)]
+    name, fn = MOVES[MOVE_NAMES.index(move)] if move in MOVE_NAMES else MOVES[seed % len(MOVES)]
+    ef = EASES.get(ease or 'soft', EASES['soft'])
     e = max(0.4, float(energy))
     # الإزاحة ناعمةٌ (العمق مغبَّش) فتُحسب على شبكةٍ بربع الدقّة ثم تُكبَّر ثنائياً — أسرع بأضعاف، والصورة نفسها تُؤخذ بدقّتها الكاملة
     F = 4
@@ -193,7 +206,7 @@ def render(src, out, dur=6.0, seed=0, size=None, energy=1.0, matte=None):
     try:
         for i in range(N):
             t = i / (N - 1)
-            t = 0.75 * t + 0.25 * t * t * (3 - 2 * t)   # حركةٌ متّصلة تكاد تكون خطّية: لا توقّف عند الانتقالات المتداخلة
+            t = ef(t)                                     # الافتراض 'soft': متّصلة شبه خطّية فلا توقّف عند الانتقالات المتداخلة
             mx, my, zm, rot = fn(t)
             zm = 1.0 + (zm - 1.0) * e
             mx, my, rot = mx * e, my * e, rot * e

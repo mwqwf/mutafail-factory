@@ -1,0 +1,29 @@
+{
+  "note": "توسيع 2026-11-27: أصوات CC0 فقط من Freesound، منتقاة لأحداث السيناريو (لا موسيقى، لا آلات، لا أصوات حديثة كالمحرّكات والطرق). start/dur بالثواني من المعاينة.",
+  "items": [
+    {"id": 437937, "category": "camels", "file": "camels_1.ogg", "start": 0, "dur": 23},
+    {"id": 675449, "category": "camels", "file": "camels_2.ogg", "start": 0, "dur": 27},
+    {"id": 383490, "category": "footsteps", "file": "footsteps_1.ogg", "start": 2, "dur": 30},
+    {"id": 705743, "category": "footsteps", "file": "footsteps_2.ogg", "start": 20, "dur": 30},
+    {"id": 564893, "category": "footsteps", "file": "footsteps_3.ogg", "start": 0, "dur": 30},
+    {"id": 581594, "category": "sworddraw", "file": "sworddraw_1.ogg", "start": 0, "dur": 4},
+    {"id": 276872, "category": "sworddraw", "file": "sworddraw_2.ogg", "start": 0, "dur": 4},
+    {"id": 468695, "category": "sworddraw", "file": "sworddraw_3.ogg", "start": 0, "dur": 3},
+    {"id": 361482, "category": "swords", "file": "swords_1.ogg", "start": 0, "dur": 10},
+    {"id": 154794, "category": "banner", "file": "banner_1.ogg", "start": 5, "dur": 30},
+    {"id": 187364, "category": "banner", "file": "banner_2.ogg", "start": 10, "dur": 30},
+    {"id": 824106, "category": "sea", "file": "sea_1.ogg", "start": 5, "dur": 30},
+    {"id": 240645, "category": "sea", "file": "sea_2.ogg", "start": 30, "dur": 30},
+    {"id": 538697, "category": "horsesnort", "file": "horsesnort_1.ogg", "start": 0, "dur": 10},
+    {"id": 397236, "category": "horsesnort", "file": "horsesnort_2.ogg", "start": 0, "dur": 4},
+    {"id": 475483, "category": "horsesnort", "file": "horsesnort_3.ogg", "start": 0, "dur": 3},
+    {"id": 581834, "category": "hooves", "file": "hooves_1.ogg", "start": 0, "dur": 22},
+    {"id": 389410, "category": "hooves", "file": "hooves_2.ogg", "start": 0, "dur": 30},
+    {"id": 611460, "category": "leather", "file": "leather_1.ogg", "start": 0, "dur": 20},
+    {"id": 536187, "category": "leather", "file": "leather_2.ogg", "start": 0, "dur": 9},
+    {"id": 569538, "category": "tent", "file": "tent_1.ogg", "start": 0, "dur": 30},
+    {"id": 569537, "category": "tent", "file": "tent_2.ogg", "start": 5, "dur": 30},
+    {"id": 697217, "category": "wind", "file": "wind_3.ogg", "start": 0, "dur": 30},
+    {"id": 538870, "category": "breath", "file": "breath_1.ogg", "start": 0, "dur": 21}
+  ]
+}

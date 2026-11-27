@@ -80,6 +80,22 @@ def plain(t: str) -> str:
     return HARAKAT.sub('', t or '')
 
 
+# ⛔ درس أجنادين (تدقيق 2026-11-27): كانت الكلمات تُطابَق جزءاً من كلمة، فـ«فيلم» و«فيلقي» أسمعتا فيلةً في معركةٍ
+#    بلا فيلة، و«قليل/دليل» ليلاً، و«منارة/دينار» ناراً. ⇒ المطابقة على الكلمة كاملةً مع السوابق (و ف ب ل ك ال)
+#    واللواحق الضميرية فقط.
+_AR = '\u0621-\u064a'
+_PRE = '(?:[وفبلك]?(?:ال|لل)?)'
+_SUF = '(?:ه|ها|هم|هما|هن|ي|ك|كم|نا|ات|ون|ين|ان)?'
+
+
+def _wordwise(rx: re.Pattern) -> re.Pattern:
+    alts = [a.strip() for a in rx.pattern.strip('()').split('|') if a.strip()]
+    return re.compile('(?<![%s])%s(?:%s)%s(?![%s])' % (_AR, _PRE, '|'.join(alts), _SUF, _AR))
+
+
+RULES = [(c, _wordwise(ra), re_) for c, ra, re_ in RULES]
+
+
 def derive(shot: dict, texts: dict | None = None, phase: str | None = None) -> str:
     """صنف المؤثّر للّقطة: من نصّ كتلها العربيّ أوّلاً (ما يُسمع)، ثمّ من وصف حركتها الإنجليزيّ، ثمّ من فصلها."""
     if shot.get('sfx'):
