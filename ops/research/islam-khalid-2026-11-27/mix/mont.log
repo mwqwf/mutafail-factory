@@ -58,3 +58,54 @@ Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF
   kb3d [10/42] S10.v4.truck_r.soft.mp4
   kb3d [11/42] S12.v4.push_tilt.soft.mp4
   kb3d [12/42] S13.v4.dolly_out.inout.mp4
+  kb3d [13/42] S14.v4.push_tilt.in.mp4
+  kb3d [14/42] S15.v4.dolly_in.inout.mp4
+  kb3d [15/42] S16.v4.dolly_out.inout.mp4
+  kb3d [16/42] S17.v4.dolly_in.inout.mp4
+  kb3d [17/42] S18.v4.dolly_out.inout.mp4
+  kb3d [18/42] S19.v4.truck_r.soft.mp4
+  kb3d [19/42] S20.v4.dolly_in.in.mp4
+  kb3d [20/42] S21.v4.push_tilt.in.mp4
+  kb3d [21/42] S22.v4.truck_l.soft.mp4
+  kb3d [22/42] S23.v4.truck_r.soft.mp4
+  kb3d [23/42] S24.v4.truck_l.soft.mp4
+  kb3d [24/42] S25.v4.dolly_in.in.mp4
+  kb3d [25/42] S26.v4.reveal.out.mp4
+  kb3d [26/42] S27.v4.truck_l.soft.mp4
+  kb3d [27/42] S28.v4.crane_up.out.mp4
+  kb3d [28/42] S29.v4.truck_r.soft.mp4
+  kb3d [29/42] S30.v4.crane_up.out.mp4
+  kb3d [30/42] S31.v4.reveal.out.mp4
+  kb3d [31/42] S32.v4.truck_r.soft.mp4
+  kb3d [32/42] S33.v4.crane_up.out.mp4
+  kb3d [33/42] S34.v4.dolly_in.out.mp4
+  kb3d [34/42] S35.v4.dolly_out.inout.mp4
+  kb3d [35/42] S36.v4.dolly_in.inout.mp4
+  kb3d [36/42] S37.v4.crane_up.out.mp4
+  kb3d [37/42] S38.v4.dolly_in.inout.mp4
+  kb3d [38/42] S39.v4.crane_up.inout.mp4
+  kb3d [39/42] S40.v4.reveal.out.mp4
+  kb3d [40/42] S41.v4.dolly_out.inout.mp4
+  kb3d [41/42] S42.v4.crane_up.inout.mp4
+  kb3d [42/42] S43.v4.dolly_out.out.mp4
+  [1/43] S01 · 9.8 ث · إشارات
+  [2/43] S02 · 8.2 ث · إشارات
+  [3/43] S03 · 5.8 ث · إشارات
+  [4/43] S04 · 3.4 ث · إشارات
+  [5/43] S05 · 6.6 ث · إشارات
+  [6/43] S06 · 14.9 ث · إشارات
+  [7/43] S07 · 5.4 ث · إشارات
+  [8/43] S08 · 18.3 ث · إشارات
+  [9/43] S09 · 4.2 ث · إشارات
+  [10/43] S10 · 5.0 ث · إشارات
+[ WARN:0@737.951] global loadsave.cpp:279 findDecoder imread_('/workspace/mutafail-today/2026-11-27/proj/images/.png'): can't open/read file: check file path/integrity
+Traceback (most recent call last):
+  File "/workspace/mutafail-factory/tools/mont_hybrid.py", line 363, in <module>
+    battlemap.render(PROJ, s, an, L + 0.04, HEAD, kinetic.shot_word_times(PROJ, s, TEXTS, durs, GAP))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/mutafail-factory/tools/battlemap.py", line 266, in render
+    base_rgb, _ = load_rgba(img, (W, H))
+                  ~~~~~~~~~^^^^^^^^^^^^^
+  File "/workspace/mutafail-factory/tools/battlemap.py", line 63, in load_rgba
+    raise FileNotFoundError(path)
+FileNotFoundError: /workspace/mutafail-today/2026-11-27/proj/images/.png

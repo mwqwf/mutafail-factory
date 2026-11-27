@@ -185,7 +185,6 @@
   "light": "day",
   "emotion": "map",
   "kind": "kb3d",
-  "map": true,
   "move3d": "dolly_in",
   "ease": "inout",
   "energy": 0.4,

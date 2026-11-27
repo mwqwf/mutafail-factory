@@ -103,7 +103,7 @@ SH = [
  S(8, ['d_009', 'd_010'], 'A lone rider seen from behind riding away from a dusty field at dusk, a column of riders far ahead of him', 'wide', 'eye', 'golden', 'reflection'),
  S(9, ['d_011'], 'Quraysh cavalry seen from a distance circling behind a rocky hill at Uhud, dust trailing, no faces visible', 'wide', 'high', 'day', 'action', 'live', video_prompt='riders sweep around the hill left to right, camera trucks with them smoothly'),
  S(10, ['d_012'], 'Distant clash below a low hill, ranks of men in silhouette merging in a cloud of dust, archers\' hill empty in the foreground', 'wide', 'high', 'day', 'action'),
- S(11, ['d_013'], 'Simple top-down relief map of the road to Hudaybiyya, plain sand texture, one arrow of fine dust curving to the right, no writing', 'wide', 'aerial', 'day', 'map', map=True),
+ S(11, ['d_013'], 'Simple top-down relief map of the road to Hudaybiyya, plain sand texture, one arrow of fine dust curving to the right, no writing', 'wide', 'aerial', 'day', 'map'),  # بلا map=True: battlemap يحتاج مواصفة خريطة؛ الصورة نفسها خريطة رملية ⇒ kb3d بطيء
  S(12, ['d_014'], 'A rider seen from behind galloping along a valley floor toward distant hills, a wall of dust rising on the horizon behind him', 'wide', 'low', 'day', 'action', 'live', video_prompt='gallop away from camera, dust kicks up, camera tracks low and steady'),
  S(13, ['d_015'], 'Empty open plain at Hudaybiyya at dusk, an acacia tree alone, a tethered camel resting', 'wide', 'eye', 'golden', 'reflection'),
  S(14, ['d_016', 'd_017'], 'A man seen from behind standing at the doorway of a Meccan mudbrick house at night, clay oil lamp on a niche, long shadow on the ground', 'medium', 'over', 'night', 'tension'),

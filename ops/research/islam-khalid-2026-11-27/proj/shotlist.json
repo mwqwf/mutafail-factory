@@ -144,8 +144,7 @@
   "angle": "aerial",
   "light": "day",
   "emotion": "map",
-  "kind": "kb3d",
-  "map": true
+  "kind": "kb3d"
  },
  {
   "id": "S12",
