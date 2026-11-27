@@ -129,8 +129,22 @@ AR_PRE = '(?:وال|فال|بال|كال|ولل|فلل|ال|لل|و|ف|ب|ل|ك|
 def ar_rx(pat: str):
     """كلمةٌ أو عبارةٌ عربيّة بحدودها: سابقةٌ صرفيّة اختيارية، ولاحقةٌ حتى ثلاثة أحرف (ضمائر وجموع)، ولا حرفَ قبلها.
     فـ«دم» لا تُمسك في «قدم»، و«خول» لا تُمسك في «دخول»، و«ضرب» تُمسك «ضربوا» و«فضربوه»."""
-    core = r'\s+'.join(re.escape(w) for w in norm_ar(pat).split())
-    return re.compile('(?<![%s])%s%s[%s]{0,3}(?![%s])' % (AR_L, AR_PRE, core, AR_L, AR_L))
+    words = norm_ar(pat).split()
+    core = r'\s+'.join(re.escape(w) for w in words)
+    # ⭐ 2026-11-27 (إسلام خالد): الكلمة القصيرة (≤3 أحرف) لا تأخذ أيّ ثلاثة أحرفٍ لاحقة، وإلا أمسكت «فأس» في «فأسلم»
+    #    و«كس» في «كسرته». ⇒ نمطٌ ينتهي بمسافة («كس »، «زب ») كلمةٌ تامّةٌ بلا لاحقة، والقصيرةُ تأخذ ضمائرَ وجموعاً فقط.
+    if pat.endswith(' '):
+        suf = ''
+    elif len(words) == 1 and len(words[0]) <= 3:
+        suf = '(?:%s)?' % '|'.join(SHORT_SUF)
+    else:
+        suf = '[%s]{0,3}' % AR_L
+    return re.compile('(?<![%s])%s%s%s(?![%s])' % (AR_L, AR_PRE, core, suf, AR_L))
+
+
+SHORT_SUF = ['هما', 'هم', 'هن', 'ها', 'كم', 'نا', 'ان', 'ين', 'ون', 'ات', 'وا', 'وه', 'ه', 'ي', 'ك', 'ة', 'ا']
+# ⭐ 2026-11-27: «الوليد» في نسب خالد ونحوه اسمُ علمٍ لا مولود؛ يُحذف قبل البحث عن ألفاظ الأطفال في قاعدة التلازم.
+NAME_RX = re.compile(r'(?:\bبن|\bابن|\bابا|\bابو|\bابي|\bعتبه بن|يا ابا)\s+ال(?:وليد)\b|\bالوليد\s+بن\b')
 
 
 _RX: dict = {}
@@ -162,7 +176,7 @@ def scan_text(items: list[tuple[str, str, str]], lex: dict) -> list[dict]:
             elif kind == 'en':
                 found = [m.group(0) for p in rule['أنماط'] for m in re.finditer(p, en, re.I)]
             elif kind == 'تلازم':
-                a = [w for w in lists[rule['أ']] if ar_hit(w, ar)]
+                a = [w for w in lists[rule['أ']] if ar_hit(w, NAME_RX.sub(' ', ar))]
                 b = [w for w in lists[rule['ب']] if ar_hit(w, ar)]
                 if a and b:
                     found = ['%s + %s' % (a[0], b[0])]
