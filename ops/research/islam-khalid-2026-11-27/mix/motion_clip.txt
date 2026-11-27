@@ -1,0 +1,7 @@
+⛔ S14.v4.push_tilt.soft.mp4: تجمّد 6.2 ث
+⛔ S18.v4.dolly_out.soft.mp4: تجمّد 10.0 ث
+⛔ S18b.v4.crane_up.soft.mp4: تجمّد 2.7 ث
+⛔ S26.v4.reveal.soft.mp4: تجمّد 2.1 ث
+⛔ S35c.v4.dolly_out.soft.mp4: تجمّد 0.9 ث
+⛔ S36.v4.dolly_in.soft.mp4: تجمّد 1.9 ث
+rc=1
