@@ -1,0 +1,31 @@
+id event kind start target measured(dB rel. voice)
+c01 wind bed 0.0 -24 -24.4
+c02 horse_snort spot 0.8 -20 -20.1
+c03 silence silence 13.4 None -40.1
+c04 hooves spot 18.6 -20 -22.4
+c05 wind bed 27.2 -24 -26.6
+c06 wind bed 48.7 -22 -23.8
+c07 silence silence 51.6 None -88.3
+c08 gallop bed 75.3 -22 -24.3
+c09 battle bed 77.1 -25 -23.2
+c10 hooves spot 99.6 -20 -21.1
+c11 fire bed 116.0 -28 -29.4
+c12 leather spot 151.7 -18 -25.5
+c13 footsteps spot 198.0 -19 -22.1
+c14 camels spot 224.9 -19 -21.7
+c15 wind bed 229.0 -26 -27.3
+c16 sea bed 254.8 -26 -27.2
+c17 camels spot 310.3 -22 -22.8
+c18 wind bed 310.8 -25 -24.8
+c19 silence silence 325.6 None -162.2
+c20 camels spot 340.1 -22 -21.5
+c21 wind bed 341.1 -27 -26.2
+c22 footsteps spot 366.3 -21 -24.1
+c23 battle bed 484.6 -26 -24.5
+c24 banner bed 485.7 -24 -24.4
+c25 sword_clash spot 517.8 -18 -20.2
+c26 sword_draw spot 524.8 -18 -28.4
+c27 wind bed 526.2 -26 -27.1
+c28 silence silence 537.3 None -162.2
+MIX GATE OK
+rc=0

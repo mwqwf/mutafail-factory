@@ -1,0 +1,11 @@
+صور: 43 · تحتاج عمقًا: 43
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/287 [00:00<?, ?it/s]Loading weights: 100%|██████████| 287/287 [00:00<00:00, 12605.00it/s]
+النموذج جاهز خلال 5 ث
+  [1/43] S01.jpg  7.3 ث
+  [2/43] S02.jpg  6.5 ث
+  [3/43] S03.jpg  6.6 ث
+  [4/43] S04.jpg  6.1 ث
+  [5/43] S05.jpg  5.2 ث
+  [6/43] S06.jpg  5.4 ث
+  [7/43] S07.jpg  5.3 ث
