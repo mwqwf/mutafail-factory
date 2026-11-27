@@ -10,7 +10,8 @@ chap = '\n'.join(l for l in desc.split('\n') if re.match(r'^\d\d:\d\d ', l))
 pub = json.load(open(os.path.join(P, 'publish.json'), encoding='utf-8')) if os.path.exists(os.path.join(P, 'publish.json')) else {}
 TAGS_R = ['خالد بن الوليد', 'سيف الله', 'قصص الصحابة', 'السيرة النبوية', 'المتفائل']
 rd = lambda t: 'من قصة إسلام خالد بن الوليد — «سيف الله».\nالقصة كاملة: {FILM_URL}\n\n#خالد_بن_الوليد #سيف_الله #قصص_الصحابة'
-pub.update(slug='islam-khalid', series='سيف الله', publicNow=True, publishAt='2026-11-27T17:00:00Z',
+pub.update(slug='islam-khalid', series='سيف الله', publicNow=False,  # مؤقتاً: لا نشر قبل قرار المالك (publish_preflight يشترط true)
+           publishAt='2026-11-27T17:00:00Z',
            film={'title': title, 'title_b': title_b, 'description': desc, 'tags': tags, 'categoryId': '27',
                  'card': {'at': '3:54', 'video': 'W1UtJ-W3YqI'}, 'endscreen': '8:39-8:58'},
            reels=[{'file': 'r1.mp4', 'title': '«لو حملنا عليهم!» لماذا تراجع خالد بن الوليد؟', 'description': rd(1), 'tags': TAGS_R, 'from': '0:00-0:50'},
