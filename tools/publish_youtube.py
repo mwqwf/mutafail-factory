@@ -23,6 +23,8 @@ from googleapiclient.http import MediaFileUpload
 PROJ = sys.argv[1]
 P = lambda *a: os.path.join(PROJ, *a)
 STATE = os.path.join("ops", "state")
+EXPECTED_CHANNEL = "UCda-VgyvZwAH5_Pl1elVEnw"          # قناة المتفائل
+FORBIDDEN_CHANNELS = {"UC7owFa1Z0P8vv5tSzhRYfPw"}        # ⛔ لا يُرفع إليها أبداً
 
 
 def yt():
@@ -423,6 +425,11 @@ def main():
     if os.environ.get("PLAYLIST_ID", "").strip():
         meta["playlistId"] = os.environ["PLAYLIST_ID"].strip()
     svc = yt()
+    # ⛔ حارسُ القناة (أمر المالك 2026-11-27): لا رفع إلا إلى قناة المتفائل، ولا رفع أبداً إلى القناة الأخرى
+    _ch = svc.channels().list(part="id", mine=True).execute()["items"][0]["id"]
+    if _ch in FORBIDDEN_CHANNELS or _ch != EXPECTED_CHANNEL:
+        raise SystemExit("⛔ تفويض يوتيوب لقناةٍ غير قناة المتفائل (%s) — لا رفع" % _ch)
+    print("✅ القناة:", _ch, flush=True)
     # ⭐ ريلزٌ دعائيٌّ وحده (ريلز السلسلة 2026-09-30): لا فيلم يُرفع ولا مصغّرة ولا قائمة؛ و{FILM_URL} يُحال إلى قائمة السلسلة
     reels_only = bool(meta.get("reels_only"))
     # ⭐ ريلزاتٌ لفيلمٍ منشورٍ سلفاً (الأرك 2026-10-07: ريلزان أُعيدا بعد إصلاح تجمّد آخرهما): film_video_id وreels_for_film في
