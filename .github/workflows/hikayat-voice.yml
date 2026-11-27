@@ -1,0 +1,75 @@
+name: صوت الحكايات — توليد وفحص (فرع hikayat فقط)
+
+run-name: 🎙️ ${{ github.event.head_commit.message }}
+
+# قناة الحكايات (UC7owFa1Z0P8vv5tSzhRYfPw) — الفيلم الأوّل «أصحاب الأخدود»، 2026-11-27.
+# نموذجٌ واحد للفيلم كلّه: gemini-3.1-flash-tts-preview (حصّته منفصلة عن 3.8 التي يستعملها فيلم التاريخ).
+# المخرج: artifact فيه ملفّات wav ونتائج الفحص والإصغاء. لا إيداع ولا إصدار ولا رفع ولا لمس لأيّ قناة يوتيوب.
+on:
+  push:
+    branches: ["hikayat/**"]
+    paths: ["ops/hikayat-voice/*.json"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hikayat-voice
+  cancel-in-progress: false
+
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: الأدوات
+        run: |
+          sudo apt-get -qq update && sudo apt-get -qq install -y ffmpeg >/dev/null
+          pip install -q numpy
+      - name: المفاتيح
+        env:
+          GEMINI_KEYS_JSON: ${{ secrets.GEMINI_KEYS_JSON }}
+        run: printf '%s' "$GEMINI_KEYS_JSON" > /tmp/keys.json
+      - name: التوليد والفحص والإصغاء
+        env:
+          GEN_MAX_MIN: "80"
+        run: |
+          set -uo pipefail
+          F=$(git show --pretty= --name-only "$GITHUB_SHA" | grep '^ops/hikayat-voice/[^/]*\.json$' | head -1 || true)
+          [ -n "$F" ] || { echo "::notice::لا مواصفة في هذا الإيداع"; exit 0; }
+          MODEL=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['model'])" "$F")
+          [ "$MODEL" = "gemini-3.1-flash-tts-preview" ] || { echo "::error::النموذج المسموح gemini-3.1-flash-tts-preview وحده"; exit 1; }
+          mkdir -p proj
+          python3 - "$F" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          only=set(d.get('only') or [])
+          b=[x for x in d['blocks'] if not only or x['id'] in only]
+          json.dump(b,open('proj/blocks.json','w'),ensure_ascii=False)
+          print(len(b),'كتلة')
+          PY
+          node tools/key_projects.js --keys /tmp/keys.json --files --out /tmp/groups.json || true
+          [ -s /tmp/groups.json ] && export GEN_GROUPS=/tmp/groups.json
+          for i in 1 2 3 4; do
+            node tools/gen25.js proj 4 --keys /tmp/keys.json --model "$MODEL" || true
+            python3 tools/audio_checks.py proj && break || true
+          done
+          python3 tools/audio_checks.py proj || true
+          node tools/listen.js proj 3 --batch 4 --keys /tmp/keys.json || true
+          node tools/adjudicate_listen.js proj --keys /tmp/keys.json || true
+          rm -f /tmp/keys.json
+          ls proj/audio | wc -l
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hikayat-voice
+          path: |
+            proj/audio/*.wav
+            proj/*.json
+          retention-days: 7
