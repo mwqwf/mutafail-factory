@@ -1,0 +1,15 @@
+{
+ "d_024": {
+  "id": "d_024",
+  "decision": "true_error",
+  "reason": "قرأ القارئ كلمة (هٰهُنَا) (هُنَا) بإسقاط الهاء والألف الأولى من الكلمة.",
+  "heard": "مَا هُنَا لَكَ أَجْمَعُ، إِنْ أَنْتَ شَفَيْتَنِي.",
+  "written": "مَا هٰهُنَا لَكَ أَجْمَعُ، إِنْ أَنْتَ شَفَيْتَنِي.",
+  "input_sha256": "6c2d4ab9bede1b746ac347f133f924279a8b1a08b58f12dca57c66fe580e9510",
+  "review_kind": "automated_independent",
+  "reviewer": "automated-independent-review:gemini-3.5-flash",
+  "primary_model": "gemini-3.5-flash",
+  "review_model": "gemini-3.5-flash",
+  "independence": "separate_call_same_model"
+ }
+}

@@ -1,0 +1,27 @@
+{
+ "sh_cta": {
+  "id": "sh_cta",
+  "ok": true,
+  "input_sha256": "6eb88b858c434077c6db5ad3a4082877a60c235826318935a8dae36f10ed2afa"
+ },
+ "d_024": {
+  "id": "d_024",
+  "ok": true,
+  "input_sha256": "ee4d27a45ca18c321b8954ebb75835b7651c5591382f4ad30a8fac3ce8b3cd93"
+ },
+ "d_046": {
+  "id": "d_046",
+  "ok": true,
+  "input_sha256": "15a655ac54c9532d0aa5bcbd7e6417c3bc9474330243d108b5572e3f12a15080"
+ },
+ "d_056": {
+  "id": "d_056",
+  "ok": true,
+  "input_sha256": "b2e2fbfe1ffaabc3a9b19aaa5f0366da49a3178309e36068dca7d8f074004d4a"
+ },
+ "d_077": {
+  "id": "d_077",
+  "ok": true,
+  "input_sha256": "8bea899f98af21a59fa3978c13f320d6d5003615b1fc5684c7f3a372f11a4aa4"
+ }
+}

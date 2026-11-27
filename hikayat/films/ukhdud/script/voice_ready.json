@@ -1,0 +1,765 @@
+{
+ "slug": "ashab-alukhdud-full",
+ "model": "gemini-3.1-flash-tts-preview",
+ "note": "صوت واحد للفيلم كله، والمالك يولّده بنفسه. لا تُخلط النماذج. علامات «» محذوفة من النص المنطوق فقط.",
+ "variants": {
+  "full": [
+   {
+    "id": "d_001",
+    "role": "N",
+    "voice": "Charon",
+    "text": "جَمَعَ الْمَلِكُ النَّاسَ فِي صَعِيدٍ وَاحِدٍ… وَأَمَامَهُمْ، إِلَى جِذْعٍ، شُدَّ الْغُلَامُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_002",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَأَخَذَ الْمَلِكُ سَهْمًا، لَا مِنْ كِنَانَتِهِ هُوَ، بَلْ مِنْ كِنَانَةِ الْغُلَامِ نَفْسِهِ… وَوَضَعَهُ فِي كَبِدِ الْقَوْسِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_003",
+    "role": "N",
+    "voice": "Charon",
+    "text": "مَلِكٌ عَجَزَ عَنْ قَتْلِهِ مَرَّتَيْنِ… فَلِمَاذَا دَلَّهُ الْغُلَامُ بِنَفْسِهِ عَلَى الطَّرِيقَةِ الْوَحِيدَةِ الَّتِي يَقْتُلُهُ بِهَا؟",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 900
+   },
+   {
+    "id": "d_004",
+    "role": "N",
+    "voice": "Charon",
+    "text": "هَذِهِ قِصَّةُ أَصْحَابِ الْأُخْدُودِ، كَمَا رَوَاهَا الْإِمَامُ مُسْلِمٌ فِي صَحِيحِهِ، عَنْ صُهَيْبٍ، عَنْ رَسُولِ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_005",
+    "role": "N",
+    "voice": "Charon",
+    "text": "قَالَ رَسُولُ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ:",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_006",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "كَانَ مَلِكٌ فِيمَنْ كَانَ قَبْلَكُمْ، وَكَانَ لَهُ سَاحِرٌ، فَلَمَّا كَبِرَ قَالَ لِلْمَلِكِ: إِنِّي قَدْ كَبِرْتُ، فَابْعَثْ إِلَيَّ غُلَامًا أُعَلِّمْهُ السِّحْرَ.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_007",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَبَعَثَ إِلَيْهِ الْمَلِكُ غُلَامًا يُعَلِّمُهُ… غُلَامًا لَمْ يَذْكُرِ الْحَدِيثُ اسْمَهُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_008",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَكَانَ فِي طَرِيقِ الْغُلَامِ إِلَى السَّاحِرِ رَاهِبٌ، فَقَعَدَ إِلَيْهِ، وَسَمِعَ كَلَامَهُ… فَأَعْجَبَهُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_009",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَصَارَ كُلَّمَا ذَهَبَ إِلَى السَّاحِرِ، مَرَّ بِالرَّاهِبِ وَقَعَدَ إِلَيْهِ. فَإِذَا أَتَى السَّاحِرَ، عَاقَبَهُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_010",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَشَكَا الْغُلَامُ ذَلِكَ إِلَى الرَّاهِبِ، فَقَالَ لَهُ الرَّاهِبُ:",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_011",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "إِذَا خَشِيتَ السَّاحِرَ فَقُلْ: حَبَسَنِي أَهْلِي، وَإِذَا خَشِيتَ أَهْلَكَ فَقُلْ: حَبَسَنِي السَّاحِرُ.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_012",
+    "role": "N",
+    "voice": "Charon",
+    "text": "غُلَامٌ بَيْنَ سَاحِرٍ وَرَاهِبٍ… وَلَمْ يَتَبَيَّنْ لَهُ بَعْدُ أَيُّهُمَا عَلَى الْحَقِّ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_013",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَبَيْنَمَا هُوَ كَذَلِكَ، أَتَى عَلَى دَابَّةٍ عَظِيمَةٍ قَدْ حَبَسَتِ النَّاسَ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_014",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَقَالَ الْغُلَامُ:",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_015",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "الْيَوْمَ أَعْلَمُ: آلسَّاحِرُ أَفْضَلُ أَمِ الرَّاهِبُ أَفْضَلُ؟",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_016",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَأَخَذَ حَجَرًا، وَقَالَ:",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_017",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "اللَّهُمَّ إِنْ كَانَ أَمْرُ الرَّاهِبِ أَحَبَّ إِلَيْكَ مِنْ أَمْرِ السَّاحِرِ، فَاقْتُلْ هَذِهِ الدَّابَّةَ، حَتَّى يَمْضِيَ النَّاسُ.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_018",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَرَمَى… فَاسْتَجَابَ اللَّهُ دُعَاءَهُ، وَمَضَى النَّاسُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_044",
+    "role": "N",
+    "voice": "Charon",
+    "text": "إِنْ كُنْتَ تُحِبُّ الْقِصَصَ الْإِسْلَامِيَّةَ كَمَا جَاءَتْ فِي مَصَادِرِهَا الصَّحِيحَةِ، فَيَسُرُّنَا اشْتِرَاكُكَ فِي الْقَنَاةِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: friendly, soft and brief, like a quiet aside; no salesmanship.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_019",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَأَتَى الرَّاهِبَ فَأَخْبَرَهُ، فَقَالَ لَهُ الرَّاهِبُ:",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_020",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "أَيْ بُنَيَّ، أَنْتَ الْيَوْمَ أَفْضَلُ مِنِّي، قَدْ بَلَغَ مِنْ أَمْرِكَ مَا أَرَى، وَإِنَّكَ سَتُبْتَلَى، فَإِنِ ابْتُلِيتَ فَلَا تَدُلَّ عَلَيَّ.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_021",
+    "role": "N",
+    "voice": "Charon",
+    "text": "كَلِمَةٌ فِيهَا بُشْرَى وَتَحْذِيرٌ مَعًا… وَإِنَّكَ سَتُبْتَلَى. وَسَنَرَى كَيْفَ وَقَعَ ذَلِكَ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_022",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَكَانَ الْغُلَامُ يُبْرِئُ الْأَكْمَهَ، وَهُوَ الَّذِي وُلِدَ أَعْمَى، وَالْأَبْرَصَ، وَيُدَاوِي النَّاسَ مِنْ سَائِرِ الْأَدْوَاءِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_023",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَسَمِعَ بِهِ جَلِيسٌ لِلْمَلِكِ كَانَ قَدْ عَمِيَ، فَأَتَاهُ بِهَدَايَا كَثِيرَةٍ، فَقَالَ:",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_024",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "مَا هٰهُنَا لَكَ أَجْمَعُ، إِنْ أَنْتَ شَفَيْتَنِي.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_025",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَقَالَ الْغُلَامُ:",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_026",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "إِنِّي لَا أَشْفِي أَحَدًا، إِنَّمَا يَشْفِي اللَّهُ، فَإِنْ أَنْتَ آمَنْتَ بِاللَّهِ دَعَوْتُ اللَّهَ فَشَفَاكَ.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_027",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَآمَنَ بِاللَّهِ… فَشَفَاهُ اللَّهُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_028",
+    "role": "N",
+    "voice": "Charon",
+    "text": "ثُمَّ أَتَى الْمَلِكَ، فَجَلَسَ إِلَيْهِ كَمَا كَانَ يَجْلِسُ… لَكِنَّهُ الْآنَ يُبْصِرُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_029",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَسَأَلَهُ الْمَلِكُ عَمَّنْ أَعَادَ إِلَيْهِ بَصَرَهُ، فَقَالَ: رَبِّي. قَالَ: وَلَكَ رَبٌّ غَيْرِي؟ قَالَ: رَبِّي وَرَبُّكَ اللَّهُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_030",
+    "role": "N",
+    "voice": "Charon",
+    "text": "سُؤَالٌ وَاحِدٌ كَشَفَ الْمَلِكَ: وَلَكَ رَبٌّ غَيْرِي؟… فَهُوَ لَا يَرَى نَفْسَهُ مَلِكًا فَحَسْبُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_031",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَأَخَذَ الْمَلِكُ جَلِيسَهُ، فَلَمْ يَزَلْ بِهِ حَتَّى دَلَّهُ عَلَى مَنْ دَعَا لَهُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_032",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَجِيءَ بِالْغُلَامِ، فَقَالَ لَهُ الْمَلِكُ: أَيْ بُنَيَّ، قَدْ بَلَغَ مِنْ سِحْرِكَ مَا تُبْرِئُ الْأَكْمَهَ وَالْأَبْرَصَ، وَتَفْعَلُ وَتَفْعَلُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_033",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَقَالَ الْغُلَامُ: إِنِّي لَا أَشْفِي أَحَدًا، إِنَّمَا يَشْفِي اللَّهُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_034",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَلَمْ يَتْرُكْهُ الْمَلِكُ حَتَّى دَلَّ عَلَى الرَّاهِبِ… وَصَدَقَتْ كَلِمَةُ الرَّاهِبِ: وَإِنَّكَ سَتُبْتَلَى.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_035",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَجِيءَ بِالرَّاهِبِ، فَقِيلَ لَهُ: ارْجِعْ عَنْ دِينِكَ، فَأَبَى… فَأَمَرَ الْمَلِكُ بِقَتْلِهِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_036",
+    "role": "N",
+    "voice": "Charon",
+    "text": "ثُمَّ جِيءَ بِجَلِيسِ الْمَلِكِ، فَقِيلَ لَهُ: ارْجِعْ عَنْ دِينِكَ، فَأَبَى… فَكَانَ مَصِيرُهُ مَصِيرَ الرَّاهِبِ. وَبَقِيَ الْغُلَامُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_037",
+    "role": "N",
+    "voice": "Charon",
+    "text": "ثُمَّ جِيءَ بِالْغُلَامِ، فَقِيلَ لَهُ: ارْجِعْ عَنْ دِينِكَ، فَأَبَى.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_038",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَدَفَعَهُ الْمَلِكُ إِلَى نَفَرٍ مِنْ أَصْحَابِهِ، فَقَالَ:",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_039",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "اذْهَبُوا بِهِ إِلَى جَبَلِ كَذَا وَكَذَا، فَاصْعَدُوا بِهِ الْجَبَلَ، فَإِذَا بَلَغْتُمْ ذُرْوَتَهُ، فَإِنْ رَجَعَ عَنْ دِينِهِ، وَإِلَّا فَاطْرَحُوهُ.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_040",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَذَهَبُوا بِهِ، فَصَعِدُوا بِهِ الْجَبَلَ… فَقَالَ:",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_041",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "اللَّهُمَّ اكْفِنِيهِمْ بِمَا شِئْتَ.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_042",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَرَجَفَ بِهِمُ الْجَبَلُ… فَسَقَطُوا.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_043",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَجَاءَ الْغُلَامُ يَمْشِي إِلَى الْمَلِكِ، فَقَالَ لَهُ الْمَلِكُ: مَا فَعَلَ أَصْحَابُكَ؟ قَالَ: كَفَانِيهِمُ اللَّهُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_045",
+    "role": "N",
+    "voice": "Charon",
+    "text": "لَكِنَّ الْمَلِكَ لَمْ يَتَّعِظْ. فَدَفَعَهُ إِلَى نَفَرٍ مِنْ أَصْحَابِهِ، فَقَالَ:",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_046",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "اذْهَبُوا بِهِ فَاحْمِلُوهُ فِي قُرْقُورٍ، فَتَوَسَّطُوا بِهِ الْبَحْرَ، فَإِنْ رَجَعَ عَنْ دِينِهِ، وَإِلَّا فَاقْذِفُوهُ.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_047",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَالْقُرْقُورُ: السَّفِينَةُ الصَّغِيرَةُ. فَذَهَبُوا بِهِ… فَقَالَ الْغُلَامُ الدُّعَاءَ نَفْسَهُ:",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_048",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "اللَّهُمَّ اكْفِنِيهِمْ بِمَا شِئْتَ.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_049",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَانْكَفَأَتْ بِهِمُ السَّفِينَةُ… فَغَرِقُوا.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_050",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَجَاءَ يَمْشِي إِلَى الْمَلِكِ مَرَّةً ثَانِيَةً، فَقَالَ لَهُ الْمَلِكُ: مَا فَعَلَ أَصْحَابُكَ؟ قَالَ: كَفَانِيهِمُ اللَّهُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_051",
+    "role": "N",
+    "voice": "Charon",
+    "text": "جَبَلٌ رَجَفَ، وَسَفِينَةٌ انْكَفَأَتْ، وَالرِّجَالُ الَّذِينَ أُرْسِلُوا لِقَتْلِهِ هَلَكُوا.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_052",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَفِي الْمَرَّتَيْنِ لَمْ يَذْهَبِ الْغُلَامُ إِلَى مَكَانٍ آخَرَ… بَلْ جَاءَ إِلَى الْمَلِكِ نَفْسِهِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_053",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَالْآنَ، يَقُولُ لِلْمَلِكِ كَلَامًا عَجِيبًا.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_054",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَقَالَ لِلْمَلِكِ:",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_055",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "إِنَّكَ لَسْتَ بِقَاتِلِي حَتَّى تَفْعَلَ مَا آمُرُكَ بِهِ. قَالَ: وَمَا هُوَ؟",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_056",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "قَالَ: تَجْمَعُ النَّاسَ فِي صَعِيدٍ وَاحِدٍ، وَتَصْلُبُنِي عَلَى جِذْعٍ، ثُمَّ خُذْ سَهْمًا مِنْ كِنَانَتِي، ثُمَّ ضَعِ السَّهْمَ فِي كَبِدِ الْقَوْسِ،",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_057",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "ثُمَّ قُلْ: بِاسْمِ اللَّهِ، رَبِّ الْغُلَامِ، ثُمَّ ارْمِنِي، فَإِنَّكَ إِذَا فَعَلْتَ ذَلِكَ قَتَلْتَنِي.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_058",
+    "role": "N",
+    "voice": "Charon",
+    "text": "تَأَمَّلْ مَا طَلَبَهُ الْغُلَامُ: لَمْ يَطْلُبْ أَنْ يُقْتَلَ فِي خَفَاءٍ، بَلْ أَمَامَ النَّاسِ جَمِيعًا… وَبِاسْمِ اللَّهِ، رَبِّ الْغُلَامِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_059",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَالْمَلِكُ الَّذِي سَأَلَ: وَلَكَ رَبٌّ غَيْرِي؟، سَيَقُولُ بِلِسَانِهِ، أَمَامَ الْجَمِيعِ: بِاسْمِ اللَّهِ، رَبِّ الْغُلَامِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_060",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَهَلْ يَقُولُهَا مَلِكٌ يَرَى نَفْسَهُ رَبًّا؟",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 900
+   },
+   {
+    "id": "d_061",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَفَعَلَ الْمَلِكُ مَا قَالَهُ الْغُلَامُ كَمَا قَالَهُ: جَمَعَ النَّاسَ فِي صَعِيدٍ وَاحِدٍ، وَأَخَذَ سَهْمًا مِنْ كِنَانَتِهِ، وَوَضَعَهُ فِي كَبِدِ الْقَوْسِ…",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 900
+   },
+   {
+    "id": "d_062",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "ثُمَّ قَالَ: بِاسْمِ اللَّهِ، رَبِّ الْغُلَامِ… ثُمَّ رَمَاهُ.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_063",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَأَصَابَهُ السَّهْمُ… فَمَاتَ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_064",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "فَقَالَ النَّاسُ: آمَنَّا بِرَبِّ الْغُلَامِ… آمَنَّا بِرَبِّ الْغُلَامِ… آمَنَّا بِرَبِّ الْغُلَامِ.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_065",
+    "role": "N",
+    "voice": "Charon",
+    "text": "النَّاسُ الَّذِينَ جُمِعُوا لِيَشْهَدُوا قَتْلَهُ، صَارُوا يُرَدِّدُونَ الْكَلِمَةَ الَّتِي قَالَهَا الْمَلِكُ بِلِسَانِهِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_066",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَهُنَا جَوَابُ السُّؤَالِ الَّذِي بَدَأْنَا بِهِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_067",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَقَدْ ذَكَرَ شَيْخُ الْإِسْلَامِ ابْنُ تَيْمِيَّةَ أَنَّ الْغُلَامَ دَلَّ الْمَلِكَ عَلَى ذَلِكَ لَمَّا عَلِمَ أَنَّ ذَلِكَ يُوجِبُ ظُهُورَ الْإِيمَانِ فِي النَّاسِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_068",
+    "role": "N",
+    "voice": "Charon",
+    "text": "لَمْ يَكُنْ يَبْحَثُ عَنْ نَجَاتِهِ… كَانَ يَبْحَثُ عَنْ إِيمَانِ النَّاسِ. فَآمَنُوا، فِي اللَّحْظَةِ نَفْسِهَا.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_069",
+    "role": "N",
+    "voice": "Charon",
+    "text": "فَأُتِيَ الْمَلِكُ، فَقِيلَ لَهُ: أَرَأَيْتَ مَا كُنْتَ تَحْذَرُ؟ قَدْ وَاللَّهِ نَزَلَ بِكَ حَذَرُكَ، قَدْ آمَنَ النَّاسُ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_070",
+    "role": "N",
+    "voice": "Charon",
+    "text": "الَّذِي كَانَ الْمَلِكُ يَحْذَرُهُ وَقَعَ… وَبِيَدِهِ هُوَ، وَبِلِسَانِهِ هُوَ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_071",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "فَأَمَرَ بِالْأُخْدُودِ فِي أَفْوَاهِ السِّكَكِ فَخُدَّتْ، وَأَضْرَمَ النِّيرَانَ.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_072",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَالْأُخْدُودُ: الشَّقُّ الْعَظِيمُ فِي الْأَرْضِ. وَأَفْوَاهُ السِّكَكِ: مَدَاخِلُ الطُّرُقِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_073",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "وَقَالَ: مَنْ لَمْ يَرْجِعْ عَنْ دِينِهِ فَأَحْمُوهُ فِيهَا، أَوْ قِيلَ لَهُ: اقْتَحِمْ. فَفَعَلُوا.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_074",
+    "role": "N",
+    "voice": "Charon",
+    "text": "عِنْدَ حَافَّةِ النَّارِ لَمْ يَكُنْ إِلَّا أَمْرَانِ: أَنْ يَرْجِعُوا عَنْ دِينِهِمْ… أَوْ يَقْتَحِمُوهَا. فَلَمْ يَرْجِعُوا.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_075",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "حَتَّى جَاءَتِ امْرَأَةٌ وَمَعَهَا صَبِيٌّ لَهَا، فَتَقَاعَسَتْ أَنْ تَقَعَ فِيهَا.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_076",
+    "role": "N",
+    "voice": "Charon",
+    "text": "تَوَقَّفَتْ عِنْدَ الْحَافَّةِ وَصَبِيُّهَا مَعَهَا… فَنَطَقَ الصَّبِيُّ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_077",
+    "role": "Q",
+    "voice": "Charon",
+    "text": "فَقَالَ لَهَا الْغُلَامُ: يَا أُمَّهْ، اصْبِرِي، فَإِنَّكِ عَلَى الْحَقِّ.",
+    "director": "# AUDIO PROFILE: the same calm Arabic storyteller (male) now reading the exact words of a hadith of the Prophet, peace be upon him.\n## THE SCENE: a reverent reading of a narrated text inside a documentary.\n### DIRECTOR'S NOTES\nStyle: reverent, steady and clear; read the words exactly, no acting, no character voices, no emotion added.\nPace: slightly slower than the narration; clean pause at every comma.\nLanguage: clear classical Arabic (fusha), every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 1200
+   },
+   {
+    "id": "d_078",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَبِهَذِهِ الْكَلِمَةِ خُتِمَ الْحَدِيثُ… فَلَمْ يَذْكُرْ مَا جَرَى بَعْدَهَا.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_079",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَهَذِهِ الْقِصَّةُ أَوْرَدَهَا الْحَافِظُ ابْنُ كَثِيرٍ فِي تَفْسِيرِ سُورَةِ الْبُرُوجِ، حَيْثُ ذَكَرَ اللَّهُ تَعَالَى أَصْحَابَ الْأُخْدُودِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_080",
+    "role": "N",
+    "voice": "Charon",
+    "text": "وَأَخْبَرَ سُبْحَانَهُ فِيهَا أَنَّهُمْ لَمْ يَنْقِمُوا مِنَ الْمُؤْمِنِينَ شَيْئًا إِلَّا إِيمَانَهُمْ بِاللَّهِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_081",
+    "role": "N",
+    "voice": "Charon",
+    "text": "مَلِكٌ أَرَادَ أَنْ يَصْرِفَ غُلَامًا وَاحِدًا عَنْ دِينِهِ… فَآمَنَ النَّاسُ بِرَبِّ الْغُلَامِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_082",
+    "role": "N",
+    "voice": "Charon",
+    "text": "غُلَامٌ لَمْ يَذْكُرِ الْحَدِيثُ اسْمَهُ… وَبَقِيَتْ كَلِمَتُهُ: بِاسْمِ اللَّهِ، رَبِّ الْغُلَامِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_083",
+    "role": "N",
+    "voice": "Charon",
+    "text": "أَوَّلُ كَلِمَةٍ دَعَا بِهَا الْغُلَامُ أَحَدًا إِلَى اللَّهِ: إِنَّمَا يَشْفِي اللَّهُ… وَآخِرُ كَلِمَةٍ فِي الْحَدِيثِ قَالَهَا صَبِيٌّ: اصْبِرِي، فَإِنَّكِ عَلَى الْحَقِّ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "silent",
+    "pause_after_ms": 450
+   },
+   {
+    "id": "d_084",
+    "role": "N",
+    "voice": "Charon",
+    "text": "الْمَصْدَرُ: صَحِيحُ مُسْلِمٍ، الْحَدِيثُ رَقْمُ ثَلَاثَةِ آلَافٍ وَخَمْسَةٍ، فِي بَابِ قِصَّةِ أَصْحَابِ الْأُخْدُودِ وَالسَّاحِرِ وَالرَّاهِبِ وَالْغُلَامِ، مِنْ كِتَابِ الزُّهْدِ وَالرَّقَائِقِ.",
+    "director": "# AUDIO PROFILE: a calm, warm Arabic storyteller (male) narrating an authentic Islamic story from Sahih Muslim.\n## THE SCENE: a quiet, reverent documentary told at night; natural ambience only.\n### DIRECTOR'S NOTES\nStyle: grounded, sincere and suspenseful, never theatrical; slight weight on questions.\nPace: natural, measured; honour every '…' as a short breath pause and every comma as a micro-pause.\nLanguage: clear classical Arabic (fusha), pronounce every vowel and case ending exactly as written.\nRead ONLY the transcript below. Do not read these notes aloud.",
+    "sfx": "ambient",
+    "pause_after_ms": 450
+   }
+  ]
+ }
+}

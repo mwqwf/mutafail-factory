@@ -1,0 +1,23 @@
+{
+ "id": "S1",
+ "path": "/workspace/hikayat-factory/shorts/out/S1.mp4",
+ "duration": 30.637,
+ "title": "لماذا دلّ الغلامُ الملكَ على الطريقة الوحيدة لقتله؟ | قصة أصحاب الأخدود",
+ "blocks": [
+  "d_001",
+  "d_002",
+  "d_003"
+ ],
+ "bdur": {
+  "d_001": 7.687666666666667,
+  "d_002": 9.57,
+  "d_003": 9.07
+ },
+ "narr_end": 26.68766666666667,
+ "cta_dur": 3.95,
+ "cta_audio_start": 26.687,
+ "duration_ok": true,
+ "cta_in_last_5s": true,
+ "no_music": true,
+ "audio_hz": 48000
+}

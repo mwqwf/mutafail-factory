@@ -1,0 +1,23 @@
+{
+ "id": "S2",
+ "path": "/workspace/hikayat-factory/shorts/out/S2.mp4",
+ "duration": 29.49,
+ "title": "سؤالٌ واحدٌ كشف الملكَ: «ولك ربٌّ غيري؟» | قصة أصحاب الأخدود",
+ "blocks": [
+  "d_028",
+  "d_029",
+  "d_030"
+ ],
+ "bdur": {
+  "d_028": 7.01,
+  "d_029": 11.07,
+  "d_030": 7.1
+ },
+ "narr_end": 25.54,
+ "cta_dur": 3.95,
+ "cta_audio_start": 25.54,
+ "duration_ok": true,
+ "cta_in_last_5s": true,
+ "no_music": true,
+ "audio_hz": 48000
+}
