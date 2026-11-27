@@ -16,6 +16,8 @@ import sys
 from datetime import datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
+import cta_gate
+
 ALGIER = ZoneInfo("Africa/Algiers")
 SLOT_START = time(17, 30)
 SLOT_END = time(21, 0)
@@ -112,11 +114,71 @@ def load_pub(proj: str) -> dict:
         return json.load(f)
 
 
+
+def metadata_texts(pub: dict) -> list[tuple[str, str]]:
+    """نصوص بيانات النشر التي يُفحص فيها الوعد بفيلم مقبل."""
+    film = pub.get("film") or {}
+    pairs = [
+        ("العنوان", film.get("title") or pub.get("title") or ""),
+        ("الوصف", film.get("description") or pub.get("description") or ""),
+        ("التعليق المثبت", pub.get("pinned_comment") or film.get("pinned_comment") or ""),
+        ("سؤال التعليق", pub.get("pinned_question") or film.get("pinned_question") or ""),
+    ]
+    return [(label, text) for label, text in pairs if text]
+
+
+def end_screen_plan(pub: dict):
+    film = pub.get("film") or {}
+    for key in ("end_screen", "endscreen", "endScreen"):
+        if key in pub:
+            return pub[key]
+        if key in film:
+            return film[key]
+    return None
+
+
+def _end_screen_has_subscribe(plan) -> bool:
+    if plan is None or plan is False:
+        return False
+    if isinstance(plan, str):
+        if re.search(r"(no[_-]?subscribe|بدون اشتراك|بلا (?:عنصر )?اشتراك)", plan, re.I):
+            return False
+        return bool(re.search(r"subscribe|اشتراك", plan, re.I))
+    if isinstance(plan, dict):
+        for k, v in plan.items():
+            kl = str(k).lower()
+            if kl in ("subscribe", "subscription", "اشتراك") and v not in (False, None, 0, "false", "no", "off"):
+                return True
+            if kl in ("type", "kind", "element") and isinstance(v, str) and re.search(r"subscribe|اشتراك", v, re.I):
+                return True
+            if _end_screen_has_subscribe(v):
+                return True
+        return False
+    if isinstance(plan, (list, tuple)):
+        return any(_end_screen_has_subscribe(x) for x in plan)
+    return False
+
+
 def check_pub(pub: dict) -> tuple[list[str], list[str]]:
+
     errs, warns = [], []
     film = pub.get("film") or {}
     title = film.get("title") or pub.get("title") or ""
     desc = film.get("description") or pub.get("description") or ""
+
+    for label, text in metadata_texts(pub):
+        if cta_gate.FUTURE_PROMISE.search(cta_gate.plain(text)):
+            errs.append(
+                "وعد بفيلم أو حلقة قادمة في %s (أمر المالك 2026-11-27): "
+                "لا يُوعَد بفيلم مقبل إلا إن استوفى شروط النجاح وأذن المالك به صراحة"
+                % label
+            )
+    plan = end_screen_plan(pub)
+    if plan is not None and _end_screen_has_subscribe(plan):
+        errs.append(
+            "خطّة شاشة النهاية تتضمن عنصر اشتراك (تشخيص 2026-11-27): "
+            "الشاشة فيديوهات فقط (الأفضل للمشاهد وقائمة السلسلة) بلا عنصر اشتراك"
+        )
 
     if title and not has_search_term(title):
         errs.append(

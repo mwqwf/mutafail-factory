@@ -78,6 +78,33 @@ class MetaGateTests(unittest.TestCase):
         self.assertEqual(dt.minute, 30)
         self.assertTrue(g.in_slot(dt))
 
+    def test_description_future_promise_fails(self):
+        errs, _ = g.check_pub(pub(film={"description": (
+            "قصة خالد بن الوليد في معركة أجنادين.\n"
+            "الحلقة القادمة عن الرَّدَغة.\n\n"
+            "{CHAPTERS}\n\n"
+            "المصادر: الواقدي.\n"
+        )}))
+        self.assertTrue(any("وعد بفيلم" in e and "الوصف" in e for e in errs), errs)
+
+    def test_end_screen_with_subscribe_fails(self):
+        errs, _ = g.check_pub(pub(end_screen={
+            "elements": [
+                {"type": "video", "style": "best_for_viewer"},
+                {"type": "subscribe"},
+            ]
+        }))
+        self.assertTrue(any("عنصر اشتراك" in e for e in errs), errs)
+
+    def test_end_screen_videos_only_passes(self):
+        errs, _ = g.check_pub(pub(end_screen={
+            "elements": [
+                {"type": "video", "style": "best_for_viewer"},
+                {"type": "playlist"},
+            ]
+        }))
+        self.assertFalse(any("عنصر اشتراك" in e or "وعد بفيلم" in e for e in errs), errs)
+
 
 if __name__ == "__main__":
     unittest.main()

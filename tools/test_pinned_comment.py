@@ -31,12 +31,13 @@ class PinnedCommentTests(unittest.TestCase):
         text = p.render({"slug": "mutah"}, {})
         self.assertIn("هذه أولى حلقات قصة خالد بن الوليد", text)
         self.assertNotIn("الحلقة السابقة", text)
-        self.assertIn("قادمة قريباً إن شاء الله", text)  # yamama بلا معرّف
+        self.assertNotIn("قادمة قريباً", text)  # لا وعد بحلقة لم تُنشر
+        self.assertIn("حديقة الموت", text)  # التالية منشورة: يُذكر رابطها لا وعدها
 
     def test_last_known_without_next_id(self):
         text = p.render({"slug": "ajnadayn"}, {})
-        self.assertIn("صحراء بلا ماء", text)
-        self.assertIn("قادمة قريباً إن شاء الله", text)
+        self.assertIn("خمس ليالٍ بلا ماء", text)
+        self.assertNotIn("قادمة قريباً", text)  # لا وعد بحلقة لم تُنشر (2026-11-27)
         self.assertIn("أجنادين", text)
 
     def test_override_question_and_neighbors(self):

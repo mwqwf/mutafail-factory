@@ -50,6 +50,30 @@ class CtaGateTests(unittest.TestCase):
         errs, _ = g.check_blocks(blocks)
         self.assertTrue(any("لا نداء اشتراك" in e for e in errs), errs)
 
+    def test_future_film_promise_fails(self):
+        blocks = pad(40) + [B("c1", "اشْتَرِكْ وَفَعِّلِ الْجَرَسَ.")] + pad(5, "m")
+        blocks += [B("n1", "وَفِي الْحَلْقَةِ الْقَادِمَةِ نَرْوِي الرَّدْغَةَ.")] + pad(10, "z")
+        errs, _ = g.check_blocks(blocks)
+        self.assertTrue(any("وعد بفيلم" in e and "n1" in e for e in errs), errs)
+
+    def test_bridge_only_in_final_15_percent_fails(self):
+        # «شاهد أيضاً» ليست وعداً بفيلم مقبل، لكنها جسر. 40 نداء-وسادة ثم تتمة ثم جسر في الذيل.
+        body = pad(40) + [B("c1", "اشْتَرِكْ وَفَعِّلِ الْجَرَسَ.")] + pad(20, "m")
+        tail = [B("b1", "شَاهِدُوا أَيْضَاً حَلْقَةَ جَرَجَةَ.")]
+        errs, _ = g.check_blocks(body + tail)
+        self.assertTrue(any("جسر الحلقة التالية في آخر 15٪" in e for e in errs), errs)
+
+    def test_midfilm_bridge_without_promise_passes(self):
+        # نحو 45٪: 40 كتلة ≈ 258 ث، الفيلم ≈ 258+6+129 ≈ 393 ث، الجسر بعد 40 كتلة ≈ 65٪؟
+        # 25 كتلة ≈ 161 ث ثم الجسر ثم النداء ثم تتمة: 25*6.44=161، الكلي 25+1+15+1+20=62 كتلة ≈ 400 ث، 161/400=40٪
+        blocks = pad(25) + [B("b1", "شَاهِدُوا أَيْضَاً حَلْقَةَ جَرَجَةَ.")]
+        blocks += pad(15, "m") + [B("c1", "اشْتَرِكْ وَفَعِّلِ الْجَرَسَ.")] + pad(20, "z")
+        start, total = g.starts_of(g.film_blocks(blocks))
+        self.assertGreaterEqual(start["b1"] / total, 0.40)
+        self.assertLessEqual(start["b1"] / total, 0.55)
+        errs, _ = g.check_blocks(blocks)
+        self.assertFalse(any("وعد بفيلم" in e or "جسر الحلقة" in e for e in errs), errs)
+
 
 if __name__ == "__main__":
     unittest.main()

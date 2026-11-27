@@ -148,10 +148,11 @@ class ThrillGateTests(unittest.TestCase):
         (d / "shots.json").write_text(json.dumps([{"id": "S1", "blocks": ["a1", "a2", "a3", "a4"]}]), encoding="utf-8")
         text = "\n".join(g.check(d, None)[0])
         for k in ("قبل الدقيقة الرابعة", "الافتتاح البارد يُقطع", "أرقام في أوّل 30", "تاريخٌ في أوّل 30", "لقطةً في أوّل 30",
-                  "بلا إعادة شدٍّ", "خطّافٍ للحلقة التالية", "بلا رقم دعوى"):
+                  "بلا إعادة شدٍّ", "بلا رقم دعوى"):
             self.assertIn(k, text)
+        self.assertNotIn("خطّافٍ للحلقة التالية", text)
         good = COLD + [B("g1", "فَمَنْ يَرْفَعُ الرَّايَةَ؟")] + [B(f"y{i}", w(14, "…")) for i in range(30)]
-        good += [B("n1", "وَفِي الْحَلْقَةِ الْقَادِمَةِ… حَدِيقَةُ الْمَوْتِ؟"), B("q2", "قَالَ:", speaker="ابن رواحة", claim="م-12")]
+        good += [B("n1", "وَعَادَ الْجَيْشُ إِلَى خَيْمَتِهِ."), B("q2", "قَالَ:", speaker="ابن رواحة", claim="م-12")]
         d2 = proj(good + RB, [{"id": "k1", "title": "أ"}, {"id": "y0", "title": "ب"}], REELS)
         pub["film"] = {"title": "سؤال؟"}
         (d2 / "publish.json").write_text(json.dumps(pub, ensure_ascii=False), encoding="utf-8")

@@ -88,7 +88,8 @@ def link_block(label: str, item: dict | None, missing_line: str) -> str:
     if title:
         if "السابقة" in label:
             return "إن أعجبتك هذه الحلقة، فالحلقة السابقة هي: «%s»." % title
-        return "والحلقة التالية هي: «%s»، ورابطها يُضاف عند نشرها." % title
+        # لا وعد بنشر حلقة مقبلة (أمر المالك 2026-11-27)
+        return ""
     return missing_line
 
 
@@ -114,11 +115,8 @@ def render(pub: dict, meta: dict, cat: dict | None = None) -> str:
     if idx == 0:
         parts.append("هذه أولى حلقات قصة خالد بن الوليد.")
         if nxt and nxt.get("video_id"):
-            parts.append(link_block("والحلقة التالية هنا:", nxt, "والحلقة التالية قادمة قريباً إن شاء الله."))
-        elif nxt and nxt.get("title"):
-            parts.append("والحلقة التالية قادمة قريباً إن شاء الله: «%s»." % nxt["title"].strip())
-        else:
-            parts.append("والحلقة التالية قادمة قريباً إن شاء الله.")
+            parts.append(link_block("والحلقة التالية هنا:", nxt, ""))
+        # وإلا: لا وعد بحلقة لم تُنشر بعد (أمر المالك 2026-11-27)
     else:
         if prev and (prev.get("video_id") or prev.get("title")):
             if prev.get("video_id"):
@@ -128,11 +126,8 @@ def render(pub: dict, meta: dict, cat: dict | None = None) -> str:
         else:
             parts.append("إن أعجبتك هذه الحلقة، فشارك ما شدّك منها في تعليق.")
         if nxt and nxt.get("video_id"):
-            parts.append(link_block("والحلقة التالية هنا:", nxt, "والحلقة التالية قادمة قريباً إن شاء الله."))
-        elif nxt and nxt.get("title"):
-            parts.append("والحلقة التالية قادمة قريباً إن شاء الله: «%s»." % nxt["title"].strip())
-        else:
-            parts.append("والحلقة التالية قادمة قريباً إن شاء الله.")
+            parts.append(link_block("والحلقة التالية هنا:", nxt, ""))
+        # وإلا: لا وعد بحلقة لم تُنشر بعد (أمر المالك 2026-11-27)
 
     parts.append("سؤال للتعليق: %s" % question)
     text = "\n\n".join(p for p in parts if p).strip() + "\n"
