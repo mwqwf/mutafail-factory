@@ -1,0 +1,569 @@
+[
+ {
+  "id": "S01",
+  "blocks": [
+   "d_001"
+  ],
+  "subject": "A lone veiled rider seen from behind on a high dune ridge at Usfan, his horse restless, and far below him long rows of worshippers seen from behind standing in prayer on open sand",
+  "size": "wide",
+  "angle": "over",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "hook": true,
+  "video_prompt": "slow push past the rider's shoulder toward the distant rows, horse tail flicks, dust drifts; camera steady, no shake"
+ },
+ {
+  "id": "S02",
+  "blocks": [
+   "d_002"
+  ],
+  "subject": "A line of Quraysh horsemen seen from behind on the ridge, lances upright, cloaks snapping in the wind, the prayer rows small in the valley",
+  "size": "wide",
+  "angle": "low",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "live",
+  "hook": true,
+  "video_prompt": "cloaks and horse manes move in the wind, riders shift in saddles, camera locked off then a very slow push"
+ },
+ {
+  "id": "S03",
+  "blocks": [
+   "d_003"
+  ],
+  "subject": "Silhouette of the veiled rider from behind, sword still sheathed at his side, sun behind him",
+  "size": "medium",
+  "angle": "low",
+  "light": "golden",
+  "emotion": "revelation",
+  "kind": "live",
+  "hook": true,
+  "video_prompt": "slow dolly in on the sheathed sword hilt, rim light flares softly"
+ },
+ {
+  "id": "S04",
+  "blocks": [
+   "d_004"
+  ],
+  "subject": "The dune ridge at Usfan in hard afternoon light, a single set of hoofprints leading away along the crest",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "golden",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "slow aerial crane forward along the hoofprints"
+ },
+ {
+  "id": "S05",
+  "blocks": [
+   "d_005"
+  ],
+  "subject": "Open plain of Usfan between noon and afternoon, heat haze, distant black goat-hair tents and tethered camels",
+  "size": "wide",
+  "angle": "eye",
+  "light": "day",
+  "emotion": "reflection",
+  "kind": "live",
+  "video_prompt": "heat haze shimmers, a camel turns its head; slow lateral truck"
+ },
+ {
+  "id": "S06",
+  "blocks": [
+   "d_006"
+  ],
+  "subject": "Two rows of worshippers seen from behind: one row bowing in prayer, the second row standing guard behind them with sheathed swords, no leader visible in frame",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "awe",
+  "kind": "live",
+  "key": true,
+  "video_prompt": "near-static, only robes stirring in the wind; extremely slow crane up"
+ },
+ {
+  "id": "S07",
+  "blocks": [
+   "d_007",
+   "d_008"
+  ],
+  "subject": "The veiled rider seen from behind on the ridge, shoulders lowered, hand loosening on the reins",
+  "size": "medium",
+  "angle": "over",
+  "light": "day",
+  "emotion": "reflection",
+  "kind": "live",
+  "key": true,
+  "video_prompt": "static frame, only wind in the cloak; a slow breath of the horse"
+ },
+ {
+  "id": "S08",
+  "blocks": [
+   "d_009",
+   "d_010"
+  ],
+  "subject": "A lone rider seen from behind riding away from a dusty field at dusk, a column of riders far ahead of him",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "reflection",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S09",
+  "blocks": [
+   "d_011"
+  ],
+  "subject": "Quraysh cavalry seen from a distance circling behind a rocky hill at Uhud, dust trailing, no faces visible",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "riders sweep around the hill left to right, camera trucks with them smoothly"
+ },
+ {
+  "id": "S10",
+  "blocks": [
+   "d_012"
+  ],
+  "subject": "Distant clash below a low hill, ranks of men in silhouette merging in a cloud of dust, archers' hill empty in the foreground",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "action",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S11",
+  "blocks": [
+   "d_013"
+  ],
+  "subject": "Simple top-down relief map of the road to Hudaybiyya, plain sand texture, one arrow of fine dust curving to the right, no writing",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "day",
+  "emotion": "map",
+  "kind": "kb3d",
+  "map": true
+ },
+ {
+  "id": "S12",
+  "blocks": [
+   "d_014"
+  ],
+  "subject": "A rider seen from behind galloping along a valley floor toward distant hills, a wall of dust rising on the horizon behind him",
+  "size": "wide",
+  "angle": "low",
+  "light": "day",
+  "emotion": "action",
+  "kind": "live",
+  "video_prompt": "gallop away from camera, dust kicks up, camera tracks low and steady"
+ },
+ {
+  "id": "S13",
+  "blocks": [
+   "d_015"
+  ],
+  "subject": "Empty open plain at Hudaybiyya at dusk, an acacia tree alone, a tethered camel resting",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "reflection",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S14",
+  "blocks": [
+   "d_016",
+   "d_017"
+  ],
+  "subject": "A man seen from behind standing at the doorway of a Meccan mudbrick house at night, clay oil lamp on a niche, long shadow on the ground",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S15",
+  "blocks": [
+   "d_017"
+  ],
+  "subject": "Three dark roads branching from a single point in a moonlit desert, one toward the sea, one north, one back toward a sleeping town",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "night",
+  "emotion": "reflection",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S16",
+  "blocks": [
+   "d_018"
+  ],
+  "subject": "Distant view of Mecca's valley of mudbrick houses at dawn, a long column of pilgrims in white entering from the far side, one house's doorway closed and dark in the foreground",
+  "size": "wide",
+  "angle": "high",
+  "light": "dawn",
+  "emotion": "grief",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S17",
+  "blocks": [
+   "d_019",
+   "d_020"
+  ],
+  "subject": "Close shot of a man's hand holding a folded parchment by an oil lamp, the writing not legible, warm flame light",
+  "size": "detail",
+  "angle": "eye",
+  "light": "interior",
+  "emotion": "revelation",
+  "kind": "live",
+  "video_prompt": "the folded parchment stays closed in the hand, only the lamp flame flickers and dust drifts; camera static, no writing ever visible"
+ },
+ {
+  "id": "S18",
+  "blocks": [
+   "d_020",
+   "d_021"
+  ],
+  "subject": "A row of horsemen seen from behind on a ridge with one gap in the line where a rider is missing, an empty space",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "grief",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S19",
+  "blocks": [
+   "d_022",
+   "d_023"
+  ],
+  "subject": "The man seen from behind stepping out of the doorway into the moonlit street, lamp left burning behind him",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "journey",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S20",
+  "blocks": [
+   "d_024",
+   "d_025"
+  ],
+  "subject": "Two men seen from behind sitting at the edge of a dark courtyard at night, one gesturing toward a small rock hollow",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S21",
+  "blocks": [
+   "d_025"
+  ],
+  "subject": "A fox curled inside a narrow rock burrow, water running into the mouth of the burrow",
+  "size": "close",
+  "angle": "low",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S22",
+  "blocks": [
+   "d_026"
+  ],
+  "subject": "Two camels kneeling saddled in a dark valley before dawn, two cloaked men seen from behind approaching them, stars above",
+  "size": "wide",
+  "angle": "eye",
+  "light": "dawn",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "a camel rises slowly, men walk toward it, stars fade; camera static"
+ },
+ {
+  "id": "S23",
+  "blocks": [
+   "d_027"
+  ],
+  "subject": "The two riders seen from behind on camels in a wide valley at first light, path stretching to the horizon",
+  "size": "wide",
+  "angle": "high",
+  "light": "dawn",
+  "emotion": "journey",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S24",
+  "blocks": [
+   "d_028"
+  ],
+  "subject": "An ancient Red Sea harbour in Abyssinia with a wooden ship far off, palms and mudbrick warehouses, seen from a hill",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "journey",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S25",
+  "blocks": [
+   "d_028",
+   "d_029"
+  ],
+  "subject": "A king seen from behind on a carved wooden throne in a dim hall, one raised hand, a visitor kneeling far away in shadow, no religious symbols",
+  "size": "medium",
+  "angle": "over",
+  "light": "interior",
+  "emotion": "tension",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S26",
+  "blocks": [
+   "d_030",
+   "d_031",
+   "d_032"
+  ],
+  "subject": "A man seen from behind leaving a palace gate at dusk toward the harbour, his shadow long ahead of him",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "revelation",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S27",
+  "blocks": [
+   "d_033",
+   "d_034"
+  ],
+  "subject": "Three riders seen from behind meeting at a desert crossroads at dawn, camels and a horse, soft mist",
+  "size": "wide",
+  "angle": "high",
+  "light": "dawn",
+  "emotion": "journey",
+  "kind": "live",
+  "video_prompt": "two riders converge from left and right toward a third, slow lateral move"
+ },
+ {
+  "id": "S28",
+  "blocks": [
+   "d_035"
+  ],
+  "subject": "The veiled rider seen from behind lifting his head toward a horizon that bursts with gold light, the path ahead lit",
+  "size": "medium",
+  "angle": "low",
+  "light": "golden",
+  "emotion": "revelation",
+  "kind": "live",
+  "climax": true,
+  "video_prompt": "slow push toward the horizon as the light grows, cloak lifts in the breeze; camera smooth"
+ },
+ {
+  "id": "S29",
+  "blocks": [
+   "d_036",
+   "d_037"
+  ],
+  "subject": "Two riders seen from behind side by side on the lit road, their shadows merging",
+  "size": "wide",
+  "angle": "over",
+  "light": "golden",
+  "emotion": "journey",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S30",
+  "blocks": [
+   "d_038"
+  ],
+  "subject": "The empty dawn road with the three riders small in the distance",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "golden",
+  "emotion": "awe",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S31",
+  "blocks": [
+   "d_039"
+  ],
+  "subject": "Three riders seen from behind kneeling their camels on black lava ground outside a palm-filled Medina at golden afternoon, a simple mosque of mudbrick walls and palm-trunk pillars in the distance",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "awe",
+  "kind": "live",
+  "key": true,
+  "video_prompt": "camels kneel slowly, palms sway, warm light; camera crane down gently"
+ },
+ {
+  "id": "S32",
+  "blocks": [
+   "d_040"
+  ],
+  "subject": "Two men seen from behind walking quickly along a Medina lane between mudbrick walls and palm trunks",
+  "size": "medium",
+  "angle": "over",
+  "light": "golden",
+  "emotion": "journey",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S33",
+  "blocks": [
+   "d_041",
+   "d_042"
+  ],
+  "subject": "A shaft of golden light on a plain palm-leaf mat in a simple courtyard of palm-trunk pillars; a man seen from behind lowering himself respectfully at its edge",
+  "size": "medium",
+  "angle": "over",
+  "light": "interior",
+  "emotion": "revelation",
+  "kind": "live",
+  "key": true,
+  "video_prompt": "dust motes drift in the light shaft, the man bows his head slowly; camera static"
+ },
+ {
+  "id": "S34",
+  "blocks": [
+   "d_043"
+  ],
+  "subject": "Close shot of a man's right hand extended forward in pledge, seen from behind his shoulder, warm light",
+  "size": "close",
+  "angle": "over",
+  "light": "interior",
+  "emotion": "revelation",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S35",
+  "blocks": [
+   "d_044",
+   "d_045",
+   "d_046"
+  ],
+  "subject": "The empty palm-leaf mat in the light shaft, a cloaked man seen from behind kneeling before it with bowed head",
+  "size": "medium",
+  "angle": "high",
+  "light": "interior",
+  "emotion": "reflection",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S36",
+  "blocks": [
+   "d_047",
+   "d_048",
+   "d_049"
+  ],
+  "subject": "Two more men seen from behind waiting their turn in the courtyard shade, palm-trunk pillars, soft dust in the air",
+  "size": "medium",
+  "angle": "eye",
+  "light": "interior",
+  "emotion": "reflection",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S37",
+  "blocks": [
+   "d_050",
+   "d_051"
+  ],
+  "subject": "The man seen from behind standing among a group of companions also seen from behind in a palm grove, at ease",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "awe",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S38",
+  "blocks": [
+   "d_052",
+   "d_053"
+  ],
+  "subject": "Callback: the prayer rows of Usfan seen from the ridge again, quieter light, the rider's place on the ridge empty",
+  "size": "wide",
+  "angle": "high",
+  "light": "golden",
+  "emotion": "reflection",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S39",
+  "blocks": [
+   "d_054"
+  ],
+  "subject": "A distant battlefield at Mu'tah in dust, a banner falling, then another banner falling further away, no bodies",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "grief",
+  "kind": "live",
+  "key": true,
+  "video_prompt": "banners fall one after another in the dust far away; camera slow push"
+ },
+ {
+  "id": "S40",
+  "blocks": [
+   "d_054"
+  ],
+  "subject": "A hand seen from behind raising a banner high above the dust, light breaking through",
+  "size": "medium",
+  "angle": "low",
+  "light": "golden",
+  "emotion": "awe",
+  "kind": "live",
+  "key": true,
+  "video_prompt": "the banner rises and unfurls in the wind; slow crane up"
+ },
+ {
+  "id": "S41",
+  "blocks": [
+   "d_055"
+  ],
+  "subject": "Medina at dusk from a distance, palm groves and mudbrick houses, a quiet gathering of men seen from behind",
+  "size": "wide",
+  "angle": "high",
+  "light": "golden",
+  "emotion": "grief",
+  "kind": "kb3d"
+ },
+ {
+  "id": "S42",
+  "blocks": [
+   "d_056"
+  ],
+  "subject": "Nine broken straight swords lying on sand in a row, and one intact Yemeni blade at the end catching the light",
+  "size": "detail",
+  "angle": "high",
+  "light": "golden",
+  "emotion": "aftermath",
+  "kind": "live",
+  "video_prompt": "very slow lateral move along the broken blades, dust settling"
+ },
+ {
+  "id": "S43",
+  "blocks": [
+   "d_057",
+   "d_058"
+  ],
+  "subject": "Mirror of the opening: the same dune ridge and the same veiled rider seen from behind, now in warm dawn light facing the open horizon",
+  "size": "wide",
+  "angle": "over",
+  "light": "dawn",
+  "emotion": "awe",
+  "kind": "live",
+  "climax": true,
+  "video_prompt": "slow push past the rider toward the horizon, light rises; ends still"
+ }
+]

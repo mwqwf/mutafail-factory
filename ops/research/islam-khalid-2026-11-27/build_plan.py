@@ -3,7 +3,7 @@
 ويشغّل بوّابات المصنع الجديدة عليها. لا توليد ولا نشر."""
 import json, os, re, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
-FAC = '/workspace/mutafail-factory/tools'
+FAC = os.environ.get('MF_TOOLS', '/workspace/mutafail-factory/tools')
 sys.path.insert(0, FAC)
 import sfx_cues, image_prompts as ip, motion_plan as mp, casting  # noqa: E402
 
@@ -77,6 +77,12 @@ CUES = {'key_blocks': K, 'cues': [
  C(27, 'd_057', 'wind', 'العودة إلى الكثيب الأول بالضوء الآخر (انعكاس الافتتاح)', at=0, dur=9, level=-26),
  C(28, 'd_058', 'silence', 'آخر ثانيتين صمت ثم شاشة النهاية', anchor='سيوف', dur=2.5),
 ]}
+# ضبط بالأذن والقياس على المزج الحقيقي (2026-11-27): المؤثّرات الفعلية كانت أخفض من قيم الإشارات بـ2–8 dB؛ رُفعت ضمن السقوف
+LEVEL_FIX = {'c04': -20, 'c05': -24, 'c06': -22, 'c08': -22, 'c12': -18, 'c13': -19, 'c14': -19, 'c22': -21, 'c25': -18, 'c26': -18}
+for _c in CUES['cues']:
+    if _c['id'] in LEVEL_FIX:
+        _c['why'] += ' (رُفع من %s إلى %s dB بعد قياس المزج الفعلي)' % (_c.get('level'), LEVEL_FIX[_c['id']])
+        _c['level'] = LEVEL_FIX[_c['id']]
 json.dump(CUES, open(os.path.join(P, 'sfx_cues.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 
 # ── ٣) دليل الأسلوب وقائمة اللقطات ────────────────────────────────────────────────────────────────
@@ -103,7 +109,7 @@ SH = [
  S(14, ['d_016', 'd_017'], 'A man seen from behind standing at the doorway of a Meccan mudbrick house at night, clay oil lamp on a niche, long shadow on the ground', 'medium', 'over', 'night', 'tension'),
  S(15, ['d_017'], 'Three dark roads branching from a single point in a moonlit desert, one toward the sea, one north, one back toward a sleeping town', 'wide', 'aerial', 'night', 'reflection'),
  S(16, ['d_018'], 'Distant view of Mecca\'s valley of mudbrick houses at dawn, a long column of pilgrims in white entering from the far side, one house\'s doorway closed and dark in the foreground', 'wide', 'high', 'dawn', 'grief'),
- S(17, ['d_019', 'd_020'], 'Close shot of a man\'s hand holding a folded parchment by an oil lamp, the writing not legible, warm flame light', 'detail', 'eye', 'interior', 'revelation', 'live', video_prompt='the hand slowly unfolds the parchment, flame flickers gently; camera static'),
+ S(17, ['d_019', 'd_020'], 'Close shot of a man\'s hand holding a folded parchment by an oil lamp, the writing not legible, warm flame light', 'detail', 'eye', 'interior', 'revelation', 'live', video_prompt='the folded parchment stays closed in the hand, only the lamp flame flickers and dust drifts; camera static, no writing ever visible'),
  S(18, ['d_020', 'd_021'], 'A row of horsemen seen from behind on a ridge with one gap in the line where a rider is missing, an empty space', 'wide', 'eye', 'golden', 'grief'),
  S(19, ['d_022', 'd_023'], 'The man seen from behind stepping out of the doorway into the moonlit street, lamp left burning behind him', 'medium', 'over', 'night', 'journey'),
  S(20, ['d_024', 'd_025'], 'Two men seen from behind sitting at the edge of a dark courtyard at night, one gesturing toward a small rock hollow', 'medium', 'over', 'night', 'tension'),
@@ -134,6 +140,25 @@ SH = [
 json.dump(SH, open(os.path.join(P, 'shotlist.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 mp.apply(SH)
 starts = [bt[s['blocks'][0]][0] for s in SH]
+# ── حركة احتياطية قوية للّقطات الحيّة (2026-11-27): GenerateVideo غير متاح للوكيل المنفّذ، فإن غاب المقطع الحيّ
+#    صيّر mont_hybrid اللقطة kb3d بهذه الحركة (عمق وتزيّح قويّان، طاقة أعلى) بدل السكون؛ وحين يصل المقطع الحيّ يُستعمل هو.
+#    ملاحظات المراجعة: S13 وS24 فيهما أشخاص صغار بعيدون مواجهون ⇒ حركة لا تكبّرهم؛ S17 كتابة زائفة ⇒ تُموَّه ولا يُقرَّب منها؛ لا تكبير لوجه.
+LIVE_FALLBACK = {
+ 'S01': ('dolly_in', 1.25, 'in'),    'S02': ('truck_r', 1.2, 'soft'),    'S03': ('crane_up', 1.1, 'out'),
+ 'S04': ('reveal', 1.2, 'out'),      'S05': ('dolly_out', 0.8, 'inout'), 'S06': ('crane_up', 1.15, 'out'),
+ 'S07': ('dolly_out', 0.8, 'inout'), 'S09': ('truck_l', 1.4, 'soft'),    'S12': ('push_tilt', 1.4, 'soft'),
+ 'S17': ('dolly_in', 0.5, 'inout'),  'S22': ('truck_l', 1.0, 'soft'),    'S27': ('truck_l', 1.0, 'soft'),
+ 'S28': ('crane_up', 1.2, 'out'),    'S31': ('reveal', 1.2, 'out'),      'S33': ('crane_up', 1.0, 'out'),
+ 'S39': ('crane_up', 1.0, 'inout'),  'S40': ('reveal', 1.3, 'out'),      'S42': ('crane_up', 0.8, 'inout'),
+ 'S43': ('dolly_out', 0.9, 'out'),
+}
+QA_FIX = {'S13': {'move3d': 'dolly_out', 'energy': 0.5, 'qa': 'أشخاص صغار بعيدون: لا تقريب'},
+          'S24': {'energy': 0.5, 'qa': 'أشخاص صغار بعيدون: لا تقريب'},
+          'S17': {'qa': 'كتابة زائفة: الصورة مموّهة في منطقة الرقّ (images_src/ الأصل)'}}
+for _s in SH:
+    if _s['id'] in LIVE_FALLBACK:
+        _s['move3d'], _s['energy'], _s['ease'] = LIVE_FALLBACK[_s['id']]
+    _s.update(QA_FIX.get(_s['id'], {}))
 json.dump(SH, open(os.path.join(P, 'shots.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 
 # ── البوّابات ────────────────────────────────────────────────────────────────────────────────────

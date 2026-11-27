@@ -41,17 +41,17 @@ python3 tools/motion_plan.py lint proj     → ✓
 | c01 | 0:00 | d_001 | wind (bed) | +0.0 ث | 16.0 ث | -24 dB | كثيبٌ مكشوف في عسفان: الريح وحدها تحمل الافتتاح |
 | c02 | 0:00 | d_001 | horse_snort (spot) | خيل | 1.6 ث | -20 dB | خيل المشركين على الكثيب: نخرة فرسٍ واحدة تعلن وجودهم |
 | c03 | 0:13 | d_002 | silence (silence) | لو | 1.4 ث | — | صمتٌ عند «لو حملنا عليهم» (توجيه السيناريو) |
-| c04 | 0:18 | d_003 | hooves (spot) | حمل | 2.2 ث | -22 dB | سؤال «فهل حمل خالد عليهم؟»: حوافر تقترب ثم تتوقّف (الجواب لا) |
-| c05 | 0:27 | d_005 | wind (bed) | +0.0 ث | 4.5 ث | -26 dB | عسفان بين الظهر والعصر: فرشٌ خفيف قبل مشهد الصلاة |
-| c06 | 0:48 | d_007 | wind (bed) | +0.0 ث | 3.0 ث | -24 dB | قطع إلى خالد من الخلف: ريح ثم صمت (توجيه السيناريو) |
+| c04 | 0:18 | d_003 | hooves (spot) | حمل | 2.2 ث | -20 dB | سؤال «فهل حمل خالد عليهم؟»: حوافر تقترب ثم تتوقّف (الجواب لا) (رُفع من -22 إلى -20 dB بعد قياس المزج الفعلي) |
+| c05 | 0:27 | d_005 | wind (bed) | +0.0 ث | 4.5 ث | -24 dB | عسفان بين الظهر والعصر: فرشٌ خفيف قبل مشهد الصلاة (رُفع من -26 إلى -24 dB بعد قياس المزج الفعلي) |
+| c06 | 0:48 | d_007 | wind (bed) | +0.0 ث | 3.0 ث | -22 dB | قطع إلى خالد من الخلف: ريح ثم صمت (توجيه السيناريو) (رُفع من -24 إلى -22 dB بعد قياس المزج الفعلي) |
 | c07 | 0:51 | d_008 | silence (silence) | +0.0 ث | 1.2 ث | — | «الرجل ممنوع»: نصف ثانية صمت |
-| c08 | 1:15 | d_011 | gallop (bed) | خيل | 5.0 ث | -23 dB | أُحُد: خيل قريش تدور حول التلّ |
+| c08 | 1:15 | d_011 | gallop (bed) | خيل | 5.0 ث | -22 dB | أُحُد: خيل قريش تدور حول التلّ (رُفع من -23 إلى -22 dB بعد قياس المزج الفعلي) |
 | c09 | 1:17 | d_012 | battle (bed) | +0.4 ث | 3.0 ث | -25 dB | دخلت الخيل والتبست الصفوف: التحامٌ بعيد بلا دم |
 | c10 | 1:39 | d_014 | hooves (spot) | يركض | 2.0 ث | -20 dB | خالد يركض نذيراً لقريش |
 | c11 | 1:55 | d_016 | fire (bed) | +0.0 ث | 14.0 ث | -28 dB | بيتٌ مكّي ليلاً بضوء مصباح: لهبٌ خافت |
-| c12 | 2:31 | d_019 | leather (spot) | فكتب | 1.2 ث | -22 dB | كتاب الوليد يُفتح بيد: رقٌّ وجلد |
-| c13 | 3:18 | d_023 | footsteps (spot) | للخروج | 2.5 ث | -22 dB | «نشطت للخروج»: خطوات خالد تخرج من البيت |
-| c14 | 3:44 | d_026 | camels (spot) | راحلتي | 2.5 ث | -21 dB | «هذه راحلتي بفخّ مناخة»: رغاء راحلة تُنهَض |
+| c12 | 2:31 | d_019 | leather (spot) | فكتب | 1.2 ث | -18 dB | كتاب الوليد يُفتح بيد: رقٌّ وجلد (رُفع من -22 إلى -18 dB بعد قياس المزج الفعلي) |
+| c13 | 3:18 | d_023 | footsteps (spot) | للخروج | 2.5 ث | -19 dB | «نشطت للخروج»: خطوات خالد تخرج من البيت (رُفع من -22 إلى -19 dB بعد قياس المزج الفعلي) |
+| c14 | 3:44 | d_026 | camels (spot) | راحلتي | 2.5 ث | -19 dB | «هذه راحلتي بفخّ مناخة»: رغاء راحلة تُنهَض (رُفع من None إلى -19 dB بعد قياس المزج الفعلي) |
 | c15 | 3:48 | d_026 | wind (bed) | الفجر | 7.0 ث | -26 dB | وادٍ في ظلمة ما قبل الفجر |
 | c16 | 4:14 | d_028 | sea (bed) | الحبشة | 7.0 ث | -26 dB | الحبشة: ميناءٌ وسفينة من بعيد |
 | c17 | 5:10 | d_033 | camels (spot) | الطريق | 2.5 ث | -22 dB | لقاء الركبين في الطريق |
@@ -59,11 +59,11 @@ python3 tools/motion_plan.py lint proj     → ✓
 | c19 | 5:25 | d_035 | silence (silence) | فحتى | 1.2 ث | — | ذروة «فحتى متى؟»: صمتٌ كامل قبل الكلمة الأخيرة |
 | c20 | 5:40 | d_039 | camels (spot) | المدينة | 2.5 ث | -22 dB | ثلاثة ركبان ينيخون على الحرّة عند المدينة |
 | c21 | 5:41 | d_039 | wind (bed) | المدينة | 9.0 ث | -27 dB | المدينة عصراً: ريحٌ خفيفة (توجيه السيناريو) |
-| c22 | 6:06 | d_042 | footsteps (spot) | +0.0 ث | 2.5 ث | -23 dB | خطوات على الرمل نحو المجلس قبل الشهادة |
+| c22 | 6:06 | d_042 | footsteps (spot) | +0.0 ث | 2.5 ث | -21 dB | خطوات على الرمل نحو المجلس قبل الشهادة (رُفع من -23 إلى -21 dB بعد قياس المزج الفعلي) |
 | c23 | 8:04 | d_054 | battle (bed) | مؤتة | 6.0 ث | -26 dB | مؤتة: ساحة بعيدة بالغبار |
 | c24 | 8:05 | d_054 | banner (bed) | الراية | 9.0 ث | -24 dB | الرايات تسقط واحدة بعد أخرى ثم تُرفع بيد خالد |
-| c25 | 8:37 | d_056 | sword_clash (spot) | انقطعت | 1.6 ث | -20 dB | «انقطعت في يدي تسعة أسياف»: ضربةٌ واحدة لا تسع |
-| c26 | 8:44 | d_056 | sword_draw (spot) | صفيحة | 1.6 ث | -21 dB | «صفيحة يمانية»: النصل الأخير |
+| c25 | 8:37 | d_056 | sword_clash (spot) | انقطعت | 1.6 ث | -18 dB | «انقطعت في يدي تسعة أسياف»: ضربةٌ واحدة لا تسع (رُفع من -20 إلى -18 dB بعد قياس المزج الفعلي) |
+| c26 | 8:44 | d_056 | sword_draw (spot) | صفيحة | 1.6 ث | -18 dB | «صفيحة يمانية»: النصل الأخير (رُفع من -21 إلى -18 dB بعد قياس المزج الفعلي) |
 | c27 | 8:46 | d_057 | wind (bed) | +0.0 ث | 9.0 ث | -26 dB | العودة إلى الكثيب الأول بالضوء الآخر (انعكاس الافتتاح) |
 | c28 | 8:57 | d_058 | silence (silence) | سيوف | 2.5 ث | — | آخر ثانيتين صمت ثم شاشة النهاية |
 
@@ -338,49 +338,49 @@ Mirror of the opening: the same dune ridge and the same veiled rider seen from b
 
 | اللقطة | ~الوقت | الشعور | النوع | الحركة | التسارع | الشدّة | الانتقال إليها | وصف الحركة الحيّة |
 |---|---|---|---|---|---|---|---|---|
-| S01 | 0:00 | tension | live | — | — | — | fade | slow push past the rider's shoulder toward the distant rows, horse tail flicks, dust drifts; camera steady, no shake |
-| S02 | 0:09 | tension | live | — | — | — | fade | cloaks and horse manes move in the wind, riders shift in saddles, camera locked off then a very slow push |
-| S03 | 0:17 | revelation | live | — | — | — | fadewhite | slow dolly in on the sheathed sword hilt, rim light flares softly |
-| S04 | 0:23 | awe | live | — | — | — | fade | slow aerial crane forward along the hoofprints |
-| S05 | 0:27 | reflection | live | — | — | — | fade | heat haze shimmers, a camel turns its head; slow lateral truck |
-| S06 | 0:33 | awe | live | — | — | — | fade | near-static, only robes stirring in the wind; extremely slow crane up |
-| S07 | 0:48 | reflection | live | — | — | — | fade | static frame, only wind in the cloak; a slow breath of the horse |
+| S01 | 0:00 | tension | live | dolly_in | in | 1.25 | fade | slow push past the rider's shoulder toward the distant rows, horse tail flicks, dust drifts; camera steady, no shake |
+| S02 | 0:09 | tension | live | truck_r | soft | 1.2 | fade | cloaks and horse manes move in the wind, riders shift in saddles, camera locked off then a very slow push |
+| S03 | 0:17 | revelation | live | crane_up | out | 1.1 | fadewhite | slow dolly in on the sheathed sword hilt, rim light flares softly |
+| S04 | 0:23 | awe | live | reveal | out | 1.2 | fade | slow aerial crane forward along the hoofprints |
+| S05 | 0:27 | reflection | live | dolly_out | inout | 0.8 | fade | heat haze shimmers, a camel turns its head; slow lateral truck |
+| S06 | 0:33 | awe | live | crane_up | out | 1.15 | fade | near-static, only robes stirring in the wind; extremely slow crane up |
+| S07 | 0:48 | reflection | live | dolly_out | inout | 0.8 | fade | static frame, only wind in the cloak; a slow breath of the horse |
 | S08 | 0:54 | reflection | kb3d | dolly_in | inout | 0.55 | fade | — |
-| S09 | 1:12 | action | live | — | — | — | whip | riders sweep around the hill left to right, camera trucks with them smoothly |
+| S09 | 1:12 | action | live | truck_l | soft | 1.4 | whip | riders sweep around the hill left to right, camera trucks with them smoothly |
 | S10 | 1:16 | action | kb3d | truck_r | soft | 1.25 | whip | — |
 | S11 | 1:21 | map | kb3d | dolly_in | inout | 0.4 | fade | — |
-| S12 | 1:35 | action | live | — | — | — | whip | gallop away from camera, dust kicks up, camera tracks low and steady |
-| S13 | 1:42 | reflection | kb3d | dolly_in | inout | 0.55 | fade | — |
+| S12 | 1:35 | action | live | push_tilt | soft | 1.4 | whip | gallop away from camera, dust kicks up, camera tracks low and steady |
+| S13 | 1:42 | reflection | kb3d | dolly_out | inout | 0.5 | fade | — |
 | S14 | 1:55 | tension | kb3d | push_tilt | in | 0.9 | fade | — |
 | S15 | 1:59 | reflection | kb3d | dolly_in | inout | 0.55 | fade | — |
 | S16 | 2:20 | grief | kb3d | dolly_out | inout | 0.5 | fade | — |
-| S17 | 2:29 | revelation | live | — | — | — | fadewhite | the hand slowly unfolds the parchment, flame flickers gently; camera static |
+| S17 | 2:29 | revelation | live | dolly_in | inout | 0.5 | fadewhite | the folded parchment stays closed in the hand, only the lamp flame flickers and dust drifts; camera static, no writing ever visible |
 | S18 | 2:33 | grief | kb3d | dolly_out | inout | 0.5 | fade | — |
 | S19 | 3:12 | journey | kb3d | truck_r | soft | 0.8 | fade | — |
 | S20 | 3:25 | tension | kb3d | dolly_in | in | 0.9 | fade | — |
 | S21 | 3:33 | tension | kb3d | push_tilt | in | 0.9 | fade | — |
-| S22 | 3:41 | journey | live | — | — | — | fade | a camel rises slowly, men walk toward it, stars fade; camera static |
+| S22 | 3:41 | journey | live | truck_l | soft | 1.0 | fade | a camel rises slowly, men walk toward it, stars fade; camera static |
 | S23 | 3:54 | journey | kb3d | truck_r | soft | 0.8 | fade | — |
-| S24 | 4:09 | journey | kb3d | truck_l | soft | 0.8 | fade | — |
+| S24 | 4:09 | journey | kb3d | truck_l | soft | 0.5 | fade | — |
 | S25 | 4:09 | tension | kb3d | dolly_in | in | 0.9 | fade | — |
 | S26 | 4:45 | revelation | kb3d | reveal | out | 0.75 | fadewhite | — |
-| S27 | 5:09 | journey | live | — | — | — | fade | two riders converge from left and right toward a third, slow lateral move |
-| S28 | 5:18 | revelation | live | — | — | — | fadewhite | slow push toward the horizon as the light grows, cloak lifts in the breeze; camera smooth |
+| S27 | 5:09 | journey | live | truck_l | soft | 1.0 | fade | two riders converge from left and right toward a third, slow lateral move |
+| S28 | 5:18 | revelation | live | crane_up | out | 1.2 | fadewhite | slow push toward the horizon as the light grows, cloak lifts in the breeze; camera smooth |
 | S29 | 5:27 | journey | kb3d | truck_r | soft | 0.8 | fade | — |
 | S30 | 5:34 | awe | kb3d | crane_up | out | 0.8 | fade | — |
-| S31 | 5:39 | awe | live | — | — | — | fade | camels kneel slowly, palms sway, warm light; camera crane down gently |
+| S31 | 5:39 | awe | live | reveal | out | 1.2 | fade | camels kneel slowly, palms sway, warm light; camera crane down gently |
 | S32 | 5:51 | journey | kb3d | truck_r | soft | 0.8 | fade | — |
-| S33 | 6:01 | revelation | live | — | — | — | fadewhite | dust motes drift in the light shaft, the man bows his head slowly; camera static |
+| S33 | 6:01 | revelation | live | crane_up | out | 1.0 | fadewhite | dust motes drift in the light shaft, the man bows his head slowly; camera static |
 | S34 | 6:10 | revelation | kb3d | dolly_in | out | 0.75 | fadewhite | — |
 | S35 | 6:23 | reflection | kb3d | dolly_out | inout | 0.55 | fade | — |
 | S36 | 7:03 | reflection | kb3d | dolly_in | inout | 0.55 | fade | — |
 | S37 | 7:36 | awe | kb3d | crane_up | out | 0.8 | fade | — |
 | S38 | 7:51 | reflection | kb3d | dolly_in | inout | 0.55 | fade | — |
-| S39 | 8:01 | grief | live | — | — | — | fade | banners fall one after another in the dust far away; camera slow push |
-| S40 | 8:01 | awe | live | — | — | — | fade | the banner rises and unfurls in the wind; slow crane up |
+| S39 | 8:01 | grief | live | crane_up | inout | 1.0 | fade | banners fall one after another in the dust far away; camera slow push |
+| S40 | 8:01 | awe | live | reveal | out | 1.3 | fade | the banner rises and unfurls in the wind; slow crane up |
 | S41 | 8:18 | grief | kb3d | dolly_out | inout | 0.5 | fade | — |
-| S42 | 8:34 | aftermath | live | — | — | — | fade | very slow lateral move along the broken blades, dust settling |
-| S43 | 8:46 | awe | live | — | — | — | fade | slow push past the rider toward the horizon, light rises; ends still |
+| S42 | 8:34 | aftermath | live | crane_up | inout | 0.8 | fade | very slow lateral move along the broken blades, dust settling |
+| S43 | 8:46 | awe | live | dolly_out | out | 0.9 | fade | slow push past the rider toward the horizon, light rises; ends still |
 
 43 لقطة: 19 حيّة و24 kb3d (منها خريطة واحدة). متوسّط اللقطة ~12.5 ث؛ تُقسَّم اللقطات الأطول من 8 ث عند المونتاج بلقطة ثانية من الأمر نفسه بحجم آخر.
 
