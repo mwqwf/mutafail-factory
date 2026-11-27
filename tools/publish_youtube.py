@@ -172,11 +172,16 @@ def reschedule(svc, vid, at):
             "selfDeclaredMadeForKids": False, "containsSyntheticMedia": True}}).execute()
         print("🌐 صار عامّاً الآن", vid, flush=True); return
     if st.get("publishAt", "").replace(".000", "") == at:
+        print("🕒", vid, "موعده مطابق سلفاً", at, flush=True)
         return
     svc.videos().update(part="status", body={"id": vid, "status": {
         "privacyStatus": "private", "publishAt": at,
         "selfDeclaredMadeForKids": False, "containsSyntheticMedia": True}}).execute()
-    print("🕒 أُعيدت جدولة", vid, "إلى", at, flush=True)
+    st2 = svc.videos().list(part="status", id=vid).execute()["items"][0]["status"]
+    got = (st2.get("publishAt") or "").replace(".000", "")
+    print("🕒 أُعيدت جدولة", vid, "إلى", got or at, "الحالة=", st2.get("privacyStatus"), flush=True)
+    if got != at:
+        raise SystemExit("⛔ الموعد المقروء بعد التعديل ليس المطلوب: %s ← %s (المطلوب %s)" % (vid, got, at))
 
 
 def reel_at(film_at, i):
@@ -569,9 +574,17 @@ def main():
         save_state({"slug": slug, "film": {"id": film_id}, "reels": reels})
         verify(svc, rid)
 
-    # ─── ما لا تبلغه الواجهة: يُسجَّل ولا يُدَّعى ───
+    # ─── تأكيد المواعيد من الواجهة ثم تسجيل ما لا تبلغه ───
     os.makedirs(STATE, exist_ok=True)
     pend = P("..", "pending")
+    for r in reels:
+        rid = r.get("id")
+        if not rid:
+            continue
+        st = svc.videos().list(part="status", id=rid).execute()["items"][0]["status"]
+        r["privacyStatus"] = st.get("privacyStatus")
+        r["publishAt"] = (st.get("publishAt") or "").replace(".000", "") or None
+        print("✅ موعد مقروء من الواجهة", rid, "publishAt=", r["publishAt"], "الحالة=", r["privacyStatus"], flush=True)
     out = {
         "slug": slug,
         "film": {"id": film_id, "title": meta.get("film", {}).get("title", ""), "publishAt": when},
