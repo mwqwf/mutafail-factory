@@ -9,13 +9,11 @@ total = max(v[1] for v in bt.values())
 f = lambda t: '%d:%02d' % (int(t) // 60, int(t) % 60)
 ff = lambda t: '%02d:%02d' % (int(t) // 60, int(t) % 60)
 pk = open(os.path.join(D, 'publish', 'package.md'), encoding='utf-8').read()
-# الفصول: كلّ فصلٍ يبدأ بالكتلة التي كان يبدأ عندها
-def at_old(sec):
-    return min(old, key=lambda k: abs(old[k][0] - sec))
+# الفصول: مراسٍ ثابتة بالكتل (مُعادة التشغيل آمنة)؛ «عمرو والنجاشي» يبدأ بجملة إعادة الشدّ d_102 قبله
+CH = ['d_001', 'd_005', 'd_011', 'd_016', 'd_024', 'd_102', 'd_039', 'd_052']
 lines = []
-for m in re.finditer(r'^(\d\d):(\d\d) (.+)$', pk, re.M):
-    sec = int(m.group(1)) * 60 + int(m.group(2)); k = 'd_001' if sec == 0 else at_old(sec)
-    lines.append((m.group(0), '%s %s' % (ff(0 if sec == 0 else int(bt[k][0])), m.group(3))))
+for k, m in zip(CH, re.finditer(r'^(\d\d):(\d\d) (.+)$', pk, re.M)):
+    lines.append((m.group(0), '%s %s' % (ff(0 if k == 'd_001' else int(bt[k][0])), m.group(3))))
 for a, b in lines: pk = pk.replace(a, b)
 card, cta = bt['d_027'][0], bt['d_038'][0]; es0 = int(total) - 19
 span = lambda a, b: (max(0.0, bt[a][0] - 0.3), bt[sub[b][-1]][1] + 0.6)

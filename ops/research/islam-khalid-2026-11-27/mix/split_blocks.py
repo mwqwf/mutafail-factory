@@ -36,6 +36,10 @@ def pauses(a, sr, thr=.28):
             i = j
         else: i += 1
     return out
+def vfrac(a, sr, c):
+    x = a.astype(float) / 32768; hop = int(.02 * sr)
+    e = np.array([np.sqrt(np.mean(x[i:i + hop] ** 2)) for i in range(0, len(x) - hop, hop)]) > .01
+    n = int(c / .02); return e[:n].sum() / max(1, e.sum())
 TGT, MINP = 5.5, 2.2     # طول الجزء المستهدف والأدنى (زمن الفيلم)
 orig_bt, t = {}, 0.0
 for b in blocks:
@@ -54,12 +58,18 @@ for b in blocks:
         if not c: break
         p, l = min(c, key=lambda x: abs((x[0] - last) / T - tgt)); cuts.append(p); rem.append(min(GAP, l - .04)); last = p
     ws = b['text'].split(); edges = [0.0] + cuts + [d]
-    # النصّ: نسبة الزمن الصوتيّ → حدّ كلمة، يُفضَّل حدٌّ بعد علامة ترقيم قريبة
-    wb = [0]
-    for c in cuts:
-        cum = np.cumsum([len(w) + 1 for w in ws]); k = int(np.searchsorted(cum, cum[-1] * c / d)) + 1   # نسبة الحروف لا الكلمات
-        cand = [i for i in range(max(1, k - 2), min(len(ws), k + 3)) if re.search(r'[.،,؛:!؟…»]$', ws[i - 1])]
-        k = min(cand, key=lambda i: abs(i - k)) if cand else k; wb.append(max(wb[-1] + 1, min(k, len(ws) - 1)))
+    # النصّ: حدودُ كلماتٍ تجعل طول كلّ جزءٍ بالحروف أقرب ما يكون إلى زمن كلامه (برمجة ديناميكية على حدود الكلمات)
+    cl = [len(re.sub(r'[\u064B-\u0652\u0670]', '', w)) + 1 for w in ws]; C = np.concatenate([[0], np.cumsum(cl)])
+    pd = [edges[j + 1] - edges[j] for j in range(len(edges) - 1)]; rate = C[-1] / d; n, m = len(pd), len(ws)
+    INF = 1e18; best = {(0, 0): (0.0, None)}
+    for j in range(1, n + 1):
+        for e in range(j, m - (n - j) + 1):
+            c = [(best[(j - 1, s0)][0] + ((C[e] - C[s0]) / rate - pd[j - 1]) ** 2, s0) for s0 in range(j - 1, e) if (j - 1, s0) in best]
+            if c: best[(j, e)] = min(c)
+    wb = [m]; j, e = n, m
+    while j > 0:
+        e = best[(j, e)][1]; j -= 1; wb.append(e)
+    wb = wb[::-1][:-1]
     wb.append(len(ws)); sub_of[b['id']] = []
     for j in range(len(edges) - 1):
         sid = b['id'] if j == 0 else '%s_%d' % (b['id'], j + 1)
