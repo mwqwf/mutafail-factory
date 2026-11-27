@@ -15,3 +15,11 @@
 - البوّابات: `cta_gate` و`thrill_gate` و`motion_plan lint` و`live_share lint` و`logocheck` (الفيلم مقابل `video_silent.mp4`) و`lint` و`policy_gate` نصّاً و`clip_policy` و`sfx mix_gate` و`tonal_gate` و`text_gate` للعناوين — كلها ناجحة. تحذير غير مانع: موضع نداء الاشتراك عند ≈391 ث (المقترح نحو 209 ث).
 - لا وعد بفيلم قادم في السيناريو أو الوصف أو الشاشة الختامية. شاشة النهاية بلا عنصر اشتراك.
 - بيانات النشر في `release/publish.json` (الإفصاح المعتمد، و`playlistId=PLflcHRNK3nKM`، والموعد `2026-12-01T15:30:00Z`). المصغّرة الأساسية thumb-b (الخيمة).
+
+## المقاطع القصيرة (غير منشورة)
+
+- أُنجزت بـ `mkreel_film.py` من أدوات فرع الإصلاح، و`MUTAFAIL_CHANNEL=history`. ليست في حمولة النشر.
+- `/workspace/hattin-work/shorts/r1.mp4` — 33.1 ث، 1080×1920 — «أنت سقيته… لا أنا!»
+- `/workspace/hattin-work/shorts/r2.mp4` — 16.9 ث، 1080×1920 — «اسكت! ما نهزمهم حتى تسقط تلك الخيمة»
+- `/workspace/hattin-work/shorts/r3.mp4` — 19.2 ث، 1080×1920 — «النار لا يضرّها كثرة الحطب»
+- البصمات في `release/checksums/`. الأصول (صور ومقاطع حيّة والفيلم) لم تُحذف، في `/workspace/hattin-work/proj/`.
