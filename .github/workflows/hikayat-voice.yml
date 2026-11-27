@@ -84,8 +84,13 @@ jobs:
           python3 tools/audio_checks.py chk || true
           cp chk/audio_checks.json proj/audio_checks_report.json || true
           LB=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('listen_batch',4))" "$F")
-          node tools/listen.js proj 3 --batch "$LB" --keys /tmp/keys.json || true
-          node tools/adjudicate_listen.js proj --keys /tmp/keys.json || true
+          LMS=$(python3 -c "import json,sys;print(' '.join(json.load(open(sys.argv[1])).get('listen_models',['gemini-3.5-flash'])))" "$F")
+          for LM in $LMS; do
+            echo "── نموذج الإصغاء: $LM ──"
+            node tools/listen.js proj 3 --batch "$LB" --model "$LM" --keys /tmp/keys.json || true
+            python3 -c "import json;r=json.load(open('proj/listen_results.json'));print('مفحوص',sum(1 for v in r.values() if v.get('ok') is not None),'من',len(r))" || true
+          done
+          node tools/adjudicate_listen.js proj --keys /tmp/keys.json --model "${LMS%% *}" || true
           rm -f /tmp/keys.json
           ls proj/audio | wc -l
       - uses: actions/upload-artifact@v4
