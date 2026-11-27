@@ -13,6 +13,14 @@ blocks = json.load(open(os.path.join(P, 'blocks.json'), encoding='utf-8'))
 if not os.path.isdir(AF):
     os.makedirs(AF)
     for b in blocks: shutil.copy(os.path.join(A, b['id'] + '.wav'), AF)
+# ── جملٌ جديدة ونقل كتل (mix/extra_blocks.json): قبل التقسيم، فيتبعها كلّ ما بعدها (التوقيت والمؤثّرات واللقطات)
+EX = json.load(open(os.path.join(D, 'mix', 'extra_blocks.json'), encoding='utf-8')) if os.path.exists(os.path.join(D, 'mix', 'extra_blocks.json')) else {}
+for e in EX.get('insert', []):
+    assert os.path.exists(os.path.join(AF, e['id'] + '.wav')), 'لا صوت لـ' + e['id']
+    i = [k for k, b in enumerate(blocks) if b['id'] == e['after']][0]; blocks.insert(i + 1, {'id': e['id'], 'role': e['role'], 'text': e['text']})
+for mv, after in EX.get('move', []):
+    x = [b for b in blocks if b['id'] == mv][0]; blocks.remove(x)
+    i = [k for k, b in enumerate(blocks) if b['id'] == after][0]; blocks.insert(i + 1, x)
 def rd(f):
     w = wave.open(f); a = np.frombuffer(w.readframes(w.getnframes()), np.int16); return a, w.getframerate()
 def wr(f, a, sr):
@@ -73,6 +81,13 @@ for c in cues['cues']:
 cues['key_blocks'] = sorted({s for k in cues.get('key_blocks', []) for s in sub_of.get(k, [k])})
 # اللقطات: لقطة لكل كتلة فرعية؛ الحيّة تكمل مقطعها نفسه (clip_ss) ثم kb3d، وغيرها kb3d بحركة مختلفة
 shots = json.load(open(os.path.join(P, 'shots.json'), encoding='utf-8'))
+_bix = {b['id']: k for k, b in enumerate(blocks)}
+for e in EX.get('insert', []):     # لقطةٌ للجملة الجديدة على صورة لقطة موضعها بتحريكٍ قويّ
+    src = [x for x in shots if e['img_of'] in x['blocks']][0]
+    shots.append({'id': 'X' + e['id'][2:], 'blocks': [e['id']], 'file': src.get('file') or src['id'] + '.jpg', 'subject': src.get('subject', ''),
+                  'size': src.get('size'), 'angle': src.get('angle'), 'light': src.get('light'), 'emotion': 'tension', 'kind': 'kb3d',
+                  'move3d': 'dolly_in', 'energy': 1.25, 'ease': 'soft', 'tr': 'fade'})
+shots.sort(key=lambda x: _bix[x['blocks'][0]])
 cdur = lambda i: float(os.popen("ffprobe -v error -show_entries format=duration -of csv=p=0 '%s'" % os.path.join(P, 'clips', i + '.mp4')).read() or 0) if os.path.exists(os.path.join(P, 'clips', i + '.mp4')) else 0
 out = []
 ALLM = ['dolly_in', 'dolly_out', 'truck_l', 'truck_r', 'crane_up', 'push_tilt', 'reveal']

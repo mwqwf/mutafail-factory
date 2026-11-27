@@ -110,61 +110,6 @@
   "file": "S02.jpg"
  },
  {
-  "id": "S03",
-  "blocks": [
-   "d_003"
-  ],
-  "subject": "Silhouette of the veiled rider from behind, sword still sheathed at his side, sun behind him",
-  "size": "medium",
-  "angle": "low",
-  "light": "golden",
-  "emotion": "revelation",
-  "kind": "live",
-  "hook": true,
-  "video_prompt": "slow dolly in on the sheathed sword hilt, rim light flares softly",
-  "tr": "fadewhite",
-  "move3d": "crane_up",
-  "energy": 1.1,
-  "ease": "out"
- },
- {
-  "id": "S03_2",
-  "blocks": [
-   "d_003_2"
-  ],
-  "subject": "Silhouette of the veiled rider from behind, sword still sheathed at his side, sun behind him",
-  "size": "medium",
-  "angle": "low",
-  "light": "golden",
-  "emotion": "revelation",
-  "kind": "live",
-  "video_prompt": "slow dolly in on the sheathed sword hilt, rim light flares softly",
-  "tr": "fade",
-  "move3d": "dolly_in",
-  "energy": 1.1,
-  "ease": "soft",
-  "file": "S03.jpg",
-  "clip": "S03",
-  "clip_ss": 2.21
- },
- {
-  "id": "S04",
-  "blocks": [
-   "d_004"
-  ],
-  "subject": "The dune ridge at Usfan in hard afternoon light, a single set of hoofprints leading away along the crest",
-  "size": "wide",
-  "angle": "aerial",
-  "light": "golden",
-  "emotion": "awe",
-  "kind": "live",
-  "video_prompt": "slow aerial crane forward along the hoofprints",
-  "tr": "fade",
-  "move3d": "reveal",
-  "energy": 1.2,
-  "ease": "out"
- },
- {
   "id": "S05",
   "blocks": [
    "d_005"
@@ -253,7 +198,7 @@
   "ease": "soft",
   "file": "S06.jpg",
   "clip": "S06",
-  "clip_ss": 5.1
+  "clip_ss": 2.16
  },
  {
   "id": "S06_3",
@@ -271,7 +216,116 @@
   "move3d": "crane_up",
   "energy": 1.15,
   "ease": "soft",
+  "file": "S06.jpg",
+  "clip": "S06",
+  "clip_ss": 5.1
+ },
+ {
+  "id": "S06_4",
+  "blocks": [
+   "d_006_4"
+  ],
+  "subject": "Two rows of worshippers seen from behind: one row bowing in prayer, the second row standing guard behind them with sheathed swords, no leader visible in frame",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "near-static, only robes stirring in the wind; extremely slow crane up",
+  "tr": "fade",
+  "move3d": "reveal",
+  "energy": 1.15,
+  "ease": "soft",
   "file": "S06.jpg"
+ },
+ {
+  "id": "S06_5",
+  "blocks": [
+   "d_006_5"
+  ],
+  "subject": "Two rows of worshippers seen from behind: one row bowing in prayer, the second row standing guard behind them with sheathed swords, no leader visible in frame",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "near-static, only robes stirring in the wind; extremely slow crane up",
+  "tr": "fade",
+  "move3d": "crane_up",
+  "energy": 1.15,
+  "ease": "soft",
+  "file": "S06.jpg"
+ },
+ {
+  "id": "S06_6",
+  "blocks": [
+   "d_006_6"
+  ],
+  "subject": "Two rows of worshippers seen from behind: one row bowing in prayer, the second row standing guard behind them with sheathed swords, no leader visible in frame",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "near-static, only robes stirring in the wind; extremely slow crane up",
+  "tr": "fade",
+  "move3d": "reveal",
+  "energy": 1.15,
+  "ease": "soft",
+  "file": "S06.jpg"
+ },
+ {
+  "id": "S06_7",
+  "blocks": [
+   "d_006_7"
+  ],
+  "subject": "Two rows of worshippers seen from behind: one row bowing in prayer, the second row standing guard behind them with sheathed swords, no leader visible in frame",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "near-static, only robes stirring in the wind; extremely slow crane up",
+  "tr": "fade",
+  "move3d": "crane_up",
+  "energy": 1.15,
+  "ease": "soft",
+  "file": "S06.jpg"
+ },
+ {
+  "id": "S04",
+  "blocks": [
+   "d_004"
+  ],
+  "subject": "The dune ridge at Usfan in hard afternoon light, a single set of hoofprints leading away along the crest",
+  "size": "wide",
+  "angle": "aerial",
+  "light": "golden",
+  "emotion": "awe",
+  "kind": "live",
+  "video_prompt": "slow aerial crane forward along the hoofprints",
+  "tr": "fade",
+  "move3d": "reveal",
+  "energy": 1.2,
+  "ease": "out"
+ },
+ {
+  "id": "S03",
+  "blocks": [
+   "d_003"
+  ],
+  "subject": "Silhouette of the veiled rider from behind, sword still sheathed at his side, sun behind him",
+  "size": "medium",
+  "angle": "low",
+  "light": "golden",
+  "emotion": "revelation",
+  "kind": "live",
+  "hook": true,
+  "video_prompt": "slow dolly in on the sheathed sword hilt, rim light flares softly",
+  "tr": "fadewhite",
+  "move3d": "crane_up",
+  "energy": 1.1,
+  "ease": "out"
  },
  {
   "id": "S07",
@@ -914,6 +968,23 @@
   "tr": "fade"
  },
  {
+  "id": "X101",
+  "blocks": [
+   "d_101"
+  ],
+  "file": "S20.jpg",
+  "subject": "Two men seen from behind sitting at the edge of a dark courtyard at night, one gesturing toward a small rock hollow",
+  "size": "medium",
+  "angle": "over",
+  "light": "night",
+  "emotion": "tension",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "energy": 1.25,
+  "ease": "soft",
+  "tr": "fade"
+ },
+ {
   "id": "S22",
   "blocks": [
    "d_026"
@@ -1033,6 +1104,23 @@
   "energy": 0.8,
   "tr": "fade",
   "file": "S23.jpg"
+ },
+ {
+  "id": "X102",
+  "blocks": [
+   "d_102"
+  ],
+  "file": "S24.jpg",
+  "subject": "An ancient Red Sea harbour in Abyssinia with a wooden ship far off, palms and mudbrick warehouses, seen from a hill",
+  "size": "wide",
+  "angle": "high",
+  "light": "day",
+  "emotion": "tension",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "energy": 1.25,
+  "ease": "soft",
+  "tr": "fade"
  },
  {
   "id": "S24",
@@ -1414,6 +1502,23 @@
   "tr": "fade"
  },
  {
+  "id": "X103",
+  "blocks": [
+   "d_103"
+  ],
+  "file": "S32.jpg",
+  "subject": "Two men seen from behind walking quickly along a Medina lane between mudbrick walls and palm trunks",
+  "size": "medium",
+  "angle": "over",
+  "light": "golden",
+  "emotion": "tension",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "energy": 1.25,
+  "ease": "soft",
+  "tr": "fade"
+ },
+ {
   "id": "S33",
   "blocks": [
    "d_041"
@@ -1552,6 +1657,23 @@
   "file": "S35.jpg"
  },
  {
+  "id": "X104",
+  "blocks": [
+   "d_104"
+  ],
+  "file": "S35.jpg",
+  "subject": "The empty palm-leaf mat in the light shaft, a cloaked man seen from behind kneeling before it with bowed head",
+  "size": "medium",
+  "angle": "high",
+  "light": "interior",
+  "emotion": "tension",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "energy": 1.25,
+  "ease": "soft",
+  "tr": "fade"
+ },
+ {
   "id": "S35b",
   "blocks": [
    "d_045"
@@ -1560,9 +1682,9 @@
   "size": "medium",
   "angle": "high",
   "light": "interior",
-  "emotion": "reflection",
+  "emotion": "aftermath",
   "kind": "kb3d",
-  "move3d": "dolly_in",
+  "move3d": "crane_up",
   "ease": "soft",
   "energy": 0.8,
   "tr": "fade",
@@ -1712,13 +1834,30 @@
   "size": "medium",
   "angle": "eye",
   "light": "interior",
-  "emotion": "reflection",
+  "emotion": "aftermath",
   "kind": "kb3d",
-  "move3d": "dolly_in",
+  "move3d": "crane_up",
   "ease": "soft",
   "energy": 1.1,
   "tr": "fade",
   "file": "S36.jpg"
+ },
+ {
+  "id": "X105",
+  "blocks": [
+   "d_105"
+  ],
+  "file": "S37.jpg",
+  "subject": "The man seen from behind standing among a group of companions also seen from behind in a palm grove, at ease",
+  "size": "wide",
+  "angle": "eye",
+  "light": "golden",
+  "emotion": "tension",
+  "kind": "kb3d",
+  "move3d": "dolly_in",
+  "energy": 1.25,
+  "ease": "soft",
+  "tr": "fade"
  },
  {
   "id": "S37",
