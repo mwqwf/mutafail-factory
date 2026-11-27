@@ -4,6 +4,8 @@ import io
 s = io.open('build_plan.py', encoding='utf-8').read()
 if 'LEVEL_FIX' in s:
     raise SystemExit('patched already')
+s = s.replace("import sfx_cues, image_prompts as ip, motion_plan as mp, casting  # noqa: E402",
+              "import sfx_cues, image_prompts as ip, motion_plan as mp, casting, live_share  # noqa: E402", 1)
 s = s.replace("FAC = '/workspace/mutafail-factory/tools'", "FAC = os.environ.get('MF_TOOLS', '/workspace/mutafail-factory/tools')", 1)
 s = s.replace("bt = sfx_cues.block_times(P, blocks)", "bt = {k: tuple(v) for k, v in json.load(open(os.path.join(P, 'real_timing.json')))['bt'].items()}  # أوقات حقيقية من الصوت المُصيَّر", 1)
 s = s.replace("(58 كتلة، ~7:46)", "(58 كتلة، المدة الحقيقية 8:58 من الصوت المُصيَّر)", 1)
@@ -17,10 +19,9 @@ for _c in CUES['cues']:
         _c['level'] = LEVEL_FIX[_c['id']]
 """
 s = s.replace("json.dump(CUES, open(", trim + "json.dump(CUES, open(", 1)
-fb = """# ── حركة احتياطية قوية للّقطات الحيّة (2026-11-27): GenerateVideo غير متاح للوكيل المنفّذ، فإن غاب المقطع الحيّ
-#    صيّر mont_hybrid اللقطة kb3d بهذه الحركة (عمق وتزيّح قويّان، طاقة أعلى) بدل السكون؛ وحين يصل المقطع الحيّ يُستعمل هو.
-#    ملاحظات المراجعة: S13 وS24 فيهما أشخاص صغار بعيدون مواجهون ⇒ حركة لا تكبّرهم؛ S17 كتابة زائفة ⇒ تُموَّه ولا يُقرَّب منها؛ لا تكبير لوجه.
-LIVE_FALLBACK = {
+fb = """# ── حركة احتياطية للّقطات الحيّة — لا تُطبَّق صامتةً (ثغرة إسلام خالد).
+#    إلا مع ALLOW_LIVE_FALLBACK=1 أو إعفاء live_waivers.json، ومع تحذير واضح.
+LIVE_KB3D_RESERVE = {
  'S01': ('dolly_in', 1.25, 'in'),    'S02': ('truck_r', 1.2, 'soft'),    'S03': ('crane_up', 1.1, 'out'),
  'S04': ('reveal', 1.2, 'out'),      'S05': ('dolly_out', 0.8, 'inout'), 'S06': ('crane_up', 1.15, 'out'),
  'S07': ('dolly_out', 0.8, 'inout'), 'S09': ('truck_l', 1.4, 'soft'),    'S12': ('push_tilt', 1.4, 'soft'),
@@ -32,10 +33,10 @@ LIVE_FALLBACK = {
 QA_FIX = {'S13': {'move3d': 'dolly_out', 'energy': 0.5, 'qa': 'أشخاص صغار بعيدون: لا تقريب'},
           'S24': {'energy': 0.5, 'qa': 'أشخاص صغار بعيدون: لا تقريب'},
           'S17': {'qa': 'كتابة زائفة: الصورة مموّهة في منطقة الرقّ (images_src/ الأصل)'}}
-for _s in SH:
-    if _s['id'] in LIVE_FALLBACK:
-        _s['move3d'], _s['energy'], _s['ease'] = LIVE_FALLBACK[_s['id']]
-    _s.update(QA_FIX.get(_s['id'], {}))
+# لا استيراد صامت: يُفترض أن build_plan استورد live_share
+_applied, _fw = live_share.apply_kb3d_reserve(SH, LIVE_KB3D_RESERVE, waivers=live_share.load_waivers(P))
+for _w in _fw:
+    print(_w, flush=True)
 """
 s = s.replace("json.dump(SH, open(os.path.join(P, 'shots.json')", fb + "json.dump(SH, open(os.path.join(P, 'shots.json')", 1)
 io.open('build_plan.py', 'w', encoding='utf-8').write(s)

@@ -49,7 +49,21 @@ def logo(required=True):
     فكانت الدالّةُ تردّ None عند غيابه، والأدواتُ تتخطّاه صامتةً فيخرج الفيلمُ
     والريلزُ بلا هويّة ولا يعلم أحد. ⇒ الغيابُ صار **سقوطاً صريحاً** لا صمتاً،
     و`required=False` لا تُستعمل إلا في فحصٍ يريد معرفةَ الوجود لا الرسم.
+
+    القناة تُختار بـ MUTAFAIL_CHANNEL (الافتراض history = شعار المعارك assets/logo.png).
     """
+    ch = os.environ.get("MUTAFAIL_CHANNEL", "history") or "history"
+    if ch != "history":
+        import json
+        cfg = os.path.join(_REPO, "ops", "channels", ch, "channel.json")
+        if not os.path.exists(cfg):
+            raise SystemExit("⛔ لا إعداد لشعار القناة %s: %s" % (ch, cfg))
+        with open(cfg, encoding="utf-8") as _cf:
+            asset = json.load(_cf)["logo"]["asset"]
+        p = asset if os.path.isabs(asset) else os.path.join(_REPO, asset)
+        if os.path.exists(p):
+            return p
+        raise SystemExit("⛔ شعار القناة %s غير موجود: %s" % (ch, p))
     # الأصل المعتمد في المستودع يسبق النسخ التاريخية على جهاز المالك.
     for c in (os.path.join(_REPO, "assets", "logo.png"),
               os.path.join(os.path.expanduser("~"), "Desktop", "claude-media", "muw", "logo.png")):
