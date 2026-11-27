@@ -11,7 +11,7 @@
 | `.github/` | 46 |
 | `assets/` | 60 |
 | `docs/` | 6 |
-| `ops/` | 829 |
+| `ops/` | 831 |
 | `payload/` | 9 |
 | `skill/` | 19 |
 | `tools/` | 181 |
