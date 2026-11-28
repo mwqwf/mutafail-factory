@@ -1,11 +1,11 @@
 {
   "channelId": "UCda-VgyvZwAH5_Pl1elVEnw",
-  "approvedAt": "2026-09-25",
-  "source": "image_gen",
-  "note": "اعتمد المالك الهوية وطلب توحيد الأيقونة مع الغلاف وإبراز الشعار",
+  "approvedAt": "2026-11-28",
+  "source": "ops/branding/2026-11-27-v2/battles",
+  "note": "اعتمد المالك هوية v2 للمعارك (ترس وسيفان وشمس صاعدة بلا نص). أصل الإنتاج assets/logo.png يطابق battles_youtube_icon_800x800.png، وwatermark.png تصغير 400×400 من الأيقونة نفسها. الغلاف في الأصول ما زال هوية 25 سبتمبر حتى يُعتمد رفعه في الاستوديو.",
   "assets": {
     "assets/logo.png": {
-      "sha256": "9bff87636e41d6dd8586bab885dd42adf5af4088c32b3605b15526148e57c2fe",
+      "sha256": "bdfe90779551aac75b04ce9dec85bc7599caf112aa4980ce9eb69bfa750b0d63",
       "maxBytes": 15000000
     },
     "assets/branding/banner.jpg": {
@@ -13,8 +13,13 @@
       "maxBytes": 6000000
     },
     "assets/branding/watermark.png": {
-      "sha256": "b94824bc87e677f2201783c12a82da8a9b267f2fa1c0466ca36593a8dbd3bfeb",
+      "sha256": "94e518857ae0574ebfce7b6bddd4854f469fac997c697ee0833596e006b8d64a",
       "maxBytes": 1000000
     }
+  },
+  "retiredLogos": {
+    "9bff87636e41d6dd8586bab885dd42adf5af4088c32b3605b15526148e57c2fe": "أيقونة 25 سبتمبر 2026 (كتاب وشمس ونص المتفائل)",
+    "b94824bc87e677f2201783c12a82da8a9b267f2fa1c0466ca36593a8dbd3bfeb": "علامة يوتيوب المائية 25 سبتمبر 2026",
+    "1dbd0e8e9dd622545f5afeed5a053c34bd2c87f5928c6d63702ab941f03535fe": "أيقونة v1 المرفوضة (حلقة ذهبية)"
   }
 }
