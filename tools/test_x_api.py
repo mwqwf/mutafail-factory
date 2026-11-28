@@ -79,6 +79,108 @@ class TestX(unittest.TestCase):
         self.assertEqual(x.kind({'referenced_tweets': [{'type': 'replied_to', 'id': '1'}]}), 'ردّ')
         self.assertEqual(x.kind({}), 'منشور')
 
+    # ── منع التكرار ──
+    def _fake(self, d, fail_post_status=None, recent=None):
+        """عميلٌ بلا شبكة: يسجّل الطلبات ويحاكي نشراً ينجح أو يفشل بحالةٍ مجهولة."""
+        calls = []
+        state = {'n': 100, 'recent': list(recent or [])}
+
+        def call(method, path, query=None, js=None, multipart=None, cost=0.0, retries=6, idempotent=True):
+            calls.append((method, path, js, idempotent))
+            if path == '/2/users/me':
+                return {'data': {'id': 'U'}}
+            if path.startswith('/2/users/'):
+                return {'data': state['recent']}
+            if path == '/2/tweets':
+                state['n'] += 1
+                tid = str(state['n'])
+                rec = {'id': tid, 'text': js.get('text', '') + ' https://t.co/x', 'created_at': x.now().isoformat()}
+                if js.get('reply'):
+                    rec['referenced_tweets'] = [{'type': 'replied_to', 'id': js['reply']['in_reply_to_tweet_id']}]
+                state['recent'].insert(0, rec)
+                if fail_post_status is not None:
+                    raise x.XError(fail_post_status, 'boom')
+                return {'data': {'id': tid}}
+            raise AssertionError(path)
+        return calls, state, call
+
+    def _run(self, req, posts=None, **kw):
+        d = tempfile.mkdtemp()
+        rq = os.path.join(d, 'r.json')
+        import json
+        json.dump(req, open(rq, 'w', encoding='utf-8'), ensure_ascii=False)
+        if posts is not None:
+            json.dump(posts, open(os.path.join(d, 'posts.json'), 'w', encoding='utf-8'), ensure_ascii=False)
+        calls, state, call = self._fake(d, **kw)
+        orig_env, orig_call, orig_sleep = x.env_keys, x.Client.call, x.time.sleep
+        x.env_keys = lambda: {'bearer': 'T'}
+        x.Client.call = lambda self_, *a, **k: call(*a, **k)
+        x.time.sleep = lambda s: None
+        try:
+            rc = None
+            try:
+                rc = x.cmd_post(type('A', (), {'req': rq, 'dir': d})())
+            except SystemExit as e:
+                rc = str(e)
+        finally:
+            x.env_keys, x.Client.call, x.time.sleep = orig_env, orig_call, orig_sleep
+        posted = [c for c in calls if c[1] == '/2/tweets']
+        return rc, posted, d
+
+    def test_post_not_retried_by_client(self):
+        self.assertTrue(all(c[3] is False for c in self._run({'النص': 'أ', 'الردود': ['ب']})[1]))
+
+    def test_already_logged_skips(self):
+        log = [{'id': '1', 'الطلب': 'r.json', 'الجزء': 0}, {'id': '2', 'الطلب': 'r.json', 'الجزء': 1}]
+        rc, posted, _ = self._run({'النص': 'أ', 'الردود': ['ب']}, posts=log)
+        self.assertEqual((rc, posted), (0, []))
+
+    def test_resume_partial(self):
+        rc, posted, _ = self._run({'النص': 'أ', 'الردود': ['ب', 'ج']}, posts=[{'id': '7', 'الطلب': 'r.json', 'الجزء': 0}])
+        self.assertEqual(rc, 0)
+        self.assertEqual([p[2]['text'] for p in posted], ['ب', 'ج'])
+        self.assertEqual(posted[0][2]['reply']['in_reply_to_tweet_id'], '7')
+
+    def test_same_text_in_account_blocks(self):
+        recent = [{'id': '9', 'text': 'لا تصاميم ولا وعود… https://t.co/a', 'created_at': x.now().isoformat()}]
+        rc, posted, _ = self._run({'النص': 'لا تصاميم  ولا وعود…'}, recent=recent)
+        self.assertIn('لا نشر مكرّر', rc)
+        self.assertEqual(posted, [])
+
+    def test_explicit_repost_allowed(self):
+        recent = [{'id': '9', 'text': 'أ', 'created_at': x.now().isoformat()}]
+        rc, posted, _ = self._run({'النص': 'أ', 'إعادة_النشر': True}, recent=recent)
+        self.assertEqual((rc, len(posted)), (0, 1))
+
+    def test_unknown_5xx_found_in_account(self):
+        # الخادم أخطأ لكنّ المنشور وصل: يُسجَّل ولا يُعاد، وتكمل السلسلة ردّاً عليه
+        import json
+        rc, posted, d = self._run({'النص': 'أ'}, fail_post_status=503)
+        self.assertEqual((rc, len(posted)), (0, 1))
+        self.assertEqual(json.load(open(os.path.join(d, 'posts.json'), encoding='utf-8'))[0]['id'], '101')
+
+    def test_client_no_retry_on_5xx_when_not_idempotent(self):
+        import urllib.error
+        n = {'k': 0}
+
+        def boom(req, timeout=0):
+            n['k'] += 1
+            raise urllib.error.HTTPError(req.full_url, 502, 'bad', {}, io.BytesIO(b'x'))
+        import io
+        orig, orig_sleep = x.urllib.request.urlopen, x.time.sleep
+        x.urllib.request.urlopen, x.time.sleep = boom, (lambda s: None)
+        try:
+            c = x.Client({'bearer': 'T'}, x.Ledger(tempfile.mkdtemp()))
+            with self.assertRaises(x.XError):
+                c.call('POST', '/2/tweets', js={'text': 'أ'}, idempotent=False)
+            self.assertEqual(n['k'], 1)
+            n['k'] = 0
+            with self.assertRaises(x.XError):
+                c.call('GET', '/2/users/me', retries=3)
+            self.assertEqual(n['k'], 3)
+        finally:
+            x.urllib.request.urlopen, x.time.sleep = orig, orig_sleep
+
 
 if __name__ == '__main__':
     unittest.main()
