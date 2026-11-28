@@ -2,14 +2,14 @@
   "channelId": "UCda-VgyvZwAH5_Pl1elVEnw",
   "approvedAt": "2026-11-28",
   "source": "ops/branding/2026-11-27-v2/battles",
-  "note": "اعتمد المالك هوية v2 للمعارك (ترس وسيفان وشمس صاعدة بلا نص). أصل الإنتاج assets/logo.png يطابق battles_youtube_icon_800x800.png، وwatermark.png تصغير 400×400 من الأيقونة نفسها. الغلاف في الأصول ما زال هوية 25 سبتمبر حتى يُعتمد رفعه في الاستوديو.",
+  "note": "اعتمد المالك هوية v2 للمعارك (ترس وسيفان وشمس صاعدة بلا نص). أصل الإنتاج assets/logo.png يطابق battles_youtube_icon_800x800.png، وwatermark.png تصغير 400×400 من الأيقونة نفسها. الغلاف assets/branding/banner.jpg هو غلاف المعارك v2 (ops/branding/2026-11-27-v2/battles/battles_banner_2560x1440.jpg): خلفية ملحمية واسم «المتفائل» وعبارة «معارك الإسلام وبطولات أبطاله» مركّبان بخط أميري ونوتو نسخ. لا يُرفع إلى الاستوديو من هذا الإيداع.",
   "assets": {
     "assets/logo.png": {
       "sha256": "bdfe90779551aac75b04ce9dec85bc7599caf112aa4980ce9eb69bfa750b0d63",
       "maxBytes": 15000000
     },
     "assets/branding/banner.jpg": {
-      "sha256": "48e1603ba6c417816b7a03aebe2ceaaabc58983fcaa3d05ad15919dfab0a4565",
+      "sha256": "a24b8e1a364c4439e9a47a0d93aec53afab38d9872c77352c1393a9844869d85",
       "maxBytes": 6000000
     },
     "assets/branding/watermark.png": {
